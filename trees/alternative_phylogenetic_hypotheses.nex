@@ -1,0 +1,15 @@
+(Outgroup:4, (Ctenophora:3, (Porifera:2, (Cnidaria:1, Bilateria:1):1):1):1);
+(Outgroup:4, (Porifera:3, (Ctenophora:2, (Cnidaria:1, Bilateria:1):1):1):1);
+(Outgroup:3, ((Porifera:1, Ctenophora:1):1, (Cnidaria:1, Bilateria:1):1):1);
+(Outgroup:4, (Ctenophora:3, (Porifera:2, (Cnidaria:1, Bilateria:1):1):0.2):1);
+(Outgroup:4, (Ctenophora:3, (Porifera:2, (Cnidaria:1, Bilateria:1):1):1):1);
+(Outgroup:4, (Ctenophora:3, (Porifera:2, (Cnidaria:1, Bilateria:1):1):3):1);
+(Outgroup:4, (Ctenophora:1, (Porifera:2, (Cnidaria:1, Bilateria:1):1):1):1);
+(Outgroup:4, (Ctenophora:3, (Porifera:2, (Cnidaria:1, Bilateria:1):1):1):1);
+(Outgroup:4, (Ctenophora:5, (Porifera:2, (Cnidaria:1, Bilateria:1):1):1):1);
+(Outgroup:3, ((Porifera:1, Ctenophora:1):0.2, (Cnidaria:1, Bilateria:1):1):1);
+(Outgroup:3, ((Porifera:1, Ctenophora:1):1, (Cnidaria:1, Bilateria:1):1):1);
+(Outgroup:3, ((Porifera:1, Ctenophora:1):3, (Cnidaria:1, Bilateria:1):1):1);
+(Outgroup:3, ((Porifera:1, Ctenophora:0.2):1, (Cnidaria:1, Bilateria:1):1):1);
+(Outgroup:3, ((Porifera:1, Ctenophora:1):1, (Cnidaria:1, Bilateria:1):1):1);
+(Outgroup:3, ((Porifera:1, Ctenophora:2):1, (Cnidaria:1, Bilateria:1):1):1);
