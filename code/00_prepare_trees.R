@@ -11,7 +11,7 @@
 
 repo_dir <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 output_dir <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
-alignment_path <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Metazoa_Choano_RCFV_strict.phy"
+alignment_path <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Whelan2017.Metazoa_Choano_RCFV_strict.aa.alignment.fa"
 models_path <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Metazoa_Choano_RCFV_strict_Models.txt"
 iqtree2 <- "iqtree2"
 
@@ -127,11 +127,15 @@ write(partition_text, file = partition_file_name)
 
 
 #### 6. Estimate hypothesis trees under each constraint tree with the models from the original study ####
+# Prepare IQ-Tree2 command lines
 iqtree_call_1 <- paste0(iqtree2, " -s ", alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_1_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_1_Cten")
 iqtree_call_2 <- paste0(iqtree2, " -s ", alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_2_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_2_Pori")
 iqtree_call_3 <- paste0(iqtree2, " -s ", alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_3_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_3_CtenPori")
+estimate_hypothesis_trees <- c(iqtree_call_1,iqtree_call_2,iqtree_call_3)
 iqtree2_call_file_name <- paste0(output_dir, "Whelan2017_hypothesis_tree_iqtree2_commands.txt")
-write(c(iqtree_call_1,iqtree_call_2,iqtree_call_3), file = iqtree2_call_file_name)
+write(estimate_hypothesis_trees, file = iqtree2_call_file_name)
+# Call IQ-Tree2
+system(estimate_hypothesis_trees)
 
 
 
