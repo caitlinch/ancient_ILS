@@ -31,15 +31,15 @@ source(paste0(repo_dir, "code/func_simulations.R"))
 # Prepare the three sets of simulations separately
 sim_df_1 <- as.data.frame(expand.grid(replicates = c(1,2,3,4,5,6,7,8,9,10), branch_a_percent_height = 5.8, 
                                     branch_b_percent_height = c(10,20,30,40,50,60,70), hypothesis_tree = c(1,2,3)))
-sim_df_1$simulation_type = "LBA"
+sim_df_1$simulation_type = "LBA" # vary branch b
 sim_df_1$simulation_number = "sim1"
 sim_df_2 <- as.data.frame(expand.grid(replicates = c(1,2,3,4,5,6,7,8,9,10), branch_a_percent_height = c(5,20,15,20,25,30,35,40), 
                                       branch_b_percent_height = 38.5, hypothesis_tree = c(1,2,3)))
-sim_df_2$simulation_type = "ILS"
+sim_df_2$simulation_type = "ILS" # vary branch a
 sim_df_2$simulation_number = "sim2"
 sim_df_3 <- as.data.frame(expand.grid(replicates = c(1,2,3,4,5,6,7,8,9,10), branch_a_percent_height = c(5,20,15,20,25,30,35,40), 
                                       branch_b_percent_height = c(10,20,30,40,50,60,70), hypothesis_tree = c(1,2,3)))
-sim_df_3$simulation_type = "LBA+ILS"
+sim_df_3$simulation_type = "LBA+ILS" # vary branch a and branch b
 sim_df_3$simulation_number = "sim3"
 # Collate the three sets of simulations into a single dataframe
 sim_df <- rbind(sim_df_1,sim_df_2, sim_df_3)
@@ -66,7 +66,7 @@ sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 3)] <- paste0(hypoth
 # Add an ID column
 sim_df$ID <- paste0(sim_df$simulation_number, "_h", sim_df$hypothesis_tree, "_a", sim_df$branch_a_percent_height, "_b", sim_df$branch_b_percent_height, "_rep", sim_df$replicates)
 # Add separate output folder for each rep
-sim_df$output_folder <- paste0(output_dir, sim_df$ID)
+sim_df$output_folder <- paste0(output_dir, sim_df$ID, "/")
 # Reorder columns
 sim_df <- sim_df[,c("ID", "dataset", "dataset_type", "num_taxa", "num_genes", "gene_length", "num_sites", "tree_length",
                     "branch_a_empirical_length", "branch_b_empirical_length", "simulation_number", "simulation_type",
