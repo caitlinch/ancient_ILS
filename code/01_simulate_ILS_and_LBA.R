@@ -9,6 +9,7 @@
 # alignment_path      <- path to the alignment from Whelan et al. 2017 for the alignment Metazoa_Choano_RCFV_strict
 # partition_path      <- path to the partition file for the alignment Metazoa_Choano_RCFV_strict (created in script 00_prepare_trees.R)
 # iqtree2             <- path to iqtree2 version 2.2.2
+# ms                  <- path to ms executable
 
 repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 hypothesis_tree_dir   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
@@ -17,6 +18,7 @@ output_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simu
 alignment_path        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Whelan2017.Metazoa_Choano_RCFV_strict.aa.alignment.fa"
 partition_path        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/Whelan2017_models_partitions.nex"
 iqtree2               <- "iqtree2"
+ms                    <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
 
 
 
@@ -53,7 +55,8 @@ sim_df$num_sites <- 49388
 sim_df$gene_length <- "From alignment"
 sim_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
 sim_df$dataset_type <- "Protein"
-# Add path for iqtree2
+# Add path for executables
+sim_df$ms <- ms
 sim_df$iqtree2 <- iqtree2
 # Add the hypothesis tree name in a new column
 sim_df$hypothesis_tree_file <- as.character(sim_df$hypothesis_tree)
@@ -68,7 +71,7 @@ sim_df$output_folder <- paste0(output_dir, sim_df$ID)
 sim_df <- sim_df[,c("ID", "dataset", "dataset_type", "num_taxa", "num_genes", "gene_length", "num_sites", "tree_length",
                     "branch_a_empirical_length", "branch_b_empirical_length", "simulation_number", "simulation_type",
                     "hypothesis_tree", "hypothesis_tree_file", "branch_a_percent_height", "branch_a_simulation_length",
-                    "branch_b_percent_height", "branch_b_simulation_length", "replicates", "output_folder", "iqtree2")]
+                    "branch_b_percent_height", "branch_b_simulation_length", "replicates", "output_folder", "ms", "iqtree2")]
 # Save the dataframe
 sim_df_op_file <- paste0(output_dir, "ancientILS_simulation_parameters.csv")
 write.csv(sim_df, file = sim_df_op_file)
