@@ -55,19 +55,22 @@ sim_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
 sim_df$dataset_type <- "Protein"
 # Add the hypothesis tree name in a new column
 sim_df$hypothesis_tree_file <- as.character(sim_df$hypothesis_tree)
-sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 1)] <- "Whelan2017_hypothesis_tree_1_Cten.treefile"
-sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 2)] <- "Whelan2017_hypothesis_tree_2_Pori.treefile"
-sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 3)] <- "Whelan2017_hypothesis_tree_3_CtenPori.treefile"
+sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_1_Cten.treefile")
+sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_2_Pori.treefile")
+sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 3)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_3_CtenPori.treefile")
 # Add an ID column
 sim_df$ID <- paste0(sim_df$simulation_number, "_h", sim_df$hypothesis_tree, "_a", sim_df$branch_a_percent_height, "_b", sim_df$branch_b_percent_height, "_rep", sim_df$replicates)
+# Add separate output folder for each rep
+sim_df$output_folder <- paste0(output_dir, sim_df$ID)
 # Reorder columns
 sim_df <- sim_df[,c("ID", "dataset", "dataset_type", "num_taxa", "num_genes", "gene_length", "num_sites", "tree_length",
                     "branch_a_empirical_length", "branch_b_empirical_length", "simulation_number", "simulation_type",
                     "hypothesis_tree", "hypothesis_tree_file", "branch_a_percent_height", "branch_a_simulation_length",
-                    "branch_b_percent_height", "branch_b_simulation_length", "replicates")]
+                    "branch_b_percent_height", "branch_b_simulation_length", "replicates", "output_folder")]
 # Save the dataframe
 sim_df_op_file <- paste0(output_dir, "ancientILS_simulation_parameters.csv")
 write.csv(sim_df, file = sim_df_op_file)
+
 
 
 
