@@ -53,6 +53,8 @@ sim_df$num_sites <- 49388
 sim_df$gene_length <- "From alignment"
 sim_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
 sim_df$dataset_type <- "Protein"
+# Add path for iqtree2
+sim_df$iqtree2 <- iqtree2
 # Add the hypothesis tree name in a new column
 sim_df$hypothesis_tree_file <- as.character(sim_df$hypothesis_tree)
 sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_1_Cten.treefile")
@@ -66,7 +68,7 @@ sim_df$output_folder <- paste0(output_dir, sim_df$ID)
 sim_df <- sim_df[,c("ID", "dataset", "dataset_type", "num_taxa", "num_genes", "gene_length", "num_sites", "tree_length",
                     "branch_a_empirical_length", "branch_b_empirical_length", "simulation_number", "simulation_type",
                     "hypothesis_tree", "hypothesis_tree_file", "branch_a_percent_height", "branch_a_simulation_length",
-                    "branch_b_percent_height", "branch_b_simulation_length", "replicates", "output_folder")]
+                    "branch_b_percent_height", "branch_b_simulation_length", "replicates", "output_folder", "iqtree2")]
 # Save the dataframe
 sim_df_op_file <- paste0(output_dir, "ancientILS_simulation_parameters.csv")
 write.csv(sim_df, file = sim_df_op_file)
