@@ -109,8 +109,13 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
   # Determine the nodes that lead to non-terminal branches {e.g. which(node.depth(t) != 1) }
   nodes <- (ntaxa+1):(ntaxa+base_tree$Nnode)
   # Extract information about all clades from tree
-  node_df <- do.call(rbind.data.frame, lapply(nodes, extract.clade.from.node, tree = base_tree))
+  node_df <- do.call(rbind.data.frame, lapply(nodes, find.branching.times, tree = base_tree))
   names(node_df) <- c("node", "tip_names", "tip_numbers", "ms_tip_order", "ntips", "ndepth", "max_branching_time", "removed_taxa", "ms_input")
+  # Order by descending branching time
+  node_df <- node_df[order(node_df$max_branching_time, decreasing = TRUE),]
+  # Add coalescent times in descending order and reorder columns
+  node_df$coalescence_time <- ms_coal_ints
+  node_df <- node_df[,c("node", "tip_names", "tip_numbers", "ms_tip_order", "ntips", "ndepth", "max_branching_time", "coalescence_time", "removed_taxa", "ms_input")]
   # Format coalescences for ms input
   node_df <- determine.coalescence.taxa(node_df)
   # Create a new column containing -ej event for each row
@@ -142,7 +147,38 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
 
 
 
-extract.clade.from.node <- function(node, tree, coalescent_times){
+extract.clade.from.node <- function(node, tree){
+  ## Small function to take a node, extract the clade from that node, and return the number and names of taxa in that node
+  
+  # Extract clade
+  clade <- extract.clade(tree, node)
+  # Extract information about clade
+  tip_names <- clade$tip.label
+  tip_numbers <- gsub("t", "", tip_names)
+  tip_order <- tip_numbers[order(as.numeric(tip_numbers), decreasing = TRUE)]
+  ntips <- length(clade$tip.label)
+  # Determine depth of this node (how many species does this node contain)
+  ndepth <- node.depth(tree)[node]
+  # Determine the maximum branching time associated with this node
+  max_branching_time <- max(branching.times(clade))
+  # Determine which taxa to remove
+  if (ndepth == 2){
+    removed_taxa = tip_order[1]
+    ms_input = paste0(tip_order[1], " ", tip_order[2])
+  } else {
+    removed_taxa = NA
+    ms_input = NA
+  }
+  # Assemble results into a vector
+  o <- c(node = node, tip_names = paste(tip_names, collapse = ","), tip_numbers = paste(tip_numbers, collapse = ","), 
+         ms_tip_order = paste(tip_order, collapse = ","), ntips = ntips, ndepth = ndepth, max_branching_time = max_branching_time,
+         removed_taxa = removed_taxa, ms_input = ms_input)
+  # Return vector
+  return(o)
+}
+
+
+find.branching.times <- function(node, tree){
   ## Small function to take a node, extract the clade from that node, and return the number and names of taxa in that node
   
   # Extract clade
