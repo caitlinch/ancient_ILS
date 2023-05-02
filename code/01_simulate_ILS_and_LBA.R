@@ -23,3 +23,6 @@ source(paste0(repo_dir, "code/func_prepare_trees.R"))
 
 
 #### 3. Prepare simulation dataframe ####
+sim_df <- as.data.frame(expand.grid(replicates = c(1,2,3,4,5,6,7,8,9,10), branch_a = c(5,20,15,20,25,30,35), branch_b = c(10,20,30,40,50,60,70), hypothesis_tree = c(1,2,3)))
+sim_df <- sim_df[,c("hypothesis_tree", "branch_a", "branch_b", "replicates")]
+                        
