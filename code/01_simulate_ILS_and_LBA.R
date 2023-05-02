@@ -27,10 +27,29 @@ source(paste0(repo_dir, "code/func_simulations.R"))
 
 
 
-#### 3. Prepare simulation dataframe ####
+#### 3. Create new shorter tip names ####
+original_taxa <- c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex",
+                   "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
+                   "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
+                   "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla", "Trichoplax_adhaerens", "Cliona_varians", "Sycon_coactum", 
+                   "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum", "Aphrocallistes_vastus", "Rossella_fibulata",
+                   "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica", "Petrosia_ficiformis", "Spongilla_lacustris",
+                   "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", "Crella_elegans", "Kirkpatrickia_variolosa", 
+                   "Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus",
+                   "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
+                   "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
+                   "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
+                   "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
+                   "Ctenophora_sp_Florida_USA","Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
+renamed_taxa <- paste0("t", 1:length(original_taxa))
+names(renamed_taxa) <- original_taxa
+
+
+
+#### 4. Prepare simulation dataframe ####
 # Prepare the three sets of simulations separately
 sim_df_1 <- as.data.frame(expand.grid(replicates = c(1,2,3,4,5,6,7,8,9,10), branch_a_percent_height = 5.8, 
-                                    branch_b_percent_height = c(10,20,30,40,50,60,70), hypothesis_tree = c(1,2,3)))
+                                      branch_b_percent_height = c(10,20,30,40,50,60,70), hypothesis_tree = c(1,2,3)))
 sim_df_1$simulation_type = "LBA" # vary branch b
 sim_df_1$simulation_number = "sim1"
 sim_df_2 <- as.data.frame(expand.grid(replicates = c(1,2,3,4,5,6,7,8,9,10), branch_a_percent_height = c(5,20,15,20,25,30,35,40), 
@@ -80,4 +99,3 @@ write.csv(sim_df, file = sim_df_op_file)
 
 
 
-                        
