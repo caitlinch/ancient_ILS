@@ -5,26 +5,8 @@
 library(ape)
 library(phytools)
 
-run.one.simulation <- function(sim_row){
+run.one.simulation <- function(sim_row, renamed_taxa){
   # Function to take one row from the simulation parameters dataframe and run start to finish
-  
-  # Find the nodes for the branch depending on which tree is being used
-  if (basename(sim_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_1_Cten.treefile"){
-    a_start = 91
-    a_end = 90
-    b_start = 91
-    b_end = 92
-  } else if (basename(sim_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_2_Pori.treefile"){
-    a_start = NA
-    a_end = NA
-    b_start = NA
-    b_end = NA
-  } else if (basename(sim_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_3_CtenPori.treefile"){
-    a_start = NA
-    a_end = NA
-    b_start = NA
-    b_end = NA
-  }
   
   # Create the folder for this replicate
   if (dir.exists(sim_row$output_folder) == FALSE){
@@ -96,26 +78,30 @@ run.one.simulation <- function(sim_row){
   }
   # Scale rooted tree to be tree age (reset impacts from modifying branch lengths)
   rooted_tree$edge.length <- rooted_tree$edge.length * (sim_row$tree_length / max(branching.times(rooted_tree)))
+  # Make the tree ultrametric
+  rooted_tree <- force.ultrametric(rooted_tree, method = "extend")
   # Save the tree
   write.tree(rooted_tree, file = hyp_tree_file)
   
   # Write the tree in ms command line format
   ms_files <- ms.generate.trees(unique_id = sim_row$ID, base_tree = rooted_tree, ntaxa = sim_row$num_taxa, 
-                                ntrees = sim_row$num_genes, tree_depth = sim_row$tree_length, 
-                                output_directory = sim_row$output_folder, ms_path = sim_row$ms)
+                                ntrees = sim_row$num_genes, output_directory = sim_row$output_folder, ms_path = sim_row$ms)
   
 }
 
 
 
 #### Functions for ms ####
-ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, tree_depth, output_directory, ms_path = "ms"){
+ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_directory, ms_path = "ms", renamed_taxa){
   ## Randomly generate a tree with n taxa; format into an ms command and run ms; generate and save the resulting gene trees
   
   ## Generate file paths using the unique id
   t_path <- paste0(output_directory, unique_id, "_starting_tree.txt")
   ms_op_path <- paste0(output_directory, unique_id, "_ms_output.txt")
   ms_gene_trees_path <- paste0(output_directory, unique_id, "_ms_gene_trees.txt")
+  
+  ## Rename taxa to short versions
+  base_tree$tip.label <- unlist(lapply(base_tree$tip.label, function(x){renamed_taxa[[x]]}))
   
   ## Convert the tree into the format for ms
   # Calculate times for ms -ej commands by finding coalescence times (coalescent intervals found using ape::coalescent.intervals)
@@ -136,10 +122,10 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, tree_depth, o
   all_ej <- paste(node_df$ej, collapse = " ")
   # Construct the ms command line using the -ej events
   coal_call <- paste0(ms_path, " ", ntaxa, " ", ntrees, " -T -I ", ntaxa," ", paste(rep(1, ntaxa), collapse = " "), " ", all_ej)
-  # Write all output to file
-  write(ms_op, file = ms_op_path)
   # Call ms
   ms_op <- system(coal_call, intern = TRUE)
+  # Write all output to file
+  write(ms_op, file = ms_op_path)
   
   ## Format and save gene trees
   # Remove non-gene tree lines from the ms output
