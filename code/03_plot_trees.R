@@ -1,6 +1,6 @@
 # ancient_ILS/code/03_plot_trees.R
 ## This script plots and outputs phylogenetic tree figures
-# Caitlin Cherryh, 2022
+# Caitlin Cherryh, 2023
 
 #### 1. Input parameters ####
 # repo_dir            <- Location of caitlinch/ancient_ILS github repository
