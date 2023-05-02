@@ -5,18 +5,20 @@
 #### 1. Input parameters ####
 # repo_dir            <- Location of caitlinch/ancient_ILS github repository
 # output_dir          <- directory to save output
-# alignment_path      <- path to the alignment from Whelan et al. 2017
+# alignment_path      <- path to the alignment from Whelan et al. 2017 for the alignment Metazoa_Choano_RCFV_strict
+# models_path         <- path to the models and genes from Whelan et al. 2017 for the alignment Metazoa_Choano_RCFV_strict
 # iqtree2             <- path to iqtree2 version 2.2.2
 
 repo_dir <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 output_dir <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
 alignment_path <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Metazoa_Choano_RCFV_strict.phy"
+models_path <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Metazoa_Choano_RCFV_strict_Models.txt"
 iqtree2 <- "iqtree2"
 
 
 
 #### 2. Open packages and functions ####
-
+source(paste0(repo_dir, "code/func_prepare_trees.R"))
 
 
 
@@ -49,6 +51,87 @@ whelan2017_list <- list("Bilateria" = c("Homo_sapiens", "Strongylocentrotus_purp
                         "Estimate.Paraphyletic.Sponges" = TRUE)
 
 
+
+#### 4. Construct constraint trees ####
+# Generate file names for all 5 constraint trees
+constraint_tree_1_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_1_Cten.nex")
+constraint_tree_2_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_2_Pori.nex")
+constraint_tree_3_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_3_CtenPori.nex")
+
+# Split the taxa into clades
+outgroup_taxa = whelan2017_list$Outgroup
+ctenophora_taxa = whelan2017_list$Ctenophora
+porifera_taxa = whelan2017_list$Porifera
+sponges_1_taxa = as.character(unlist(whelan2017_list[c(whelan2017_list$Sponges_1)]))
+sponges_2_taxa = as.character(unlist(whelan2017_list[c(whelan2017_list$Sponges_2)])) 
+placozoa_taxa = whelan2017_list$Placozoa
+cnidaria_taxa = whelan2017_list$Cnidaria
+bilateria_taxa = whelan2017_list$Bilateria
+
+# Format the outgroup clades nicely
+outgroup_taxa_formatted <- format.constraint.tree.clade(outgroup_taxa)
+ctenophora_taxa_formatted <- format.constraint.tree.clade(ctenophora_taxa)
+porifera_taxa_formatted <- format.constraint.tree.clade(porifera_taxa)
+ctenophora_porifera_taxa_formatted <- format.constraint.tree.clade(c(ctenophora_taxa, porifera_taxa))
+sponges_1_taxa_formatted <- format.constraint.tree.clade(sponges_1_taxa)
+sponges_2_taxa_formatted <- format.constraint.tree.clade(sponges_2_taxa)
+placozoa_taxa_formatted <- format.constraint.tree.clade(placozoa_taxa)
+cnidaria_taxa_formatted <- format.constraint.tree.clade(cnidaria_taxa)
+bilateria_taxa_formatted <- format.constraint.tree.clade(bilateria_taxa)
+cnidaria_bilateria_taxa_formatted <- format.constraint.tree.clade(c(cnidaria_taxa, bilateria_taxa))
+
+# Construct the constraint trees:
+## Hypothesis 1: Ctenophora-sister
+# Tree: (outgroup_taxa, (ctenophora_taxa, (porifera_taxa, (cnidaria_taxa, bilateria_taxa))));
+constraint_tree_1 <- paste0("(", outgroup_taxa_formatted, ", (", ctenophora_taxa_formatted, ", (", porifera_taxa_formatted, ", ", cnidaria_bilateria_taxa_formatted, ")));")
+write(constraint_tree_1, file = constraint_tree_1_file_name)
+
+## Hypothesis 2: Porifera-sister
+# Tree: (outgroup_taxa, (porifera_taxa, (ctenophora_taxa, (cnidaria_taxa, bilateria_taxa))));
+constraint_tree_2 <- paste0("(", outgroup_taxa_formatted, ", (", porifera_taxa_formatted, ", (", ctenophora_taxa_formatted, ", ", cnidaria_bilateria_taxa_formatted, ")));")
+write(constraint_tree_2, file = constraint_tree_2_file_name)
+
+## Hypothesis 3: (Ctenophore+Porifera)-sister
+# Tree: (outgroup_taxa, ((porifera_taxa, ctenophora_taxa), (cnidaria_taxa, bilateria_taxa)));
+constraint_tree_3 <- paste0("(", outgroup_taxa_formatted, ", ((", ctenophora_taxa_formatted, ", ", porifera_taxa_formatted, "), ", cnidaria_bilateria_taxa_formatted, "));")
+write(constraint_tree_3, file = constraint_tree_3_file_name)
+
+
+
+#### 5. Construct partition file ####
+# Open the file
+model_lines <- readLines(models_path)
+# Format the text from the model lines file
+split_model_lines <- lapply(model_lines, partition.one.model.line)
+split_model_df <- as.data.frame(do.call(rbind,split_model_lines))
+names(split_model_df) <- c("model", "subset", "sites")
+split_model_df$model <- gsub(" ","", split_model_df$model)
+split_model_df$subset <- gsub(" ","", split_model_df$subset)
+split_model_df$sites <- gsub(" ","", split_model_df$sites)
+# Correct model names to align with IQ-Tree naming conventions
+split_model_df$model <- gsub("BLOSUM62", "Blosum62", split_model_df$model)
+split_model_df$model <- gsub("JTTDCMUT", "JTTDCMut", split_model_df$model)
+split_model_df$model <- gsub("LGF", "'LG+F'", split_model_df$model)
+# Construct the charsets 
+charsets <- paste0("\tcharset ",split_model_df$subset, " = ", split_model_df$sites, ";")
+# Construct the charpartition
+charpartition_chunks <- paste0(split_model_df$model, ":", split_model_df$subset)
+charpartition_chunks_pasted <- paste(charpartition_chunks, collapse = ", ")
+charpartition <- paste0("\tcharpartition mine = ", charpartition_chunks_pasted, ";")
+# Construct the partition file
+partition_text <- c("#nexus", "begin sets;", charsets, charpartition, "end;","")
+# Save the partition file
+partition_file_name <- paste0(output_dir, "Whelan2017_models_partitions.nex")
+write(partition_text, file = partition_file_name)
+
+
+
+#### 6. Estimate hypothesis trees under each constraint tree with the models from the original study ####
+iqtree_call_1 <- paste0(iqtree2, " -s ", alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_1_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_1_Cten")
+iqtree_call_2 <- paste0(iqtree2, " -s ", alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_2_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_2_Pori")
+iqtree_call_3 <- paste0(iqtree2, " -s ", alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_3_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_3_CtenPori")
+iqtree2_call_file_name <- paste0(output_dir, "Whelan2017_hypothesis_tree_iqtree2_commands.txt")
+write(c(iqtree_call_1,iqtree_call_2,iqtree_call_3), file = iqtree2_call_file_name)
 
 
 
