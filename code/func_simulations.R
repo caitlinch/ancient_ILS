@@ -6,6 +6,16 @@ library(ape)
 library(phytools)
 
 #### Functions to run the simulation pipeline ####
+generate.one.alignment.wrapper <- function(row_id, sim_df, renamed_taxa, partition_path, gene_models, rerun = FALSE){
+  # Wrapper to easily run generate.one.alignment via dataframe rows
+  
+  # Apply generate.one.alignment to a single row
+  id_row <- sim_df[row_id,]
+  output <- generate.one.alignment(sim_row = id_row, renamed_taxa = renamed_taxa, partition_path = partition_path, gene_models = gene_models, rerun = rerun)
+  # Return output
+  return(output)
+}
+
 generate.one.alignment <- function(sim_row, renamed_taxa, partition_path, gene_models, rerun = FALSE){
   # Function to take one row from the simulation parameters dataframe and run start to finish
   
