@@ -413,3 +413,19 @@ check.coalesced <- function(test_taxon, coalesced_taxa, df){
   return(op)
 }
 
+
+
+#### Functions for IQ-Tree and Alisim ####
+alisim.topology.unlinked.partition.model <- function(iqtree_path, output_alignment_path, partition_file_path, trees_path, 
+                                                     output_format = "fasta", sequence_type = "DNA"){
+  # This function uses the topology-unlinked partition model in Alisim to generate a sequence alignment
+  #     containing multiple concatenated genes, each with its own tree topology and branch lengths
+  
+  # Assemble function call 
+  function_call <- paste0(iqtree_path, " --alisim ", output_alignment_path, " -Q ", partition_file_path, 
+                          " -t ", trees_path, " --seqtype ", sequence_type, " -af ", output_format)
+  # Invoke the OS command and call IQ-Tree
+  system(function_call)
+}
+
+
