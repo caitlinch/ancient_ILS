@@ -112,7 +112,8 @@ write(constraint_tree_3, file = constraint_tree_3_file_name)
 
 
 
-#### 6. Construct partition file ####
+#### 6. Construct partition file and get gene lengths ####
+# Make partition file for IQ-Tree2
 # Open the file
 model_lines <- readLines(models_path)
 # Format the text from the model lines file
@@ -138,6 +139,23 @@ partition_text <- c("#nexus", "begin sets;", charsets, charpartition, "end;","")
 partition_file_name <- paste0(output_dir, "Whelan2017_models_partitions.nex")
 write(partition_text, file = partition_file_name)
 
+# Extract gene lengths
+gene_partitions <- split_model_df$sites
+gene_partition_chunks <- unlist(strsplit(gene_partitions, ","))
+gene_start <- as.numeric(unlist(lapply(strsplit(gene_partition_chunks, "-"), function(x){x[1]})))
+gene_end <- as.numeric(unlist(lapply(strsplit(gene_partition_chunks, "-"), function(x){x[2]})))
+gene_df <- data.frame(gene_range = gene_partition_chunks, gene_start = gene_start, gene_end = gene_end)
+gene_df$gene_length <- gene_end - (gene_start - 1) # subtract one from gene_start to count the starting site in the gene length
+gene_df <- gene_df[order(gene_df$gene_start, decreasing = FALSE),]
+rownames(gene_df) <- 1:nrow(gene_df)
+# Check whether output file exists for repository
+repo_output <- paste0(repo_dir, "output/")
+if (dir.exists(repo_output) == FALSE){
+  dir.create(repo_output)
+}
+# Save gene length dataframe
+gl_file <- paste0(repo_output, "Whelan2017.Metazoa_Choano_RCFV_strict.gene_lengths.csv")
+write.csv(gene_df, file = gl_file)
 
 
 #### 7. Estimate hypothesis trees under each constraint tree with the models from the original study ####
