@@ -23,8 +23,8 @@ iqtree2               <- "iqtree2"
 ms                    <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
 
 ## Phylogenetic parameters
-#alisim_gene_models <- "'WAG+C60+R4'" # Most common model for this dataset when allowing any model in Redmond and McLysaght (2021)
-alisim_gene_models <- "LG" # simple test model
+alisim_gene_models <- "'WAG+C60+R4'" # Most common model for this dataset when allowing any model in Redmond and McLysaght (2021)
+
 
 
 #### 2. Open packages and functions ####
@@ -110,7 +110,7 @@ if (file.exists(sim_df_op_file) == TRUE){
 # generate.one.alignment(sim_row = sim_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
 # To generate all simulated alignments
 output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, 
-                      partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
+                      partition_path = partition_path, gene_models = alisim_gene_models, rerun = TRUE)
 
 
 
