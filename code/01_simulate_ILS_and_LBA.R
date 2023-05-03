@@ -106,7 +106,13 @@ if (file.exists(sim_df_op_file) == TRUE){
 
 
 #### 5. Generate simulated alignments ####
-sim_row <- sim_df[1,]
-generate.one.alignment(sim_row = sim_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
+# # To generate one simulated alignment
+# generate.one.alignment(sim_row = sim_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
+# To generate all simulated alignments
+output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, 
+                      partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
+
+
+
 
 
