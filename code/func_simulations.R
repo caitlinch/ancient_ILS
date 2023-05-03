@@ -6,14 +6,14 @@ library(ape)
 library(phytools)
 
 #### Functions to run the simulation pipeline ####
-run.one.simulation <- function(sim_row, renamed_taxa){
+run.one.simulation <- function(sim_row, renamed_taxa, gene_models){
   # Function to take one row from the simulation parameters dataframe and run start to finish
   
   ## Create the folder for this replicate
   if (dir.exists(sim_row$output_folder) == FALSE){
     dir.create(sim_row$output_folder)
   }
-
+  
   ## Modify the branch lengths of the starting tree based on the simulation parameters
   # Copy the hypothesis tree to the folder
   hyp_tree_file = paste0(sim_row$output_folder, sim_row$ID, "_hypothesis_tree.treefile")
@@ -27,6 +27,8 @@ run.one.simulation <- function(sim_row, renamed_taxa){
   ms_files <- ms.generate.trees(unique_id = sim_row$ID, base_tree = rooted_tree, ntaxa = sim_row$num_taxa, 
                                 ntrees = sim_row$num_genes, output_directory = sim_row$output_folder, 
                                 ms_path = sim_row$ms, renamed_taxa = renamed_taxa)
+  
+  ## Generate DNA data using Alisim in IQ-Tree
   
 }
 
@@ -61,9 +63,9 @@ manipulate.branch.lengths <- function(starting_tree, parameters_row){
     b_start <- rooted_tree$edge[which(rooted_tree$edge[,2] == b_end),1]
   } else if (basename(parameters_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_2_Pori.treefile"){
     a_end <- getMRCA(rooted_tree, c("Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum",
-                                       "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica",
-                                       "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", 
-                                       "Crella_elegans", "Kirkpatrickia_variolosa"))
+                                    "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica",
+                                    "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", 
+                                    "Crella_elegans", "Kirkpatrickia_variolosa"))
     a_start <- rooted_tree$edge[which(rooted_tree$edge[,2] == a_end),1]
     b_end <- getMRCA(rooted_tree, c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus",
                                     "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
@@ -415,19 +417,49 @@ check.coalesced <- function(test_taxon, coalesced_taxa, df){
 
 
 
-#### Functions for IQ-Tree and Alisim ####
-partition.random.trees <- function(num_trees, al_length, sequence_type, models = NA, rescaled_tree_lengths = NA, output_filepath){
+#### Functions for partition files ####
+extract.genes.from.partition.file <- function(partition_path, return.dataframe = FALSE){
+  # Small function to take a partition file and return a list of gene lengths
+  
+  # Open the partition file
+  p_lines <- readLines(partition_path)
+  charset_lines <- grep("charset", p_lines, value = TRUE)
+  # Get only the gene parts of the charset lines
+  gene_subsets <- unlist(lapply(strsplit(charset_lines,"="), function(x){x[2]}))
+  # Remove empty spaces and semi-colons
+  gene_subsets <- gsub(" ", "", gene_subsets)
+  gene_subsets <- gsub(";", "", gene_subsets)
+  # Split into individual gene chunks
+  gene_ranges <- unlist(strsplit(gene_subsets,","))
+  # Get start and end of each gene
+  gene_start <- as.numeric(unlist(lapply(strsplit(gene_ranges, "-"), function(x){x[1]})))
+  gene_end <- as.numeric(unlist(lapply(strsplit(gene_ranges, "-"), function(x){x[2]})))
+  # Assemble gene start and end points into a df
+  gene_df <- data.frame(gene_range = gene_ranges, gene_start = gene_start, gene_end = gene_end)
+  # Calculate the gene length for each gene
+  gene_df$gene_length <- gene_end - (gene_start - 1) # subtract one from gene_start to count the starting site in the gene length
+  # Sort the loci in order
+  gene_df <- gene_df[order(gene_df$gene_start, decreasing = FALSE),]
+  rownames(gene_df) <- 1:nrow(gene_df)
+  # Prepare output
+  if (return.dataframe == TRUE){
+    # Return the dataframe
+    output <- gene_df
+  } else if (return.dataframe == FALSE){
+    # Return just the gene lengths
+    output <- gene_df$gene_range
+  }
+  # Return output
+  return(output)
+}
+
+partition.gene.trees <- function(num_trees, gene_ranges, sequence_type, models = NA, rescaled_tree_lengths = NA, output_filepath){
   # This function generates a charpartition file for n genes (where n is num_trees) of length al_length/n 
   
+  # Create gene names
+  gene_names <- paste0("gene_", 1:length(gene_ranges))
   # Generate charsets
-  # Find start and end point of each gene in the total alignment length
-  gene_start_points <- seq(1, al_length, (al_length/num_trees))
-  gene_end_points <- seq((al_length/num_trees), al_length, (al_length/num_trees))
-  # Name genes
-  gene_names <- sprintf("gene_%05d",1:num_trees)
-  # Paste arguments together into charset lines
-  csets <- paste0("\tcharset ", gene_names, " = ", sequence_type, ", ", format(gene_start_points, scientific = FALSE, trim = TRUE), "-", 
-                  format(gene_end_points, scientific = FALSE, trim = TRUE), ";")
+  csets <- paste0("\t charset ", gene_names, " = AA, ", gene_ranges, ";")
   
   # Generate model arguments
   if (!is.na(models) == TRUE){
@@ -455,6 +487,9 @@ partition.random.trees <- function(num_trees, al_length, sequence_type, models =
   write(c_file, file = output_filepath)
 }
 
+
+
+#### Functions for IQ-Tree and Alisim ####
 alisim.topology.unlinked.partition.model <- function(iqtree_path, output_alignment_path, partition_file_path, trees_path, 
                                                      output_format = "fasta", sequence_type = "DNA"){
   # This function uses the topology-unlinked partition model in Alisim to generate a sequence alignment
