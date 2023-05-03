@@ -142,9 +142,9 @@ write(partition_text, file = partition_file_name)
 
 #### 7. Estimate hypothesis trees under each constraint tree with the models from the original study ####
 # Prepare IQ-Tree2 command lines
-iqtree_call_1 <- paste0(iqtree2, " -s ", alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_1_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_1_Cten")
-iqtree_call_2 <- paste0(iqtree2, " -s ", alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_2_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_2_Pori")
-iqtree_call_3 <- paste0(iqtree2, " -s ", alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_3_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_3_CtenPori")
+iqtree_call_1 <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_1_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_1_Cten")
+iqtree_call_2 <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_2_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_2_Pori")
+iqtree_call_3 <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_3_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_3_CtenPori")
 estimate_hypothesis_trees <- c(iqtree_call_1,iqtree_call_2,iqtree_call_3)
 iqtree2_call_file_name <- paste0(output_dir, "Whelan2017_hypothesis_tree_iqtree2_commands.txt")
 write(estimate_hypothesis_trees, file = iqtree2_call_file_name)
