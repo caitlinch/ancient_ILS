@@ -47,54 +47,60 @@ names(renamed_taxa) <- original_taxa
 
 
 #### 4. Prepare simulation dataframe ####
-# Prepare the three sets of simulations separately
-sim_df_1 <- as.data.frame(expand.grid(replicates = c(1,2,3,4,5,6,7,8,9,10), branch_a_percent_height = 5.8, 
-                                      branch_b_percent_height = c(10,20,30,40,50,60,70), hypothesis_tree = c(1,2,3)))
-sim_df_1$simulation_type = "LBA" # vary branch b
-sim_df_1$simulation_number = "sim1"
-sim_df_2 <- as.data.frame(expand.grid(replicates = c(1,2,3,4,5,6,7,8,9,10), branch_a_percent_height = c(5,20,15,20,25,30,35,40), 
-                                      branch_b_percent_height = 38.5, hypothesis_tree = c(1,2,3)))
-sim_df_2$simulation_type = "ILS" # vary branch a
-sim_df_2$simulation_number = "sim2"
-sim_df_3 <- as.data.frame(expand.grid(replicates = c(1,2,3,4,5,6,7,8,9,10), branch_a_percent_height = c(5,20,15,20,25,30,35,40), 
-                                      branch_b_percent_height = c(10,20,30,40,50,60,70), hypothesis_tree = c(1,2,3)))
-sim_df_3$simulation_type = "LBA+ILS" # vary branch a and branch b
-sim_df_3$simulation_number = "sim3"
-# Collate the three sets of simulations into a single dataframe
-sim_df <- rbind(sim_df_1,sim_df_2, sim_df_3)
-# Add the other columns for the dataframes
-sim_df$tree_length <- 1.28
-sim_df$branch_a_empirical_length <- 0.0746
-sim_df$branch_a_simulation_length <- unique(sim_df$tree_length) * (sim_df$branch_a_percent_height/100)
-sim_df$branch_b_empirical_length <- 0.4927
-sim_df$branch_b_simulation_length <- unique(sim_df$tree_length) * (sim_df$branch_b_percent_height/100)
-sim_df$num_taxa <- 76
-sim_df$num_genes <- 117
-sim_df$num_sites <- 49388
-sim_df$gene_length <- "From alignment"
-sim_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
-sim_df$dataset_type <- "Protein"
-# Add path for executables
-sim_df$ms <- ms
-sim_df$iqtree2 <- iqtree2
-# Add the hypothesis tree name in a new column
-sim_df$hypothesis_tree_file <- as.character(sim_df$hypothesis_tree)
-sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_1_Cten.treefile")
-sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_2_Pori.treefile")
-sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 3)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_3_CtenPori.treefile")
-# Add an ID column
-sim_df$ID <- paste0(sim_df$simulation_number, "_h", sim_df$hypothesis_tree, "_a", sim_df$branch_a_percent_height, "_b", sim_df$branch_b_percent_height, "_rep", sim_df$replicates)
-# Add separate output folder for each rep
-sim_df$output_folder <- paste0(output_dir, sim_df$ID, "/")
-# Reorder columns
-sim_df <- sim_df[,c("ID", "dataset", "dataset_type", "num_taxa", "num_genes", "gene_length", "num_sites", "tree_length",
-                    "branch_a_empirical_length", "branch_b_empirical_length", "simulation_number", "simulation_type",
-                    "hypothesis_tree", "hypothesis_tree_file", "branch_a_percent_height", "branch_a_simulation_length",
-                    "branch_b_percent_height", "branch_b_simulation_length", "replicates", "output_folder", "ms", "iqtree2")]
-# Save the dataframe
+# Assemble the filepath for the simulation csv file
 sim_df_op_file <- paste0(output_dir, "ancientILS_simulation_parameters.csv")
-write.csv(sim_df, file = sim_df_op_file)
+if (file.exists(sim_df_op_file) == TRUE){
+  sim_df <- read.csv(sim_df_op_file)
+} else {
+  # Prepare the three sets of simulations separately
+  sim_df_1 <- as.data.frame(expand.grid(replicates = c(1,2,3,4,5,6,7,8,9,10), branch_a_percent_height = 5.8, 
+                                        branch_b_percent_height = c(10,20,30,40,50,60,70), hypothesis_tree = c(1,2,3)))
+  sim_df_1$simulation_type = "LBA" # vary branch b
+  sim_df_1$simulation_number = "sim1"
+  sim_df_2 <- as.data.frame(expand.grid(replicates = c(1,2,3,4,5,6,7,8,9,10), branch_a_percent_height = c(5,20,15,20,25,30,35,40), 
+                                        branch_b_percent_height = 38.5, hypothesis_tree = c(1,2,3)))
+  sim_df_2$simulation_type = "ILS" # vary branch a
+  sim_df_2$simulation_number = "sim2"
+  sim_df_3 <- as.data.frame(expand.grid(replicates = c(1,2,3,4,5,6,7,8,9,10), branch_a_percent_height = c(5,20,15,20,25,30,35,40), 
+                                        branch_b_percent_height = c(10,20,30,40,50,60,70), hypothesis_tree = c(1,2,3)))
+  sim_df_3$simulation_type = "LBA+ILS" # vary branch a and branch b
+  sim_df_3$simulation_number = "sim3"
+  # Collate the three sets of simulations into a single dataframe
+  sim_df <- rbind(sim_df_1,sim_df_2, sim_df_3)
+  # Add the other columns for the dataframes
+  sim_df$tree_length <- 1.28
+  sim_df$branch_a_empirical_length <- 0.0746
+  sim_df$branch_a_simulation_length <- unique(sim_df$tree_length) * (sim_df$branch_a_percent_height/100)
+  sim_df$branch_b_empirical_length <- 0.4927
+  sim_df$branch_b_simulation_length <- unique(sim_df$tree_length) * (sim_df$branch_b_percent_height/100)
+  sim_df$num_taxa <- 76
+  sim_df$num_genes <- 117
+  sim_df$num_sites <- 49388
+  sim_df$gene_length <- "From alignment"
+  sim_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
+  sim_df$dataset_type <- "Protein"
+  # Add path for executables
+  sim_df$ms <- ms
+  sim_df$iqtree2 <- iqtree2
+  # Add the hypothesis tree name in a new column
+  sim_df$hypothesis_tree_file <- as.character(sim_df$hypothesis_tree)
+  sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_1_Cten.treefile")
+  sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_2_Pori.treefile")
+  sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 3)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_3_CtenPori.treefile")
+  # Add an ID column
+  sim_df$ID <- paste0(sim_df$simulation_number, "_h", sim_df$hypothesis_tree, "_a", sim_df$branch_a_percent_height, "_b", sim_df$branch_b_percent_height, "_rep", sim_df$replicates)
+  # Add separate output folder for each rep
+  sim_df$output_folder <- paste0(output_dir, sim_df$ID, "/")
+  # Reorder columns
+  sim_df <- sim_df[,c("ID", "dataset", "dataset_type", "num_taxa", "num_genes", "gene_length", "num_sites", "tree_length",
+                      "branch_a_empirical_length", "branch_b_empirical_length", "simulation_number", "simulation_type",
+                      "hypothesis_tree", "hypothesis_tree_file", "branch_a_percent_height", "branch_a_simulation_length",
+                      "branch_b_percent_height", "branch_b_simulation_length", "replicates", "output_folder", "ms", "iqtree2")]
+  # Save the dataframe
+  write.csv(sim_df, file = sim_df_op_file, row.names = FALSE)
+}
 
+sim_row <- sim_df[1,]
 
 
 
