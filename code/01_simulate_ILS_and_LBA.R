@@ -3,6 +3,7 @@
 # Caitlin Cherryh, 2023
 
 #### 1. Input parameters ####
+## File paths
 # repo_dir            <- location of caitlinch/ancient_ILS github repository
 # hypothesis_tree_dir <- location to directory containing the hypothesis trees (estimated in script 00_prepare_trees.R of this repository)
 # output_dir          <- directory to save output
@@ -10,7 +11,10 @@
 # partition_path      <- path to the partition file for the alignment Metazoa_Choano_RCFV_strict (created in script 00_prepare_trees.R)
 # iqtree2             <- path to iqtree2 version 2.2.2
 # ms                  <- path to ms executable
+## Phylogenetic parameters
+# alisim_gene_models <- models to use when estimating the alignment using Alisim. Should be either one model (e.g. "LG") or a vector the same length as the number of genes (e.g. 117 models long)
 
+## File paths
 repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 hypothesis_tree_dir   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
 output_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/"
@@ -20,6 +24,9 @@ partition_path        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypo
 iqtree2               <- "iqtree2"
 ms                    <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
 
+## Phylogenetic parameters
+#alisim_gene_models <- "'LG+C60+R4'"
+alisim_gene_models <- "LG" # simple test model
 
 
 #### 2. Open packages and functions ####
@@ -41,8 +48,8 @@ original_taxa <- c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psi
                    "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
                    "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
                    "Ctenophora_sp_Florida_USA","Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
-renamed_taxa <- paste0("t", 1:length(original_taxa))
-names(renamed_taxa) <- original_taxa
+simulation_taxa_names <- paste0("t", 1:length(original_taxa))
+names(simulation_taxa_names) <- original_taxa
 
 
 
@@ -98,8 +105,10 @@ if (file.exists(sim_df_op_file) == TRUE){
   write.csv(sim_df, file = sim_df_op_file, row.names = FALSE)
 }
 
+
+
+#### 5. Generate simulated alignments ####
 sim_row <- sim_df[1,]
-gene_models <- "'LG+C60+R4'"
-gene_models <- "LG"
+generate.one.alignment(sim_row = sim_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
 
 
