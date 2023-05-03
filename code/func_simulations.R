@@ -5,29 +5,44 @@
 library(ape)
 library(phytools)
 
+#### Functions to run the simulation pipeline ####
 run.one.simulation <- function(sim_row, renamed_taxa){
   # Function to take one row from the simulation parameters dataframe and run start to finish
   
-  # Create the folder for this replicate
+  ## Create the folder for this replicate
   if (dir.exists(sim_row$output_folder) == FALSE){
     dir.create(sim_row$output_folder)
   }
-  
+
+  ## Modify the branch lengths of the starting tree based on the simulation parameters
   # Copy the hypothesis tree to the folder
   hyp_tree_file = paste0(sim_row$output_folder, sim_row$ID, "_hypothesis_tree.treefile")
   file.copy(from = sim_row$hypothesis_tree_file, to = hyp_tree_file, overwrite = TRUE)
-  
   # Open the hypothesis tree
   tree <- read.tree(hyp_tree_file)
+  # Modify branch lengths for this simulation replicate
+  rooted_tree <- manipulate.branch.lengths(starting_tree = tree, parameters_row = sim_row)
+  
+  ## Write the tree in ms command line format and generate gene trees in ms
+  ms_files <- ms.generate.trees(unique_id = sim_row$ID, base_tree = rooted_tree, ntaxa = sim_row$num_taxa, 
+                                ntrees = sim_row$num_genes, output_directory = sim_row$output_folder, 
+                                ms_path = sim_row$ms, renamed_taxa = renamed_taxa)
+  
+}
+
+
+
+#### Functions to modify trees and manipulate branch lengths
+manipulate.branch.lengths <- function(starting_tree, parameters_row){
   # Root the hypothesis tree
-  rooted_tree <- root(tree, outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
+  rooted_tree <- root(starting_tree, outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
                       resolve.root = TRUE)
   # Make the tree ultrametric
   rooted_tree <- force.ultrametric(rooted_tree, method = "extend")
   # Scale rooted tree to be tree age
-  rooted_tree$edge.length <- rooted_tree$edge.length * (sim_row$tree_length / max(branching.times(rooted_tree)))
+  rooted_tree$edge.length <- rooted_tree$edge.length * (parameters_row$tree_length / max(branching.times(rooted_tree)))
   # Find the nodes for the branch depending on which tree is being used
-  if (basename(sim_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_1_Cten.treefile"){
+  if (basename(parameters_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_1_Cten.treefile"){
     # Extract the nodes by checking for monophyletic clades
     a_end <- getMRCA(rooted_tree, c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex",
                                     "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
@@ -44,12 +59,12 @@ run.one.simulation <- function(sim_row, renamed_taxa){
                                     "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
                                     "Ctenophora_sp_Florida_USA"))
     b_start <- rooted_tree$edge[which(rooted_tree$edge[,2] == b_end),1]
-  } else if (basename(sim_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_2_Pori.treefile"){
+  } else if (basename(parameters_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_2_Pori.treefile"){
     a_start = NA
     a_end = NA
     b_start = NA
     b_end = NA
-  } else if (basename(sim_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_3_CtenPori.treefile"){
+  } else if (basename(parameters_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_3_CtenPori.treefile"){
     a_start = NA
     a_end = NA
     b_start = NA
@@ -60,36 +75,33 @@ run.one.simulation <- function(sim_row, renamed_taxa){
   # Identify branch b
   branch_b <- which(rooted_tree$edge[,1] == b_start & rooted_tree$edge[,2] == b_end)
   # Modify branch b length
-  if (sim_row$simulation_number == "sim1" | sim_row$simulation_number == "sim3"){
+  if (parameters_row$simulation_number == "sim1" | parameters_row$simulation_number == "sim3"){
     # LBA simulation - vary branch b (branch that leads to Ctenophore clade)
     branch_b_value <- rooted_tree$edge.length[branch_b]
     # Multiply existing branch to be that percent of the current tree height
     # e.g. if branch_b_percent_height is 30% and the tree is 1.0 sub/site long, then branch b should be 0.33 sub/site long
-    new_branch_b_value <- max(branching.times(rooted_tree)) * (sim_row$branch_b_percent_height/100)
+    new_branch_b_value <- max(branching.times(rooted_tree)) * (parameters_row$branch_b_percent_height/100)
     rooted_tree$edge.length[branch_b] <- new_branch_b_value
   }
   # Modify branch a length
-  if (sim_row$simulation_number == "sim2" | sim_row$simulation_number == "sim3"){
+  if (parameters_row$simulation_number == "sim2" | parameters_row$simulation_number == "sim3"){
     # ILS simulation - vary branch a (branch that allows more time for the two species to differentiate)
     branch_a_value <- rooted_tree$edge.length[branch_a]
     # Multiply existing branch to be that percent of the current tree height
     # e.g. if branch_a_percent_height is 50% and the tree is 1.0 sub/site long, then branch a should be 0.5 sub/site long
-    new_branch_a_value <- max(branching.times(rooted_tree)) * (sim_row$branch_a_percent_height/100)
+    new_branch_a_value <- max(branching.times(rooted_tree)) * (parameters_row$branch_a_percent_height/100)
     rooted_tree$edge.length[branch_a] <- new_branch_a_value
   }
   # Scale rooted tree to be tree age (reset impacts from modifying branch lengths)
-  rooted_tree$edge.length <- rooted_tree$edge.length * (sim_row$tree_length / max(branching.times(rooted_tree)))
+  rooted_tree$edge.length <- rooted_tree$edge.length * (parameters_row$tree_length / max(branching.times(rooted_tree)))
   # Make the tree ultrametric
   rooted_tree <- force.ultrametric(rooted_tree, method = "extend")
   # Save the tree
-  bl_tree_file = paste0(sim_row$output_folder, sim_row$ID, "_branch_lengths_modified.treefile")
+  bl_tree_file = paste0(parameters_row$output_folder, parameters_row$ID, "_branch_lengths_modified.treefile")
   write.tree(rooted_tree, file = bl_tree_file)
   
-  # Write the tree in ms command line format
-  ms_files <- ms.generate.trees(unique_id = sim_row$ID, base_tree = rooted_tree, ntaxa = sim_row$num_taxa, 
-                                ntrees = sim_row$num_genes, output_directory = sim_row$output_folder, 
-                                ms_path = sim_row$ms, renamed_taxa = renamed_taxa)
-  
+  # Return the manipulated and modified tree
+  return(rooted_tree)
 }
 
 
