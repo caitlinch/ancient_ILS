@@ -14,13 +14,14 @@ run.one.simulation <- function(sim_row, renamed_taxa){
   }
   
   # Copy the hypothesis tree to the folder
-  hyp_tree_file = paste0(sim_row$output_folder, sim_row$ID, ".treefile")
-  file.copy(from = sim_row$hypothesis_tree_file, to = hyp_tree_file)
+  hyp_tree_file = paste0(sim_row$output_folder, sim_row$ID, "_hypothesis_tree.treefile")
+  file.copy(from = sim_row$hypothesis_tree_file, to = hyp_tree_file, overwrite = TRUE)
   
   # Open the hypothesis tree
   tree <- read.tree(hyp_tree_file)
   # Root the hypothesis tree
-  rooted_tree <- root(tree, outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"))
+  rooted_tree <- root(tree, outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
+                      resolve.root = TRUE)
   # Make the tree ultrametric
   rooted_tree <- force.ultrametric(rooted_tree, method = "extend")
   # Scale rooted tree to be tree age
@@ -81,7 +82,8 @@ run.one.simulation <- function(sim_row, renamed_taxa){
   # Make the tree ultrametric
   rooted_tree <- force.ultrametric(rooted_tree, method = "extend")
   # Save the tree
-  write.tree(rooted_tree, file = hyp_tree_file)
+  bl_tree_file = paste0(sim_row$output_folder, sim_row$ID, "_branch_lengths_modified.treefile")
+  write.tree(rooted_tree, file = bl_tree_file)
   
   # Write the tree in ms command line format
   ms_files <- ms.generate.trees(unique_id = sim_row$ID, base_tree = rooted_tree, ntaxa = sim_row$num_taxa, 
@@ -103,6 +105,9 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
   
   ## Rename taxa to short versions
   base_tree$tip.label <- unlist(lapply(base_tree$tip.label, function(x){renamed_taxa[[x]]}))
+  
+  ## Save the input tree
+  write.tree(base_tree, file = t_path)
   
   ## Convert the tree into the format for ms
   # Calculate times for ms -ej commands by finding coalescence times (coalescent intervals found using ape::coalescent.intervals)
