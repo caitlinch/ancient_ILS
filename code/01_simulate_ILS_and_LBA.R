@@ -100,6 +100,6 @@ if (file.exists(sim_df_op_file) == TRUE){
 
 sim_row <- sim_df[1,]
 gene_models <- "'LG+C60+R4'"
-
+gene_models <- "LG"
 
 
