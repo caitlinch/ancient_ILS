@@ -19,41 +19,55 @@ generate.one.alignment <- function(sim_row, renamed_taxa, partition_path, gene_m
   sim_row_rooted_tree_file = paste0(sim_row$output_folder, sim_row$ID, "_branch_lengths_modified.treefile")
   sim_row_partition_file <- paste0(sim_row$output_folder, sim_row$ID, "_partitions.nexus")
   sim_row_output_alignment_file <- paste0(sim_row$output_folder, sim_row$ID, "_alignment")
+  check_ms_gene_tree_file <- paste0(sim_row$output_folder, sim_row$ID, "_ms_gene_trees.txt")
   
-  ## Modify the branch lengths of the starting tree based on the simulation parameters
-  # Copy the hypothesis tree to the folder
-  file.copy(from = sim_row$hypothesis_tree_file, to = hyp_tree_file, overwrite = TRUE)
-  # Open the hypothesis tree
-  tree <- read.tree(hyp_tree_file)
-  # Modify branch lengths for this simulation replicate
-  rooted_tree <- manipulate.branch.lengths(starting_tree = tree, parameters_row = sim_row)
-  # Save the tree
-  write.tree(rooted_tree, file = sim_row_rooted_tree_file)
+  # Check if all the above files exist
+  all_files_exist <- file.exists(hyp_tree_file) & file.exists(sim_row_rooted_tree_file) & 
+    file.exists(sim_row_partition_file) & file.exists(paste0(sim_row_output_alignment_file, ".fa")) & 
+    file.exists(check_ms_gene_tree_file)
   
-  ## Write the tree in ms command line format and generate gene trees in ms
-  ms_files <- ms.generate.trees(unique_id = sim_row$ID, base_tree = rooted_tree, ntaxa = sim_row$num_taxa, 
-                                ntrees = sim_row$num_genes, output_directory = sim_row$output_folder, 
-                                ms_path = sim_row$ms, renamed_taxa = renamed_taxa)
-  # Extract gene tree file
-  sim_row_gene_tree_file <- ms_files[["ms_gene_tree_file"]]
-  
-  ## Generate DNA data using Alisim in IQ-Tree
-  # Extract gene start and end points from partition file
-  gene_ranges <- extract.genes.from.partition.file(partition_path, return.dataframe = FALSE)
-  # Create partition file
-  partition.gene.trees(num_trees = sim_row$num_genes, gene_ranges = gene_ranges, sequence_type = "AA", 
-                       models = gene_models, rescaled_tree_lengths = sim_row$tree_length, 
-                       output_filepath = sim_row_partition_file)
-  # Generate alignments along gene trees
-  alisim.topology.unlinked.partition.model(iqtree_path = sim_row$iqtree2, output_alignment_path = sim_row_output_alignment_file,
-                                           partition_file_path = sim_row_partition_file, trees_path = sim_row_gene_tree_file, 
-                                           output_format = "fasta", sequence_type = "AA")
-  
-  # Append information to the simulation row
-  sim_row$output_base_tree_file <- sim_row_rooted_tree_file
-  sim_row$output_gene_tree_file <- sim_row_gene_tree_file
-  sim_row$output_partition_file <- sim_row_partition_file
-  sim_row$output_alignment_file <- paste0(sim_row_output_alignment_file, ".fa")
+  if (all_files_exist == FALSE){
+    ## Modify the branch lengths of the starting tree based on the simulation parameters
+    # Copy the hypothesis tree to the folder
+    file.copy(from = sim_row$hypothesis_tree_file, to = hyp_tree_file, overwrite = TRUE)
+    # Open the hypothesis tree
+    tree <- read.tree(hyp_tree_file)
+    # Modify branch lengths for this simulation replicate
+    rooted_tree <- manipulate.branch.lengths(starting_tree = tree, parameters_row = sim_row)
+    # Save the tree
+    write.tree(rooted_tree, file = sim_row_rooted_tree_file)
+    
+    ## Write the tree in ms command line format and generate gene trees in ms
+    ms_files <- ms.generate.trees(unique_id = sim_row$ID, base_tree = rooted_tree, ntaxa = sim_row$num_taxa, 
+                                  ntrees = sim_row$num_genes, output_directory = sim_row$output_folder, 
+                                  ms_path = sim_row$ms, renamed_taxa = renamed_taxa)
+    # Extract gene tree file
+    sim_row_gene_tree_file <- ms_files[["ms_gene_tree_file"]]
+    
+    ## Generate DNA data using Alisim in IQ-Tree
+    # Extract gene start and end points from partition file
+    gene_ranges <- extract.genes.from.partition.file(partition_path, return.dataframe = FALSE)
+    # Create partition file
+    partition.gene.trees(num_trees = sim_row$num_genes, gene_ranges = gene_ranges, sequence_type = "AA", 
+                         models = gene_models, rescaled_tree_lengths = sim_row$tree_length, 
+                         output_filepath = sim_row_partition_file)
+    # Generate alignments along gene trees
+    alisim.topology.unlinked.partition.model(iqtree_path = sim_row$iqtree2, output_alignment_path = sim_row_output_alignment_file,
+                                             partition_file_path = sim_row_partition_file, trees_path = sim_row_gene_tree_file, 
+                                             output_format = "fasta", sequence_type = "AA")
+    
+    # Append information to the simulation row
+    sim_row$output_base_tree_file <- sim_row_rooted_tree_file
+    sim_row$output_gene_tree_file <- sim_row_gene_tree_file
+    sim_row$output_partition_file <- sim_row_partition_file
+    sim_row$output_alignment_file <- paste0(sim_row_output_alignment_file, ".fa")
+  } else if (all_files_exist == TRUE){
+    # Append information to the simulation row
+    sim_row$output_base_tree_file <- sim_row_rooted_tree_file
+    sim_row$output_gene_tree_file <- check_ms_gene_tree_file
+    sim_row$output_partition_file <- sim_row_partition_file
+    sim_row$output_alignment_file <- paste0(sim_row_output_alignment_file, ".fa")
+  }
   
   # Return the updated simulation row
   return(sim_row)
