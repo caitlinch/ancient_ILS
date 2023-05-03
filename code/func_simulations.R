@@ -416,6 +416,45 @@ check.coalesced <- function(test_taxon, coalesced_taxa, df){
 
 
 #### Functions for IQ-Tree and Alisim ####
+partition.random.trees <- function(num_trees, al_length, sequence_type, models = NA, rescaled_tree_lengths = NA, output_filepath){
+  # This function generates a charpartition file for n genes (where n is num_trees) of length al_length/n 
+  
+  # Generate charsets
+  # Find start and end point of each gene in the total alignment length
+  gene_start_points <- seq(1, al_length, (al_length/num_trees))
+  gene_end_points <- seq((al_length/num_trees), al_length, (al_length/num_trees))
+  # Name genes
+  gene_names <- sprintf("gene_%05d",1:num_trees)
+  # Paste arguments together into charset lines
+  csets <- paste0("\tcharset ", gene_names, " = ", sequence_type, ", ", format(gene_start_points, scientific = FALSE, trim = TRUE), "-", 
+                  format(gene_end_points, scientific = FALSE, trim = TRUE), ";")
+  
+  # Generate model arguments
+  if (!is.na(models) == TRUE){
+    # If models have been provided, generate a charpartition line for the partition file
+    # "models" should be a list of models with one model corresponding to one gene, or 1 model to be applied to all genes
+    if (is.na(rescaled_tree_lengths) == TRUE){
+      # If no rescaled_tree_lengths are provided, create the chpartitions by directly assembling the models and gene names
+      gene_models <- paste0(models, ":", gene_names)
+    } else if (is.na(rescaled_tree_lengths) == FALSE){
+      # If rescaled_gene_lengths are provided, add them to the gene_models vector. 
+      # This allows different genes to have different evolutionary rates (by specifying gene-specific tree lengths within the charpartition command)
+      gene_models <- paste0(models, ":", gene_names, "{", rescaled_tree_lengths, "}")
+    }
+    # Assemble all sections of the charpartition command
+    cpart <- paste0("\tcharpartition genes = ", paste(gene_models, collapse = ", "), ";")
+  } else{
+    # If no models provided, do not create a charpartition line for the partition file
+    cpart <- NULL
+  }
+  
+  # Assemble components into partition file
+  c_file <- c("#nexus", "begin sets;", csets, cpart, "end;")
+  
+  # Write partition file
+  write(c_file, file = output_filepath)
+}
+
 alisim.topology.unlinked.partition.model <- function(iqtree_path, output_alignment_path, partition_file_path, trees_path, 
                                                      output_format = "fasta", sequence_type = "DNA"){
   # This function uses the topology-unlinked partition model in Alisim to generate a sequence alignment
