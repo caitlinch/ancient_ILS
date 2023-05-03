@@ -6,7 +6,7 @@ library(ape)
 library(phytools)
 
 #### Functions to run the simulation pipeline ####
-generate.one.alignment <- function(sim_row, renamed_taxa, partition_path, gene_models){
+generate.one.alignment <- function(sim_row, renamed_taxa, partition_path, gene_models, rerun = FALSE){
   # Function to take one row from the simulation parameters dataframe and run start to finish
   
   ## Create the folder for this replicate
@@ -26,7 +26,7 @@ generate.one.alignment <- function(sim_row, renamed_taxa, partition_path, gene_m
     file.exists(sim_row_partition_file) & file.exists(paste0(sim_row_output_alignment_file, ".fa")) & 
     file.exists(check_ms_gene_tree_file)
   
-  if (all_files_exist == FALSE){
+  if (all_files_exist == FALSE | rerun == TRUE){
     ## Modify the branch lengths of the starting tree based on the simulation parameters
     # Copy the hypothesis tree to the folder
     file.copy(from = sim_row$hypothesis_tree_file, to = hyp_tree_file, overwrite = TRUE)
@@ -61,8 +61,8 @@ generate.one.alignment <- function(sim_row, renamed_taxa, partition_path, gene_m
     sim_row$output_gene_tree_file <- sim_row_gene_tree_file
     sim_row$output_partition_file <- sim_row_partition_file
     sim_row$output_alignment_file <- paste0(sim_row_output_alignment_file, ".fa")
-  } else if (all_files_exist == TRUE){
-    # Append information to the simulation row
+  } else {
+    # If all output files already exist, append information to the simulation row
     sim_row$output_base_tree_file <- sim_row_rooted_tree_file
     sim_row$output_gene_tree_file <- check_ms_gene_tree_file
     sim_row$output_partition_file <- sim_row_partition_file
