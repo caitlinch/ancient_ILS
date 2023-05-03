@@ -18,7 +18,27 @@ iqtree2 <- "iqtree2"
 
 
 #### 2. Open packages and functions ####
+## Source functions
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
+
+## Create output directories
+# Check whether output file exists for repository
+repo_output <- paste0(repo_dir, "output/")
+if (dir.exists(repo_output) == FALSE){
+  dir.create(repo_output)
+}
+
+## Assemble output file names
+# Alignment filepath for alignment without Trichoplax species
+new_alignment_path <- gsub(".aa.alignment.fa", ".removedTrichoplax.aa.alignment.fa", alignment_path)
+# Constraint tree file paths
+constraint_tree_1_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_1_Cten.nex")
+constraint_tree_2_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_2_Pori.nex")
+constraint_tree_3_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_3_CtenPori.nex")
+# Partition file filepath for models from original paper run
+partition_file_name <- paste0(output_dir, "Whelan2017_models_partitions.nex")
+# Gene length csv filepath
+gl_file <- paste0(repo_output, "Whelan2017.Metazoa_Choano_RCFV_strict.gene_lengths.csv")
 
 
 
@@ -31,7 +51,6 @@ get_ind <- which(names(seq) == "Trichoplax_adhaerens")
 keep_inds <- setdiff((1:length(names(seq))), 48)
 seq_edit <- seq[keep_inds]
 # Save the alignment
-new_alignment_path <- gsub(".aa.alignment.fa", ".removedTrichoplax.aa.alignment.fa", alignment_path)
 write.FASTA(seq_edit, file = new_alignment_path, append = FALSE)
 
 
@@ -67,11 +86,6 @@ whelan2017_list <- list("Bilateria" = c("Homo_sapiens", "Strongylocentrotus_purp
 
 
 #### 5. Construct constraint trees ####
-# Generate file names for all 5 constraint trees
-constraint_tree_1_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_1_Cten.nex")
-constraint_tree_2_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_2_Pori.nex")
-constraint_tree_3_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_3_CtenPori.nex")
-
 # Split the taxa into clades
 outgroup_taxa = whelan2017_list$Outgroup
 ctenophora_taxa = whelan2017_list$Ctenophora
@@ -136,7 +150,6 @@ charpartition <- paste0("\tcharpartition mine = ", charpartition_chunks_pasted, 
 # Construct the partition file
 partition_text <- c("#nexus", "begin sets;", charsets, charpartition, "end;","")
 # Save the partition file
-partition_file_name <- paste0(output_dir, "Whelan2017_models_partitions.nex")
 write(partition_text, file = partition_file_name)
 
 # Extract gene lengths
@@ -148,13 +161,7 @@ gene_df <- data.frame(gene_range = gene_partition_chunks, gene_start = gene_star
 gene_df$gene_length <- gene_end - (gene_start - 1) # subtract one from gene_start to count the starting site in the gene length
 gene_df <- gene_df[order(gene_df$gene_start, decreasing = FALSE),]
 rownames(gene_df) <- 1:nrow(gene_df)
-# Check whether output file exists for repository
-repo_output <- paste0(repo_dir, "output/")
-if (dir.exists(repo_output) == FALSE){
-  dir.create(repo_output)
-}
 # Save gene length dataframe
-gl_file <- paste0(repo_output, "Whelan2017.Metazoa_Choano_RCFV_strict.gene_lengths.csv")
 write.csv(gene_df, file = gl_file)
 
 
@@ -168,6 +175,16 @@ iqtree2_call_file_name <- paste0(output_dir, "Whelan2017_hypothesis_tree_iqtree2
 write(estimate_hypothesis_trees, file = iqtree2_call_file_name)
 # Call IQ-Tree2
 system(estimate_hypothesis_trees)
+
+
+#### 7. Estimate ML tree with ModelFinder (can use models as basis for simulations) ####
+# Prepare IQ-Tree2 command lines
+setwd(dirname(constraint_tree_1_file_name))
+no_constraint_prefix <- "Whelan2017_ML_MFP"
+iqtree_call <- paste0(iqtree2, " -s ", new_alignment_path, " -m MFP -bb 1000 -nt AUTO -pre ", no_constraint_prefix)
+# Call IQ-Tree2
+system(estimate_hypothesis_trees)
+
 
 
 
