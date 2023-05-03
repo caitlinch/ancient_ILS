@@ -85,7 +85,8 @@ run.one.simulation <- function(sim_row, renamed_taxa){
   
   # Write the tree in ms command line format
   ms_files <- ms.generate.trees(unique_id = sim_row$ID, base_tree = rooted_tree, ntaxa = sim_row$num_taxa, 
-                                ntrees = sim_row$num_genes, output_directory = sim_row$output_folder, ms_path = sim_row$ms)
+                                ntrees = sim_row$num_genes, output_directory = sim_row$output_folder, 
+                                ms_path = sim_row$ms, renamed_taxa = renamed_taxa)
   
 }
 
@@ -121,6 +122,8 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
   # Create a new column containing -ej event for each row
   node_df$ej <- paste0("-ej ", node_df$coalescence_time, " ", node_df$ms_input)
   # No recombination event is present. Do not add any extra splitting (-es) or joining (-ej) events
+  # Determine which taxa have not yet coalesced
+  root_taxa <- select.noncoalesced.taxa(node_df)
   
   ## Generate gene trees in ms
   # Paste together all the -ej coalescence events for this tree
@@ -274,4 +277,8 @@ determine.coalescence.taxa <- function(node_dataframe){
   return(node_dataframe)
 }
 
+
+select.noncoalesced.taxa <- function(df){
+  
+}
 
