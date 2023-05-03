@@ -29,19 +29,19 @@ run.one.simulation <- function(sim_row, renamed_taxa){
   if (basename(sim_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_1_Cten.treefile"){
     # Extract the nodes by checking for monophyletic clades
     a_end <- getMRCA(rooted_tree, c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex",
-                                          "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
-                                          "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
-                                          "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla", "Trichoplax_adhaerens", "Cliona_varians", "Sycon_coactum", "Sycon_ciliatum",
-                                          "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum", "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux",
-                                          "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica", "Petrosia_ficiformis", "Spongilla_lacustris", 
-                                          "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", "Crella_elegans", "Kirkpatrickia_variolosa"))
+                                    "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
+                                    "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
+                                    "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla", "Trichoplax_adhaerens", "Cliona_varians", "Sycon_coactum", "Sycon_ciliatum",
+                                    "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum", "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux",
+                                    "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica", "Petrosia_ficiformis", "Spongilla_lacustris", 
+                                    "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", "Crella_elegans", "Kirkpatrickia_variolosa"))
     a_start <- rooted_tree$edge[which(rooted_tree$edge[,2] == a_end),1]
     b_end <- getMRCA(rooted_tree, c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus",
-                                          "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
-                                          "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
-                                          "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
-                                          "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
-                                          "Ctenophora_sp_Florida_USA"))
+                                    "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
+                                    "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
+                                    "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
+                                    "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
+                                    "Ctenophora_sp_Florida_USA"))
     b_start <- rooted_tree$edge[which(rooted_tree$edge[,2] == b_end),1]
   } else if (basename(sim_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_2_Pori.treefile"){
     a_start = NA
@@ -119,13 +119,47 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
   node_df <- node_df[,c("node", "tip_names", "tip_numbers", "ms_tip_order", "ntips", "ndepth", "max_branching_time", "coalescence_time", "removed_taxa", "ms_input")]
   # Format coalescences for ms input
   node_df <- determine.coalescence.taxa(node_df)
+  # Determine which taxa have not yet coalesced
+  root_taxa <- select.noncoalesced.taxa(node_df)
+  if (length(root_taxa) == 1){
+    # Update the coalescence time of the root taxa
+    node_df$ms_input_1 <- as.numeric(unlist(lapply(strsplit(node_df$ms_input, " "), function(x){x[1]})))
+    node_df$ms_input_2 <- as.numeric(unlist(lapply(strsplit(node_df$ms_input, " "), function(x){x[2]})))
+    root_df <- node_df[which(node_df$ms_input_2 == root_taxa),]
+    root_row <- root_df[which(root_df$coalescence_time == max(root_df$coalescence_time)),]
+    # Check whether the coalescence time is smaller or equal to any other coalescence time
+    time_check <- root_row$coalescence_time > max(node_df$coalescence_time)
+    if (time_check == FALSE){
+      # Slightly increase the coalescent time/max branching time for the root
+      new_coal_time <- round(as.numeric(root_row$coalescence_time) + 0.02, digits = 6)
+      new_branch_time <- round(as.numeric(root_row$max_branching_time) + 0.02, digits = 6)
+      # Determine which row to update in the dataframe
+      row_id <- which(node_df$ms_input_1 == root_row$ms_input_1 & node_df$ms_input_2 == root_row$ms_input_2 & 
+                        node_df$coalescence_time == root_row$coalescence_time)
+      # Update the row
+      node_df$coalescence_time[row_id] <- new_coal_time
+      node_df$max_branching_time[row_id] <- new_branch_time
+    }
+  } else if (length(root_taxa) == 2){
+    # Make a new row
+    new_row <- rep(NA, 10)
+    names(new_row) <- c("node", "tip_names", "tip_numbers", "ms_tip_order", "ntips", "ndepth", "max_branching_time", "coalescence_time", "removed_taxa", "ms_input")
+    # Create a new coalescence event
+    # Specify the two species
+    new_row["ms_input"] <- paste0(max(as.numeric(root_taxa)), " ", min(as.numeric(root_taxa)))
+    new_row["max_branching_time"] <- round(as.numeric(max(node_df$max_branching_time)) + 0.02, digits = 6)
+    new_row["coalescence_time"] <- round(as.numeric(max(node_df$coalescence_time)) + 0.02, digits = 6)
+    node_df <- rbind(node_df, new_row)
+  } else {
+    break
+  }
+  
+  ## Generate gene trees in ms
+  # Sort all rows by branching times
+  node_df <- node_df[order(node_df$max_branching_time, decreasing = TRUE),]
   # Create a new column containing -ej event for each row
   node_df$ej <- paste0("-ej ", node_df$coalescence_time, " ", node_df$ms_input)
   # No recombination event is present. Do not add any extra splitting (-es) or joining (-ej) events
-  # Determine which taxa have not yet coalesced
-  root_taxa <- select.noncoalesced.taxa(node_df)
-  
-  ## Generate gene trees in ms
   # Paste together all the -ej coalescence events for this tree
   all_ej <- paste(node_df$ej, collapse = " ")
   # Construct the ms command line using the -ej events
@@ -279,6 +313,65 @@ determine.coalescence.taxa <- function(node_dataframe){
 
 
 select.noncoalesced.taxa <- function(df){
+  # Function to add root by coalescing the two remaining lineages together
   
+  # Split the ms input column into two separate columns (one for the first number and one for the second number)
+  df$ms_input_1 <- as.numeric(unlist(lapply(strsplit(df$ms_input, " "), function(x){x[1]})))
+  df$ms_input_2 <- as.numeric(unlist(lapply(strsplit(df$ms_input, " "), function(x){x[2]})))
+  # Identify all taxa
+  all_taxa <- unique(sort(c(df$ms_input_1, df$ms_input_2)))
+  # Identify which taxa are in both (means they have coalesced)
+  coalesced_taxa <- sort(intersect(df$ms_input_1, df$ms_input_2))
+  remaining_taxa <- setdiff(all_taxa, coalesced_taxa)
+  # Check whether the remaining taxa were coalesced at the first node, meaning they are not present in both columns
+  coal_check_list <- lapply(remaining_taxa, check.coalesced, coalesced_taxa, df)
+  coal_check_df <- as.data.frame(do.call(rbind, coal_check_list))
+  # Reduce to only FALSE rows
+  noncoal_df <- coal_check_df[coal_check_df$Coalesced == "FALSE",]
+  # Return the non-coalesced taxa
+  noncoal_taxa <- noncoal_df$Taxon
+  return(noncoal_taxa)
+}
+
+
+check.coalesced <- function(test_taxon, coalesced_taxa, df){
+  # Quick function to check whether a single taxa coalesced at the first node
+  
+  # Get the row of the dataframe where this taxon coalesced
+  check_rows <- which(df$ms_input_1 == test_taxon)
+  # Check how many rows exist
+  num_rows <- length(check_rows)
+  if (num_rows == 0){
+    # There are no rows with this taxon - it does not coalesce into any other taxon
+    coalesce = FALSE
+    coalesced_into = NA
+  } else {
+    # There are rows with this taxon - it does coalesce. Determine the coalescence.
+    # Extract the relevant rows
+    df_row <- df[check_rows,]
+    # Check whether the taxon coalesced
+    # Conditions:
+    #       - The test_taxon is listed in the "removed_taxa" column 
+    #         AND the node depth is 2 (meaning this is the first coalescent event for both taxa)
+    #       OR
+    #       - The taxon to be removed (first in the ms statement) is identical to the test_taxon, 
+    #         AND the test_taxon coalesces into a taxon that is in the coalesced_taxa (i.e. a taxon that is coalesced and coalesces)
+    #       OR
+    #       - The taxon to be removed (first in the ms statement) is identical to the test_taxon,
+    #         AND the taxa that the test_taxon coalesces into is present in the tip_numbers for this row 
+    if ( (grepl(test_taxon, df_row$removed_taxa) == TRUE & as.numeric(df_row$ndepth) == 2) | 
+         (df_row$ms_input_1 == test_taxon & df_row$ms_input_2 %in% coalesced_taxa) | 
+         (df_row$ms_input_1 == test_taxon & grepl(df_row$ms_input_2, df_row$tip_numbers) == TRUE) ){
+      coalesce = TRUE
+      coalesced_into = df_row$ms_input_2
+    } else {
+      coalesce = FALSE
+      coalesced_into = NA
+    }
+  }
+  # Construct output
+  op <- c(as.character(test_taxon), coalesce, coalesced_into)
+  names(op) <- c("Taxon", "Coalesced", "Coalesced_into")
+  return(op)
 }
 
