@@ -6,7 +6,7 @@
 # repo_dir            <- location of caitlinch/ancient_ILS github repository
 # hypothesis_tree_dir <- location to directory containing the hypothesis trees (estimated in script 00_prepare_trees.R of this repository)
 # output_dir          <- directory to save output
-# alignment_path      <- path to the alignment from Whelan et al. 2017 for the alignment Metazoa_Choano_RCFV_strict
+# alignment_path      <- path to the alignment from Whelan et al. 2017 for the alignment Metazoa_Choano_RCFV_strict with Trichoplax taxon sequence removed
 # partition_path      <- path to the partition file for the alignment Metazoa_Choano_RCFV_strict (created in script 00_prepare_trees.R)
 # iqtree2             <- path to iqtree2 version 2.2.2
 # ms                  <- path to ms executable
@@ -15,7 +15,7 @@ repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_I
 hypothesis_tree_dir   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
 output_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/"
 
-alignment_path        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Whelan2017.Metazoa_Choano_RCFV_strict.aa.alignment.fa"
+alignment_path        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Whelan2017.Metazoa_Choano_RCFV_strict.removedTrichoplax.aa.alignment.fa"
 partition_path        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/Whelan2017_models_partitions.nex"
 iqtree2               <- "iqtree2"
 ms                    <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
@@ -31,12 +31,12 @@ source(paste0(repo_dir, "code/func_simulations.R"))
 original_taxa <- c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex",
                    "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
                    "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
-                   "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla", "Trichoplax_adhaerens", "Cliona_varians", "Sycon_coactum", 
-                   "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum", "Aphrocallistes_vastus", "Rossella_fibulata",
-                   "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica", "Petrosia_ficiformis", "Spongilla_lacustris",
-                   "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", "Crella_elegans", "Kirkpatrickia_variolosa", 
-                   "Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus",
-                   "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
+                   "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla", "Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum",
+                   "Oscarella_carmela", "Hyalonema_populiferum", "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata",
+                   "Chondrilla_nucula", "Amphimedon_queenslandica", "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides",
+                   "Mycale_phylophylla", "Latrunculia_apicalis", "Crella_elegans", "Kirkpatrickia_variolosa", "Euplokamis_dunlapae", "Vallicula_sp",
+                   "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus", "Pleurobrachia_bachei",
+                   "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
                    "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
                    "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
                    "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
