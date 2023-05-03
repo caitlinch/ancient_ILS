@@ -14,9 +14,13 @@ run.one.simulation <- function(sim_row, renamed_taxa, partition_path, gene_model
     dir.create(sim_row$output_folder)
   }
   
+  ## Create output file paths
+  hyp_tree_file = paste0(sim_row$output_folder, sim_row$ID, "_hypothesis_tree.treefile")
+  sim_row_partition_file <- paste0(sim_row$output_folder, sim_row$ID, "_partitions.nexus")
+  sim_row_output_alignment_file <- paste0(sim_row$output_folder, sim_row$ID, "_alignment")
+  
   ## Modify the branch lengths of the starting tree based on the simulation parameters
   # Copy the hypothesis tree to the folder
-  hyp_tree_file = paste0(sim_row$output_folder, sim_row$ID, "_hypothesis_tree.treefile")
   file.copy(from = sim_row$hypothesis_tree_file, to = hyp_tree_file, overwrite = TRUE)
   # Open the hypothesis tree
   tree <- read.tree(hyp_tree_file)
@@ -27,17 +31,20 @@ run.one.simulation <- function(sim_row, renamed_taxa, partition_path, gene_model
   ms_files <- ms.generate.trees(unique_id = sim_row$ID, base_tree = rooted_tree, ntaxa = sim_row$num_taxa, 
                                 ntrees = sim_row$num_genes, output_directory = sim_row$output_folder, 
                                 ms_path = sim_row$ms, renamed_taxa = renamed_taxa)
+  # Extract gene tree file
+  sim_row_gene_tree_file <- ms_files[["ms_gene_tree_file"]]
   
   ## Generate DNA data using Alisim in IQ-Tree
   # Extract gene start and end points from partition file
   gene_ranges <- extract.genes.from.partition.file(partition_path, return.dataframe = FALSE)
   # Create partition file
-  sim_row_partition_file <- paste0(sim_row$output_folder, sim_row$ID, "_partitions.nexus")
   partition.gene.trees(num_trees = sim_row$num_genes, gene_ranges = gene_ranges, sequence_type = "AA", 
-                       models = gene_models, rescaled_tree_lengths = sim_row$tree_length, output_filepath = sim_row_partition_file)
+                       models = gene_models, rescaled_tree_lengths = sim_row$tree_length, 
+                       output_filepath = sim_row_partition_file)
   # Generate alignments along gene trees
-  alisim.topology.unlinked.partition.model(iqtree_path, output_alignment_path, partition_file_path, trees_path, 
-                                           output_format = "fasta", sequence_type = "DNA")
+  alisim.topology.unlinked.partition.model(iqtree_path = sim_row$iqtree2, output_alignment_path = sim_row_output_alignment_file,
+                                           partition_file_path = sim_row_partition_file, trees_path = sim_row_gene_tree_file, 
+                                           output_format = "fasta", sequence_type = "AA")
 }
 
 
@@ -493,6 +500,9 @@ partition.gene.trees <- function(num_trees, gene_ranges, sequence_type, models =
   
   # Write partition file
   write(c_file, file = output_filepath)
+  
+  # Print completion statement
+  print("Partition file complete")
 }
 
 
@@ -508,6 +518,9 @@ alisim.topology.unlinked.partition.model <- function(iqtree_path, output_alignme
                           " -t ", trees_path, " --seqtype ", sequence_type, " -af ", output_format)
   # Invoke the OS command and call IQ-Tree
   system(function_call)
+  
+  # Print completion statement
+  print("Alisim (IQ-Tree2) run complete")
 }
 
 
