@@ -70,15 +70,16 @@ if (file.exists(sim_df_op_file) == TRUE){
   # Add the other columns for the dataframes
   sim_df$tree_length <- 1.28
   sim_df$branch_a_empirical_length <- 0.0746
-  sim_df$branch_a_simulation_length <- unique(sim_df$tree_length) * (sim_df$branch_a_percent_height/100)
+  #sim_df$branch_a_simulation_length <- unique(sim_df$tree_length) * (sim_df$branch_a_percent_height/100)
   sim_df$branch_b_empirical_length <- 0.4927
-  sim_df$branch_b_simulation_length <- unique(sim_df$tree_length) * (sim_df$branch_b_percent_height/100)
+  #sim_df$branch_b_simulation_length <- unique(sim_df$tree_length) * (sim_df$branch_b_percent_height/100)
   sim_df$num_taxa <- 75
   sim_df$num_genes <- 117
   sim_df$num_sites <- 49388
   sim_df$gene_length <- "From alignment"
   sim_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
   sim_df$dataset_type <- "Protein"
+  sim_df$alisim_model <- "'LG+C60+R4'"
   # Add path for executables
   sim_df$ms <- ms
   sim_df$iqtree2 <- iqtree2
@@ -95,7 +96,7 @@ if (file.exists(sim_df_op_file) == TRUE){
   sim_df <- sim_df[,c("ID", "dataset", "dataset_type", "num_taxa", "num_genes", "gene_length", "num_sites", "tree_length",
                       "branch_a_empirical_length", "branch_b_empirical_length", "simulation_number", "simulation_type",
                       "hypothesis_tree", "hypothesis_tree_file", "branch_a_percent_height", "branch_a_simulation_length",
-                      "branch_b_percent_height", "branch_b_simulation_length", "replicates", "output_folder", "ms", "iqtree2")]
+                      "branch_b_percent_height", "branch_b_simulation_length", "replicates", "alisim_model", "output_folder", "ms", "iqtree2")]
   # Save the dataframe
   write.csv(sim_df, file = sim_df_op_file, row.names = FALSE)
 }
