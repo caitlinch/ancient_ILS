@@ -77,7 +77,6 @@ if (file.exists(sim_df_op_file) == TRUE){
   sim_df$gene_length <- "From alignment"
   sim_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
   sim_df$dataset_type <- "Protein"
-  sim_df$alisim_model <- "'LG+C60+R4'"
   # Add path for executables
   sim_df$ms <- ms
   sim_df$iqtree2 <- iqtree2
@@ -94,13 +93,13 @@ if (file.exists(sim_df_op_file) == TRUE){
   sim_df <- sim_df[,c("ID", "dataset", "dataset_type", "num_taxa", "num_genes", "gene_length", "num_sites", "tree_length",
                       "branch_a_empirical_length", "branch_b_empirical_length", "simulation_number", "simulation_type",
                       "hypothesis_tree", "hypothesis_tree_file", "branch_a_percent_height", "branch_b_percent_height",
-                      "replicates", "alisim_model", "output_folder", "ms", "iqtree2")]
+                      "replicates", "output_folder", "ms", "iqtree2")]
   # Save the dataframe
   write.csv(sim_df, file = sim_df_op_file, row.names = FALSE)
 }
 
 sim_row <- sim_df[1,]
-
+gene_models <- "'LG+C60+R4'"
 
 
 
