@@ -6,7 +6,7 @@ library(ape)
 library(phytools)
 
 #### Functions to run the simulation pipeline ####
-run.one.simulation <- function(sim_row, renamed_taxa, gene_models){
+run.one.simulation <- function(sim_row, renamed_taxa, partition_path, gene_models){
   # Function to take one row from the simulation parameters dataframe and run start to finish
   
   ## Create the folder for this replicate
@@ -29,7 +29,15 @@ run.one.simulation <- function(sim_row, renamed_taxa, gene_models){
                                 ms_path = sim_row$ms, renamed_taxa = renamed_taxa)
   
   ## Generate DNA data using Alisim in IQ-Tree
-  
+  # Extract gene start and end points from partition file
+  gene_ranges <- extract.genes.from.partition.file(partition_path, return.dataframe = FALSE)
+  # Create partition file
+  sim_row_partition_file <- paste0(sim_row$output_folder, sim_row$ID, "_partitions.nexus")
+  partition.gene.trees(num_trees = sim_row$num_genes, gene_ranges = gene_ranges, sequence_type = "AA", 
+                       models = gene_models, rescaled_tree_lengths = sim_row$tree_length, output_filepath = sim_row_partition_file)
+  # Generate alignments along gene trees
+  alisim.topology.unlinked.partition.model(iqtree_path, output_alignment_path, partition_file_path, trees_path, 
+                                           output_format = "fasta", sequence_type = "DNA")
 }
 
 
@@ -454,7 +462,7 @@ extract.genes.from.partition.file <- function(partition_path, return.dataframe =
 }
 
 partition.gene.trees <- function(num_trees, gene_ranges, sequence_type, models = NA, rescaled_tree_lengths = NA, output_filepath){
-  # This function generates a charpartition file for n genes (where n is num_trees) of length al_length/n 
+  # This function generates a charpartition file for a set of genes extracted from a partition file
   
   # Create gene names
   gene_names <- paste0("gene_", 1:length(gene_ranges))
