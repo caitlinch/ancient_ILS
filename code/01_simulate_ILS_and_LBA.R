@@ -7,7 +7,6 @@
 # repo_dir            <- location of caitlinch/ancient_ILS github repository
 # hypothesis_tree_dir <- location to directory containing the hypothesis trees (estimated in script 00_prepare_trees.R of this repository)
 # output_dir          <- directory to save output
-# alignment_path      <- path to the alignment from Whelan et al. 2017 for the alignment Metazoa_Choano_RCFV_strict with Trichoplax taxon sequence removed
 # partition_path      <- path to the partition file for the alignment Metazoa_Choano_RCFV_strict (created in script 00_prepare_trees.R)
 # iqtree2             <- path to iqtree2 version 2.2.2
 # ms                  <- path to ms executable
@@ -19,13 +18,12 @@ repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_I
 hypothesis_tree_dir   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
 output_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/"
 
-alignment_path        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Whelan2017.Metazoa_Choano_RCFV_strict.removedTrichoplax.aa.alignment.fa"
 partition_path        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/Whelan2017_models_partitions.nex"
 iqtree2               <- "iqtree2"
 ms                    <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
 
 ## Phylogenetic parameters
-#alisim_gene_models <- "'LG+C60+R4'"
+#alisim_gene_models <- "'WAG+C60+R4'" # Most common model for this dataset when allowing any model in Redmond and McLysaght (2021)
 alisim_gene_models <- "LG" # simple test model
 
 
