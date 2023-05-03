@@ -73,7 +73,7 @@ if (file.exists(sim_df_op_file) == TRUE){
   sim_df$branch_a_simulation_length <- unique(sim_df$tree_length) * (sim_df$branch_a_percent_height/100)
   sim_df$branch_b_empirical_length <- 0.4927
   sim_df$branch_b_simulation_length <- unique(sim_df$tree_length) * (sim_df$branch_b_percent_height/100)
-  sim_df$num_taxa <- 76
+  sim_df$num_taxa <- 75
   sim_df$num_genes <- 117
   sim_df$num_sites <- 49388
   sim_df$gene_length <- "From alignment"
