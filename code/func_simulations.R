@@ -6,7 +6,7 @@ library(ape)
 library(phytools)
 
 #### Functions to run the simulation pipeline ####
-run.one.simulation <- function(sim_row, renamed_taxa, partition_path, gene_models){
+generate.one.alignment <- function(sim_row, renamed_taxa, partition_path, gene_models){
   # Function to take one row from the simulation parameters dataframe and run start to finish
   
   ## Create the folder for this replicate
@@ -16,6 +16,7 @@ run.one.simulation <- function(sim_row, renamed_taxa, partition_path, gene_model
   
   ## Create output file paths
   hyp_tree_file = paste0(sim_row$output_folder, sim_row$ID, "_hypothesis_tree.treefile")
+  sim_row_rooted_tree_file = paste0(sim_row$output_folder, sim_row$ID, "_branch_lengths_modified.treefile")
   sim_row_partition_file <- paste0(sim_row$output_folder, sim_row$ID, "_partitions.nexus")
   sim_row_output_alignment_file <- paste0(sim_row$output_folder, sim_row$ID, "_alignment")
   
@@ -26,6 +27,8 @@ run.one.simulation <- function(sim_row, renamed_taxa, partition_path, gene_model
   tree <- read.tree(hyp_tree_file)
   # Modify branch lengths for this simulation replicate
   rooted_tree <- manipulate.branch.lengths(starting_tree = tree, parameters_row = sim_row)
+  # Save the tree
+  write.tree(rooted_tree, file = sim_row_rooted_tree_file)
   
   ## Write the tree in ms command line format and generate gene trees in ms
   ms_files <- ms.generate.trees(unique_id = sim_row$ID, base_tree = rooted_tree, ntaxa = sim_row$num_taxa, 
@@ -45,6 +48,15 @@ run.one.simulation <- function(sim_row, renamed_taxa, partition_path, gene_model
   alisim.topology.unlinked.partition.model(iqtree_path = sim_row$iqtree2, output_alignment_path = sim_row_output_alignment_file,
                                            partition_file_path = sim_row_partition_file, trees_path = sim_row_gene_tree_file, 
                                            output_format = "fasta", sequence_type = "AA")
+  
+  # Append information to the simulation row
+  sim_row$output_base_tree_file <- sim_row_rooted_tree_file
+  sim_row$output_gene_tree_file <- sim_row_gene_tree_file
+  sim_row$output_partition_file <- sim_row_partition_file
+  sim_row$output_alignment_file <- paste0(sim_row_output_alignment_file, ".fa")
+  
+  # Return the updated simulation row
+  return(sim_row)
 }
 
 
@@ -134,9 +146,6 @@ manipulate.branch.lengths <- function(starting_tree, parameters_row){
   rooted_tree$edge.length <- rooted_tree$edge.length * (parameters_row$tree_length / max(branching.times(rooted_tree)))
   # Make the tree ultrametric
   rooted_tree <- force.ultrametric(rooted_tree, method = "extend")
-  # Save the tree
-  bl_tree_file = paste0(parameters_row$output_folder, parameters_row$ID, "_branch_lengths_modified.treefile")
-  write.tree(rooted_tree, file = bl_tree_file)
   
   # Return the manipulated and modified tree
   return(rooted_tree)
