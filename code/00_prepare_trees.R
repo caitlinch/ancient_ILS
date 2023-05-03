@@ -22,7 +22,21 @@ source(paste0(repo_dir, "code/func_prepare_trees.R"))
 
 
 
-#### 3. Identify clades of taxa ####
+#### 3. Drop Trichoplax taxa from the alignment ####
+# Trichoplax not useful for our question - placement makes things messy
+# Open the alignment
+seq <- read.FASTA(file = alignment_path, type = "AA")
+# Remove the Trichoplax sequence
+get_ind <- which(names(seq) == "Trichoplax_adhaerens")
+keep_inds <- setdiff((1:length(names(seq))), 48)
+seq_edit <- seq[keep_inds]
+# Save the alignment
+new_alignment_path <- gsub(".aa.alignment.fa", ".removedTrichoplax.aa.alignment.fa", alignment_path)
+write.FASTA(seq_edit, file = new_alignment_path, append = FALSE)
+
+
+
+#### 4. Identify clades of taxa ####
 whelan2017_list <- list("Bilateria" = c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex"),
                         "Cnidaria" = c("Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
                                        "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
@@ -52,7 +66,7 @@ whelan2017_list <- list("Bilateria" = c("Homo_sapiens", "Strongylocentrotus_purp
 
 
 
-#### 4. Construct constraint trees ####
+#### 5. Construct constraint trees ####
 # Generate file names for all 5 constraint trees
 constraint_tree_1_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_1_Cten.nex")
 constraint_tree_2_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_2_Pori.nex")
@@ -98,7 +112,7 @@ write(constraint_tree_3, file = constraint_tree_3_file_name)
 
 
 
-#### 5. Construct partition file ####
+#### 6. Construct partition file ####
 # Open the file
 model_lines <- readLines(models_path)
 # Format the text from the model lines file
@@ -126,7 +140,7 @@ write(partition_text, file = partition_file_name)
 
 
 
-#### 6. Estimate hypothesis trees under each constraint tree with the models from the original study ####
+#### 7. Estimate hypothesis trees under each constraint tree with the models from the original study ####
 # Prepare IQ-Tree2 command lines
 iqtree_call_1 <- paste0(iqtree2, " -s ", alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_1_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_1_Cten")
 iqtree_call_2 <- paste0(iqtree2, " -s ", alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_2_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_2_Pori")
