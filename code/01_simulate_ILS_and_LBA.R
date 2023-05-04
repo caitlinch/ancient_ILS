@@ -24,6 +24,9 @@ ms                    <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms
 
 ## Phylogenetic parameters
 alisim_gene_models <- "'WAG+C60+R4'" # Most common model for this dataset when allowing any model in Redmond and McLysaght (2021)
+ML_tree_estimation_models <- c("'LG+C60+R4")
+iqtree2_num_threads = "AUTO"
+iqtree2_num_ufb = 1000
 
 
 
@@ -32,9 +35,9 @@ source(paste0(repo_dir, "code/func_simulations.R"))
 source(paste0(repo_dir, "code/func_tree_estimation.R"))
 
 # Create output file paths
-sim_df_op_file    <- paste0(output_dir, "ancientILS_simulation_parameters.csv")         # simulation parameters
-op_df_op_file     <- paste0(output_dir, "ancientILS_output_generate_alignments.csv")    # output from alignment generation
-tree_df_op_file   <- paste0(output_dir, "ancientILS_output_generate_trees.csv")         # output from tree estimation
+sim_df_op_file            <- paste0(output_dir, "ancientILS_simulation_parameters.csv")         # simulation parameters
+op_df_op_file             <- paste0(output_dir, "ancientILS_output_generate_alignments.csv")    # output from alignment generation
+tree_df_op_formula        <- paste0(output_dir, "ancientILS_output_generate_trees.")            # output from tree estimation - formula (add model code to end)
 
 
 
@@ -121,29 +124,29 @@ output_df <- as.data.frame(do.call(rbind, output_list))
 write.csv(output_df, file = op_df_op_file, row.names = FALSE)
 
 
+
 #### 6. Estimate trees ####
 # Read in the output_df from the previous step
 output_df <- read.csv(op_df_op_file)
-
-alignment_path = output_df$output_alignment_file[1]
-iqtree2_path = iqtree2
-iqtree2_num_threads = 3
-iqtree2_num_ufb = 1000
-iqtree2_model = "'LG+G4'"
-use.partitions = FALSE
-partition_file = NA
-use.model.finder = FALSE
-
-
-
-# # To estimate one tree with a set model for a single simulated alignment
-# estimate.one.tree(alignment_path = output_df$output_alignment_file[1], gene_models = alisim_gene_models, iqtree2 = iqtree2)
-# To estimate all trees with a set model for all single simulated alignments
-tree_list <- lapply(output_df$output_alignment_file, estimate.one.tree, gene_models = alisim_gene_models, iqtree2 = iqtree2)
-tree_df <- as.data.frame(do.call(rbind, tree_list))
-# Save output dataframe
-write.csv(tree_df, file = tree_df_op_file, row.names = FALSE)
-
-
+# Iterate through each of the provided models for the ML tree estimation
+for (m in ML_tree_estimation_models){
+  # Create a code to identify each combination of model and ID
+  model_code <- gsub("\\+", "_", gsub("'", "", m))
+  model_ID_code <- paste0(output_df$ID, "-", model_code)
+  # # To estimate one tree with a set model for a single simulated alignment
+  # estimate.one.tree(alignment_path, unique.output.path = TRUE, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_num_ufb = 1000,
+  #                           iqtree2_model = NA, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE, run.iqtree2 = FALSE)
+  # To estimate all trees with a set model for all single simulated alignments
+  tree_list <- lapply(output_df$output_alignment_file, estimate.one.tree, unique.output.path = TRUE,
+                      iqtree2_path = iqtree2, iqtree2_num_threads = iqtree2_num_threads, iqtree2_num_ufb = iqtree2_num_ufb,
+                      iqtree2_model = m, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE,
+                      run.iqtree2 = FALSE)
+  tree_df <- as.data.frame(do.call(rbind, tree_list))
+  # Combine completed rows of the output dataframe with the tree dataframe
+  tree_combined_df <- cbind(output_df[which(output_df$output_alignment_file == tree_df$alignment_path),], tree_df[which(tree_df$alignment_path == output_df$output_alignment_file),])
+  # Save combined output dataframe
+  tree_df_op_file <- paste0(tree_df_op_formula, model_code, ".csv")
+  write.csv(tree_combined_df, file = tree_df_op_file, row.names = FALSE)
+}
 
 
