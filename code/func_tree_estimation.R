@@ -79,7 +79,7 @@ estimate.one.tree <- function(alignment_path, unique.output.path = TRUE, iqtree2
 
 
 #### Concordance factors ####
-extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO"){
+extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, renamed_taxa){
   # Function to return concordance factors (calculated in iqtree), for a simulated tree
   #     gCFs estimated from the base tree supplied to ms and from the set of gene trees estimated in AliSim
   
@@ -95,9 +95,25 @@ extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtr
   tree_file <- paste0(al_dir, grep("branch_lengths_modified", al_files, value = T))
   gene_tree_file <- paste0(al_dir, grep("ms_gene_trees", al_files, value = T))
   
+  ## Rename taxa (if necessary)
+  # If taxa names are provided and rename.taxa == TRUE, rename the taxa from the tree_file
+  if (rename.taxa == TRUE & length(renamed_taxa) > 0){
+    # Open the tree
+    t <- read.tree(tree_file)
+    # Relabel the tips to have the right number
+    t$tip.label <- unlist(lapply(t$tip.label, function(x){renamed_taxa[[x]]}))
+    # Remove the "t" from the taxa label - ms labels by number only
+    t$tip.label <- gsub("t","",t$tip.label)
+    # Save the tree
+    tree_file_formatted <- gsub(".treefile", "_renamed.treefile", tree_file)
+    write.tree(t, file = tree_file_formatted)
+  } else {
+    tree_file_formatted <- tree_file
+  }
+  
   ## Calculate gCFS
   actual_gcf_prefix <- paste0(al_id, "-actual")
-  actual_gcf_call <- paste0(iqtree2_path ," -t ", tree_file, " --gcf ", gene_tree_file, " --prefix ", actual_gcf_prefix)
+  actual_gcf_call <- paste0(iqtree2_path ," -t ", tree_file_formatted, " --gcf ", gene_tree_file, " --prefix ", actual_gcf_prefix)
   system(actual_gcf_call)
   
   ## Extract and return gCFs
