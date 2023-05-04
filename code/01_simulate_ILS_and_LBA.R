@@ -129,10 +129,11 @@ alignment_path = output_df$output_alignment_file[1]
 iqtree2_path = iqtree2
 iqtree2_num_threads = 3
 iqtree2_num_ufb = 1000
-iqtree2_model = "LG+G4"
+iqtree2_model = "'LG+G4'"
 use.partitions = FALSE
 partition_file = NA
 use.model.finder = FALSE
+
 
 
 # # To estimate one tree with a set model for a single simulated alignment
