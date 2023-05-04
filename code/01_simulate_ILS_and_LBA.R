@@ -18,7 +18,7 @@ repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_I
 hypothesis_tree_dir   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
 output_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/"
 
-partition_path        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/Whelan2017_models_partitions.nex"
+partition_path        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/Whelan2017_replicateOriginal_models_partitions.nex"
 iqtree2               <- "iqtree2"
 ms                    <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
 
