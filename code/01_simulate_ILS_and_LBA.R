@@ -29,6 +29,7 @@ alisim_gene_models <- "'WAG+C60+R4'" # Most common model for this dataset when a
 
 #### 2. Open packages and functions ####
 source(paste0(repo_dir, "code/func_simulations.R"))
+source(paste0(repo_dir, "code/func_tree_estimation.R"))
 
 
 
