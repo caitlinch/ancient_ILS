@@ -110,8 +110,22 @@ if (file.exists(sim_df_op_file) == TRUE){
 # generate.one.alignment(sim_row = sim_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
 # To generate all simulated alignments
 output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, 
-                      partition_path = partition_path, gene_models = alisim_gene_models, rerun = TRUE)
+                      partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
+output_df <- as.data.frame(do.call(rbind, output_list))
+# Save output dataframe
+op_df_op_file <- paste0(output_dir, "ancientILS_output_generate_alignments.csv")
+write.csv(output_df, file = op_df_op_file, row.names = FALSE)
 
+
+#### 6. Estimate trees ####
+# # To estimate one tree with a set model for a single simulated alignment
+# estimate.one.tree(alignment_path = output_df$output_alignment_file[1], gene_models = alisim_gene_models, iqtree2 = iqtree2)
+# To estimate all trees with a set model for all single simulated alignments
+tree_list <- lapply(output_df$output_alignment_file, estimate.one.tree, gene_models = alisim_gene_models, iqtree2 = iqtree2)
+tree_df <- as.data.frame(do.call(rbind, tree_list))
+# Save output dataframe
+tree_df_op_file <- paste0(output_dir, "ancientILS_output_generate_trees.csv")
+write.csv(tree_df, file = tree_df_op_file, row.names = FALSE)
 
 
 
