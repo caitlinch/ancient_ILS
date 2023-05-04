@@ -3,11 +3,14 @@
 # Caitlin Cherryh, 2023
 
 #### 1. Input parameters ####
-# alignment_directory <- folder containing the Whelan et al. (2017) alignment Metazoa_Choano_RCFV_strict
-# models_file <- path to the WEA17_L4_partitions.nex file from the Redmond and McLysaght (2021) supplementary data
+# tree_output_dir     <- directory to save other ML trees estimated from the alignment
+# alignment_path      <- path to the alignment from Whelan et al. 2017 for the alignment Metazoa_Choano_RCFV_strict
+# models_file         <- path to the WEA17_L4_partitions.nex file from the Redmond and McLysaght (2021) supplementary data
 
-alignment_directory <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/"
-models_file <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/RedmondMcLysaght2021NatCommsData/WEA17/WEA17_L4_gene_partitions.nex"
+alignment_path        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Whelan2017.Metazoa_Choano_RCFV_strict.aa.alignment.fa"
+tree_output_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_ML_tree_estimation/"
+models_file           <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/RedmondMcLysaght2021NatCommsData/WEA17/WEA17_L4_gene_partitions.nex"
+
 
 
 #### 2. Extract models ####
@@ -18,4 +21,19 @@ gene_lines <- grep("charset", charset_gene_lines, invert = TRUE, value = TRUE)
 gene_models <- unlist(lapply(strsplit(gene_lines, ":"), function(x){x[1]}))
 gene_models_formatted <- gsub(" ", "", gene_models)
 # Save the list of models to the same directory as the alignment
-write(gene_models, file = paste0(alignment_directory, "RedmondMcLysaght2021_WEA17_L4_gene_models.txt"))
+write(gene_models, file = paste0(tree_output_dir, "RedmondMcLysaght2021_WEA17_L4_gene_models.txt"))
+
+
+
+#### 3. Create partition file ####
+
+
+
+
+#### 4. Estimate ML tree with partitions from Redmond and McLysaght 2021 paper (Tier 4 models i.e. most complex/site-heterogeneous models) ####
+# Prepare IQ-Tree2 command lines
+setwd(dirname(constraint_tree_1_file_name))
+no_constraint_prefix <- "Whelan2017_ML_MFP"
+iqtree_call <- paste0(iqtree2, " -s ", new_alignment_path, " -m MFP -bb 1000 -nt AUTO -pre ", no_constraint_prefix)
+# Call IQ-Tree2
+system(estimate_hypothesis_trees)
