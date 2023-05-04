@@ -36,7 +36,8 @@ constraint_tree_1_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_1_
 constraint_tree_2_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_2_Pori.nex")
 constraint_tree_3_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_3_CtenPori.nex")
 # Partition file filepath for models from original paper run
-partition_file_name <- paste0(output_dir, "Whelan2017_models_partitions.nex")
+partition_models_file_name <- paste0(output_dir, "Whelan2017_replicateOriginal_models_partitions.nex")
+partition_genes_file_name <- paste0(output_dir, "Whelan2017_genes_partitions.nex")
 # Gene length csv filepath
 gl_file <- paste0(repo_output, "Whelan2017.Metazoa_Choano_RCFV_strict.gene_lengths.csv")
 
@@ -127,7 +128,7 @@ write(constraint_tree_3, file = constraint_tree_3_file_name)
 
 
 #### 6. Construct partition file and get gene lengths ####
-# Make partition file for IQ-Tree2
+## Make partition file for IQ-Tree2 with both gene start/end locations and models from the original Whelan2017 paper tree estimation
 # Open the file
 model_lines <- readLines(models_path)
 # Format the text from the model lines file
@@ -146,13 +147,13 @@ charsets <- paste0("\tcharset ",split_model_df$subset, " = ", split_model_df$sit
 # Construct the charpartition
 charpartition_chunks <- paste0(split_model_df$model, ":", split_model_df$subset)
 charpartition_chunks_pasted <- paste(charpartition_chunks, collapse = ", ")
-charpartition <- paste0("\tcharpartition mine = ", charpartition_chunks_pasted, ";")
+charpartition <- paste0("\tcharpartition all = ", charpartition_chunks_pasted, ";")
 # Construct the partition file
 partition_text <- c("#nexus", "begin sets;", charsets, charpartition, "end;","")
 # Save the partition file
-write(partition_text, file = partition_file_name)
+write(partition_text, file = partition_models_file_name)
 
-# Extract gene lengths
+## Extract gene lengths
 gene_partitions <- split_model_df$sites
 gene_partition_chunks <- unlist(strsplit(gene_partitions, ","))
 gene_start <- as.numeric(unlist(lapply(strsplit(gene_partition_chunks, "-"), function(x){x[1]})))
@@ -163,6 +164,18 @@ gene_df <- gene_df[order(gene_df$gene_start, decreasing = FALSE),]
 rownames(gene_df) <- 1:nrow(gene_df)
 # Save gene length dataframe
 write.csv(gene_df, file = gl_file)
+
+## Make partition file for IQ-Tree2 with only gene start/end locations
+# Construct gene names
+gene_names <- paste0("gene_", 1:nrow(gene_df))
+# Construct the charsets 
+charsets2 <- paste0("\tcharset ", gene_names, " = ", gene_df$gene_range, ";")
+# Construct the charpartition
+charpartition2 <- paste0("\tcharpartition all = ", paste(gene_names, collapse =", "), ";")
+# Construct the partition file
+partition_text2 <- c("#nexus", "begin sets;", charsets2, charpartition2, "end;","")
+# Save the partition file
+write(partition_text2, file = partition_genes_file_name)
 
 
 #### 7. Estimate hypothesis trees under each constraint tree with the models from the original study ####
