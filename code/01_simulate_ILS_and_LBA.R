@@ -166,3 +166,15 @@ if (estimate.trees == TRUE){
   }
 }
 
+
+
+#### 7. Estimate concordance factors ####
+# Use functions from code/func_tree_estimation.R
+
+
+
+#### 8. Estimate distance from hypothesis tree 1, hypothesis tree 2 and hypothesis tree 3 ####
+# Need to write functions
+
+
+
