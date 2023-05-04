@@ -32,7 +32,7 @@ iqtree2               <- "iqtree2"
 ms                    <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
 
 ## Phylogenetic parameters
-alisim_gene_models <- "'WAG+C60+R4'" # Most common model for this dataset when allowing any model in Redmond and McLysaght (2021)
+alisim_gene_models <- "'WAG+C60+R4'" # Most common model for this dataset when allowing any model in Redmond and McLysaght (2021) - want only LBA/ILS to vary (no systematic bias from model misspecification)
 ML_tree_estimation_models <- c("'LG+C60+R4")
 iqtree2_num_threads = "AUTO"
 iqtree2_num_ufb = 1000
