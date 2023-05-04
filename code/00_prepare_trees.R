@@ -3,17 +3,19 @@
 # Caitlin Cherryh, 2023
 
 #### 1. Input parameters ####
-# repo_dir            <- Location of caitlinch/ancient_ILS github repository
-# output_dir          <- directory to save output
-# alignment_path      <- path to the alignment from Whelan et al. 2017 for the alignment Metazoa_Choano_RCFV_strict
-# models_path         <- path to the models and genes from Whelan et al. 2017 for the alignment Metazoa_Choano_RCFV_strict
-# iqtree2             <- path to iqtree2 version 2.2.2
+# repo_dir                              <- Location of caitlinch/ancient_ILS github repository
+# constrained_tree_output_dir           <- directory to save constrained ML trees estimated from the alignment
+# tree_output_dir                       <- directory to save other ML trees estimated from the alignment
+# alignment_path                        <- path to the alignment from Whelan et al. 2017 for the alignment Metazoa_Choano_RCFV_strict
+# models_path                           <- path to the models and genes from Whelan et al. 2017 for the alignment Metazoa_Choano_RCFV_strict
+# iqtree2                               <- path to iqtree2 version 2.2.2
 
-repo_dir <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-output_dir <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
-alignment_path <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Whelan2017.Metazoa_Choano_RCFV_strict.aa.alignment.fa"
-models_path <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Metazoa_Choano_RCFV_strict_Models.txt"
-iqtree2 <- "iqtree2"
+repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
+constrained_tree_output_dir <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
+tree_output_dir             <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_ML_tree_estimation/"
+alignment_path              <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Whelan2017.Metazoa_Choano_RCFV_strict.aa.alignment.fa"
+models_path                 <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Metazoa_Choano_RCFV_strict_Models.txt"
+iqtree2                     <- "iqtree2"
 
 
 
@@ -32,12 +34,14 @@ if (dir.exists(repo_output) == FALSE){
 # Alignment filepath for alignment without Trichoplax species
 new_alignment_path <- gsub(".aa.alignment.fa", ".removedTrichoplax.aa.alignment.fa", alignment_path)
 # Constraint tree file paths
-constraint_tree_1_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_1_Cten.nex")
-constraint_tree_2_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_2_Pori.nex")
-constraint_tree_3_file_name <- paste0(output_dir, "Whelan2017_constraint_tree_3_CtenPori.nex")
+constraint_tree_1_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_constraint_tree_1_Cten.nex")
+constraint_tree_2_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_constraint_tree_2_Pori.nex")
+constraint_tree_3_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_constraint_tree_3_CtenPori.nex")
+# File to store IQ-Tree command lines used to estimate constrained trees
+iqtree2_call_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_hypothesis_tree_iqtree2_commands.txt")
 # Partition file filepath for models from original paper run
-partition_models_file_name <- paste0(output_dir, "Whelan2017_replicateOriginal_models_partitions.nex")
-partition_genes_file_name <- paste0(output_dir, "Whelan2017_genes_partitions.nex")
+partition_models_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_replicateOriginal_models_partitions.nex")
+partition_genes_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_genes_partitions.nex")
 # Gene length csv filepath
 gl_file <- paste0(repo_output, "Whelan2017.Metazoa_Choano_RCFV_strict.gene_lengths.csv")
 
@@ -178,19 +182,20 @@ partition_text2 <- c("#nexus", "begin sets;", charsets2, charpartition2, "end;",
 write(partition_text2, file = partition_genes_file_name)
 
 
+
 #### 7. Estimate hypothesis trees under each constraint tree with the models from the original study ####
 # Prepare IQ-Tree2 command lines
 iqtree_call_1 <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_1_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_1_Cten")
 iqtree_call_2 <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_2_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_2_Pori")
 iqtree_call_3 <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_3_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_3_CtenPori")
 estimate_hypothesis_trees <- c(iqtree_call_1,iqtree_call_2,iqtree_call_3)
-iqtree2_call_file_name <- paste0(output_dir, "Whelan2017_hypothesis_tree_iqtree2_commands.txt")
 write(estimate_hypothesis_trees, file = iqtree2_call_file_name)
 # Call IQ-Tree2
 system(estimate_hypothesis_trees)
 
 
-#### 7. Estimate ML tree with ModelFinder (can use models as basis for simulations) ####
+
+#### 7. Estimate ML tree with ModelFinder (one model applied to entire alignment) ####
 # Prepare IQ-Tree2 command lines
 setwd(dirname(constraint_tree_1_file_name))
 no_constraint_prefix <- "Whelan2017_ML_MFP"
@@ -198,6 +203,35 @@ iqtree_call <- paste0(iqtree2, " -s ", new_alignment_path, " -m MFP -bb 1000 -nt
 # Call IQ-Tree2
 system(estimate_hypothesis_trees)
 
+
+
+#### 8. Estimate ML tree with ModelFinder (partitioned by gene) ####
+# Prepare IQ-Tree2 command lines
+setwd(dirname(constraint_tree_1_file_name))
+no_constraint_prefix <- "Whelan2017_ML_MFP"
+iqtree_call <- paste0(iqtree2, " -s ", new_alignment_path, " -m MFP -bb 1000 -nt AUTO -pre ", no_constraint_prefix)
+# Call IQ-Tree2
+system(estimate_hypothesis_trees)
+
+
+
+#### 9. Estimate ML tree with partitions from original Whelan et al. 2017 paper ####
+# Prepare IQ-Tree2 command lines
+setwd(dirname(constraint_tree_1_file_name))
+no_constraint_prefix <- "Whelan2017_ML_MFP"
+iqtree_call <- paste0(iqtree2, " -s ", new_alignment_path, " -m MFP -bb 1000 -nt AUTO -pre ", no_constraint_prefix)
+# Call IQ-Tree2
+system(estimate_hypothesis_trees)
+
+
+
+#### 10. Estimate ML tree with partitions from Redmond and McLysaght 2021 paper (Tier 4 models i.e. most complex/site-heterogeneous models) ####
+# Prepare IQ-Tree2 command lines
+setwd(dirname(constraint_tree_1_file_name))
+no_constraint_prefix <- "Whelan2017_ML_MFP"
+iqtree_call <- paste0(iqtree2, " -s ", new_alignment_path, " -m MFP -bb 1000 -nt AUTO -pre ", no_constraint_prefix)
+# Call IQ-Tree2
+system(estimate_hypothesis_trees)
 
 
 
