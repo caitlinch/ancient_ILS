@@ -67,15 +67,10 @@ estimate.one.tree <- function(alignment_path, unique.output.path = TRUE, iqtree2
   
   ## Return the output files
   # Assemble iqtree2 file filepaths
-  if (is.na(output_prefix) == TRUE){
-    output_tree_file <- paste0(alignment_path, ".treefile")
-    output_iqtree_file <- paste0(alignment_path, ".iqtree")
-    output_log_file <- paste0(alignment_path, ".log")
-  } else {
-    output_tree_file <- paste0(dirname(alignment_path), output_prefix, ".treefile")
-    output_iqtree_file <- paste0(dirname(alignment_path), output_prefix, ".iqtree")
-    output_log_file <- paste0(dirname(alignment_path), output_prefix, ".log")
-  }
+  output_tree_file <- paste0(dirname(alignment_path), output_prefix, ".treefile")
+  output_iqtree_file <- paste0(dirname(alignment_path), output_prefix, ".iqtree")
+  output_log_file <- paste0(dirname(alignment_path), output_prefix, ".log")
+
   # Assemble output
   output_vec <- c(alignment_path, output_prefix, output_model, iqtree2_call, run.iqtree2, output_tree_file, output_iqtree_file, output_log_file)
   names(output_vec) <- c("alignment_path", "alignment_model_ID", "tree_estimation_model", "iqtree2_command", "iqtree2_command_run", "ML_tree_treefile", "ML_tree_iqtree_file", "ML_tree_log_file")
