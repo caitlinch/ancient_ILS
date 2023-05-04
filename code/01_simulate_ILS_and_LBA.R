@@ -31,6 +31,11 @@ alisim_gene_models <- "'WAG+C60+R4'" # Most common model for this dataset when a
 source(paste0(repo_dir, "code/func_simulations.R"))
 source(paste0(repo_dir, "code/func_tree_estimation.R"))
 
+# Create output file paths
+sim_df_op_file    <- paste0(output_dir, "ancientILS_simulation_parameters.csv")         # simulation parameters
+op_df_op_file     <- paste0(output_dir, "ancientILS_output_generate_alignments.csv")    # output from alignment generation
+tree_df_op_file   <- paste0(output_dir, "ancientILS_output_generate_trees.csv")         # output from tree estimation
+
 
 
 #### 3. Create new shorter tip names ####
@@ -53,8 +58,7 @@ names(simulation_taxa_names) <- original_taxa
 
 
 #### 4. Prepare simulation dataframe ####
-# Assemble the filepath for the simulation csv file
-sim_df_op_file <- paste0(output_dir, "ancientILS_simulation_parameters.csv")
+# Check whether the simulation dataframe has been created
 if (file.exists(sim_df_op_file) == TRUE){
   sim_df <- read.csv(sim_df_op_file)
 } else {
@@ -114,18 +118,29 @@ output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = s
                       partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
 output_df <- as.data.frame(do.call(rbind, output_list))
 # Save output dataframe
-op_df_op_file <- paste0(output_dir, "ancientILS_output_generate_alignments.csv")
 write.csv(output_df, file = op_df_op_file, row.names = FALSE)
 
 
 #### 6. Estimate trees ####
+# Read in the output_df from the previous step
+output_df <- read.csv(op_df_op_file)
+
+alignment_path = output_df$output_alignment_file[1]
+iqtree2_path = iqtree2
+iqtree2_num_threads = 3
+iqtree2_num_ufb = 1000
+iqtree2_model = "LG+G4"
+use.partitions = FALSE
+partition_file = NA
+use.model.finder = FALSE
+
+
 # # To estimate one tree with a set model for a single simulated alignment
 # estimate.one.tree(alignment_path = output_df$output_alignment_file[1], gene_models = alisim_gene_models, iqtree2 = iqtree2)
 # To estimate all trees with a set model for all single simulated alignments
 tree_list <- lapply(output_df$output_alignment_file, estimate.one.tree, gene_models = alisim_gene_models, iqtree2 = iqtree2)
 tree_df <- as.data.frame(do.call(rbind, tree_list))
 # Save output dataframe
-tree_df_op_file <- paste0(output_dir, "ancientILS_output_generate_trees.csv")
 write.csv(tree_df, file = tree_df_op_file, row.names = FALSE)
 
 
