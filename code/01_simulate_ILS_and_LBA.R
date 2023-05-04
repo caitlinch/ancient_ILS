@@ -10,8 +10,17 @@
 # partition_path      <- path to the partition file for the alignment Metazoa_Choano_RCFV_strict (created in script 00_prepare_trees.R)
 # iqtree2             <- path to iqtree2 version 2.2.2
 # ms                  <- path to ms executable
+
 ## Phylogenetic parameters
-# alisim_gene_models <- models to use when estimating the alignment using Alisim. Should be either one model (e.g. "LG") or a vector the same length as the number of genes (e.g. 117 models long)
+# alisim_gene_models        <- models to use when estimating the alignment using Alisim. 
+#                                 Should be either one model (e.g. "LG") or a vector the same length as the number of genes (e.g. 117 models long)
+# ML_tree_estimation_models <- models to use when estimating the ML trees from simulated alignments in IQ-Tree 2
+# iqtree2_num_threads       <- number of threads for IQ-Tree2 to use
+# iqtree2_num_ufb           <- number of ultrafast bootstraps for IQ-Tree2 to generate
+
+## Control parameters
+# generate.alignments       <- if TRUE, runs generate.one.alignment.wrapper function to simulate an alignment for each set of simulation parameters
+# estimate.trees            <- if TRUE, runs estimate.one.tree function on each combination of model (ML_tree_estimation_models) and simulated alignment
 
 ## File paths
 repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
@@ -27,6 +36,10 @@ alisim_gene_models <- "'WAG+C60+R4'" # Most common model for this dataset when a
 ML_tree_estimation_models <- c("'LG+C60+R4")
 iqtree2_num_threads = "AUTO"
 iqtree2_num_ufb = 1000
+
+## Control parameters
+generate.alignments = TRUE
+estimate.trees = FALSE
 
 
 
@@ -114,39 +127,42 @@ if (file.exists(sim_df_op_file) == TRUE){
 
 
 #### 5. Generate simulated alignments ####
-# # To generate one simulated alignment
-# generate.one.alignment(sim_row = sim_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
-# To generate all simulated alignments
-output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, 
-                      partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
-output_df <- as.data.frame(do.call(rbind, output_list))
-# Save output dataframe
-write.csv(output_df, file = op_df_op_file, row.names = FALSE)
+if (generate.alignments == TRUE){
+  # # To generate one simulated alignment
+  # generate.one.alignment(sim_row = sim_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
+  # To generate all simulated alignments
+  output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, 
+                        partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
+  output_df <- as.data.frame(do.call(rbind, output_list))
+  # Save output dataframe
+  write.csv(output_df, file = op_df_op_file, row.names = FALSE)
+}
 
 
 
 #### 6. Estimate trees ####
-# Read in the output_df from the previous step
-output_df <- read.csv(op_df_op_file)
-# Iterate through each of the provided models for the ML tree estimation
-for (m in ML_tree_estimation_models){
-  # Create a code to identify each combination of model and ID
-  model_code <- gsub("\\+", "_", gsub("'", "", m))
-  model_ID_code <- paste0(output_df$ID, "-", model_code)
-  # # To estimate one tree with a set model for a single simulated alignment
-  # estimate.one.tree(alignment_path, unique.output.path = TRUE, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_num_ufb = 1000,
-  #                           iqtree2_model = NA, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE, run.iqtree2 = FALSE)
-  # To estimate all trees with a set model for all single simulated alignments
-  tree_list <- lapply(output_df$output_alignment_file, estimate.one.tree, unique.output.path = TRUE,
-                      iqtree2_path = iqtree2, iqtree2_num_threads = iqtree2_num_threads, iqtree2_num_ufb = iqtree2_num_ufb,
-                      iqtree2_model = m, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE,
-                      run.iqtree2 = FALSE)
-  tree_df <- as.data.frame(do.call(rbind, tree_list))
-  # Combine completed rows of the output dataframe with the tree dataframe
-  tree_combined_df <- cbind(output_df[which(output_df$output_alignment_file == tree_df$alignment_path),], tree_df[which(tree_df$alignment_path == output_df$output_alignment_file),])
-  # Save combined output dataframe
-  tree_df_op_file <- paste0(tree_df_op_formula, model_code, ".csv")
-  write.csv(tree_combined_df, file = tree_df_op_file, row.names = FALSE)
+if (estimate.trees == TRUE){
+  # Read in the output_df from the previous step
+  output_df <- read.csv(op_df_op_file)
+  # Iterate through each of the provided models for the ML tree estimation
+  for (m in ML_tree_estimation_models){
+    # Create a code to identify each combination of model and ID
+    model_code <- gsub("\\+", "_", gsub("'", "", m))
+    model_ID_code <- paste0(output_df$ID, "-", model_code)
+    # # To estimate one tree with a set model for a single simulated alignment
+    # estimate.one.tree(alignment_path, unique.output.path = TRUE, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_num_ufb = 1000,
+    #                           iqtree2_model = NA, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE, run.iqtree2 = FALSE)
+    # To estimate all trees with a set model for all single simulated alignments
+    tree_list <- lapply(output_df$output_alignment_file, estimate.one.tree, unique.output.path = TRUE,
+                        iqtree2_path = iqtree2, iqtree2_num_threads = iqtree2_num_threads, iqtree2_num_ufb = iqtree2_num_ufb,
+                        iqtree2_model = m, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE,
+                        run.iqtree2 = FALSE)
+    tree_df <- as.data.frame(do.call(rbind, tree_list))
+    # Combine completed rows of the output dataframe with the tree dataframe
+    tree_combined_df <- cbind(output_df[which(output_df$output_alignment_file == tree_df$alignment_path),], tree_df[which(tree_df$alignment_path == output_df$output_alignment_file),])
+    # Save combined output dataframe
+    tree_df_op_file <- paste0(tree_df_op_formula, model_code, ".csv")
+    write.csv(tree_combined_df, file = tree_df_op_file, row.names = FALSE)
+  }
 }
-
 
