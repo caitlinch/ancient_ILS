@@ -4,7 +4,7 @@
 
 
 #### Functions for IQ-Tree2 ####
-estimate.one.tree <- function(alignment_path, output_prefix = NA, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_num_ufb = 1000,
+estimate.one.tree <- function(alignment_path, unique.output.path = TRUE, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_num_ufb = 1000,
                               iqtree2_model = NA, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE,
                               run.iqtree2 = FALSE){
   # Function to take one simulated alignment and estimate a single tree using the specified model
@@ -49,12 +49,14 @@ estimate.one.tree <- function(alignment_path, output_prefix = NA, iqtree2_path, 
   bootstrap_call <- paste0("-bb ", iqtree2_num_ufb)
   # Assemble the number of threads call
   num_threads_call <- paste0("-nt ", iqtree2_num_threads)
-  # Set output prefix call
-  if (is.na(output_prefix) == TRUE){
-    output_prefix_call = ""
-  } else if (is.na(output_prefix) == FALSE){
-    output_prefix_call = paste0("-pre ", output_prefix)
+  # Determine the prefix to give iqtree2 to create unique output
+  if (unique.output.path == TRUE){
+    output_prefix = paste0(gsub("_alignment.fa", "", basename(alignment_path)), "-", gsub("\\+", "_", gsub("'", "", iqtree2_model)))
+  } else if (unique.output.path == FALSE){
+    output_prefix = gsub("_alignment.fa", "", basename(alignment_path))
   }
+  # Set output prefix call
+  output_prefix_call = paste0("-pre ", output_prefix)
   # Assemble the whole iqtree2 call
   iqtree2_call <- paste(iqtree2_path, alignment_call, model_call, bootstrap_call, num_threads_call, output_prefix_call, sep = " ")
   
@@ -75,8 +77,8 @@ estimate.one.tree <- function(alignment_path, output_prefix = NA, iqtree2_path, 
     output_log_file <- paste0(dirname(alignment_path), output_prefix, ".log")
   }
   # Assemble output
-  output_vec <- c(alignment_path, output_model, iqtree2_call, run.iqtree2, output_tree_file, output_iqtree_file, output_log_file)
-  names(output_vec) <- c("alignment_path", "tree_estimation_model", "iqtree2_command", "iqtree2_command_run", "ML_tree_treefile", "ML_tree_iqtree_file", "ML_tree_log_file")
+  output_vec <- c(alignment_path, output_prefix, output_model, iqtree2_call, run.iqtree2, output_tree_file, output_iqtree_file, output_log_file)
+  names(output_vec) <- c("alignment_path", "alignment_model_ID", "tree_estimation_model", "iqtree2_command", "iqtree2_command_run", "ML_tree_treefile", "ML_tree_iqtree_file", "ML_tree_log_file")
   return(output_vec)
 }
 
