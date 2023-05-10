@@ -61,6 +61,7 @@ estimate.trees = TRUE
 
 
 
+
 #### 2. Open packages and functions ####
 source(paste0(repo_dir, "code/func_simulations.R"))
 source(paste0(repo_dir, "code/func_tree_estimation.R"))
@@ -181,12 +182,13 @@ if (estimate.trees == TRUE){
       tree_list <- lapply(output_df$output_alignment_file, estimate.one.tree, unique.output.path = TRUE,
                           iqtree2_path = iqtree2, iqtree2_num_threads = iqtree2_num_threads, iqtree2_num_ufb = iqtree2_num_ufb,
                           iqtree2_model = m, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE,
-                          run.iqtree2 = FALSE) 
+                          run.iqtree2 = TRUE) 
     } else {
       tree_list <- mclapply(output_df$output_alignment_file, estimate.one.tree, unique.output.path = TRUE,
                             iqtree2_path = iqtree2, iqtree2_num_threads = iqtree2_num_threads, iqtree2_num_ufb = iqtree2_num_ufb,
                             iqtree2_model = m, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE,
-                            run.iqtree2 = FALSE, mc.cores = round(num_parallel_cores/iqtree2_num_threads)) 
+                            run.iqtree2 = TRUE, 
+                            mc.cores = round(num_parallel_cores/iqtree2_num_threads)) 
     }
     tree_df <- as.data.frame(do.call(rbind, tree_list))
     # Combine completed rows of the output dataframe with the tree dataframe
