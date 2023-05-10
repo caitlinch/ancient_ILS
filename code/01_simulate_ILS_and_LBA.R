@@ -151,8 +151,13 @@ if (generate.alignments == TRUE){
   # # To generate one simulated alignment
   # generate.one.alignment(sim_row = sim_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
   # To generate all simulated alignments
-  output_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, 
-                          partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE, mc.cores = num_parallel_cores)
+  if (location == "local"){
+    output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, 
+                          partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
+  } else {
+    output_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, 
+                            partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE, mc.cores = num_parallel_cores)
+  }
   output_df <- as.data.frame(do.call(rbind, output_list))
   # Save output dataframe
   write.csv(output_df, file = op_df_op_file, row.names = FALSE)
@@ -172,10 +177,17 @@ if (estimate.trees == TRUE){
     # estimate.one.tree(alignment_path, unique.output.path = TRUE, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_num_ufb = 1000,
     #                           iqtree2_model = NA, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE, run.iqtree2 = FALSE)
     # To estimate all trees with a set model for all single simulated alignments
-    tree_list <- mclapply(output_df$output_alignment_file, estimate.one.tree, unique.output.path = TRUE,
+    if (location == "local"){
+      tree_list <- lapply(output_df$output_alignment_file, estimate.one.tree, unique.output.path = TRUE,
                           iqtree2_path = iqtree2, iqtree2_num_threads = iqtree2_num_threads, iqtree2_num_ufb = iqtree2_num_ufb,
                           iqtree2_model = m, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE,
-                          run.iqtree2 = FALSE, mc.cores = round(num_parallel_cores/iqtree2_num_threads))
+                          run.iqtree2 = FALSE) 
+    } else {
+      tree_list <- mclapply(output_df$output_alignment_file, estimate.one.tree, unique.output.path = TRUE,
+                            iqtree2_path = iqtree2, iqtree2_num_threads = iqtree2_num_threads, iqtree2_num_ufb = iqtree2_num_ufb,
+                            iqtree2_model = m, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE,
+                            run.iqtree2 = FALSE, mc.cores = round(num_parallel_cores/iqtree2_num_threads)) 
+    }
     tree_df <- as.data.frame(do.call(rbind, tree_list))
     # Combine completed rows of the output dataframe with the tree dataframe
     tree_combined_df <- cbind(output_df[which(output_df$output_alignment_file == tree_df$alignment_path),], tree_df[which(tree_df$alignment_path == output_df$output_alignment_file),])
