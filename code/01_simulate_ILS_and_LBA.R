@@ -52,7 +52,7 @@ if (location == "local"){
 
 ## Phylogenetic parameters
 alisim_gene_models <- "'WAG+C60+R4'" # Most common model for this dataset when allowing any model in Redmond and McLysaght (2021) - want only LBA/ILS to vary (no systematic bias from model misspecification)
-ML_tree_estimation_models <- c("LG+G4", "'LG+C60+R4") # No F - cite recent preprint
+ML_tree_estimation_models <- c("'LG+G4'", "'LG+C60+R4") # No F - cite recent preprint
 iqtree2_num_ufb = 1000
 
 ## Control parameters
@@ -168,7 +168,6 @@ if (estimate.trees == TRUE){
   for (m in ML_tree_estimation_models){
     # Create a code to identify each combination of model and ID
     model_code <- gsub("\\+", "_", gsub("'", "", m))
-    model_ID_code <- paste0(output_df$ID, "-", model_code)
     # # To estimate one tree with a set model for a single simulated alignment
     # estimate.one.tree(alignment_path, unique.output.path = TRUE, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_num_ufb = 1000,
     #                           iqtree2_model = NA, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE, run.iqtree2 = FALSE)
