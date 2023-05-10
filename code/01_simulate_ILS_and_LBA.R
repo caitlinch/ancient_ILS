@@ -58,7 +58,8 @@ iqtree2_num_ufb = 1000
 ## Control parameters
 generate.alignments = FALSE
 estimate.trees = TRUE
-
+estimate.gCF = FALSE
+calculate.tree.distances = FALSE
 
 
 
@@ -202,12 +203,20 @@ if (estimate.trees == TRUE){
 
 
 #### 7. Estimate concordance factors ####
-# Use functions from code/func_tree_estimation.R
+if (estimate.gCF == TRUE){
+  # Read in the output_df from the previous step
+  tree_df <- read.csv(tree_df_op_file)
+  # Iterate through each 
+}
 
 
 
 #### 8. Estimate distance from hypothesis tree 1, hypothesis tree 2 and hypothesis tree 3 ####
-# Need to write functions
+if (calculate.tree.distances == TRUE){
+  # Read in the output_df from the previous step
+  tree_df <- read.csv(tree_df_op_file)
+}
+
 
 
 
