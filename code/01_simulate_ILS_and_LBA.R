@@ -23,17 +23,28 @@
 # estimate.trees            <- if TRUE, runs estimate.one.tree function on each combination of model (ML_tree_estimation_models) and simulated alignment
 
 ## File paths
-repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-hypothesis_tree_dir   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
-output_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/"
-
-partition_path        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/Whelan2017_replicateOriginal_models_partitions.nex"
-iqtree2               <- "iqtree2"
-ms                    <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
+location = "local"
+if (location == "local"){
+  repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
+  hypothesis_tree_dir   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
+  output_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/"
+  
+  partition_path        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_ML_tree_estimation/Whelan2017_replicateOriginal_models_partitions.nex"
+  iqtree2               <- "iqtree2"
+  ms                    <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
+} else if (location == "dayhoff"){
+  repo_dir              <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
+  hypothesis_tree_dir   <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/02_hypothesis_trees/"
+  output_dir            <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/03_simulation_output/"
+  
+  partition_path        <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/01_empirical_data/Whelan2017_replicateOriginal_models_partitions.nex"
+  iqtree2               <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree-2.2.0-Linux/bin/iqtree2"
+  ms                    <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/msdir/ms"
+}
 
 ## Phylogenetic parameters
 alisim_gene_models <- "'WAG+C60+R4'" # Most common model for this dataset when allowing any model in Redmond and McLysaght (2021) - want only LBA/ILS to vary (no systematic bias from model misspecification)
-ML_tree_estimation_models <- c("'LG+C60+R4")
+ML_tree_estimation_models <- c("LG+G4", "'LG+C60+R4") # No F - cite recent preprint
 iqtree2_num_threads = "AUTO"
 iqtree2_num_ufb = 1000
 
