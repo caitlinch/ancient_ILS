@@ -234,7 +234,7 @@ if (estimate.gCF == TRUE){
 #### 8. Estimate distance from hypothesis tree 1, hypothesis tree 2 and hypothesis tree 3 ####
 if (calculate.tree.distances == TRUE){
   # Read in the output from the previous step
-  tree_df <- read.csv(tree_df_op_file)
+  gcf_df <- read.csv(gcf_df_op_file)
 }
 
 
