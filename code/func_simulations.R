@@ -87,6 +87,8 @@ generate.one.alignment <- function(sim_row, renamed_taxa, partition_path, gene_m
 
 #### Functions to modify trees and manipulate branch lengths
 manipulate.branch.lengths <- function(starting_tree, parameters_row){
+  
+  ## Root the tree at the outgroup and scale the tree length 
   # Root the hypothesis tree
   rooted_tree <- root(starting_tree, outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
                       resolve.root = TRUE)
@@ -94,6 +96,8 @@ manipulate.branch.lengths <- function(starting_tree, parameters_row){
   rooted_tree <- force.ultrametric(rooted_tree, method = "extend")
   # Scale rooted tree to be tree age
   rooted_tree$edge.length <- rooted_tree$edge.length * (parameters_row$tree_length / max(branching.times(rooted_tree)))
+  
+  ## Identify the two branches to vary
   # Find the nodes for the branch depending on which tree is being used
   if (basename(parameters_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_1_Cten.treefile"){
     # Extract the nodes by checking for monophyletic clades
@@ -148,30 +152,30 @@ manipulate.branch.lengths <- function(starting_tree, parameters_row){
   branch_a <- which(rooted_tree$edge[,1] == a_start & rooted_tree$edge[,2] == a_end)
   # Identify branch b
   branch_b <- which(rooted_tree$edge[,1] == b_start & rooted_tree$edge[,2] == b_end)
-  # Modify branch b length
-  if (parameters_row$simulation_number == "sim1" | parameters_row$simulation_number == "sim3"){
-    # LBA simulation - vary branch b (branch that leads to Ctenophore clade)
-    branch_b_value <- rooted_tree$edge.length[branch_b]
-    # Multiply existing branch to be that percent of the current tree height
-    # e.g. if branch_b_percent_height is 30% and the tree is 1.0 sub/site long, then branch b should be 0.33 sub/site long
-    new_branch_b_value <- max(branching.times(rooted_tree)) * (parameters_row$branch_b_percent_height/100)
-    rooted_tree$edge.length[branch_b] <- new_branch_b_value
-  }
-  # Modify branch a length
-  if (parameters_row$simulation_number == "sim2" | parameters_row$simulation_number == "sim3"){
-    # ILS simulation - vary branch a (branch that allows more time for the two species to differentiate)
-    branch_a_value <- rooted_tree$edge.length[branch_a]
-    # Multiply existing branch to be that percent of the current tree height
-    # e.g. if branch_a_percent_height is 50% and the tree is 1.0 sub/site long, then branch a should be 0.5 sub/site long
-    new_branch_a_value <- max(branching.times(rooted_tree)) * (parameters_row$branch_a_percent_height/100)
-    rooted_tree$edge.length[branch_a] <- new_branch_a_value
-  }
+  
+  ## Modify branch b length
+  # LBA simulation - vary branch b (branch that leads to Ctenophore clade)
+  branch_b_value <- rooted_tree$edge.length[branch_b]
+  # Multiply existing branch to be that percent of the current tree height
+  # e.g. if branch_b_percent_height is 30% and the tree is 1.0 sub/site long, then branch b should be 0.33 sub/site long
+  new_branch_b_value <- max(branching.times(rooted_tree)) * (parameters_row$branch_b_percent_height/100)
+  rooted_tree$edge.length[branch_b] <- new_branch_b_value
+  
+  ## Modify branch a length
+  # ILS simulation - vary branch a (branch that allows more time for the two species to differentiate)
+  branch_a_value <- rooted_tree$edge.length[branch_a]
+  # Multiply existing branch to be that percent of the current tree height
+  # e.g. if branch_a_percent_height is 50% and the tree is 1.0 sub/site long, then branch a should be 0.5 sub/site long
+  new_branch_a_value <- max(branching.times(rooted_tree)) * (parameters_row$branch_a_percent_height/100)
+  rooted_tree$edge.length[branch_a] <- new_branch_a_value
+  
+  ## Rescale the tree and make it ultrametric again
   # Scale rooted tree to be tree age (reset impacts from modifying branch lengths)
   rooted_tree$edge.length <- rooted_tree$edge.length * (parameters_row$tree_length / max(branching.times(rooted_tree)))
   # Make the tree ultrametric
   rooted_tree <- force.ultrametric(rooted_tree, method = "extend")
   
-  # Return the manipulated and modified tree
+  ## Return the manipulated and modified tree
   return(rooted_tree)
 }
 
