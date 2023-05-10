@@ -74,6 +74,7 @@ sim_df_op_file            <- paste0(output_dir, "ancientILS_simulation_parameter
 op_df_op_file             <- paste0(output_dir, "ancientILS_output_generate_alignments.csv")    # output from alignment generation
 tree_df_op_formula        <- paste0(output_dir, "ancientILS_output_generate_trees.")            # output from tree estimation - formula (add model code to end)
 gcf_df_op_formula         <- paste0(output_dir, "ancientILS_output_gCF.")                       # output from gCF - formula (add model code to end)
+rf_df_op_file             <- paste0(output_dir, "ancientILS_output_RF_wRF.csv")                 # output from RF/wRF distances
 
 
 
@@ -220,7 +221,7 @@ if (estimate.gCF == TRUE){
                            rename.taxa.for.ms = TRUE, renamed_taxa = simulation_taxa_names,
                            mc.cores = round(num_parallel_cores/iqtree2_num_threads))
     }
-    gcf_df <- as.data.frame(do.call(rbind, tree_list))
+    gcf_df <- as.data.frame(do.call(rbind, gcf_list))
     # Combine completed rows of the output dataframe with the tree dataframe
     gcf_combined_df <- cbind(gcf_df[which(gcf_df$alignment_path == tree_df$alignment_path),], tree_df[which(tree_df$alignment_path == gcf_df$alignment_path),])
     # Save combined output dataframe
@@ -234,7 +235,20 @@ if (estimate.gCF == TRUE){
 #### 8. Estimate distance from hypothesis tree 1, hypothesis tree 2 and hypothesis tree 3 ####
 if (calculate.tree.distances == TRUE){
   # Read in the output from the previous step
-  gcf_df <- read.csv(gcf_df_op_file)
+  tree_df <- read.csv(tree_df_op_file)
+  if (location == "local"){
+    rf_list<- lapply(tree_df$ML_tree_treefile, calculate.distance.between.trees, hypothesis_tree_dir = hypothesis_tree_dir,
+                     rename.hypothesis.tree.tips = TRUE, renamed_taxa = simulation_taxa_names)
+  } else {
+    rf_list <- mclapply(tree_df$ML_tree_treefile, calculate.distance.between.trees, hypothesis_tree_dir = hypothesis_tree_dir,
+                        rename.hypothesis.tree.tips = TRUE, renamed_taxa = simulation_taxa_names,
+                        mc.cores = num_parallel_cores)
+  }
+  rf_df <- as.data.frame(do.call(rbind, rf_list))
+  # Combine completed rows of the output dataframe with the tree dataframe
+  rf_combined_df <- cbind(rf_df[which(rf_df$tree_path == tree_df$ML_tree_treefile),], tree_df[which(tree_df$ML_tree_treefile == rf_df$tree_path),])
+  # Save combined output dataframe
+  write.csv(rf_combined_df, file = rf_df_op_file, row.names = FALSE)
 }
 
 
