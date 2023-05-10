@@ -7,7 +7,10 @@ gcf.wrapper <- function(alignment_path, iqtree2_path, iqtree2_model = NA, iqtree
   # Function to calculate the estimated and empirical gCF and return relevant gCFs
   
   # Calculate the exact/expected gCFs
-  extract.input.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, renamed_taxa)
+  expected_gcfs <- extract.input.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads, rename.taxa.for.ms = TRUE, renamed_taxa)
+  estimated_gcfs <- extract.output.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads, iqtree2_model)
+  
+  
   
 }
 
@@ -56,9 +59,13 @@ extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtr
   al_files <- paste0(al_dir, list.files(al_dir))
   gcf_files <- grep(actual_gcf_prefix, al_files, value = T)
   gcf_stat_file = grep("cf.stat", gcf_files, value = T)
+  gcf_branch_file = grep("cf.branch", gcf_files, value = T)
+  gcf_tree_file = grep("cf.tree", gcf_files, value = T)
   gcf_table <- read.table(gcf_stat_file, header = TRUE, sep = "\t")
-  # Return the gCF table
-  return(gcf_table)
+  # Return the gCF table and file names
+  output_gcf_list <- list("gcf_stat_file" = gcf_stat_file, "gcf_branch_file" = gcf_branch_file, "gcf_tree_file" = gcf_tree_file, 
+                      "gcf_table" = gcf_table)
+  return(output_gcf_list)
 }
 
 extract.output.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_model = NA){
@@ -71,8 +78,10 @@ extract.output.concordance.factors <- function(alignment_path, iqtree2_path, iqt
   gcf_stat_file <- op_vector[["gCF_table_file"]]
   gcf_table <- read.table(gcf_stat_file, header = TRUE, sep = "\t")
   # Return the gCF table
-  return(gcf_table)
-  
+  # Return the gCF table and file names
+  output_gcf_list <- list("gcf_stat_file" = gcf_files[4], "gcf_branch_file" = gcf_files[3], "gcf_tree_file" = gcf_files[2], 
+                          "gcf_table" = gcf_table)
+  return(output_gcf_list)
 }
 
 iqtree2.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_model = NA){
