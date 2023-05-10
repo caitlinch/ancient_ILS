@@ -73,6 +73,7 @@ library(parallel)
 sim_df_op_file            <- paste0(output_dir, "ancientILS_simulation_parameters.csv")         # simulation parameters
 op_df_op_file             <- paste0(output_dir, "ancientILS_output_generate_alignments.csv")    # output from alignment generation
 tree_df_op_formula        <- paste0(output_dir, "ancientILS_output_generate_trees.")            # output from tree estimation - formula (add model code to end)
+gcf_df_op_formula         <- paste0(output_dir, "ancientILS_output_gCF.")                       # output from gCF - formula (add model code to end)
 
 
 
@@ -204,16 +205,35 @@ if (estimate.trees == TRUE){
 
 #### 7. Estimate concordance factors ####
 if (estimate.gCF == TRUE){
-  # Read in the output_df from the previous step
+  # Read in the output from the previous step
   tree_df <- read.csv(tree_df_op_file)
-  # Iterate through each 
+  # Iterate through each of the provided models for the ML tree estimation
+  for (m in ML_tree_estimation_models){
+    # Create a code to identify each combination of model and ID
+    model_code <- gsub("\\+", "_", gsub("'", "", m))
+    # Iterate through each alignment and calculate the actual and estimated gCFs
+    if (location == "local"){
+      gcf_list <- lapply(tree_df$alignment_path, gcf.wrapper, iqtree2_path, iqtree2_model, iqtree2_num_threads,
+                         rename.taxa.for.ms = TRUE, renamed_taxa = simulation_taxa_names)
+    } else {
+      gcf_list <- mclapply(tree_df$alignment_path, gcf.wrapper, iqtree2_path, iqtree2_model, iqtree2_num_threads,
+                           rename.taxa.for.ms = TRUE, renamed_taxa = simulation_taxa_names,
+                           mc.cores = round(num_parallel_cores/iqtree2_num_threads))
+    }
+    gcf_df <- as.data.frame(do.call(rbind, tree_list))
+    # Combine completed rows of the output dataframe with the tree dataframe
+    gcf_combined_df <- cbind(gcf_df[which(gcf_df$alignment_path == tree_df$alignment_path),], tree_df[which(tree_df$alignment_path == gcf_df$alignment_path),])
+    # Save combined output dataframe
+    gcf_df_op_file <- paste0(gcf_df_op_formula, model_code, ".csv")
+    write.csv(gcf_combined_df, file = gcf_df_op_file, row.names = FALSE)
+  }
 }
 
 
 
 #### 8. Estimate distance from hypothesis tree 1, hypothesis tree 2 and hypothesis tree 3 ####
 if (calculate.tree.distances == TRUE){
-  # Read in the output_df from the previous step
+  # Read in the output from the previous step
   tree_df <- read.csv(tree_df_op_file)
 }
 
