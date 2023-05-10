@@ -23,8 +23,9 @@
 # estimate.trees            <- if TRUE, runs estimate.one.tree function on each combination of model (ML_tree_estimation_models) and simulated alignment
 
 ## File paths
-location = "local"
+location = "dayhoff"
 if (location == "local"){
+  # Run on work mac
   repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   hypothesis_tree_dir   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
   output_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/"
@@ -33,6 +34,7 @@ if (location == "local"){
   iqtree2               <- "iqtree2"
   ms                    <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
 } else if (location == "dayhoff"){
+  # Run on RSB Dayhoff server
   repo_dir              <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
   hypothesis_tree_dir   <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/02_hypothesis_trees/"
   output_dir            <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/03_simulation_output/"
@@ -142,7 +144,9 @@ if (generate.alignments == TRUE){
   # # To generate one simulated alignment
   # generate.one.alignment(sim_row = sim_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
   # To generate all simulated alignments
-  output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, 
+  # output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, 
+  #                       partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
+  output_list <- lapply(1:10, generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, 
                         partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
   output_df <- as.data.frame(do.call(rbind, output_list))
   # Save output dataframe
