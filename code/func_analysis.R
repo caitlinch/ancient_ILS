@@ -2,8 +2,18 @@
 ## This script includes functions investigate and analyses the results of the simulations 
 # Caitlin Cherryh, 2023
 
+#### Concordance factors wrapper ####
+gcf.wrapper <- function(alignment_path, iqtree2_path, iqtree2_model = NA, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, renamed_taxa){
+  # Function to calculate the estimated and empirical gCF and return relevant gCFs
+  
+  # Calculate the exact/expected gCFs
+  extract.input.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, renamed_taxa)
+  
+}
 
-#### Concordance factors ####
+
+
+#### Calculate concordance factors ####
 extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, renamed_taxa){
   # Function to return concordance factors (calculated in iqtree), for a simulated tree
   #     gCFs estimated from the base tree supplied to ms and from the set of gene trees estimated in AliSim
@@ -51,8 +61,7 @@ extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtr
   return(gcf_table)
 }
 
-extract.output.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_num_ufb = 1000,
-                                               iqtree2_model = NA){
+extract.output.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_model = NA){
   # Function to return concordance factors (calculated in iqtree), for a simulated alignment
   #     gCFs estimated from the ML tree estimated from the partitioned simulated alignment and gene trees estimated from each partition
   
@@ -66,8 +75,7 @@ extract.output.concordance.factors <- function(alignment_path, iqtree2_path, iqt
   
 }
 
-iqtree2.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_num_ufb = 1000,
-                                        iqtree2_model = NA){
+iqtree2.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_model = NA){
   # Function to take a simulated alignment and estimate gCF from it using iqtree2
   
   ## Get the directory and list of files in that directory
@@ -93,7 +101,7 @@ iqtree2.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_nu
   }
   # Create IQ-Tree call
   species_tree_prefix <- paste0(al_id, "-concat")
-  species_tree_call <- paste0(iqtree2_path, " -s ", alignment_path, " -p ", gcf_partition_file, model_call, " --prefix ", species_tree_prefix, " -bb ",  iqtree2_num_ufbm, " -nt ",iqtree2_num_threads)
+  species_tree_call <- paste0(iqtree2_path, " -s ", alignment_path, " -p ", gcf_partition_file, model_call, " --prefix ", species_tree_prefix, " -nt ",iqtree2_num_threads)
   system(species_tree_call)
   
   ## Inferring gene/locus trees  
@@ -105,7 +113,7 @@ iqtree2.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_nu
   }
   # Create IQ-Tree call
   gene_tree_prefix <- paste0(al_id, "-gene_trees")
-  gene_tree_call <- paste0(iqtree2_path, " -s ", alignment_path, " -S ", gcf_partition_file, model_call, " --prefix ", gene_tree_prefix, " -bb ",  iqtree2_num_ufbm, " -nt ",iqtree2_num_threads)
+  gene_tree_call <- paste0(iqtree2_path, " -s ", alignment_path, " -S ", gcf_partition_file, model_call, " --prefix ", gene_tree_prefix, " -nt ",iqtree2_num_threads)
   system(gene_tree_call)
   
   ## Calculating gene concordance factors
