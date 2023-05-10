@@ -64,6 +64,8 @@ estimate.trees = FALSE
 source(paste0(repo_dir, "code/func_simulations.R"))
 source(paste0(repo_dir, "code/func_tree_estimation.R"))
 
+library(parallel)
+
 # Create output file paths
 sim_df_op_file            <- paste0(output_dir, "ancientILS_simulation_parameters.csv")         # simulation parameters
 op_df_op_file             <- paste0(output_dir, "ancientILS_output_generate_alignments.csv")    # output from alignment generation
