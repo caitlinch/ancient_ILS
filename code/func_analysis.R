@@ -2,6 +2,58 @@
 ## This script includes functions investigate and analyses the results of the simulations 
 # Caitlin Cherryh, 2023
 
+library(ape)
+library(phangorn)
+
+#### Calculate distance between trees ####
+calculate.distance.between.trees <- function(tree_path, hypothesis_tree_dir, rename.hypothesis.tree.tips = FALSE, renamed_taxa){
+  # Function to calculate the distance between a tree and three hypothesis trees
+  
+  ## Open the hypothesis trees
+  # Extract the tree files
+  all_hyp_dir_files <- list.files(hypothesis_tree_dir)
+  tree_files <- grep("treefile", all_hyp_dir_files,value = T)
+  h1_path <- paste0(hypothesis_tree_dir, grep("hypothesis_tree_1", tree_files, value = T))
+  h2_path <- paste0(hypothesis_tree_dir, grep("hypothesis_tree_2", tree_files, value = T))
+  h3_path <- paste0(hypothesis_tree_dir, grep("hypothesis_tree_3", tree_files, value = T))
+  # Open the tree files
+  h1_tree <- read.tree(file = h1_path)
+  h2_tree <- read.tree(file = h2_path)
+  h3_tree <- read.tree(file = h3_path)
+  
+  ## Prepare the hypothesis trees for comparison with the test tree
+  # Reroot the trees
+  h1_tree <- root(h1_tree, outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
+                  resolve.root = TRUE)
+  h2_tree <- root(h2_tree, outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
+                  resolve.root = TRUE)
+  h3_tree <- root(h3_tree, outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
+                  resolve.root = TRUE)
+  if (rename.hypothesis.tree.tips == TRUE){
+    # Rename taxa to short versions (numbers only)
+    h1_tree$tip.label <- unlist(lapply(h1_tree$tip.label, function(x){renamed_taxa[[x]]}))
+    h1_tree$tip.label <- gsub("t", "", h1_tree$tip.label)
+    h2_tree$tip.label <- unlist(lapply(h2_tree$tip.label, function(x){renamed_taxa[[x]]}))
+    h2_tree$tip.label <- gsub("t", "", h2_tree$tip.label)
+    h3_tree$tip.label <- unlist(lapply(h3_tree$tip.label, function(x){renamed_taxa[[x]]}))
+    h3_tree$tip.label <- gsub("t", "", h3_tree$tip.label)
+  }
+  
+  ## Open the tree of interest
+  t <- read.tree(file = tree_path)
+  
+  ## Calculate RF and wRF for the trees
+  output_vec <- c(tree_path, RF.dist(t, h1_tree), wRF.dist(t, h1_tree), RF.dist(t, h2_tree), wRF.dist(t, h2_tree), RF.dist(t, h3_tree), wRF.dist(t, h3_tree))
+  names(output_vec) <- c("tree_path", "h1_RF_dist", "h1_wRF_dist", "h2_RF_dist", "h2_wRF_dist", "h3_RF_dist", "h3_wRF_dist")
+  
+  ## Return the RF/wRF distances
+  return(output_vec)
+}
+
+
+
+
+
 #### Concordance factors wrapper ####
 gcf.wrapper <- function(alignment_path, iqtree2_path, iqtree2_model = NA, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, renamed_taxa){
   # Function to calculate the estimated and empirical gCF and return relevant gCFs
@@ -109,6 +161,8 @@ gcf.wrapper <- function(alignment_path, iqtree2_path, iqtree2_model = NA, iqtree
 
 
 
+
+
 #### Calculate concordance factors ####
 extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, renamed_taxa){
   # Function to return concordance factors (calculated in iqtree), for a simulated tree
@@ -169,6 +223,8 @@ extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtr
   return(output_gcf_list)
 }
 
+
+
 extract.output.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_model = NA){
   # Function to return concordance factors (calculated in iqtree), for a simulated alignment
   #     gCFs estimated from the ML tree estimated from the partitioned simulated alignment and gene trees estimated from each partition
@@ -184,6 +240,8 @@ extract.output.concordance.factors <- function(alignment_path, iqtree2_path, iqt
                           "gcf_table" = gcf_table)
   return(output_gcf_list)
 }
+
+
 
 iqtree2.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_model = NA){
   # Function to take a simulated alignment and estimate gCF from it using iqtree2
@@ -248,6 +306,9 @@ iqtree2.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_nu
   names(op_vector) <- c("alignment_path", "gCF_tree_file", "gCF_branch_file", "gCF_table_file")
   return(op_vector)
 }
+
+
+
 
 
 #### Functions for partition files ####
