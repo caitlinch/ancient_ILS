@@ -6,11 +6,56 @@
 gcf.wrapper <- function(alignment_path, iqtree2_path, iqtree2_model = NA, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, renamed_taxa){
   # Function to calculate the estimated and empirical gCF and return relevant gCFs
   
-  # Calculate the exact/expected gCFs
+  ## Calculate the exact/expected gCFs using IQ-Tree2
   expected_gcfs <- extract.input.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads, rename.taxa.for.ms = TRUE, renamed_taxa)
   estimated_gcfs <- extract.output.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads, iqtree2_model)
   
+  ## Extract information from the actual gCFS
+  # Extract the gcf tables
+  a_gcfs <- expected_gcfs$gcf_table 
+  # Find the branches a and b
+  a_tree <- read.tree(file = expected_gcfs$gcf_branch_file)
+  # Find the "a" branch
   
+  # Find the "b" branch
+  # Get the mean values for the actual  gCFS
+  
+  
+  if (grepl("h1", alignment_path) == TRUE){
+    # Extract the nodes by checking for monophyletic clades
+    a_end <- getMRCA(a_tree, c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+                               "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38",
+                               "39", "40"))
+    a_start <- a_tree$edge[which(a_tree$edge[,2] == a_end),1]
+    b_end <- getMRCA(a_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
+                               "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
+    b_start <- a_tree$edge[which(a_tree$edge[,2] == b_end),1]
+  } else if (grepl("h2", alignment_path) == TRUE){
+    a_end <- getMRCA(a_tree, c("22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"))
+    a_start <- a_tree$edge[which(a_tree$edge[,2] == a_end),1]
+    b_end <- getMRCA(a_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
+                               "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
+    b_start <- a_tree$edge[which(a_tree$edge[,2] == b_end),1]
+  } else if (grepl("h3", alignment_path) == TRUE){
+    a_end <- getMRCA(a_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
+                               "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "22", "23", "24", "25", "26", "27",
+                               "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"))
+    a_start <- a_tree$edge[which(a_tree$edge[,2] == a_end),1]
+    b_end <- getMRCA(a_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
+                               "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
+    b_start <- a_tree$edge[which(a_tree$edge[,2] == b_end),1]
+  }
+  # Identify branch a
+  branch_a <- which(a_tree$edge[,1] == a_start & a_tree$edge[,2] == a_end)
+  # Identify branch b
+  branch_b <- which(a_tree$edge[,1] == b_start & a_tree$edge[,2] == b_end)
+  
+  
+  ## Extract information from the estimated gCFS
+  # Extract the gcf tables
+  e_gcfs <- estimated_gcfs$gcf_table
+  # Find the branches a and b for the estimated gcfs
+  # Get the mean values for the estimated  gCFS
   
 }
 
