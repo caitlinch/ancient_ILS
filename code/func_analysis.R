@@ -29,30 +29,38 @@ extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtr
   # Extract the unique id for this alignment
   al_id <- tail(unlist(strsplit(al_dir, "/")),1)
   
-  ## Identify the files for the starting tree and the gene trees
-  tree_file <- paste0(al_dir, grep("branch_lengths_modified", al_files, value = T))
-  gene_tree_file <- paste0(al_dir, grep("ms_gene_trees", al_files, value = T))
-  
-  ## Rename taxa (if necessary)
-  # If taxa names are provided and rename.taxa == TRUE, rename the taxa from the tree_file
-  if (rename.taxa == TRUE & length(renamed_taxa) > 0){
-    # Open the tree
-    t <- read.tree(tree_file)
-    # Relabel the tips to have the right number
-    t$tip.label <- unlist(lapply(t$tip.label, function(x){renamed_taxa[[x]]}))
-    # Remove the "t" from the taxa label - ms labels by number only
-    t$tip.label <- gsub("t","",t$tip.label)
-    # Save the tree
-    tree_file_formatted <- gsub(".treefile", "_renamed.treefile", tree_file)
-    write.tree(t, file = tree_file_formatted)
-  } else {
-    tree_file_formatted <- tree_file
-  }
-  
-  ## Calculate gCFS
+  ## Prepare prefix for gCF run in IQ-Tree
   actual_gcf_prefix <- paste0(al_id, "-actual")
-  actual_gcf_call <- paste0(iqtree2_path ," -t ", tree_file_formatted, " --gcf ", gene_tree_file, " --prefix ", actual_gcf_prefix)
-  system(actual_gcf_call)
+  
+  ## Check if the gCF has already been calculated
+  check_gcf_files <- grep(actual_gcf_prefix, al_files, value = T)
+  
+  ## If the file length is 0, then continue
+  if (length(check_gcf_files) == 0){
+    ## Identify the files for the starting tree and the gene trees
+    tree_file <- paste0(al_dir, grep("branch_lengths_modified", al_files, value = T))
+    gene_tree_file <- paste0(al_dir, grep("ms_gene_trees", al_files, value = T))
+    
+    ## Rename taxa (if necessary)
+    # If taxa names are provided and rename.taxa.for.ms == TRUE, rename the taxa from the tree_file
+    if (rename.taxa.for.ms == TRUE & length(renamed_taxa) > 0){
+      # Open the tree
+      t <- read.tree(tree_file)
+      # Relabel the tips to have the right number
+      t$tip.label <- unlist(lapply(t$tip.label, function(x){renamed_taxa[[x]]}))
+      # Remove the "t" from the taxa label - ms labels by number only
+      t$tip.label <- gsub("t","",t$tip.label)
+      # Save the tree
+      tree_file_formatted <- gsub(".treefile", "_renamed.treefile", tree_file)
+      write.tree(t, file = tree_file_formatted)
+    } else {
+      tree_file_formatted <- tree_file
+    }
+    
+    ## Calculate gCFS
+    actual_gcf_call <- paste0(iqtree2_path ," -t ", tree_file_formatted, " --gcf ", gene_tree_file, " --prefix ", actual_gcf_prefix)
+    system(actual_gcf_call)
+  }
   
   ## Extract and return gCFs
   # Open the gcf table
@@ -60,11 +68,11 @@ extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtr
   gcf_files <- grep(actual_gcf_prefix, al_files, value = T)
   gcf_stat_file = grep("cf.stat", gcf_files, value = T)
   gcf_branch_file = grep("cf.branch", gcf_files, value = T)
-  gcf_tree_file = grep("cf.tree", gcf_files, value = T)
+  gcf_tree_file = grep("cf.tree.nex", grep("cf.tree", gcf_files, value = T), value = T, invert = T)
   gcf_table <- read.table(gcf_stat_file, header = TRUE, sep = "\t")
   # Return the gCF table and file names
   output_gcf_list <- list("gcf_stat_file" = gcf_stat_file, "gcf_branch_file" = gcf_branch_file, "gcf_tree_file" = gcf_tree_file, 
-                      "gcf_table" = gcf_table)
+                          "gcf_table" = gcf_table)
   return(output_gcf_list)
 }
 
@@ -95,40 +103,47 @@ iqtree2.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_nu
   # Extract the unique id for this alignment
   al_id <- tail(unlist(strsplit(al_dir, "/")),1)
   
-  ## Create a gene partition file with no models
-  # Find and open the alisim partition file
-  alisim_partition_file <- paste0(al_dir, grep("log", grep("partition", al_files, value = TRUE), value = TRUE, invert = TRUE))
-  # Generate the gcf partition file
-  gcf_partition_file <- generate.gcf.partition.file(alisim_partition_file)
+  # Construct a prefix and check whether the gCF has already been calculate
+  check_gcf_tree_prefix <- paste0(al_id, "-concord")
+  check_files <- grep(check_gcf_tree_prefix, al_files, value = TRUE)
   
-  ## Inferring species tree
-  # Create model call
-  if (is.na(iqtree2_model) == TRUE){
-    model_call <- " -m MFP+MERGE "
-  } else if (is.na(iqtree2_model) == FALSE){
-    model_call <- paste0(" -m ", iqtree2_model, " ")
+  ## If the estimated gCFs have not been calculated, calculate them now
+  if (length(check_files) == 0){
+    ## Create a gene partition file with no models
+    # Find and open the alisim partition file
+    alisim_partition_file <- paste0(al_dir, grep("log", grep("partition", al_files, value = TRUE), value = TRUE, invert = TRUE))
+    # Generate the gcf partition file
+    gcf_partition_file <- generate.gcf.partition.file(alisim_partition_file)
+    
+    ## Inferring species tree
+    # Create model call
+    if (is.na(iqtree2_model) == TRUE){
+      model_call <- " -m MFP+MERGE "
+    } else if (is.na(iqtree2_model) == FALSE){
+      model_call <- paste0(" -m ", iqtree2_model, " ")
+    }
+    # Create IQ-Tree call
+    species_tree_prefix <- paste0(al_id, "-concat")
+    species_tree_call <- paste0(iqtree2_path, " -s ", alignment_path, " -p ", gcf_partition_file, model_call, " --prefix ", species_tree_prefix, " -nt ",iqtree2_num_threads)
+    system(species_tree_call)
+    
+    ## Inferring gene/locus trees  
+    # Create model call
+    if (is.na(iqtree2_model) == TRUE){
+      model_call <- " -m MFP+MERGE "
+    } else if (is.na(iqtree2_model) == FALSE){
+      model_call <- paste0(" -m ", iqtree2_model, " ")
+    }
+    # Create IQ-Tree call
+    gene_tree_prefix <- paste0(al_id, "-gene_trees")
+    gene_tree_call <- paste0(iqtree2_path, " -s ", alignment_path, " -S ", gcf_partition_file, model_call, " --prefix ", gene_tree_prefix, " -nt ",iqtree2_num_threads)
+    system(gene_tree_call)
+    
+    ## Calculating gene concordance factors
+    gcf_tree_prefix <- paste0(al_id, "-concord")
+    gcf_call <- paste0(iqtree2_path ," -t ", species_tree_prefix, ".treefile --gcf ", gene_tree_prefix, ".treefile --prefix ", gcf_tree_prefix)
+    system(gcf_call)
   }
-  # Create IQ-Tree call
-  species_tree_prefix <- paste0(al_id, "-concat")
-  species_tree_call <- paste0(iqtree2_path, " -s ", alignment_path, " -p ", gcf_partition_file, model_call, " --prefix ", species_tree_prefix, " -nt ",iqtree2_num_threads)
-  system(species_tree_call)
-  
-  ## Inferring gene/locus trees  
-  # Create model call
-  if (is.na(iqtree2_model) == TRUE){
-    model_call <- " -m MFP+MERGE "
-  } else if (is.na(iqtree2_model) == FALSE){
-    model_call <- paste0(" -m ", iqtree2_model, " ")
-  }
-  # Create IQ-Tree call
-  gene_tree_prefix <- paste0(al_id, "-gene_trees")
-  gene_tree_call <- paste0(iqtree2_path, " -s ", alignment_path, " -S ", gcf_partition_file, model_call, " --prefix ", gene_tree_prefix, " -nt ",iqtree2_num_threads)
-  system(gene_tree_call)
-  
-  ## Calculating gene concordance factors
-  gcf_tree_prefix <- paste0(al_id, "-concord")
-  gcf_call <- paste0(iqtree2_path ," -t ", species_tree_prefix, ".treefile --gcf ", gene_tree_prefix, ".treefile --prefix ", gcf_tree_prefix)
-  system(gcf_call)
   
   ## Return output
   # Assemble output files
