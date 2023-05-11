@@ -46,7 +46,18 @@ txt_gene_lengths  <- lapply(paste0(partition_dir, txt_files), function(f){as.num
 # Make one really long vector with all the gene lengths
 gene_lengths <- c(unlist(nexus_gene_lengths), unlist(raxml_gene_lengths), 
                   unlist(smatrix_gene_lengths), unlist(txt_gene_lengths))
+# Make a dataframe for ggplot
+gl_df <- data.frame(gene_length = gene_lengths)
 # Plot a cute little histogram of the gene lengths
-
-
+h <- ggplot(gl_df, aes(x = gene_length)) + geom_histogram(color = "black", fill = "lightgrey", binwidth = 50) +
+  geom_vline(aes(xintercept=mean(gene_length)), color="red")+
+  scale_x_continuous(name = "Gene length (in AA residues)", breaks = seq(0,1600,250), labels = seq(0,1600,250), minor_breaks = seq(0,1600,50)) + 
+  scale_y_continuous(name = "Frequency", breaks = seq(0,1600,400), labels = seq(0,1600,400), minor_breaks = seq(0,2000,200)) +   
+  ggtitle("Gene length for 15 empirical phylogenetic datasets", ) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5, size = 25),
+        axis.title.x = element_text(size = 20), axis.title.y = element_text(size = 20),
+        axis.text.x = element_text(size = 15), axis.text.y = element_text(size = 15))
+h_path <- paste0(partition_dir, "all_dataset_gene_lengths.png")
+ggsave(filename = h_path, plot = h)
 
