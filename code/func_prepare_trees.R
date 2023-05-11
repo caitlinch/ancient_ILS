@@ -35,3 +35,29 @@ partition.one.model.line <- function(model_line){
   # Return the extracted sections
   return(c(model, name_subset, genes_chunk))
 }
+
+
+#### Reading gene lengths from partition files ####
+gene.lengths.nexus <- function(partition_file){
+  # Extract all gene lengths from a nexus partition file 
+  
+  # Open partition file
+  lines <- readLines(partition_file)
+  # Extract all lines with a charset
+  charset_lines <- grep("charset", lines, ignore.case = TRUE, value = TRUE)
+  # Split the charset lines at the "="
+  gene_chunks <- lapply(strsplit(charset_lines, "="), function(x){x[2]})
+  # Format the gene chunks nicely
+  gene_chunks_nospace <- gsub(" ", "", gene_chunks)
+  gene_chunks_noend <- gsub(";", "", gene_chunks_nospace)
+  # Get start and end of each gene
+  gene_start <- as.numeric(unlist(lapply(strsplit(gene_chunks_noend, "-"), function(x){x[1]})))
+  gene_end <- as.numeric(unlist(lapply(strsplit(gene_chunks_noend, "-"), function(x){x[2]})))
+  # Create a nice little dataframe for the genes
+  gene_df <- data.frame(gene_range = gene_chunks_noend, gene_start = gene_start, gene_end = gene_end)
+  # Calculate the gene length
+  gene_df$gene_length <- gene_end - (gene_start - 1) # subtract one from gene_start to count the starting site in the gene length
+  # Return the gene length
+  return(gene_df$gene_length)
+}
+
