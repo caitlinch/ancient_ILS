@@ -175,10 +175,8 @@ write.csv(gene_df, file = gl_file)
 gene_names <- paste0("gene_", 1:nrow(gene_df))
 # Construct the charsets 
 charsets2 <- paste0("\tcharset ", gene_names, " = ", gene_df$gene_range, ";")
-# Construct the charpartition
-charpartition2 <- paste0("\tcharpartition all = ", paste(gene_names, collapse =", "), ";")
 # Construct the partition file
-partition_text2 <- c("#nexus", "begin sets;", charsets2, charpartition2, "end;","")
+partition_text2 <- c("#nexus", "begin sets;", charsets2, "end;","")
 # Save the partition file
 write(partition_text2, file = partition_genes_file_name)
 
