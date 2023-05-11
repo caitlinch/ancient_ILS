@@ -26,6 +26,10 @@ if (dir.exists(repo_output) == FALSE){
 
 
 
-
-
-
+#### 3. Extract gene lengths ####
+# Get all files from the partition folder
+all_files <- list.files(partition_dir)
+# Break into three chunks
+nexus_partitions <- grep("partitions.nex", all_files, value = TRUE)
+raxml_partitions <- grep("partitions.txt", all_files, value = TRUE)
+smatrix_partitions <- grep("smatrix.txt", all_files, value = TRUE)
