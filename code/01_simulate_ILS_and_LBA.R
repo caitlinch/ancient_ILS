@@ -23,7 +23,7 @@
 # estimate.trees            <- if TRUE, runs estimate.one.tree function on each combination of model (ML_tree_estimation_models) and simulated alignment
 
 ## File paths
-location = "local"
+location = "dayhoff"
 if (location == "local"){
   # Run on work mac
   repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
@@ -52,7 +52,7 @@ if (location == "local"){
 
 ## Phylogenetic parameters
 alisim_gene_models <- "'WAG+C60+R4'" # Most common model for this dataset when allowing any model in Redmond and McLysaght (2021) - want only LBA/ILS to vary (no systematic bias from model misspecification)
-ML_tree_estimation_models <- c("'LG+G4'", "'LG+C60+R4") # No F - cite recent preprint
+ML_tree_estimation_models <- c("'WAG+C60+R4") # No F - cite recent preprint. Other possible models: "'LG+G4'", "'LG+C60+R4"
 iqtree2_num_ufb = 1000
 
 ## Control parameters
