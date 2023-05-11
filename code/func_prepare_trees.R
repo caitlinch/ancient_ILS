@@ -45,7 +45,9 @@ gene.lengths.nexus <- function(partition_file){
   # Extract all lines with a charset
   charset_lines <- grep("charset", lines, ignore.case = TRUE, value = TRUE)
   # Split the charset lines at the "="
-  gene_chunks <- unlist(lapply(strsplit(charset_lines, "="), function(x){x[2]}))
+  gene_lines <- unlist(lapply(strsplit(charset_lines, "="), function(x){x[2]}))
+  # Split the genes into chunks by breaking at the commas ","
+  gene_chunks <- unlist(strsplit(gene_lines, ","))
   # Format the gene chunks nicely
   gene_chunks_nospace <- gsub(" ", "", gene_chunks)
   gene_chunks_noend <- gsub(";", "", gene_chunks_nospace)
@@ -68,7 +70,9 @@ gene.lengths.raxml <- function(partition_file){
   # Extract all lines with an equals sign (these lines will define a gene)
   eq_lines <- grep("\\=", lines, ignore.case = TRUE, value = TRUE)
   # Split the charset lines at the "="
-  gene_chunks <- unlist(lapply(strsplit(eq_lines, "="), function(x){x[2]}))
+  gene_lines <- unlist(lapply(strsplit(eq_lines, "="), function(x){x[2]}))
+  # Split the genes into chunks by breaking at the commas ","
+  gene_chunks <- unlist(strsplit(gene_lines, ","))
   # Format the gene chunks nicely
   gene_chunks_nospace <- gsub(" ", "", gene_chunks)
   # Get start and end of each gene
