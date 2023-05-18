@@ -32,7 +32,7 @@ if (location == "local"){
   models_path                 <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/01_empirical_data/Whelan2017_replicateOriginal_models_partitions.nex"
   iqtree2                     <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree-2.2.0-Linux/bin/iqtree2"
   iqtree_num_threads          <- "15"
-  astral                      <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/ASTRAL-5.7.8/Astral/astral.5.7.8.jar"
+  astral                      <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/Astral/astral.5.7.8.jar"
   estimate.trees              <- FALSE
 }
 
