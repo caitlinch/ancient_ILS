@@ -26,8 +26,8 @@ if (location == "local"){
   estimate.trees              <- FALSE
 } else if (location == "dayhoff"){
   repo_dir                    <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
-  constrained_tree_output_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/empirical_hypothesis_trees/"
-  tree_output_dir             <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/empirical_tree_estimation/"
+  constrained_tree_output_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/02_empirical_hypothesis_trees/"
+  tree_output_dir             <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/02_empirical_tree_estimation/"
   alignment_path              <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/01_empirical_data/Whelan2017.Metazoa_Choano_RCFV_strict.aa.alignment.fa"
   models_path                 <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/01_empirical_data/Whelan2017_replicateOriginal_models_partitions.nex"
   iqtree2                     <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree-2.2.0-Linux/bin/iqtree2"
@@ -42,13 +42,6 @@ if (location == "local"){
 ## Source functions
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
 
-## Create output directories
-# Check whether output file exists for repository
-repo_output <- paste0(repo_dir, "output/")
-if (dir.exists(repo_output) == FALSE){
-  dir.create(repo_output)
-}
-
 ## Assemble output file names
 # Alignment filepath for alignment without Trichoplax species
 new_alignment_path <- gsub(".aa.alignment.fa", ".removedTrichoplax.aa.alignment.fa", alignment_path)
@@ -57,25 +50,29 @@ constraint_tree_1_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_c
 constraint_tree_2_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_constraint_tree_2_Pori.nex")
 constraint_tree_3_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_constraint_tree_3_CtenPori.nex")
 # File to store IQ-Tree command lines used to estimate constrained trees
-iqtree2_call_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_iqtree2_astral_commands.txt")
+executable_commands_text_file <- paste0(dirname(alignment_path), "Whelan2017_iqtree2_astral_commands.txt")
 # Partition file filepath for models from original paper run
 partition_models_file_name <- paste0(tree_output_dir, "Whelan2017_replicateOriginal_models_partitions.nex")
 partition_genes_file_name <- paste0(tree_output_dir, "Whelan2017_genes_partitions.nex")
+hypothesis_tree_partition_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_genes_partitions.nex")
 # Gene length csv filepath
-gl_file <- paste0(repo_output, "Whelan2017.Metazoa_Choano_RCFV_strict.gene_lengths.csv")
+gl_file <- paste0(dirname(alignment_path), "Whelan2017.Metazoa_Choano_RCFV_strict.gene_lengths.csv")
 
 
 
 #### 3. Drop Trichoplax taxa from the alignment ####
-# Trichoplax not useful for our question - placement makes things messy
-# Open the alignment
-seq <- read.FASTA(file = alignment_path, type = "AA")
-# Remove the Trichoplax sequence
-get_ind <- which(names(seq) == "Trichoplax_adhaerens")
-keep_inds <- setdiff((1:length(names(seq))), 48)
-seq_edit <- seq[keep_inds]
-# Save the alignment
-write.FASTA(seq_edit, file = new_alignment_path, append = FALSE)
+# Check whether the new alignment has already been created
+if (file.exists(new_alignment_path) == FALSE){
+  # Trichoplax not useful for our question - placement makes things messy
+  # Open the alignment
+  seq <- read.FASTA(file = alignment_path, type = "AA")
+  # Remove the Trichoplax sequence
+  get_ind <- which(names(seq) == "Trichoplax_adhaerens")
+  keep_inds <- setdiff((1:length(names(seq))), 48)
+  seq_edit <- seq[keep_inds]
+  # Save the alignment
+  write.FASTA(seq_edit, file = new_alignment_path, append = FALSE)
+}
 
 
 
@@ -110,93 +107,107 @@ whelan2017_list <- list("Bilateria" = c("Homo_sapiens", "Strongylocentrotus_purp
 
 
 #### 5. Construct constraint trees ####
-# Split the taxa into clades
-outgroup_taxa = whelan2017_list$Outgroup
-ctenophora_taxa = whelan2017_list$Ctenophora
-porifera_taxa = whelan2017_list$Porifera
-sponges_1_taxa = as.character(unlist(whelan2017_list[c(whelan2017_list$Sponges_1)]))
-sponges_2_taxa = as.character(unlist(whelan2017_list[c(whelan2017_list$Sponges_2)])) 
-placozoa_taxa = whelan2017_list$Placozoa
-cnidaria_taxa = whelan2017_list$Cnidaria
-bilateria_taxa = whelan2017_list$Bilateria
-
-# Format the outgroup clades nicely
-outgroup_taxa_formatted <- format.constraint.tree.clade(outgroup_taxa)
-ctenophora_taxa_formatted <- format.constraint.tree.clade(ctenophora_taxa)
-porifera_taxa_formatted <- format.constraint.tree.clade(porifera_taxa)
-ctenophora_porifera_taxa_formatted <- format.constraint.tree.clade(c(ctenophora_taxa, porifera_taxa))
-sponges_1_taxa_formatted <- format.constraint.tree.clade(sponges_1_taxa)
-sponges_2_taxa_formatted <- format.constraint.tree.clade(sponges_2_taxa)
-placozoa_taxa_formatted <- format.constraint.tree.clade(placozoa_taxa)
-cnidaria_taxa_formatted <- format.constraint.tree.clade(cnidaria_taxa)
-bilateria_taxa_formatted <- format.constraint.tree.clade(bilateria_taxa)
-cnidaria_bilateria_taxa_formatted <- format.constraint.tree.clade(c(cnidaria_taxa, bilateria_taxa))
-
-# Construct the constraint trees:
-## Hypothesis 1: Ctenophora-sister
-# Tree: (outgroup_taxa, (ctenophora_taxa, (porifera_taxa, (cnidaria_taxa, bilateria_taxa))));
-constraint_tree_1 <- paste0("(", outgroup_taxa_formatted, ", (", ctenophora_taxa_formatted, ", (", porifera_taxa_formatted, ", ", cnidaria_bilateria_taxa_formatted, ")));")
-write(constraint_tree_1, file = constraint_tree_1_file_name)
-
-## Hypothesis 2: Porifera-sister
-# Tree: (outgroup_taxa, (porifera_taxa, (ctenophora_taxa, (cnidaria_taxa, bilateria_taxa))));
-constraint_tree_2 <- paste0("(", outgroup_taxa_formatted, ", (", porifera_taxa_formatted, ", (", ctenophora_taxa_formatted, ", ", cnidaria_bilateria_taxa_formatted, ")));")
-write(constraint_tree_2, file = constraint_tree_2_file_name)
-
-## Hypothesis 3: (Ctenophore+Porifera)-sister
-# Tree: (outgroup_taxa, ((porifera_taxa, ctenophora_taxa), (cnidaria_taxa, bilateria_taxa)));
-constraint_tree_3 <- paste0("(", outgroup_taxa_formatted, ", ((", ctenophora_taxa_formatted, ", ", porifera_taxa_formatted, "), ", cnidaria_bilateria_taxa_formatted, "));")
-write(constraint_tree_3, file = constraint_tree_3_file_name)
+# Check if the constraint trees have already been created
+if ( (file.exists(constraint_tree_1_file_name) == FALSE) | 
+     (file.exists(constraint_tree_2_file_name) == FALSE) | 
+     (file.exists(constraint_tree_3_file_name) == FALSE) ){
+  ## Create the constraint trees, if they do not exist
+  # Split the taxa into clades
+  outgroup_taxa = whelan2017_list$Outgroup
+  ctenophora_taxa = whelan2017_list$Ctenophora
+  porifera_taxa = whelan2017_list$Porifera
+  sponges_1_taxa = as.character(unlist(whelan2017_list[c(whelan2017_list$Sponges_1)]))
+  sponges_2_taxa = as.character(unlist(whelan2017_list[c(whelan2017_list$Sponges_2)])) 
+  placozoa_taxa = whelan2017_list$Placozoa
+  cnidaria_taxa = whelan2017_list$Cnidaria
+  bilateria_taxa = whelan2017_list$Bilateria
+  
+  # Format the outgroup clades nicely
+  outgroup_taxa_formatted <- format.constraint.tree.clade(outgroup_taxa)
+  ctenophora_taxa_formatted <- format.constraint.tree.clade(ctenophora_taxa)
+  porifera_taxa_formatted <- format.constraint.tree.clade(porifera_taxa)
+  ctenophora_porifera_taxa_formatted <- format.constraint.tree.clade(c(ctenophora_taxa, porifera_taxa))
+  sponges_1_taxa_formatted <- format.constraint.tree.clade(sponges_1_taxa)
+  sponges_2_taxa_formatted <- format.constraint.tree.clade(sponges_2_taxa)
+  placozoa_taxa_formatted <- format.constraint.tree.clade(placozoa_taxa)
+  cnidaria_taxa_formatted <- format.constraint.tree.clade(cnidaria_taxa)
+  bilateria_taxa_formatted <- format.constraint.tree.clade(bilateria_taxa)
+  cnidaria_bilateria_taxa_formatted <- format.constraint.tree.clade(c(cnidaria_taxa, bilateria_taxa))
+  
+  # Construct the constraint trees:
+  ## Hypothesis 1: Ctenophora-sister
+  # Tree: (outgroup_taxa, (ctenophora_taxa, (porifera_taxa, (cnidaria_taxa, bilateria_taxa))));
+  constraint_tree_1 <- paste0("(", outgroup_taxa_formatted, ", (", ctenophora_taxa_formatted, ", (", porifera_taxa_formatted, ", ", cnidaria_bilateria_taxa_formatted, ")));")
+  write(constraint_tree_1, file = constraint_tree_1_file_name)
+  
+  ## Hypothesis 2: Porifera-sister
+  # Tree: (outgroup_taxa, (porifera_taxa, (ctenophora_taxa, (cnidaria_taxa, bilateria_taxa))));
+  constraint_tree_2 <- paste0("(", outgroup_taxa_formatted, ", (", porifera_taxa_formatted, ", (", ctenophora_taxa_formatted, ", ", cnidaria_bilateria_taxa_formatted, ")));")
+  write(constraint_tree_2, file = constraint_tree_2_file_name)
+  
+  ## Hypothesis 3: (Ctenophore+Porifera)-sister
+  # Tree: (outgroup_taxa, ((porifera_taxa, ctenophora_taxa), (cnidaria_taxa, bilateria_taxa)));
+  constraint_tree_3 <- paste0("(", outgroup_taxa_formatted, ", ((", ctenophora_taxa_formatted, ", ", porifera_taxa_formatted, "), ", cnidaria_bilateria_taxa_formatted, "));")
+  write(constraint_tree_3, file = constraint_tree_3_file_name)
+}
 
 
 
 #### 6. Construct partition file and get gene lengths ####
-## Make partition file for IQ-Tree2 with both gene start/end locations and models from the original Whelan2017 paper tree estimation
-# Open the file
-model_lines <- readLines(models_path)
-# Format the text from the model lines file
-split_model_lines <- lapply(model_lines, partition.one.model.line)
-split_model_df <- as.data.frame(do.call(rbind,split_model_lines))
-names(split_model_df) <- c("model", "subset", "sites")
-split_model_df$model <- gsub(" ","", split_model_df$model)
-split_model_df$subset <- gsub(" ","", split_model_df$subset)
-split_model_df$sites <- gsub(" ","", split_model_df$sites)
-# Correct model names to align with IQ-Tree naming conventions
-split_model_df$model <- gsub("BLOSUM62", "Blosum62", split_model_df$model)
-split_model_df$model <- gsub("JTTDCMUT", "JTTDCMut", split_model_df$model)
-split_model_df$model <- gsub("LGF", "'LG+F'", split_model_df$model)
-# Construct the charsets 
-charsets <- paste0("\tcharset ",split_model_df$subset, " = ", split_model_df$sites, ";")
-# Construct the charpartition
-charpartition_chunks <- paste0(split_model_df$model, ":", split_model_df$subset)
-charpartition_chunks_pasted <- paste(charpartition_chunks, collapse = ", ")
-charpartition <- paste0("\tcharpartition all = ", charpartition_chunks_pasted, ";")
-# Construct the partition file
-partition_text <- c("#nexus", "begin sets;", charsets, charpartition, "end;","")
-# Save the partition file
-write(partition_text, file = partition_models_file_name)
-
-## Extract gene lengths
-gene_partitions <- split_model_df$sites
-gene_partition_chunks <- unlist(strsplit(gene_partitions, ","))
-gene_start <- as.numeric(unlist(lapply(strsplit(gene_partition_chunks, "-"), function(x){x[1]})))
-gene_end <- as.numeric(unlist(lapply(strsplit(gene_partition_chunks, "-"), function(x){x[2]})))
-gene_df <- data.frame(gene_range = gene_partition_chunks, gene_start = gene_start, gene_end = gene_end)
-gene_df$gene_length <- gene_end - (gene_start - 1) # subtract one from gene_start to count the starting site in the gene length
-gene_df <- gene_df[order(gene_df$gene_start, decreasing = FALSE),]
-rownames(gene_df) <- 1:nrow(gene_df)
-# Save gene length dataframe
-write.csv(gene_df, file = gl_file)
-
-## Make partition file for IQ-Tree2 with only gene start/end locations
-# Construct gene names
-gene_names <- paste0("gene_", 1:nrow(gene_df))
-# Construct the charsets 
-charsets2 <- paste0("\tcharset ", gene_names, " = ", gene_df$gene_range, ";")
-# Construct the partition file
-partition_text2 <- c("#nexus", "begin sets;", charsets2, "end;","")
-# Save the partition file
-write(partition_text2, file = partition_genes_file_name)
+# Check if the partition files or the gene length csv have already been created
+if ( (file.exists(gl_file) == FALSE) | 
+     (file.exists(partition_models_file_name) == FALSE) | 
+     (file.exists(partition_genes_file_name) == FALSE) |
+     (file.exists(hypothesis_tree_partition_file_name) == FALSE) ){
+  ## Create the partition files and the gene length csv, if they do not exist
+  ## Make partition file for IQ-Tree2 with both gene start/end locations and models from the original Whelan2017 paper tree estimation
+  # Open the file
+  model_lines <- readLines(models_path)
+  # Format the text from the model lines file
+  split_model_lines <- lapply(model_lines, partition.one.model.line)
+  split_model_df <- as.data.frame(do.call(rbind,split_model_lines))
+  names(split_model_df) <- c("model", "subset", "sites")
+  split_model_df$model <- gsub(" ","", split_model_df$model)
+  split_model_df$subset <- gsub(" ","", split_model_df$subset)
+  split_model_df$sites <- gsub(" ","", split_model_df$sites)
+  # Correct model names to align with IQ-Tree naming conventions
+  split_model_df$model <- gsub("BLOSUM62", "Blosum62", split_model_df$model)
+  split_model_df$model <- gsub("JTTDCMUT", "JTTDCMut", split_model_df$model)
+  split_model_df$model <- gsub("LGF", "'LG+F'", split_model_df$model)
+  # Construct the charsets 
+  charsets <- paste0("\tcharset ",split_model_df$subset, " = ", split_model_df$sites, ";")
+  # Construct the charpartition
+  charpartition_chunks <- paste0(split_model_df$model, ":", split_model_df$subset)
+  charpartition_chunks_pasted <- paste(charpartition_chunks, collapse = ", ")
+  charpartition <- paste0("\tcharpartition all = ", charpartition_chunks_pasted, ";")
+  # Construct the partition file
+  partition_text <- c("#nexus", "begin sets;", charsets, charpartition, "end;","")
+  # Save the partition file
+  write(partition_text, file = partition_models_file_name)
+  
+  ## Extract gene lengths
+  gene_partitions <- split_model_df$sites
+  gene_partition_chunks <- unlist(strsplit(gene_partitions, ","))
+  gene_start <- as.numeric(unlist(lapply(strsplit(gene_partition_chunks, "-"), function(x){x[1]})))
+  gene_end <- as.numeric(unlist(lapply(strsplit(gene_partition_chunks, "-"), function(x){x[2]})))
+  gene_df <- data.frame(gene_range = gene_partition_chunks, gene_start = gene_start, gene_end = gene_end)
+  gene_df$gene_length <- gene_end - (gene_start - 1) # subtract one from gene_start to count the starting site in the gene length
+  gene_df <- gene_df[order(gene_df$gene_start, decreasing = FALSE),]
+  rownames(gene_df) <- 1:nrow(gene_df)
+  # Save gene length dataframe
+  write.csv(gene_df, file = gl_file)
+  
+  ## Make partition file for IQ-Tree2 with only gene start/end locations
+  # Construct gene names
+  gene_names <- paste0("gene_", 1:nrow(gene_df))
+  # Construct the charsets 
+  charsets2 <- paste0("\tcharset ", gene_names, " = ", gene_df$gene_range, ";")
+  # Construct the partition file
+  partition_text2 <- c("#nexus", "begin sets;", charsets2, "end;","")
+  # Save the partition file
+  write(partition_text2, file = partition_genes_file_name)
+  write(partition_text2, file = hypothesis_tree_partition_file_name)
+}
 
 
 
@@ -303,6 +314,6 @@ if (estimate.trees == TRUE){
 #### 13. Save iqtree2 and astral command lines ####
 # Save IQ-Tree2 calls as text file
 estimate_trees <- c(partitioned_iqtree_call, gene_tree_iqtree_call, gcf_call, astral_call, astral_quartet_call, estimate_hypothesis_trees)
-write(estimate_trees, file = iqtree2_call_file_name)
+write(estimate_trees, file = executable_commands_text_file)
 
 
