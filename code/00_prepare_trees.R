@@ -56,7 +56,7 @@ partition_models_file_name <- paste0(tree_output_dir, "Whelan2017_replicateOrigi
 partition_genes_file_name <- paste0(tree_output_dir, "Whelan2017_genes_partitions.nex")
 hypothesis_tree_partition_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_genes_partitions.nex")
 # Gene length csv filepath
-gl_file <- paste0(dirname(alignment_path), "Whelan2017.Metazoa_Choano_RCFV_strict.gene_lengths.csv")
+gl_file <- paste0(dirname(alignment_path), "/", "Whelan2017.Metazoa_Choano_RCFV_strict.gene_lengths.csv")
 
 
 
