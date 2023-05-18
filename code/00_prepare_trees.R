@@ -40,8 +40,7 @@ constraint_tree_1_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_c
 constraint_tree_2_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_constraint_tree_2_Pori.nex")
 constraint_tree_3_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_constraint_tree_3_CtenPori.nex")
 # File to store IQ-Tree command lines used to estimate constrained trees
-iqtree2_call_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_hypothesis_tree_iqtree2_commands.txt")
-iqtree2_call_file_name2 <- paste0(tree_output_dir, "Whelan2017_ML_tree_iqtree2_commands.txt")
+iqtree2_call_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_iqtree2_commands.txt")
 # Partition file filepath for models from original paper run
 partition_models_file_name <- paste0(tree_output_dir, "Whelan2017_replicateOriginal_models_partitions.nex")
 partition_genes_file_name <- paste0(tree_output_dir, "Whelan2017_genes_partitions.nex")
@@ -184,51 +183,61 @@ write(partition_text2, file = partition_genes_file_name)
 
 
 
-#### 7. Estimate hypothesis trees under each constraint tree with the models from the original study ####
+#### 7. Estimate ML tree with ModelFinder ####
+# Whelan et al. 2017 dataset Metazoa_Choano_RCFV_strict
+# Partitioned by gene
+# Models selected by ModelFinder (MPF+MERGE)
+
 # Prepare IQ-Tree2 command lines
-iqtree_call_1 <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_1_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_1_Cten")
-iqtree_call_2 <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_2_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_2_Pori")
-iqtree_call_3 <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_file_name, " -bb 1000  -g ", constraint_tree_3_file_name, " -nt AUTO -pre Whelan2017_hypothesis_tree_3_CtenPori")
-estimate_hypothesis_trees <- c(iqtree_call_1, iqtree_call_2, iqtree_call_3)
+setwd(tree_output_dir)
+gene_partition_prefix <- "Whelan2017_gene_partition_MFP"
+partitioned_iqtree_call <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_genes_file_name,
+                                  " -m MFP+MERGE -bb 1000 -bsam GENESITE -nt AUTO -pre ", gene_partition_prefix)
+# Call IQ-Tree2
+system(partitioned_iqtree_call)
+
+
+
+#### 8. Estimate ML gene trees with ModelFinder ####
+# Whelan et al. 2017 dataset Metazoa_Choano_RCFV_strict
+# Partitioned by gene
+# Models selected by ModelFinder (MFP)
+
+# Prepare IQ-Tree2 command lines
+setwd(tree_output_dir)
+gene_tree_prefix <- "Whelan2017_gene_trees"
+gene_tree_iqtree_call <- paste0(iqtree2, " -s ", new_alignment_path, " -S ", partition_genes_file_name,
+                                " -m MFP -bb 1000 -nt AUTO -pre ", gene_tree_prefix)
+# Call IQ-Tree2
+system(gene_tree_iqtree_call)
+
+
+
+#### 9. Estimate hypothesis trees under each constraint tree ####
+# Whelan et al. 2017 dataset Metazoa_Choano_RCFV_strict
+# Partitioned by gene
+# Models selected by ModelFinder (MFP)
+
+# Prepare IQ-Tree2 command lines
+constraint_Cten_iqtree_call       <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_genes_file_name, 
+                                            "  -m MFP+MERGE -bb 1000  -bsam GENESITE  -g ", constraint_tree_1_file_name,
+                                            " -nt AUTO -pre Whelan2017_hypothesis_tree_1_Cten")
+constraint_Pori_iqtree_call       <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_genes_file_name, 
+                                            "  -m MFP+MERGE -bb 1000  -bsam GENESITE  -g ", constraint_tree_2_file_name,
+                                            " -nt AUTO -pre Whelan2017_hypothesis_tree_2_Pori")
+constraint_CtenPori_iqtree_call   <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_genes_file_name, 
+                                            "  -m MFP+MERGE -bb 1000  -bsam GENESITE  -g ", constraint_tree_3_file_name,
+                                            " -nt AUTO -pre Whelan2017_hypothesis_tree_3_CtenPori")
+estimate_hypothesis_trees <- c(constraint_Cten_iqtree_call, constraint_Pori_iqtree_call, constraint_CtenPori_iqtree_call)
 write(estimate_hypothesis_trees, file = iqtree2_call_file_name)
 # Call IQ-Tree2
 system(estimate_hypothesis_trees)
 
 
 
-#### 7. Estimate ML tree with ModelFinder (one model applied to entire alignment) ####
-# Prepare IQ-Tree2 command lines
-setwd(tree_output_dir)
-no_constraint_prefix <- "Whelan2017_concat_MFP"
-iqtree_call_4 <- paste0(iqtree2, " -s ", new_alignment_path, " -m MFP -bb 1000 -nt AUTO -pre ", no_constraint_prefix)
-# Call IQ-Tree2
-system(iqtree_call_4)
-
-
-
-#### 8. Estimate ML tree with ModelFinder (partitioned by gene) ####
-# Prepare IQ-Tree2 command lines
-setwd(tree_output_dir)
-gene_partition_prefix <- "Whelan2017_gene_partition_MFP"
-iqtree_call_5 <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_genes_file_name," -m MFP+MERGE -bb 1000   -bsam GENESITE -nt AUTO -pre ", gene_partition_prefix)
-# Call IQ-Tree2
-system(iqtree_call_5)
-
-
-
-#### 9. Estimate ML tree with partitions from original Whelan et al. 2017 paper ####
-# Prepare IQ-Tree2 command lines
-setwd(tree_output_dir)
-replicate_prefix <- "Whelan2017_replicate_subset_partitions"
-iqtree_call_6 <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_models_file_name," -bb 1000  -bsam GENESITE -nt AUTO -pre ", replicate_prefix) # Use models from partition file
-# Call IQ-Tree2
-system(iqtree_call_6)
-
-
-
-#### 10. Save ML trees estimated from Whelan 2017 alignment ####
+#### 10. Save iqtree2 command lines ####
 # Save IQ-Tree2 calls as text file
-estimate_ML_trees <- c(iqtree_call_4, iqtree_call_5, iqtree_call_6)
-write(estimate_ML_trees, file = iqtree2_call_file_name2)
+estimate_ML_trees <- c(partitioned_iqtree_call, gene_tree_iqtree_call, constraint_Cten_iqtree_call, constraint_Pori_iqtree_call, constraint_CtenPori_iqtree_call)
+write(estimate_ML_trees, file = iqtree2_call_file_name)
 
 
