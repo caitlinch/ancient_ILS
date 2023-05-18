@@ -9,6 +9,7 @@
 # alignment_path                        <- path to the alignment from Whelan et al. 2017 for the alignment Metazoa_Choano_RCFV_strict
 # models_path                           <- path to the models and genes from Whelan et al. 2017 for the alignment Metazoa_Choano_RCFV_strict
 # iqtree2                               <- path to iqtree2 version 2.2.2
+# astral                                <- path to ASTRAL version 5.7.8
 
 repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 constrained_tree_output_dir <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
@@ -16,6 +17,7 @@ tree_output_dir             <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/0
 alignment_path              <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Whelan2017.Metazoa_Choano_RCFV_strict.aa.alignment.fa"
 models_path                 <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Metazoa_Choano_RCFV_strict_Models.txt"
 iqtree2                     <- "iqtree2"
+astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8/Astral/astral.5.7.8.jar"
 
 
 
