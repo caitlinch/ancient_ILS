@@ -198,13 +198,13 @@ if ( (file.exists(gl_file) == FALSE) |
 # Models selected by ModelFinder (MPF+MERGE)
 
 # Prepare IQ-Tree2 command lines
-setwd(tree_output_dir)
 gene_partition_prefix <- "Whelan2017_partitioned_ML_tree"
 ml_tree_path <- paste0(gene_partition_prefix, ".treefile")
 partitioned_iqtree_call <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_genes_file_name,
                                   " -m MFP+MERGE -bb 1000 -bsam GENESITE -nt ", iqtree_num_threads, " -pre ", gene_partition_prefix)
 # Call IQ-Tree2 to estimate the partitioned ML tree
 if (estimate.trees == TRUE){
+  setwd(tree_output_dir)
   system(partitioned_iqtree_call)
 }
 
@@ -216,13 +216,13 @@ if (estimate.trees == TRUE){
 # Models selected by ModelFinder (MFP)
 
 # Prepare IQ-Tree2 command lines
-setwd(tree_output_dir)
 gene_tree_prefix <- "Whelan2017_gene_trees"
 gene_trees_path <- paste0(gene_tree_prefix, ".treefile")
 gene_tree_iqtree_call <- paste0(iqtree2, " -s ", new_alignment_path, " -S ", partition_genes_file_name,
                                 " -m MFP -bb 1000 -nt ", iqtree_num_threads, " -pre ", gene_tree_prefix)
 # Call IQ-Tree2 to estimate gene trees
 if (estimate.trees == TRUE){
+  setwd(tree_output_dir)
   system(gene_tree_iqtree_call)
 }
 
@@ -230,11 +230,11 @@ if (estimate.trees == TRUE){
 
 #### 9. Estimate gene concordance factors in IQ-Tree ####
 # Prepare IQ-Tree2 command lines
-setwd(tree_output_dir)
 gcf_prefix <- "Whelan2017_gCF"
 gcf_call <- paste0(iqtree2, " -t ", ml_tree_path, " -gcf ", gene_trees_path, " -nt ", iqtree_num_threads, " -pre ", gcf_prefix)
 # Call IQ-Tree2 to calculate the gCF
 if (estimate.trees == TRUE){
+  setwd(tree_output_dir)
   system(gcf_call)
 }
 
@@ -246,7 +246,6 @@ if (estimate.trees == TRUE){
 # Models selected by ModelFinder (MFP)
 
 # Prepare IQ-Tree2 command lines
-setwd(tree_output_dir)
 constraint_Cten_iqtree_call       <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", hypothesis_tree_partition_file_name, 
                                             " -m MFP+MERGE -bb 1000 -bsam GENESITE -g ", constraint_tree_1_file_name,
                                             " -nt ", iqtree_num_threads, " -pre Whelan2017_hypothesis_tree_1_Cten")
@@ -259,6 +258,7 @@ constraint_CtenPori_iqtree_call   <- paste0(iqtree2, " -s ", new_alignment_path,
 estimate_hypothesis_trees <- c(constraint_Cten_iqtree_call, constraint_Pori_iqtree_call, constraint_CtenPori_iqtree_call)
 # Call IQ-Tree2 to estimate the constrained trees
 if (estimate.trees == TRUE){
+  setwd(constrained_tree_output_dir)
   lapply(estimate_hypothesis_trees, system)
 }
 
@@ -266,13 +266,13 @@ if (estimate.trees == TRUE){
 
 #### 11. Estimate summary coalescent tree in ASTRAL ####
 # Prepare ASTRAL command line
-setwd(tree_output_dir)
 astral_prefix <- "Whelan2017_ASTRAL_tree"
 astral_tree_file <- paste0(astral_prefix, ".tre")
 astral_log_file  <- paste0(astral_prefix, ".log")
-astral_call <- paste0("java -jar ", astral, " -i ", gene_tree_treefile, " -o ", astral_tree_file, " 2> ", astral_log_file)
+astral_call <- paste0("java -jar ", astral, " -i ", gene_trees_path, " -o ", astral_tree_file, " 2> ", astral_log_file)
 # Call ASTRAL to estimate the summary coalescent tree
 if (estimate.trees == TRUE){
+  setwd(tree_output_dir)
   system(astral_call)
 }
 
@@ -280,13 +280,13 @@ if (estimate.trees == TRUE){
 
 #### 12. Calculate quartet concordance factors in ASTRAL ####
 # Prepare ASTRAL command line
-setwd(tree_output_dir)
 quartet_prefix <- "Whelan2017_ASTRAL_tree"
 quartet_tree_file <- paste0(quartet_prefix, ".tre")
 quartet_log_file  <- paste0(quartet_prefix, ".log")
-astral_quartet_call <- paste0("java -jar ", astral, " -q ", astral_tree_file, " -i ", gene_tree_treefile, " -o ", quartet_tree_file, " 2> ", astral_quartet_call)
+astral_quartet_call <- paste0("java -jar ", astral, " -q ", astral_tree_file, " -i ", gene_trees_path, " -o ", quartet_tree_file, " 2> ", astral_quartet_call)
 # Call ASTRAL to estimate quartet concordance factors
 if (estimate.trees == TRUE){
+  setwd(tree_output_dir)
   system(astral_quartet_call)
 }
 
@@ -294,7 +294,10 @@ if (estimate.trees == TRUE){
 
 #### 13. Save iqtree2 and astral command lines ####
 # Save IQ-Tree2 calls as text file
-estimate_trees <- c(partitioned_iqtree_call, gene_tree_iqtree_call, gcf_call, astral_call, astral_quartet_call, estimate_hypothesis_trees)
+estimate_trees <- c(paste0("cd ", tree_output_dir),
+                    partitioned_iqtree_call, gene_tree_iqtree_call, gcf_call, astral_call, astral_quartet_call, 
+                    paste0("cd ", constrained_tree_output_dir),
+                    estimate_hypothesis_trees)
 write(estimate_trees, file = executable_commands_text_file)
 
 
