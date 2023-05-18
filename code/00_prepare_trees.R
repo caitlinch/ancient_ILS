@@ -50,7 +50,7 @@ constraint_tree_1_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_c
 constraint_tree_2_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_constraint_tree_2_Pori.nex")
 constraint_tree_3_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_constraint_tree_3_CtenPori.nex")
 # File to store IQ-Tree command lines used to estimate constrained trees
-executable_commands_text_file <- paste0(dirname(alignment_path), "Whelan2017_iqtree2_astral_commands.txt")
+executable_commands_text_file <- paste0(dirname(alignment_path), "/", "Whelan2017_iqtree2_astral_commands.txt")
 # Partition file filepath for models from original paper run
 partition_models_file_name <- paste0(tree_output_dir, "Whelan2017_replicateOriginal_models_partitions.nex")
 partition_genes_file_name <- paste0(tree_output_dir, "Whelan2017_genes_partitions.nex")
