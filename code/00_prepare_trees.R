@@ -9,15 +9,32 @@
 # alignment_path                        <- path to the alignment from Whelan et al. 2017 for the alignment Metazoa_Choano_RCFV_strict
 # models_path                           <- path to the models and genes from Whelan et al. 2017 for the alignment Metazoa_Choano_RCFV_strict
 # iqtree2                               <- path to iqtree2 version 2.2.2
+# iqtree_num_threads                    <- number of simultaneous threads for IQ-Tree to use (set as "AUTO" for IQ-Tree to decide) - can be character or numeric
 # astral                                <- path to ASTRAL version 5.7.8
+# estimate.trees                        <- Flag for whether to run IQ-tree and ASTRAL to estimate trees (yes if TRUE, no if FALSE)
 
-repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-constrained_tree_output_dir <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
-tree_output_dir             <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_ML_tree_estimation/"
-alignment_path              <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Whelan2017.Metazoa_Choano_RCFV_strict.aa.alignment.fa"
-models_path                 <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Metazoa_Choano_RCFV_strict_Models.txt"
-iqtree2                     <- "iqtree2"
-astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8/Astral/astral.5.7.8.jar"
+location = "dayhoff"
+if (location == "local"){
+  repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
+  constrained_tree_output_dir <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
+  tree_output_dir             <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_ML_tree_estimation/"
+  alignment_path              <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Whelan2017.Metazoa_Choano_RCFV_strict.aa.alignment.fa"
+  models_path                 <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Metazoa_Choano_RCFV_strict_Models.txt"
+  iqtree2                     <- "iqtree2"
+  iqtree_num_threads          <- "2"
+  astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8/Astral/astral.5.7.8.jar"
+  estimate.trees              <- FALSE
+} else if (location == "dayhoff"){
+  repo_dir                    <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
+  constrained_tree_output_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/empirical_hypothesis_trees/"
+  tree_output_dir             <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/empirical_tree_estimation/"
+  alignment_path              <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/01_empirical_data/Whelan2017.Metazoa_Choano_RCFV_strict.aa.alignment.fa"
+  models_path                 <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/01_empirical_data/Whelan2017_replicateOriginal_models_partitions.nex"
+  iqtree2                     <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree-2.2.0-Linux/bin/iqtree2"
+  iqtree_num_threads          <- "15"
+  astral                      <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/ASTRAL-5.7.8/Astral/astral.5.7.8.jar"
+  estimate.trees              <- FALSE
+}
 
 
 
@@ -40,7 +57,7 @@ constraint_tree_1_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_c
 constraint_tree_2_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_constraint_tree_2_Pori.nex")
 constraint_tree_3_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_constraint_tree_3_CtenPori.nex")
 # File to store IQ-Tree command lines used to estimate constrained trees
-iqtree2_call_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_iqtree2_commands.txt")
+iqtree2_call_file_name <- paste0(constrained_tree_output_dir, "Whelan2017_iqtree2_astral_commands.txt")
 # Partition file filepath for models from original paper run
 partition_models_file_name <- paste0(tree_output_dir, "Whelan2017_replicateOriginal_models_partitions.nex")
 partition_genes_file_name <- paste0(tree_output_dir, "Whelan2017_genes_partitions.nex")
@@ -190,11 +207,14 @@ write(partition_text2, file = partition_genes_file_name)
 
 # Prepare IQ-Tree2 command lines
 setwd(tree_output_dir)
-gene_partition_prefix <- "Whelan2017_gene_partition_MFP"
+gene_partition_prefix <- "Whelan2017_partitioned_ML_tree"
+ml_tree_path <- paste0(gene_partition_prefix, ".treefile")
 partitioned_iqtree_call <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_genes_file_name,
-                                  " -m MFP+MERGE -bb 1000 -bsam GENESITE -nt AUTO -pre ", gene_partition_prefix)
-# Call IQ-Tree2
-system(partitioned_iqtree_call)
+                                  " -m MFP+MERGE -bb 1000 -bsam GENESITE -nt ", iqtree_num_threads, " -pre ", gene_partition_prefix)
+# Call IQ-Tree2 to estimate the partitioned ML tree
+if (estimate.trees == TRUE){
+  system(partitioned_iqtree_call)
+}
 
 
 
@@ -206,38 +226,83 @@ system(partitioned_iqtree_call)
 # Prepare IQ-Tree2 command lines
 setwd(tree_output_dir)
 gene_tree_prefix <- "Whelan2017_gene_trees"
+gene_trees_path <- paste0(gene_tree_prefix, ".treefile")
 gene_tree_iqtree_call <- paste0(iqtree2, " -s ", new_alignment_path, " -S ", partition_genes_file_name,
-                                " -m MFP -bb 1000 -nt AUTO -pre ", gene_tree_prefix)
-# Call IQ-Tree2
-system(gene_tree_iqtree_call)
+                                " -m MFP -bb 1000 -nt ", iqtree_num_threads, " -pre ", gene_tree_prefix)
+# Call IQ-Tree2 to estimate gene trees
+if (estimate.trees == TRUE){
+  system(gene_tree_iqtree_call)
+}
 
 
 
-#### 9. Estimate hypothesis trees under each constraint tree ####
+#### 9. Estimate gene concordance factors in IQ-Tree ####
+# Prepare IQ-Tree2 command lines
+setwd(tree_output_dir)
+gcf_prefix <- "Whelan2017_gCF"
+gcf_call <- paste0(iqtree2, " -t ", ml_tree_path, " -gcf ", gene_trees_path, " -nt ", iqtree_num_threads, " -pre ", gcf_prefix)
+# Call IQ-Tree2 to calculate the gCF
+if (estimate.trees == TRUE){
+  system(gcf_call)
+}
+
+
+
+#### 10. Estimate hypothesis trees under each constraint tree ####
 # Whelan et al. 2017 dataset Metazoa_Choano_RCFV_strict
 # Partitioned by gene
 # Models selected by ModelFinder (MFP)
 
 # Prepare IQ-Tree2 command lines
+setwd(tree_output_dir)
 constraint_Cten_iqtree_call       <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_genes_file_name, 
-                                            "  -m MFP+MERGE -bb 1000  -bsam GENESITE  -g ", constraint_tree_1_file_name,
-                                            " -nt AUTO -pre Whelan2017_hypothesis_tree_1_Cten")
+                                            " -m MFP+MERGE -bb 1000 -bsam GENESITE -g ", constraint_tree_1_file_name,
+                                            " -nt ", iqtree_num_threads, " -pre Whelan2017_hypothesis_tree_1_Cten")
 constraint_Pori_iqtree_call       <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_genes_file_name, 
-                                            "  -m MFP+MERGE -bb 1000  -bsam GENESITE  -g ", constraint_tree_2_file_name,
-                                            " -nt AUTO -pre Whelan2017_hypothesis_tree_2_Pori")
+                                            " -m MFP+MERGE -bb 1000 -bsam GENESITE -g ", constraint_tree_2_file_name,
+                                            " -nt ", iqtree_num_threads, " -pre Whelan2017_hypothesis_tree_2_Pori")
 constraint_CtenPori_iqtree_call   <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_genes_file_name, 
-                                            "  -m MFP+MERGE -bb 1000  -bsam GENESITE  -g ", constraint_tree_3_file_name,
-                                            " -nt AUTO -pre Whelan2017_hypothesis_tree_3_CtenPori")
+                                            " -m MFP+MERGE -bb 1000 -bsam GENESITE -g ", constraint_tree_3_file_name,
+                                            " -nt ", iqtree_num_threads, " -pre Whelan2017_hypothesis_tree_3_CtenPori")
 estimate_hypothesis_trees <- c(constraint_Cten_iqtree_call, constraint_Pori_iqtree_call, constraint_CtenPori_iqtree_call)
-write(estimate_hypothesis_trees, file = iqtree2_call_file_name)
-# Call IQ-Tree2
-system(estimate_hypothesis_trees)
+# Call IQ-Tree2 to estimate the constrained trees
+if (estimate.trees == TRUE){
+  lapply(estimate_hypothesis_trees, system)
+}
 
 
 
-#### 10. Save iqtree2 command lines ####
+#### 11. Estimate summary coalescent tree in ASTRAL ####
+# Prepare ASTRAL command line
+setwd(tree_output_dir)
+astral_prefix <- "Whelan2017_ASTRAL_tree"
+astral_tree_file <- paste0(astral_prefix, ".tre")
+astral_log_file  <- paste0(astral_prefix, ".log")
+astral_call <- paste0("java -jar ", astral, " -i ", gene_tree_treefile, " -o ", astral_tree_file, " 2> ", astral_log_file)
+# Call ASTRAL to estimate the summary coalescent tree
+if (estimate.trees == TRUE){
+  system(astral_call)
+}
+
+
+
+#### 12. Calculate quartet concordance factors in ASTRAL ####
+# Prepare ASTRAL command line
+setwd(tree_output_dir)
+quartet_prefix <- "Whelan2017_ASTRAL_tree"
+quartet_tree_file <- paste0(quartet_prefix, ".tre")
+quartet_log_file  <- paste0(quartet_prefix, ".log")
+astral_quartet_call <- paste0("java -jar ", astral, " -q ", astral_tree_file, " -i ", gene_tree_treefile, " -o ", quartet_tree_file, " 2> ", astral_quartet_call)
+# Call ASTRAL to estimate quartet concordance factors
+if (estimate.trees == TRUE){
+  system(astral_quartet_call)
+}
+
+
+
+#### 13. Save iqtree2 and astral command lines ####
 # Save IQ-Tree2 calls as text file
-estimate_ML_trees <- c(partitioned_iqtree_call, gene_tree_iqtree_call, constraint_Cten_iqtree_call, constraint_Pori_iqtree_call, constraint_CtenPori_iqtree_call)
-write(estimate_ML_trees, file = iqtree2_call_file_name)
+estimate_trees <- c(partitioned_iqtree_call, gene_tree_iqtree_call, gcf_call, astral_call, astral_quartet_call, estimate_hypothesis_trees)
+write(estimate_trees, file = iqtree2_call_file_name)
 
 
