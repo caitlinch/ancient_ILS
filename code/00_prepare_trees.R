@@ -106,7 +106,6 @@ if ( (file.exists(constraint_tree_1_file_name) == FALSE) |
   outgroup_taxa = whelan2017_list$Outgroup
   ctenophora_taxa = whelan2017_list$Ctenophora
   porifera_taxa = whelan2017_list$Porifera
-  placozoa_taxa = whelan2017_list$Placozoa
   cnidaria_taxa = whelan2017_list$Cnidaria
   bilateria_taxa = whelan2017_list$Bilateria
   
@@ -114,10 +113,6 @@ if ( (file.exists(constraint_tree_1_file_name) == FALSE) |
   outgroup_taxa_formatted <- format.constraint.tree.clade(outgroup_taxa)
   ctenophora_taxa_formatted <- format.constraint.tree.clade(ctenophora_taxa)
   porifera_taxa_formatted <- format.constraint.tree.clade(porifera_taxa)
-  ctenophora_porifera_taxa_formatted <- format.constraint.tree.clade(c(ctenophora_taxa, porifera_taxa))
-  placozoa_taxa_formatted <- format.constraint.tree.clade(placozoa_taxa)
-  cnidaria_taxa_formatted <- format.constraint.tree.clade(cnidaria_taxa)
-  bilateria_taxa_formatted <- format.constraint.tree.clade(bilateria_taxa)
   cnidaria_bilateria_taxa_formatted <- format.constraint.tree.clade(c(cnidaria_taxa, bilateria_taxa))
   
   # Construct the constraint trees:
