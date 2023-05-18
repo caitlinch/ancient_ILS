@@ -92,17 +92,7 @@ whelan2017_list <- list("Bilateria" = c("Homo_sapiens", "Strongylocentrotus_purp
                                          "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
                                          "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
                                          "Ctenophora_sp_Florida_USA"),
-                        "Outgroup" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
-                        "Sponges_Calcarea" = c("Sycon_coactum", "Sycon_ciliatum"),
-                        "Sponges_Homoscleromorpha" = c("Oscarella_carmela", "Corticium_candelabrum"),
-                        "Sponges_Hexactinellida" = c("Hyalonema_populiferum", "Sympagella_nux", "Rossella_fibulata", "Aphrocallistes_vastus"),
-                        "Sponges_Demospongiae" = c("Ircinia_fasciculata", "Chondrilla_nucula", "Spongilla_lacustris", "Cliona_varians", "Pseudospongosorites_suberitoides", 
-                                                   "Mycale_phylophylla", "Latrunculia_apicalis", "Kirkpatrickia_variolosa", "Crella_elegans", "Petrosia_ficiformis", "Amphimedon_queenslandica"),
-                        "Sponges_1" = c("Sponges_Calcarea", "Sponges_Homoscleromorpha"),
-                        "Sponges_2" = c("Sponges_Hexactinellida", "Sponges_Demospongiae"),
-                        "Models" = c("PartitionFinder"),
-                        "Partitioned" = TRUE,
-                        "Estimate.Paraphyletic.Sponges" = TRUE)
+                        "Outgroup" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis") )
 
 
 
@@ -116,8 +106,6 @@ if ( (file.exists(constraint_tree_1_file_name) == FALSE) |
   outgroup_taxa = whelan2017_list$Outgroup
   ctenophora_taxa = whelan2017_list$Ctenophora
   porifera_taxa = whelan2017_list$Porifera
-  sponges_1_taxa = as.character(unlist(whelan2017_list[c(whelan2017_list$Sponges_1)]))
-  sponges_2_taxa = as.character(unlist(whelan2017_list[c(whelan2017_list$Sponges_2)])) 
   placozoa_taxa = whelan2017_list$Placozoa
   cnidaria_taxa = whelan2017_list$Cnidaria
   bilateria_taxa = whelan2017_list$Bilateria
@@ -127,8 +115,6 @@ if ( (file.exists(constraint_tree_1_file_name) == FALSE) |
   ctenophora_taxa_formatted <- format.constraint.tree.clade(ctenophora_taxa)
   porifera_taxa_formatted <- format.constraint.tree.clade(porifera_taxa)
   ctenophora_porifera_taxa_formatted <- format.constraint.tree.clade(c(ctenophora_taxa, porifera_taxa))
-  sponges_1_taxa_formatted <- format.constraint.tree.clade(sponges_1_taxa)
-  sponges_2_taxa_formatted <- format.constraint.tree.clade(sponges_2_taxa)
   placozoa_taxa_formatted <- format.constraint.tree.clade(placozoa_taxa)
   cnidaria_taxa_formatted <- format.constraint.tree.clade(cnidaria_taxa)
   bilateria_taxa_formatted <- format.constraint.tree.clade(bilateria_taxa)
