@@ -280,7 +280,7 @@ if (estimate.trees == TRUE){
 
 #### 12. Calculate quartet concordance factors in ASTRAL ####
 # Prepare ASTRAL command line
-quartet_prefix <- "Whelan2017_ASTRAL_tree"
+quartet_prefix <- "Whelan2017_ASTRAL_quartets"
 quartet_tree_file <- paste0(quartet_prefix, ".tre")
 quartet_log_file  <- paste0(quartet_prefix, ".log")
 astral_quartet_call <- paste0("java -jar ", astral, " -q ", astral_tree_file, " -i ", gene_trees_path, " -o ", quartet_tree_file, " 2> ", quartet_log_file)
