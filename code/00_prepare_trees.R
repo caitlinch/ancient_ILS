@@ -283,7 +283,7 @@ if (estimate.trees == TRUE){
 quartet_prefix <- "Whelan2017_ASTRAL_tree"
 quartet_tree_file <- paste0(quartet_prefix, ".tre")
 quartet_log_file  <- paste0(quartet_prefix, ".log")
-astral_quartet_call <- paste0("java -jar ", astral, " -q ", astral_tree_file, " -i ", gene_trees_path, " -o ", quartet_tree_file, " 2> ", astral_quartet_call)
+astral_quartet_call <- paste0("java -jar ", astral, " -q ", astral_tree_file, " -i ", gene_trees_path, " -o ", quartet_tree_file, " 2> ", quartet_log_file)
 # Call ASTRAL to estimate quartet concordance factors
 if (estimate.trees == TRUE){
   setwd(tree_output_dir)
@@ -294,10 +294,10 @@ if (estimate.trees == TRUE){
 
 #### 13. Save iqtree2 and astral command lines ####
 # Save IQ-Tree2 calls as text file
-estimate_trees <- c(paste0("cd ", tree_output_dir),
-                    partitioned_iqtree_call, gene_tree_iqtree_call, gcf_call, astral_call, astral_quartet_call, 
-                    paste0("cd ", constrained_tree_output_dir),
-                    estimate_hypothesis_trees)
-write(estimate_trees, file = executable_commands_text_file)
+estimate_all_trees <- c(paste0("cd ", tree_output_dir),
+                        partitioned_iqtree_call, gene_tree_iqtree_call, gcf_call, astral_call, astral_quartet_call, 
+                        paste0("cd ", constrained_tree_output_dir),
+                        estimate_hypothesis_trees)
+write(estimate_all_trees, file = executable_commands_text_file)
 
 
