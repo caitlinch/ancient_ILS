@@ -266,13 +266,13 @@ if (estimate.trees == TRUE){
 
 # Prepare IQ-Tree2 command lines
 setwd(tree_output_dir)
-constraint_Cten_iqtree_call       <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_genes_file_name, 
+constraint_Cten_iqtree_call       <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", hypothesis_tree_partition_file_name, 
                                             " -m MFP+MERGE -bb 1000 -bsam GENESITE -g ", constraint_tree_1_file_name,
                                             " -nt ", iqtree_num_threads, " -pre Whelan2017_hypothesis_tree_1_Cten")
-constraint_Pori_iqtree_call       <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_genes_file_name, 
+constraint_Pori_iqtree_call       <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", hypothesis_tree_partition_file_name, 
                                             " -m MFP+MERGE -bb 1000 -bsam GENESITE -g ", constraint_tree_2_file_name,
                                             " -nt ", iqtree_num_threads, " -pre Whelan2017_hypothesis_tree_2_Pori")
-constraint_CtenPori_iqtree_call   <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", partition_genes_file_name, 
+constraint_CtenPori_iqtree_call   <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", hypothesis_tree_partition_file_name, 
                                             " -m MFP+MERGE -bb 1000 -bsam GENESITE -g ", constraint_tree_3_file_name,
                                             " -nt ", iqtree_num_threads, " -pre Whelan2017_hypothesis_tree_3_CtenPori")
 estimate_hypothesis_trees <- c(constraint_Cten_iqtree_call, constraint_Pori_iqtree_call, constraint_CtenPori_iqtree_call)
