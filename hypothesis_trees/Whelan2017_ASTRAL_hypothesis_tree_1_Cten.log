@@ -1,0 +1,350 @@
+
+================== ASTRAL ===================== 
+
+This is ASTRAL version 5.6.9
+Gene trees are treated as unrooted
+117 trees read from /mnt/data/dayhoff/home/u5348329/ancient_ILS/02_empirical_tree_estimation/Whelan2017_gene_trees.treefile
+All output trees will be *arbitrarily* rooted at Bolocera_tuediae
+1 constraint tree read from /mnt/data/dayhoff/home/u5348329/ancient_ILS/02_empirical_hypothesis_trees/Whelan2017_constraint_tree_1_Cten.nex
+All gene trees are converted to be compatible with species tree.
+
+======== Running the main analysis
+Number of taxa: 75 (75 species)
+Taxa: [Bolocera_tuediae, Drosophila_melanogaster, Daphnia_pulex, Spongilla_lacustris, Crella_elegans, Hemithris_psittacea, Capitella_teleta, Sycon_coactum, Rossella_fibulata, Sympagella_nux, Aphrocallistes_vastus, Sycon_ciliatum, Aiptasia_pallida, Salpingoeca_rosetta, Acanthoeca_sp, Monosiga_brevicolis, Monosiga_ovata, Salpingoeca_pyxidium, Homo_sapiens, Strongylocentrotus_purpatus, Chondrilla_nucula, Amphimedon_queenslandica, Petrosia_ficiformis, Ircinia_fasciculata, Mycale_phylophylla, Kirkpatrickia_variolosa, Latrunculia_apicalis, Cliona_varians, Corticium_candelabrum, Oscarella_carmela, Acropora_digitifera, Abylopsis_tetragona, Nanomia_bijuga, Craseo_lathetica, Hydra_vulgaris, Hydra_oligactis, Hydra_viridissima, Physalia_physalia, Periphyla_periphyla, Eunicella_verrucosa, Hormathia_digitata, Nematostella_vectensis, Hyalonema_populiferum, Bolinopsis_ashleyi, Pseudospongosorites_suberitoides, Agalma_elegans, Mertensiidae_sp_Washington_USA, Euplokamis_dunlapae, Cydippida_sp_Maryland_USA, Pleurobrachia_bachei, Hormiphora_californica, Hormiphora_palmata, Lobatolampea_tetragona, Dryodora_glandiformis, Coeloplana_astericola, Beroe_sp_Queensland_Australia, Beroe_forskalii, Beroe_ovata, Ocyropsis_crystallina, Ocyropsis_sp_Bimini_Bahamas, Eurhamphaea_vexilligera, Cydippida_sp, Beroe_sp_Antarctica, Mertensiidae_sp_Antarctica, Vallicula_sp, Ocyropsis_sp_Florida_USA, Lobata_sp_Punta_Arenas_Argentina, Mnemiopsis_leidyi, Beroe_abyssicola, Pleurobrachia_pileus, Ctenophora_sp_Florida_USA, Bolinopsis_infundibulum, Callianira_Antarctica, Pleurobrachia_sp_South_Carolina_USA, Cestum_veneris]
+Taxon occupancy: {Eunicella_verrucosa=108, Euplokamis_dunlapae=33, Ocyropsis_sp_Florida_USA=14, Pseudospongosorites_suberitoides=65, Spongilla_lacustris=90, Periphyla_periphyla=85, Physalia_physalia=100, Oscarella_carmela=117, Dryodora_glandiformis=35, Sycon_coactum=102, Ctenophora_sp_Florida_USA=11, Craseo_lathetica=100, Beroe_sp_Antarctica=18, Corticium_candelabrum=73, Sympagella_nux=106, Cestum_veneris=19, Aphrocallistes_vastus=110, Bolocera_tuediae=55, Bolinopsis_infundibulum=10, Beroe_forskalii=24, Nematostella_vectensis=111, Hydra_vulgaris=107, Callianira_Antarctica=24, Drosophila_melanogaster=117, Ircinia_fasciculata=68, Monosiga_brevicolis=110, Cliona_varians=101, Ocyropsis_sp_Bimini_Bahamas=26, Beroe_abyssicola=24, Petrosia_ficiformis=81, Rossella_fibulata=100, Pleurobrachia_pileus=38, Chondrilla_nucula=86, Kirkpatrickia_variolosa=100, Eurhamphaea_vexilligera=23, Coeloplana_astericola=31, Daphnia_pulex=115, Agalma_elegans=108, Hyalonema_populiferum=86, Pleurobrachia_sp_South_Carolina_USA=16, Crella_elegans=70, Amphimedon_queenslandica=113, Hydra_oligactis=68, Hormathia_digitata=79, Acanthoeca_sp=110, Nanomia_bijuga=95, Cydippida_sp=19, Pleurobrachia_bachei=33, Strongylocentrotus_purpatus=104, Salpingoeca_rosetta=116, Lobatolampea_tetragona=19, Mnemiopsis_leidyi=33, Salpingoeca_pyxidium=78, Aiptasia_pallida=113, Lobata_sp_Punta_Arenas_Argentina=13, Latrunculia_apicalis=106, Hydra_viridissima=70, Mertensiidae_sp_Washington_USA=23, Hormiphora_palmata=23, Beroe_ovata=14, Homo_sapiens=117, Ocyropsis_crystallina=31, Monosiga_ovata=68, Beroe_sp_Queensland_Australia=24, Mertensiidae_sp_Antarctica=19, Hormiphora_californica=43, Vallicula_sp=31, Mycale_phylophylla=98, Acropora_digitifera=72, Cydippida_sp_Maryland_USA=46, Hemithris_psittacea=106, Bolinopsis_ashleyi=27, Sycon_ciliatum=112, Capitella_teleta=114, Abylopsis_tetragona=101}
+Number of gene trees: 117
+117 trees have missing taxa
+Calculating quartet distance matrix (for completion of X)
+Species tree distances calculated ...
+Will attempt to complete bipartitions from X before adding using a distance matrix.
+Both constraint tree and gene tree repeat 0 are rooted at Nematostella_vectensis
+Both constraint tree and gene tree repeat 0 are rooted at Amphimedon_queenslandica
+Both constraint tree and gene tree repeat 0 are rooted at Spongilla_lacustris
+Both constraint tree and gene tree repeat 0 are rooted at Chondrilla_nucula
+Both constraint tree and gene tree repeat 0 are rooted at Lobata_sp_Punta_Arenas_Argentina
+Both constraint tree and gene tree repeat 0 are rooted at Latrunculia_apicalis
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_oligactis
+Both constraint tree and gene tree repeat 0 are rooted at Dryodora_glandiformis
+Both constraint tree and gene tree repeat 0 are rooted at Hemithris_psittacea
+Both constraint tree and gene tree repeat 0 are rooted at Amphimedon_queenslandica
+Both constraint tree and gene tree repeat 0 are rooted at Drosophila_melanogaster
+Both constraint tree and gene tree repeat 0 are rooted at Mertensiidae_sp_Antarctica
+Both constraint tree and gene tree repeat 0 are rooted at Acropora_digitifera
+Both constraint tree and gene tree repeat 0 are rooted at Chondrilla_nucula
+Both constraint tree and gene tree repeat 0 are rooted at Agalma_elegans
+Both constraint tree and gene tree repeat 0 are rooted at Strongylocentrotus_purpatus
+Both constraint tree and gene tree repeat 0 are rooted at Capitella_teleta
+Both constraint tree and gene tree repeat 0 are rooted at Latrunculia_apicalis
+Both constraint tree and gene tree repeat 0 are rooted at Mycale_phylophylla
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_vulgaris
+Both constraint tree and gene tree repeat 0 are rooted at Latrunculia_apicalis
+Both constraint tree and gene tree repeat 0 are rooted at Aphrocallistes_vastus
+Both constraint tree and gene tree repeat 0 are rooted at Rossella_fibulata
+Both constraint tree and gene tree repeat 0 are rooted at Acropora_digitifera
+Both constraint tree and gene tree repeat 0 are rooted at Amphimedon_queenslandica
+Both constraint tree and gene tree repeat 0 are rooted at Monosiga_brevicolis
+Both constraint tree and gene tree repeat 0 are rooted at Cestum_veneris
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_vulgaris
+Both constraint tree and gene tree repeat 0 are rooted at Lobatolampea_tetragona
+Both constraint tree and gene tree repeat 0 are rooted at Salpingoeca_pyxidium
+Both constraint tree and gene tree repeat 0 are rooted at Aphrocallistes_vastus
+Both constraint tree and gene tree repeat 0 are rooted at Spongilla_lacustris
+Both constraint tree and gene tree repeat 0 are rooted at Crella_elegans
+Both constraint tree and gene tree repeat 0 are rooted at Homo_sapiens
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_viridissima
+Both constraint tree and gene tree repeat 0 are rooted at Corticium_candelabrum
+Both constraint tree and gene tree repeat 0 are rooted at Hormathia_digitata
+Both constraint tree and gene tree repeat 0 are rooted at Cydippida_sp_Maryland_USA
+Both constraint tree and gene tree repeat 0 are rooted at Sympagella_nux
+Both constraint tree and gene tree repeat 0 are rooted at Abylopsis_tetragona
+Both constraint tree and gene tree repeat 0 are rooted at Crella_elegans
+Both constraint tree and gene tree repeat 0 are rooted at Amphimedon_queenslandica
+Both constraint tree and gene tree repeat 0 are rooted at Amphimedon_queenslandica
+Both constraint tree and gene tree repeat 0 are rooted at Beroe_sp_Queensland_Australia
+Both constraint tree and gene tree repeat 0 are rooted at Spongilla_lacustris
+Both constraint tree and gene tree repeat 0 are rooted at Nematostella_vectensis
+Both constraint tree and gene tree repeat 0 are rooted at Abylopsis_tetragona
+Both constraint tree and gene tree repeat 0 are rooted at Monosiga_brevicolis
+Both constraint tree and gene tree repeat 0 are rooted at Euplokamis_dunlapae
+Both constraint tree and gene tree repeat 0 are rooted at Rossella_fibulata
+Both constraint tree and gene tree repeat 0 are rooted at Drosophila_melanogaster
+Both constraint tree and gene tree repeat 0 are rooted at Daphnia_pulex
+Both constraint tree and gene tree repeat 0 are rooted at Hormiphora_californica
+Both constraint tree and gene tree repeat 0 are rooted at Hormathia_digitata
+Both constraint tree and gene tree repeat 0 are rooted at Salpingoeca_rosetta
+Both constraint tree and gene tree repeat 0 are rooted at Oscarella_carmela
+Both constraint tree and gene tree repeat 0 are rooted at Pleurobrachia_sp_South_Carolina_USA
+Both constraint tree and gene tree repeat 0 are rooted at Corticium_candelabrum
+Both constraint tree and gene tree repeat 0 are rooted at Nanomia_bijuga
+Both constraint tree and gene tree repeat 0 are rooted at Periphyla_periphyla
+Both constraint tree and gene tree repeat 0 are rooted at Corticium_candelabrum
+Both constraint tree and gene tree repeat 0 are rooted at Sympagella_nux
+Both constraint tree and gene tree repeat 0 are rooted at Mycale_phylophylla
+Both constraint tree and gene tree repeat 0 are rooted at Pleurobrachia_bachei
+Both constraint tree and gene tree repeat 0 are rooted at Pleurobrachia_pileus
+Both constraint tree and gene tree repeat 0 are rooted at Homo_sapiens
+Both constraint tree and gene tree repeat 0 are rooted at Spongilla_lacustris
+Both constraint tree and gene tree repeat 0 are rooted at Coeloplana_astericola
+Both constraint tree and gene tree repeat 0 are rooted at Daphnia_pulex
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_vulgaris
+Both constraint tree and gene tree repeat 0 are rooted at Hormiphora_californica
+Both constraint tree and gene tree repeat 0 are rooted at Ocyropsis_sp_Bimini_Bahamas
+Both constraint tree and gene tree repeat 0 are rooted at Cliona_varians
+Both constraint tree and gene tree repeat 0 are rooted at Salpingoeca_pyxidium
+Both constraint tree and gene tree repeat 0 are rooted at Aphrocallistes_vastus
+Both constraint tree and gene tree repeat 0 are rooted at Aphrocallistes_vastus
+Both constraint tree and gene tree repeat 0 are rooted at Acanthoeca_sp
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_viridissima
+Both constraint tree and gene tree repeat 0 are rooted at Hemithris_psittacea
+Both constraint tree and gene tree repeat 0 are rooted at Spongilla_lacustris
+Both constraint tree and gene tree repeat 0 are rooted at Periphyla_periphyla
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_oligactis
+Both constraint tree and gene tree repeat 0 are rooted at Chondrilla_nucula
+Both constraint tree and gene tree repeat 0 are rooted at Oscarella_carmela
+Both constraint tree and gene tree repeat 0 are rooted at Salpingoeca_pyxidium
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_viridissima
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_vulgaris
+Both constraint tree and gene tree repeat 0 are rooted at Corticium_candelabrum
+Both constraint tree and gene tree repeat 0 are rooted at Hormiphora_palmata
+Both constraint tree and gene tree repeat 0 are rooted at Strongylocentrotus_purpatus
+Both constraint tree and gene tree repeat 0 are rooted at Euplokamis_dunlapae
+Both constraint tree and gene tree repeat 0 are rooted at Coeloplana_astericola
+Both constraint tree and gene tree repeat 0 are rooted at Beroe_abyssicola
+Both constraint tree and gene tree repeat 0 are rooted at Acanthoeca_sp
+Both constraint tree and gene tree repeat 0 are rooted at Daphnia_pulex
+Both constraint tree and gene tree repeat 0 are rooted at Petrosia_ficiformis
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_vulgaris
+Both constraint tree and gene tree repeat 0 are rooted at Acanthoeca_sp
+Both constraint tree and gene tree repeat 0 are rooted at Monosiga_brevicolis
+Both constraint tree and gene tree repeat 0 are rooted at Crella_elegans
+Both constraint tree and gene tree repeat 0 are rooted at Bolocera_tuediae
+Both constraint tree and gene tree repeat 0 are rooted at Sycon_coactum
+Both constraint tree and gene tree repeat 0 are rooted at Capitella_teleta
+Both constraint tree and gene tree repeat 0 are rooted at Mycale_phylophylla
+Both constraint tree and gene tree repeat 0 are rooted at Homo_sapiens
+Both constraint tree and gene tree repeat 0 are rooted at Daphnia_pulex
+Both constraint tree and gene tree repeat 0 are rooted at Chondrilla_nucula
+Both constraint tree and gene tree repeat 0 are rooted at Crella_elegans
+Both constraint tree and gene tree repeat 0 are rooted at Aphrocallistes_vastus
+Both constraint tree and gene tree repeat 0 are rooted at Rossella_fibulata
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_vulgaris
+Both constraint tree and gene tree repeat 0 are rooted at Nematostella_vectensis
+Both constraint tree and gene tree repeat 0 are rooted at Latrunculia_apicalis
+Both constraint tree and gene tree repeat 0 are rooted at Daphnia_pulex
+Both constraint tree and gene tree repeat 0 are rooted at Ircinia_fasciculata
+Both constraint tree and gene tree repeat 0 are rooted at Ocyropsis_crystallina
+Both constraint tree and gene tree repeat 0 are rooted at Beroe_sp_Queensland_Australia
+Building set of clusters (X) from gene trees 
+Both constraint tree and gene tree repeat 0 are rooted at Pleurobrachia_sp_South_Carolina_USA
+Both constraint tree and gene tree repeat 0 are rooted at Lobata_sp_Punta_Arenas_Argentina
+Both constraint tree and gene tree repeat 0 are rooted at Crella_elegans
+Both constraint tree and gene tree repeat 0 are rooted at Sycon_ciliatum
+Both constraint tree and gene tree repeat 0 are rooted at Corticium_candelabrum
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_oligactis
+Both constraint tree and gene tree repeat 0 are rooted at Eunicella_verrucosa
+Both constraint tree and gene tree repeat 0 are rooted at Cliona_varians
+Both constraint tree and gene tree repeat 0 are rooted at Salpingoeca_pyxidium
+Both constraint tree and gene tree repeat 0 are rooted at Pseudospongosorites_suberitoides
+Both constraint tree and gene tree repeat 0 are rooted at Eunicella_verrucosa
+Both constraint tree and gene tree repeat 0 are rooted at Agalma_elegans
+Both constraint tree and gene tree repeat 0 are rooted at Corticium_candelabrum
+Both constraint tree and gene tree repeat 0 are rooted at Petrosia_ficiformis
+Both constraint tree and gene tree repeat 0 are rooted at Callianira_Antarctica
+Both constraint tree and gene tree repeat 0 are rooted at Vallicula_sp
+Both constraint tree and gene tree repeat 0 are rooted at Monosiga_brevicolis
+Both constraint tree and gene tree repeat 0 are rooted at Ocyropsis_sp_Bimini_Bahamas
+Both constraint tree and gene tree repeat 0 are rooted at Sympagella_nux
+Both constraint tree and gene tree repeat 0 are rooted at Dryodora_glandiformis
+Both constraint tree and gene tree repeat 0 are rooted at Bolinopsis_ashleyi
+Both constraint tree and gene tree repeat 0 are rooted at Nanomia_bijuga
+Both constraint tree and gene tree repeat 0 are rooted at Dryodora_glandiformis
+Both constraint tree and gene tree repeat 0 are rooted at Aphrocallistes_vastus
+Both constraint tree and gene tree repeat 0 are rooted at Petrosia_ficiformis
+Both constraint tree and gene tree repeat 0 are rooted at Sycon_coactum
+Both constraint tree and gene tree repeat 0 are rooted at Cliona_varians
+Both constraint tree and gene tree repeat 0 are rooted at Spongilla_lacustris
+Both constraint tree and gene tree repeat 0 are rooted at Pleurobrachia_sp_South_Carolina_USA
+Both constraint tree and gene tree repeat 0 are rooted at Euplokamis_dunlapae
+Both constraint tree and gene tree repeat 0 are rooted at Cliona_varians
+Both constraint tree and gene tree repeat 0 are rooted at Lobata_sp_Punta_Arenas_Argentina
+Both constraint tree and gene tree repeat 0 are rooted at Craseo_lathetica
+Both constraint tree and gene tree repeat 0 are rooted at Beroe_sp_Queensland_Australia
+Both constraint tree and gene tree repeat 0 are rooted at Oscarella_carmela
+Both constraint tree and gene tree repeat 0 are rooted at Vallicula_sp
+Both constraint tree and gene tree repeat 0 are rooted at Ocyropsis_crystallina
+Both constraint tree and gene tree repeat 0 are rooted at Nematostella_vectensis
+Both constraint tree and gene tree repeat 0 are rooted at Drosophila_melanogaster
+Both constraint tree and gene tree repeat 0 are rooted at Bolocera_tuediae
+Both constraint tree and gene tree repeat 0 are rooted at Sympagella_nux
+Both constraint tree and gene tree repeat 0 are rooted at Periphyla_periphyla
+Both constraint tree and gene tree repeat 0 are rooted at Mertensiidae_sp_Antarctica
+Both constraint tree and gene tree repeat 0 are rooted at Oscarella_carmela
+Both constraint tree and gene tree repeat 0 are rooted at Beroe_ovata
+Both constraint tree and gene tree repeat 0 are rooted at Euplokamis_dunlapae
+Both constraint tree and gene tree repeat 0 are rooted at Coeloplana_astericola
+Both constraint tree and gene tree repeat 0 are rooted at Aphrocallistes_vastus
+Both constraint tree and gene tree repeat 0 are rooted at Acanthoeca_sp
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_viridissima
+Both constraint tree and gene tree repeat 0 are rooted at Beroe_ovata
+Both constraint tree and gene tree repeat 0 are rooted at Bolinopsis_infundibulum
+Both constraint tree and gene tree repeat 0 are rooted at Petrosia_ficiformis
+Both constraint tree and gene tree repeat 0 are rooted at Nanomia_bijuga
+Both constraint tree and gene tree repeat 0 are rooted at Mertensiidae_sp_Washington_USA
+Both constraint tree and gene tree repeat 0 are rooted at Ctenophora_sp_Florida_USA
+Both constraint tree and gene tree repeat 0 are rooted at Daphnia_pulex
+Both constraint tree and gene tree repeat 0 are rooted at Coeloplana_astericola
+Both constraint tree and gene tree repeat 0 are rooted at Aphrocallistes_vastus
+Both constraint tree and gene tree repeat 0 are rooted at Latrunculia_apicalis
+Both constraint tree and gene tree repeat 0 are rooted at Sympagella_nux
+Both constraint tree and gene tree repeat 0 are rooted at Ircinia_fasciculata
+Both constraint tree and gene tree repeat 0 are rooted at Crella_elegans
+Both constraint tree and gene tree repeat 0 are rooted at Aphrocallistes_vastus
+Both constraint tree and gene tree repeat 0 are rooted at Drosophila_melanogaster
+Both constraint tree and gene tree repeat 0 are rooted at Nematostella_vectensis
+Both constraint tree and gene tree repeat 0 are rooted at Salpingoeca_rosetta
+Both constraint tree and gene tree repeat 0 are rooted at Ctenophora_sp_Florida_USA
+Both constraint tree and gene tree repeat 0 are rooted at Aphrocallistes_vastus
+Both constraint tree and gene tree repeat 0 are rooted at Beroe_forskalii
+Both constraint tree and gene tree repeat 0 are rooted at Periphyla_periphyla
+Both constraint tree and gene tree repeat 0 are rooted at Beroe_sp_Queensland_Australia
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_viridissima
+Both constraint tree and gene tree repeat 0 are rooted at Aphrocallistes_vastus
+Both constraint tree and gene tree repeat 0 are rooted at Amphimedon_queenslandica
+Both constraint tree and gene tree repeat 0 are rooted at Daphnia_pulex
+Both constraint tree and gene tree repeat 0 are rooted at Dryodora_glandiformis
+Both constraint tree and gene tree repeat 0 are rooted at Cliona_varians
+Both constraint tree and gene tree repeat 0 are rooted at Drosophila_melanogaster
+Both constraint tree and gene tree repeat 0 are rooted at Ocyropsis_crystallina
+Both constraint tree and gene tree repeat 0 are rooted at Monosiga_brevicolis
+Both constraint tree and gene tree repeat 0 are rooted at Acropora_digitifera
+Both constraint tree and gene tree repeat 0 are rooted at Lobatolampea_tetragona
+Both constraint tree and gene tree repeat 0 are rooted at Sympagella_nux
+Both constraint tree and gene tree repeat 0 are rooted at Strongylocentrotus_purpatus
+Both constraint tree and gene tree repeat 0 are rooted at Acanthoeca_sp
+Both constraint tree and gene tree repeat 0 are rooted at Dryodora_glandiformis
+Both constraint tree and gene tree repeat 0 are rooted at Beroe_ovata
+Both constraint tree and gene tree repeat 0 are rooted at Salpingoeca_pyxidium
+Both constraint tree and gene tree repeat 0 are rooted at Salpingoeca_rosetta
+Both constraint tree and gene tree repeat 0 are rooted at Ocyropsis_sp_Florida_USA
+Both constraint tree and gene tree repeat 0 are rooted at Bolocera_tuediae
+Both constraint tree and gene tree repeat 0 are rooted at Eurhamphaea_vexilligera
+Both constraint tree and gene tree repeat 0 are rooted at Monosiga_brevicolis
+Both constraint tree and gene tree repeat 0 are rooted at Vallicula_sp
+Both constraint tree and gene tree repeat 0 are rooted at Pseudospongosorites_suberitoides
+Both constraint tree and gene tree repeat 0 are rooted at Beroe_ovata
+Both constraint tree and gene tree repeat 0 are rooted at Petrosia_ficiformis
+Both constraint tree and gene tree repeat 0 are rooted at Hyalonema_populiferum
+Both constraint tree and gene tree repeat 0 are rooted at Periphyla_periphyla
+Both constraint tree and gene tree repeat 0 are rooted at Bolocera_tuediae
+Both constraint tree and gene tree repeat 0 are rooted at Bolinopsis_ashleyi
+Both constraint tree and gene tree repeat 0 are rooted at Salpingoeca_pyxidium
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_oligactis
+Both constraint tree and gene tree repeat 0 are rooted at Rossella_fibulata
+Both constraint tree and gene tree repeat 0 are rooted at Homo_sapiens
+Both constraint tree and gene tree repeat 0 are rooted at Hormathia_digitata
+Both constraint tree and gene tree repeat 0 are rooted at Salpingoeca_pyxidium
+Both constraint tree and gene tree repeat 0 are rooted at Aphrocallistes_vastus
+Both constraint tree and gene tree repeat 0 are rooted at Petrosia_ficiformis
+Both constraint tree and gene tree repeat 0 are rooted at Latrunculia_apicalis
+Both constraint tree and gene tree repeat 0 are rooted at Kirkpatrickia_variolosa
+Both constraint tree and gene tree repeat 0 are rooted at Beroe_sp_Queensland_Australia
+Both constraint tree and gene tree repeat 0 are rooted at Drosophila_melanogaster
+Both constraint tree and gene tree repeat 0 are rooted at Aiptasia_pallida
+Both constraint tree and gene tree repeat 0 are rooted at Crella_elegans
+Both constraint tree and gene tree repeat 0 are rooted at Bolinopsis_infundibulum
+Both constraint tree and gene tree repeat 0 are rooted at Pleurobrachia_sp_South_Carolina_USA
+------------------------------
+gradient0: 4281
+calculating extra bipartitions to be added at level 1 ...
+Adding to X using resolutions of greedy consensus ...
+Both constraint tree and gene tree repeat 0 are rooted at Acanthoeca_sp
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_viridissima
+Both constraint tree and gene tree repeat 0 are rooted at Bolinopsis_ashleyi
+Both constraint tree and gene tree repeat 0 are rooted at Hydra_vulgaris
+Both constraint tree and gene tree repeat 0 are rooted at Abylopsis_tetragona
+Both constraint tree and gene tree repeat 0 are rooted at Monosiga_ovata
+Both constraint tree and gene tree repeat 0 are rooted at Oscarella_carmela
+Limit for sigma of degrees:1925
+polytomy size limit : 30
+discarded polytomies:  [3, 3, 4, 5, 6, 6, 9, 10, 11, 11, 13, 13, 19, 25, 30, 30]
+Threshold 0.0:
+polytomy of size 9; rounds with additions with at least 5 support: 2; clusters: 4395
+Threshold 0.01:
+polytomy of size 3; rounds with additions with at least 5 support: 0; clusters: 4395
+polytomy of size 13; rounds with additions with at least 5 support: 0; clusters: 4523
+Threshold 0.02:
+polytomy of size 3; rounds with additions with at least 5 support: 0; clusters: 4525
+polytomy of size 13; rounds with additions with at least 5 support: 0; clusters: 4587
+Threshold 0.05:
+polytomy of size 5; rounds with additions with at least 5 support: 0; clusters: 4587
+polytomy of size 19; rounds with additions with at least 5 support: 0; clusters: 4657
+Threshold 0.1:
+polytomy of size 6; rounds with additions with at least 5 support: 0; clusters: 4657
+polytomy of size 25; rounds with additions with at least 5 support: 0; clusters: 4659
+Threshold 0.2:
+polytomy of size 30; rounds with additions with at least 5 support: 0; clusters: 4659
+polytomy of size 10; rounds with additions with at least 5 support: 0; clusters: 4659
+polytomy of size 6; rounds with additions with at least 5 support: 0; clusters: 4659
+Threshold 0.3333333333333333:
+polytomy of size 11; rounds with additions with at least 5 support: 0; clusters: 4659
+polytomy of size 30; rounds with additions with at least 5 support: 0; clusters: 4659
+polytomy of size 4; rounds with additions with at least 5 support: 0; clusters: 4659
+polytomy of size 11; rounds with additions with at least 5 support: 0; clusters: 4659
+max k is :4
+Number of Clusters after addition by greedy: 4659
+gradient0 in heuristiic: 4659
+partitions formed in 1.281 secs
+Dynamic Programming starting after 1.281 secs
+Using tree-based weight calculation.
+Using polytree-based weight calculation.
+Polytree max score: 16429948
+Polytree building time: 0.016 seconds.
+Number of quartet trees in the gene trees: 16429948
+Size of largest cluster: 75
+Greedy score: 12327951
+estimationFactor: 1.3327395606942305
+Sub-optimal score: 12529154
+Total Number of elements weighted: 8412
+Normalized score (portion of input quartet trees satisfied before correcting for multiple individuals): 0.7845531830045962
+Optimization score: 12890168
+Optimal tree inferred in 2.447 secs.
+(Petrosia_ficiformis,(Amphimedon_queenslandica,((Spongilla_lacustris,(Cliona_varians,(Pseudospongosorites_suberitoides,(Mycale_phylophylla,(Latrunculia_apicalis,(Crella_elegans,Kirkpatrickia_variolosa)))))),((Chondrilla_nucula,Ircinia_fasciculata),((Hyalonema_populiferum,(Aphrocallistes_vastus,(Rossella_fibulata,Sympagella_nux))),(((Sycon_coactum,Sycon_ciliatum),(Corticium_candelabrum,Oscarella_carmela)),((((Homo_sapiens,Strongylocentrotus_purpatus),((Hemithris_psittacea,Capitella_teleta),(Drosophila_melanogaster,Daphnia_pulex))),((Eunicella_verrucosa,(Acropora_digitifera,(Nematostella_vectensis,(Bolocera_tuediae,(Aiptasia_pallida,Hormathia_digitata))))),(Periphyla_periphyla,((Hydra_viridissima,(Hydra_vulgaris,Hydra_oligactis)),(Physalia_physalia,((Abylopsis_tetragona,Craseo_lathetica),(Nanomia_bijuga,Agalma_elegans))))))),(((Monosiga_ovata,Salpingoeca_pyxidium),(Acanthoeca_sp,(Salpingoeca_rosetta,Monosiga_brevicolis))),(Euplokamis_dunlapae,((Coeloplana_astericola,Vallicula_sp),(((Hormiphora_californica,Hormiphora_palmata),(Pleurobrachia_pileus,(Pleurobrachia_bachei,Pleurobrachia_sp_South_Carolina_USA))),(((Cydippida_sp_Maryland_USA,Callianira_Antarctica),(Mertensiidae_sp_Antarctica,(Mertensiidae_sp_Washington_USA,Cydippida_sp))),(Dryodora_glandiformis,(Lobatolampea_tetragona,(((Beroe_sp_Antarctica,Beroe_abyssicola),(Beroe_ovata,(Beroe_sp_Queensland_Australia,Beroe_forskalii))),((Ocyropsis_sp_Bimini_Bahamas,(Ocyropsis_crystallina,Ocyropsis_sp_Florida_USA)),(Bolinopsis_ashleyi,(Bolinopsis_infundibulum,(Mnemiopsis_leidyi,(Lobata_sp_Punta_Arenas_Argentina,(Eurhamphaea_vexilligera,(Ctenophora_sp_Florida_USA,Cestum_veneris))))))))))))))))))))));
+Final quartet score is: 12890168
+Final normalized quartet score is: 0.7845531830045962
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 19:
+	{Coeloplana_astericola, Vallicula_sp}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 12:
+	{Pleurobrachia_bachei, Pleurobrachia_sp_South_Carolina_USA}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 16:
+	{Cydippida_sp_Maryland_USA, Callianira_Antarctica}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 7:
+	{Mertensiidae_sp_Washington_USA, Cydippida_sp}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 11:
+	{Mertensiidae_sp_Washington_USA, Cydippida_sp, Mertensiidae_sp_Antarctica}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 9:
+	{Beroe_sp_Antarctica, Beroe_abyssicola}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 9:
+	{Beroe_sp_Queensland_Australia, Beroe_forskalii}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 8:
+	{Beroe_sp_Queensland_Australia, Beroe_forskalii, Beroe_ovata}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 9:
+	{Ocyropsis_crystallina, Ocyropsis_sp_Florida_USA}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 3:
+	{Ctenophora_sp_Florida_USA, Cestum_veneris}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 6:
+	{Eurhamphaea_vexilligera, Ctenophora_sp_Florida_USA, Cestum_veneris}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 8:
+	{Eurhamphaea_vexilligera, Lobata_sp_Punta_Arenas_Argentina, Ctenophora_sp_Florida_USA, Cestum_veneris}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 7:
+	{Eurhamphaea_vexilligera, Lobata_sp_Punta_Arenas_Argentina, Mnemiopsis_leidyi, Ctenophora_sp_Florida_USA, Cestum_veneris}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 4:
+	{Eurhamphaea_vexilligera, Lobata_sp_Punta_Arenas_Argentina, Mnemiopsis_leidyi, Ctenophora_sp_Florida_USA, Bolinopsis_infundibulum, Cestum_veneris}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 9:
+	{Bolinopsis_ashleyi, Eurhamphaea_vexilligera, Lobata_sp_Punta_Arenas_Argentina, Mnemiopsis_leidyi, Ctenophora_sp_Florida_USA, Bolinopsis_infundibulum, Cestum_veneris}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 14:
+	{Bolinopsis_ashleyi, Beroe_sp_Queensland_Australia, Beroe_forskalii, Beroe_ovata, Ocyropsis_crystallina, Ocyropsis_sp_Bimini_Bahamas, Eurhamphaea_vexilligera, Beroe_sp_Antarctica, Ocyropsis_sp_Florida_USA, Lobata_sp_Punta_Arenas_Argentina, Mnemiopsis_leidyi, Beroe_abyssicola, Ctenophora_sp_Florida_USA, Bolinopsis_infundibulum, Cestum_veneris}
+You may want to ignore posterior probabilities and other statistics related to the following branch branch because the effective number of genes impacting it is only 11:
+	{Bolinopsis_ashleyi, Lobatolampea_tetragona, Beroe_sp_Queensland_Australia, Beroe_forskalii, Beroe_ovata, Ocyropsis_crystallina, Ocyropsis_sp_Bimini_Bahamas, Eurhamphaea_vexilligera, Beroe_sp_Antarctica, Ocyropsis_sp_Florida_USA, Lobata_sp_Punta_Arenas_Argentina, Mnemiopsis_leidyi, Beroe_abyssicola, Ctenophora_sp_Florida_USA, Bolinopsis_infundibulum, Cestum_veneris}
+(Bolocera_tuediae,((Aiptasia_pallida,Hormathia_digitata)1:0.9042520754430966,(Nematostella_vectensis,(Acropora_digitifera,(Eunicella_verrucosa,((Periphyla_periphyla,((Hydra_viridissima,(Hydra_vulgaris,Hydra_oligactis)1:1.4853852637641218)1:3.0545727735769233,(Physalia_physalia,((Abylopsis_tetragona,Craseo_lathetica)1:0.6782528342827104,(Nanomia_bijuga,Agalma_elegans)1:1.1008348377568637)1:1.092189621956397)1:0.9943919904804013)1:2.153160137955641)1:1.5913549669948013,(((Homo_sapiens,Strongylocentrotus_purpatus)0.99:0.2190837399930222,((Hemithris_psittacea,Capitella_teleta)1:1.0205229819900292,(Drosophila_melanogaster,Daphnia_pulex)1:1.5578022696236518)1:0.4544437400809217)1:0.9214156818348999,((((Monosiga_ovata,Salpingoeca_pyxidium)0.42:0.019365331368170226,(Acanthoeca_sp,(Salpingoeca_rosetta,Monosiga_brevicolis)1:1.5805630771463983)0.57:0.06148777342686325)1:1.2556919549385905,(Euplokamis_dunlapae,((Coeloplana_astericola,Vallicula_sp)1:1.346991468568939,(((Hormiphora_californica,Hormiphora_palmata)1:1.1727202608218308,(Pleurobrachia_pileus,(Pleurobrachia_bachei,Pleurobrachia_sp_South_Carolina_USA)0.82:0.37403394931858214)1:1.3523928094442093)1:2.5349170703626593,(((Cydippida_sp_Maryland_USA,Callianira_Antarctica)1:1.7346010553881062,(Mertensiidae_sp_Antarctica,(Mertensiidae_sp_Washington_USA,Cydippida_sp)0.93:0.5753641449035618)1:0.9808292530117262)1:0.5105787603695529,(Dryodora_glandiformis,(Lobatolampea_tetragona,(((Beroe_sp_Antarctica,Beroe_abyssicola)0.93:0.5150009951764715,(Beroe_ovata,(Beroe_sp_Queensland_Australia,Beroe_forskalii)0.98:0.7838717365803423)0.93:0.5389965007326871)1:1.1891531038223278,((Ocyropsis_sp_Bimini_Bahamas,(Ocyropsis_crystallina,Ocyropsis_sp_Florida_USA)0.75:0.2876820724517809)1:1.4900033487392443,(Bolinopsis_ashleyi,(Bolinopsis_infundibulum,(Mnemiopsis_leidyi,(Lobata_sp_Punta_Arenas_Argentina,(Eurhamphaea_vexilligera,(Ctenophora_sp_Florida_USA,Cestum_veneris)0.67:0.2876820724517809)0.71:0.2662319165714979)0.75:0.2799335731809372)0.26:0.0)0.43:0.09051400754083173)0.87:0.448015569250774)1:0.7882090355738895)0.97:0.5157061938972094)0.52:0.09052953484159294)0.85:0.20532292182212486)0.99:0.3351051058099471)1:0.4597390306338526)0.99:0.5090848794758588)1:1.6472909465682466)0.93:0.17287809544275912,(((Sycon_coactum,Sycon_ciliatum)1:2.270256476189437,(Corticium_candelabrum,Oscarella_carmela)1:1.3257128942943295)0.99:0.2054322537150157,((Hyalonema_populiferum,(Aphrocallistes_vastus,(Rossella_fibulata,Sympagella_nux)1:2.5598079579611173)1:2.159484249353373)1:2.4034904278103637,((Chondrilla_nucula,Ircinia_fasciculata)0.96:0.22993959964403338,((Spongilla_lacustris,(Cliona_varians,(Pseudospongosorites_suberitoides,(Mycale_phylophylla,(Latrunculia_apicalis,(Crella_elegans,Kirkpatrickia_variolosa)1:0.6043197256697533)1:1.6501490974911137)1:1.5435533065143086)0.8:0.12893052599735053)1:0.9623215369270989)1:0.4370499917299415,(Amphimedon_queenslandica,Petrosia_ficiformis)1:1.566262680139111)1:0.7511890985609185)1:0.7077989884914399)1:0.5721261388975664)0.65:0.08534309108523329)1:0.4145122165512317)1:0.7369503913135346)1:0.8988413037562146)1:1.0157803424625145)1:1.3403391686320725)1:1.324402027128493));
+Weight calculation took 0.94547724 secs
+ASTRAL finished in 3.2 secs
