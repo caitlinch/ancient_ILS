@@ -36,7 +36,7 @@ branch_df <- as.data.frame(do.call(rbind, branch_list))
 branch_df$tree_depth <- unlist(lapply(tree_file_paths, function(f){max(branching.times(read.tree(f)))}))
 branch_df$tree_file <- tree_files
 branch_df$dataset <- unlist(lapply(strsplit(tree_files, "\\."), function(x){x[[1]][1]}))
-branch_df$model_details <- c("Partioned", "WAG","GTR20", "ModelFinder","Poisson+C60","WAG",
+branch_df$model_details <- c("Partitioned", "WAG","GTR20", "ModelFinder","Poisson+C60","WAG",
                              "GTR20", "WAG", "LG+C60", "LG+C60", "Poisson+C60", "LG+C20",
                              "LG+C20", "LG+C60", "LG+C60", "ModelFinder", "ModelFinder", "ModelFinder",
                              "ModelFinder", "ModelFinder", "Poisson+C60", "WAG", "GTR20", "GTR20",
