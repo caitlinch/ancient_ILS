@@ -57,4 +57,11 @@ branch_df <- branch_df[order(branch_df$dataset, branch_df$matrix_details, branch
 branch_csv_file <- paste0(dirname(published_tree_dir), "/", "published_tree_internal_branch_length_ratios.csv")
 write.csv(branch_df, file = branch_csv_file)
 
+# Calculate summary statistics
+summary(branch_df$total_branch_length)
+summary(branch_df$sum_internal_branch_lengths)
+summary(branch_df$percent_internal_branch_length)
+
+
+
 
