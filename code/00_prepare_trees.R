@@ -269,14 +269,17 @@ if (estimate.trees == TRUE){
 
 # Prepare ASTRAL-constraint command lines
 constraint_Cten_prefix <- "Whelan2017_ASTRAL_hypothesis_tree_1_Cten"
-constraint_Cten_astral_call <- paste0("java -jar ", astral_constrained, " -i ", gene_trees_path, " -o ", constraint_Cten_prefix, ".tre",
-                                      " -j ", constraint_tree_1_file_name, " 2> ", constraint_Cten_prefix, ".log")
+constraint_Cten_astral_call <- paste0("java -jar ", astral_constrained, " -i ", tree_output_dir, gene_trees_path,
+                                      " -o ", constrained_tree_output_dir, constraint_Cten_prefix, ".tre", 
+                                      " -j ", constraint_tree_1_file_name, " 2> ", constrained_tree_output_dir, constraint_Cten_prefix, ".log")
 constraint_Pori_prefix <- "Whelan2017_ASTRAL_hypothesis_tree_2_Pori"
-constraint_Pori_astral_call <- paste0("java -jar ", astral_constrained, " -i ", gene_trees_path, " -o ", constraint_Pori_prefix, ".tre",
-                                      " -j ", constraint_tree_2_file_name, " 2> ", constraint_Pori_prefix, ".log")
+constraint_Pori_astral_call <- paste0("java -jar ", astral_constrained, " -i ", tree_output_dir, gene_trees_path,
+                                      " -o ", constrained_tree_output_dir, constraint_Pori_prefix, ".tre", 
+                                      " -j ", constraint_tree_2_file_name, " 2> ", constrained_tree_output_dir, constraint_Pori_prefix, ".log")
 constraint_CtenPori_prefix <- "Whelan2017_ASTRAL_hypothesis_tree_3_CtenPori"
-constraint_CtenPori_astral_call <- paste0("java -jar ", astral_constrained, " -i ", gene_trees_path, " -o ", constraint_CtenPori_prefix, ".tre",
-                                      " -j ", constraint_tree_3_file_name, " 2> ", constraint_CtenPori_prefix, ".log")
+constraint_CtenPori_astral_call <- paste0("java -jar ", astral_constrained, " -i ", tree_output_dir, gene_trees_path,
+                                          " -o ", constrained_tree_output_dir, constraint_CtenPori_prefix, ".tre", 
+                                          " -j ", constraint_tree_3_file_name, " 2> ", constrained_tree_output_dir, constraint_CtenPori_prefix, ".log")
 estimate_astral_hypothesis_trees <- c(constraint_Cten_astral_call, constraint_Pori_astral_call, constraint_CtenPori_astral_call)
 # Call IQ-Tree2 to estimate the constrained trees
 if (estimate.trees == TRUE){
