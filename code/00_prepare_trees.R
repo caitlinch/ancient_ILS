@@ -11,6 +11,7 @@
 # iqtree2                               <- path to iqtree2 version 2.2.2
 # iqtree_num_threads                    <- number of simultaneous threads for IQ-Tree to use (set as "AUTO" for IQ-Tree to decide) - can be character or numeric
 # astral                                <- path to ASTRAL version 5.7.8
+# astral_constrained                    <- path to constrained version of ASTRAL (https://github.com/maryamrabiee/Constrained-search)
 # estimate.trees                        <- Flag for whether to run IQ-tree and ASTRAL to estimate trees (yes if TRUE, no if FALSE)
 
 location = "dayhoff"
@@ -23,6 +24,7 @@ if (location == "local"){
   iqtree2                     <- "iqtree2"
   iqtree_num_threads          <- "2"
   astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8/Astral/astral.5.7.8.jar"
+  astral_constrained          <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-constrained/astral.5.6.9.jar"
   estimate.trees              <- FALSE
 } else if (location == "dayhoff"){
   repo_dir                    <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
@@ -33,6 +35,7 @@ if (location == "local"){
   iqtree2                     <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree-2.2.0-Linux/bin/iqtree2"
   iqtree_num_threads          <- "15"
   astral                      <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/Astral/astral.5.7.8.jar"
+  astral_constrained          <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/Astral-constrained/Astral/astral.5.6.9.jar"
   estimate.trees              <- FALSE
 }
 
@@ -231,7 +234,7 @@ if (estimate.trees == TRUE){
 #### 9. Estimate gene concordance factors in IQ-Tree ####
 # Prepare IQ-Tree2 command lines
 gcf_prefix <- "Whelan2017_gCF"
-gcf_call <- paste0(iqtree2, " -t ", ml_tree_path, " -gcf ", gene_trees_path, " -nt ", iqtree_num_threads, " -pre ", gcf_prefix)
+gcf_call <- paste0(iqtree2, " -t ", ml_tree_path, " --gcf ", gene_trees_path, " -nt ", iqtree_num_threads, " -pre ", gcf_prefix)
 # Call IQ-Tree2 to calculate the gCF
 if (estimate.trees == TRUE){
   setwd(tree_output_dir)
@@ -260,6 +263,28 @@ estimate_hypothesis_trees <- c(constraint_Cten_iqtree_call, constraint_Pori_iqtr
 if (estimate.trees == TRUE){
   setwd(constrained_tree_output_dir)
   lapply(estimate_hypothesis_trees, system)
+}
+
+# Whelan et al. 2017 dataset Metazoa_Choano_RCFV_strict
+
+# Prepare ASTRAL-constraint command lines
+constraint_Cten_iqtree_call       <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", hypothesis_tree_partition_file_name, 
+                                            " -m MFP+MERGE -bb 1000 -bsam GENESITE -g ", constraint_tree_1_file_name,
+                                            " -nt ", iqtree_num_threads, " -pre Whelan2017_hypothesis_tree_1_Cten")
+constraint_Cten_prefix <- "Whelan2017_ASTRAL_hypothesis_tree_1_Cten"
+constraint_Cten_iqtree_call <- paste0("java -jar ", astral, " -i ", gene_trees_path, " -o ", constraint_Cten_prefix, ".tre -j ", constraint_tree_1_file_name, " 2> ", constraint_Cten_prefix, ".log")
+
+constraint_Pori_iqtree_call       <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", hypothesis_tree_partition_file_name, 
+                                            " -m MFP+MERGE -bb 1000 -bsam GENESITE -g ", constraint_tree_2_file_name,
+                                            " -nt ", iqtree_num_threads, " -pre Whelan2017_hypothesis_tree_2_Pori")
+constraint_CtenPori_iqtree_call   <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", hypothesis_tree_partition_file_name, 
+                                            " -m MFP+MERGE -bb 1000 -bsam GENESITE -g ", constraint_tree_3_file_name,
+                                            " -nt ", iqtree_num_threads, " -pre Whelan2017_hypothesis_tree_3_CtenPori")
+estimate_hypothesis_trees <- c(constraint_Cten_iqtree_call, constraint_Pori_iqtree_call, constraint_CtenPori_iqtree_call)
+# Call IQ-Tree2 to estimate the constrained trees
+if (estimate.trees == TRUE){
+  setwd(constrained_tree_output_dir)
+  lapply(estimate_hypothesis_trees_astral, system)
 }
 
 
@@ -297,7 +322,7 @@ if (estimate.trees == TRUE){
 estimate_all_trees <- c(paste0("cd ", tree_output_dir),
                         partitioned_iqtree_call, gene_tree_iqtree_call, gcf_call, astral_call, astral_quartet_call, 
                         paste0("cd ", constrained_tree_output_dir),
-                        estimate_hypothesis_trees)
+                        estimate_hypothesis_trees, estimate_hypothesis_trees_astral)
 write(estimate_all_trees, file = executable_commands_text_file)
 
 
