@@ -1,0 +1,238 @@
+#nexus
+begin sets;
+  charset gene_1 = 1-237;
+  charset gene_2 = 238-740;
+  charset gene_3 = 741-1217;
+  charset gene_4 = 1218-1862;
+  charset gene_5 = 1863-2468;
+  charset gene_6 = 2469-3047;
+  charset gene_7 = 3048-3921;
+  charset gene_8 = 3922-4034;
+  charset gene_9 = 4035-4277;
+  charset gene_10 = 4278-4897;
+  charset gene_11 = 4898-5226;
+  charset gene_12 = 5227-5885;
+  charset gene_13 = 5886-6378;
+  charset gene_14 = 6379-6674;
+  charset gene_15 = 6675-7124;
+  charset gene_16 = 7125-7577;
+  charset gene_17 = 7578-7694;
+  charset gene_18 = 7695-8128;
+  charset gene_19 = 8129-8361;
+  charset gene_20 = 8362-8559;
+  charset gene_21 = 8560-8749;
+  charset gene_22 = 8750-9363;
+  charset gene_23 = 9364-9785;
+  charset gene_24 = 9786-9947;
+  charset gene_25 = 9948-10511;
+  charset gene_26 = 10512-10646;
+  charset gene_27 = 10647-11108;
+  charset gene_28 = 11109-11482;
+  charset gene_29 = 11483-11736;
+  charset gene_30 = 11737-12212;
+  charset gene_31 = 12213-12689;
+  charset gene_32 = 12690-13379;
+  charset gene_33 = 13380-14345;
+  charset gene_34 = 14346-14726;
+  charset gene_35 = 14727-15001;
+  charset gene_36 = 15002-15141;
+  charset gene_37 = 15142-15542;
+  charset gene_38 = 15543-15709;
+  charset gene_39 = 15710-15977;
+  charset gene_40 = 15978-16276;
+  charset gene_41 = 16277-16694;
+  charset gene_42 = 16695-17410;
+  charset gene_43 = 17411-17695;
+  charset gene_44 = 17696-18221;
+  charset gene_45 = 18222-18751;
+  charset gene_46 = 18752-19094;
+  charset gene_47 = 19095-19538;
+  charset gene_48 = 19539-19877;
+  charset gene_49 = 19878-20454;
+  charset gene_50 = 20455-20862;
+  charset gene_51 = 20863-21045;
+  charset gene_52 = 21046-21231;
+  charset gene_53 = 21232-21828;
+  charset gene_54 = 21829-22629;
+  charset gene_55 = 22630-23484;
+  charset gene_56 = 23485-23772;
+  charset gene_57 = 23773-24772;
+  charset gene_58 = 24773-24976;
+  charset gene_59 = 24977-25147;
+  charset gene_60 = 25148-25392;
+  charset gene_61 = 25393-25766;
+  charset gene_62 = 25767-26043;
+  charset gene_63 = 26044-26232;
+  charset gene_64 = 26233-26765;
+  charset gene_65 = 26766-27096;
+  charset gene_66 = 27097-27353;
+  charset gene_67 = 27354-27722;
+  charset gene_68 = 27723-28065;
+  charset gene_69 = 28066-28489;
+  charset gene_70 = 28490-28706;
+  charset gene_71 = 28707-29001;
+  charset gene_72 = 29002-29526;
+  charset gene_73 = 29527-30272;
+  charset gene_74 = 30273-30877;
+  charset gene_75 = 30878-31272;
+  charset gene_76 = 31273-31874;
+  charset gene_77 = 31875-32327;
+  charset gene_78 = 32328-32880;
+  charset gene_79 = 32881-33750;
+  charset gene_80 = 33751-33914;
+  charset gene_81 = 33915-34460;
+  charset gene_82 = 34461-34636;
+  charset gene_83 = 34637-35318;
+  charset gene_84 = 35319-35652;
+  charset gene_85 = 35653-35806;
+  charset gene_86 = 35807-36186;
+  charset gene_87 = 36187-36800;
+  charset gene_88 = 36801-37530;
+  charset gene_89 = 37531-37920;
+  charset gene_90 = 37921-38013;
+  charset gene_91 = 38014-38405;
+  charset gene_92 = 38406-38800;
+  charset gene_93 = 38801-39395;
+  charset gene_94 = 39396-39660;
+  charset gene_95 = 39661-39843;
+  charset gene_96 = 39844-39969;
+  charset gene_97 = 39970-40325;
+  charset gene_98 = 40326-40643;
+  charset gene_99 = 40644-41053;
+  charset gene_100 = 41054-41437;
+  charset gene_101 = 41438-41941;
+  charset gene_102 = 41942-42342;
+  charset gene_103 = 42343-42691;
+  charset gene_104 = 42692-43427;
+  charset gene_105 = 43428-43714;
+  charset gene_106 = 43715-43943;
+  charset gene_107 = 43944-44272;
+  charset gene_108 = 44273-44656;
+  charset gene_109 = 44657-44795;
+  charset gene_110 = 44796-45614;
+  charset gene_111 = 45615-45996;
+  charset gene_112 = 45997-46196;
+  charset gene_113 = 46197-46744;
+  charset gene_114 = 46745-47353;
+  charset gene_115 = 47354-47931;
+  charset gene_116 = 47932-48873;
+  charset gene_117 = 48874-49388;
+  charpartition mymodels =
+    Q.insect+R4: gene_1,
+    LG+R4: gene_2,
+    Q.insect+I+G4: gene_3,
+    LG+G4: gene_4,
+    Q.insect+I+G4: gene_5,
+    LG+I+I+R4: gene_6,
+    LG+I+G4: gene_7,
+    PMB+I+I+R2: gene_8,
+    LG+I+G4: gene_9,
+    Q.insect+I+I+R3: gene_10,
+    Q.insect+G4: gene_11,
+    Q.insect+R4: gene_12,
+    LG+G4: gene_13,
+    LG+I+G4: gene_14,
+    Q.yeast+R4: gene_15,
+    LG+R4: gene_16,
+    Q.insect+G4: gene_17,
+    Q.pfam+I+G4: gene_18,
+    Q.insect+G4: gene_19,
+    LG+I+G4: gene_20,
+    Q.insect+I+G4: gene_21,
+    Q.insect+I+I+R4: gene_22,
+    Q.insect+I+G4: gene_23,
+    Q.insect+G4: gene_24,
+    Q.yeast+F+I+G4: gene_25,
+    Q.insect+R3: gene_26,
+    LG+I+G4: gene_27,
+    Q.insect+G4: gene_28,
+    Q.insect+R4: gene_29,
+    Q.insect+I+G4: gene_30,
+    Q.yeast+R4: gene_31,
+    Q.insect+I+G4: gene_32,
+    Q.insect+R4: gene_33,
+    Q.insect+G4: gene_34,
+    Q.insect+G4: gene_35,
+    Q.insect+I+I+R3: gene_36,
+    Q.insect+I+I+R4: gene_37,
+    Q.insect+G4: gene_38,
+    Q.insect+I+G4: gene_39,
+    LG+G4: gene_40,
+    Q.insect+G4: gene_41,
+    Q.insect+F+R5: gene_42,
+    Q.insect+G4: gene_43,
+    Q.insect+G4: gene_44,
+    LG+I+G4: gene_45,
+    Q.yeast+R4: gene_46,
+    Q.insect+I+I+R3: gene_47,
+    Q.insect+I+I+R4: gene_48,
+    LG+I+G4: gene_49,
+    Q.insect+I+G4: gene_50,
+    Q.insect+G4: gene_51,
+    Q.insect+G4: gene_52,
+    Q.insect+I+I+R4: gene_53,
+    Q.insect+R5: gene_54,
+    Q.insect+I+I+R4: gene_55,
+    LG+G4: gene_56,
+    Q.insect+I+G4: gene_57,
+    LG+I+G4: gene_58,
+    Q.insect+G4: gene_59,
+    LG+G4: gene_60,
+    Q.insect+I+G4: gene_61,
+    Q.yeast+I+G4: gene_62,
+    Q.insect+I+I+R3: gene_63,
+    Q.insect+R4: gene_64,
+    LG+F+G4: gene_65,
+    Q.insect+I+I+R4: gene_66,
+    Q.insect+I+G4: gene_67,
+    LG+I+G4: gene_68,
+    Q.insect+G4: gene_69,
+    Q.insect+I+G4: gene_70,
+    Q.insect+R4: gene_71,
+    Q.yeast+F+I+G4: gene_72,
+    Q.insect+R4: gene_73,
+    Q.insect+I+G4: gene_74,
+    Q.yeast+R4: gene_75,
+    Q.insect+R5: gene_76,
+    LG+I+G4: gene_77,
+    Q.insect+R4: gene_78,
+    Q.insect+G4: gene_79,
+    Q.insect+I+G4: gene_80,
+    Q.insect+I+G4: gene_81,
+    Q.insect+G4: gene_82,
+    Q.insect+G4: gene_83,
+    Q.insect+I+G4: gene_84,
+    Q.yeast+G4: gene_85,
+    LG+G4: gene_86,
+    LG+G4: gene_87,
+    LG+I+G4: gene_88,
+    Q.insect+I+I+R4: gene_89,
+    Q.insect+R4: gene_90,
+    Q.insect+R4: gene_91,
+    Q.insect+I+G4: gene_92,
+    Q.insect+F+R5: gene_93,
+    Q.insect+I+G4: gene_94,
+    LG+F+G4: gene_95,
+    Q.insect+I+I+R3: gene_96,
+    Q.yeast+I+G4: gene_97,
+    Q.insect+G4: gene_98,
+    LG+I+I+R3: gene_99,
+    LG+F+I+G4: gene_100,
+    Q.insect+I+G4: gene_101,
+    Q.insect+G4: gene_102,
+    LG+R4: gene_103,
+    Q.insect+R4: gene_104,
+    LG+F+I+G4: gene_105,
+    LG+G4: gene_106,
+    Q.insect+G4: gene_107,
+    Q.insect+F+I+G4: gene_108,
+    WAG+R3: gene_109,
+    Q.insect+R4: gene_110,
+    Q.insect+I+G4: gene_111,
+    Q.insect+G4: gene_112,
+    Q.insect+I+I+R4: gene_113,
+    Q.insect+I+G4: gene_114,
+    LG+I+G4: gene_115,
+    Q.insect+R5: gene_116,
+    LG+I+G4: gene_117;
+end;
