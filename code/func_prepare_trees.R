@@ -2,6 +2,26 @@
 ## This script includes functions for formatting and preparing hypothesis trees
 # Caitlin Cherryh, 2023
 
+#### Extracting information from phylogenetic trees ####
+internal.branch.proportion <- function(tree){
+  ## Small function to take any tree and determine the total sum of branch length, the sum of internal branch length, and the ratio between the two
+  # Sum length of all branches
+  total_branch_length <- sum(tree$edge.length)
+  # Identify internal branches and external branches
+  num_tips <- Ntip(tree)
+  internal_branch_inds <- which(tree$edge[,2] > num_tips)
+  external_branch_inds <- which(tree$edge[,2] <= num_tips)
+  # Determine ratio of internal to external branches
+  sum_internal_branch_lengths <- sum(tree$edge.length[internal_branch_inds])
+  percent_internal_branch_length <- (sum_internal_branch_lengths/total_branch_length)*100
+  # Collate and return output
+  op <- c(total_branch_length, sum_internal_branch_lengths, percent_internal_branch_length)
+  return(op)
+}
+
+
+
+#### Creating constraint trees ####
 format.constraint.tree.clade <- function(clade){
   ## Function to take in a vector of species and return a nicely formatted character object to paste into a constraint tree
   # Check how many taxa are in the clade
@@ -21,6 +41,8 @@ format.constraint.tree.clade <- function(clade){
 }
 
 
+
+#### Reformatting partition lines ####
 partition.one.model.line <- function(model_line){
   ## Small function to take one line from the models file and return in partition format
   # Break line into two chunks
