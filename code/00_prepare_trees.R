@@ -277,7 +277,7 @@ constraint_Pori_astral_call <- paste0("java -jar ", astral_constrained, " -i ", 
 constraint_CtenPori_prefix <- "Whelan2017_ASTRAL_hypothesis_tree_3_CtenPori"
 constraint_CtenPori_astral_call <- paste0("java -jar ", astral_constrained, " -i ", gene_trees_path, " -o ", constraint_CtenPori_prefix, ".tre",
                                       " -j ", constraint_tree_3_file_name, " 2> ", constraint_CtenPori_prefix, ".log")
-estimate_astral_hypothesis_trees <- c(constraint_Cten_iqtree_call, constraint_Pori_iqtree_call, constraint_CtenPori_iqtree_call)
+estimate_astral_hypothesis_trees <- c(constraint_Cten_astral_call, constraint_Pori_astral_call, constraint_CtenPori_astral_call)
 # Call IQ-Tree2 to estimate the constrained trees
 if (estimate.trees == TRUE){
   setwd(constrained_tree_output_dir)
