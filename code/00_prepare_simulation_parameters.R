@@ -33,6 +33,7 @@ branch_list <- lapply(tree_file_paths, function(f){internal.branch.proportion(re
 # Make a nice dataframe
 branch_df <- as.data.frame(do.call(rbind, branch_list))
 # Add extra information to the dataframe
+branch_df$tree_depth <- unlist(lapply(tree_file_paths, function(f){max(branching.times(read.tree(f)))}))
 branch_df$tree_file <- tree_files
 branch_df$dataset <- unlist(lapply(strsplit(tree_files, "\\."), function(x){x[[1]][1]}))
 branch_df$model_details <- c("Partioned", "WAG","GTR20", "ModelFinder","Poisson+C60","WAG",
@@ -50,8 +51,8 @@ branch_df$matrix_details <- c(NA, "Choano only outgroup", "All outgroups", NA, N
                               "est", "est", "est", "est", "tree_97sp", "Dataset10_CertainPruned_LBAtaxa_LBAandHeteroGenesPruned",
                               "Metazoa_Choano_RCFV_strict", "Best108", NA)
 # Format the dataframe
-names(branch_df) <- c("total_branch_length", "sum_internal_branch_lengths", "percent_internal_branch_length", "tree_file", "dataset", "model_details", "matrix_details")
-branch_df <- branch_df[, c("dataset", "matrix_details", "model_details", "total_branch_length", "sum_internal_branch_lengths", "percent_internal_branch_length", "tree_file")]
+names(branch_df) <- c("total_branch_length", "sum_internal_branch_lengths", "percent_internal_branch_length", "tree_depth", "tree_file", "dataset", "model_details", "matrix_details")
+branch_df <- branch_df[, c("dataset", "matrix_details", "model_details", "tree_depth", "total_branch_length", "sum_internal_branch_lengths", "percent_internal_branch_length", "tree_file")]
 branch_df <- branch_df[order(branch_df$dataset, branch_df$matrix_details, branch_df$model_details),]
 # Write out the dataframe
 branch_csv_file <- paste0(dirname(published_tree_dir), "/", "published_tree_internal_branch_length_ratios.csv")
@@ -61,7 +62,7 @@ write.csv(branch_df, file = branch_csv_file)
 summary(branch_df$total_branch_length)
 summary(branch_df$sum_internal_branch_lengths)
 summary(branch_df$percent_internal_branch_length)
-
+summary(branch_df$tree_depth)
 
 
 
