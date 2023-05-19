@@ -268,23 +268,20 @@ if (estimate.trees == TRUE){
 # Whelan et al. 2017 dataset Metazoa_Choano_RCFV_strict
 
 # Prepare ASTRAL-constraint command lines
-constraint_Cten_iqtree_call       <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", hypothesis_tree_partition_file_name, 
-                                            " -m MFP+MERGE -bb 1000 -bsam GENESITE -g ", constraint_tree_1_file_name,
-                                            " -nt ", iqtree_num_threads, " -pre Whelan2017_hypothesis_tree_1_Cten")
 constraint_Cten_prefix <- "Whelan2017_ASTRAL_hypothesis_tree_1_Cten"
-constraint_Cten_iqtree_call <- paste0("java -jar ", astral, " -i ", gene_trees_path, " -o ", constraint_Cten_prefix, ".tre -j ", constraint_tree_1_file_name, " 2> ", constraint_Cten_prefix, ".log")
-
-constraint_Pori_iqtree_call       <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", hypothesis_tree_partition_file_name, 
-                                            " -m MFP+MERGE -bb 1000 -bsam GENESITE -g ", constraint_tree_2_file_name,
-                                            " -nt ", iqtree_num_threads, " -pre Whelan2017_hypothesis_tree_2_Pori")
-constraint_CtenPori_iqtree_call   <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", hypothesis_tree_partition_file_name, 
-                                            " -m MFP+MERGE -bb 1000 -bsam GENESITE -g ", constraint_tree_3_file_name,
-                                            " -nt ", iqtree_num_threads, " -pre Whelan2017_hypothesis_tree_3_CtenPori")
-estimate_hypothesis_trees <- c(constraint_Cten_iqtree_call, constraint_Pori_iqtree_call, constraint_CtenPori_iqtree_call)
+constraint_Cten_astral_call <- paste0("java -jar ", astral_constrained, " -i ", gene_trees_path, " -o ", constraint_Cten_prefix, ".tre",
+                                      " -j ", constraint_tree_1_file_name, " 2> ", constraint_Cten_prefix, ".log")
+constraint_Pori_prefix <- "Whelan2017_ASTRAL_hypothesis_tree_2_Pori"
+constraint_Pori_astral_call <- paste0("java -jar ", astral_constrained, " -i ", gene_trees_path, " -o ", constraint_Pori_prefix, ".tre",
+                                      " -j ", constraint_tree_2_file_name, " 2> ", constraint_Pori_prefix, ".log")
+constraint_CtenPori_prefix <- "Whelan2017_ASTRAL_hypothesis_tree_3_CtenPori"
+constraint_CtenPori_astral_call <- paste0("java -jar ", astral_constrained, " -i ", gene_trees_path, " -o ", constraint_CtenPori_prefix, ".tre",
+                                      " -j ", constraint_tree_3_file_name, " 2> ", constraint_CtenPori_prefix, ".log")
+estimate_astral_hypothesis_trees <- c(constraint_Cten_iqtree_call, constraint_Pori_iqtree_call, constraint_CtenPori_iqtree_call)
 # Call IQ-Tree2 to estimate the constrained trees
 if (estimate.trees == TRUE){
   setwd(constrained_tree_output_dir)
-  lapply(estimate_hypothesis_trees_astral, system)
+  lapply(estimate_astral_hypothesis_trees, system)
 }
 
 
@@ -322,7 +319,7 @@ if (estimate.trees == TRUE){
 estimate_all_trees <- c(paste0("cd ", tree_output_dir),
                         partitioned_iqtree_call, gene_tree_iqtree_call, gcf_call, astral_call, astral_quartet_call, 
                         paste0("cd ", constrained_tree_output_dir),
-                        estimate_hypothesis_trees, estimate_hypothesis_trees_astral)
+                        estimate_hypothesis_trees, estimate_astral_hypothesis_trees)
 write(estimate_all_trees, file = executable_commands_text_file)
 
 
