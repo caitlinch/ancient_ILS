@@ -566,7 +566,7 @@ determine.coalescence.taxa <- function(node_dataframe){
   node_dataframe$ndepth <- as.numeric(node_dataframe$ndepth)
   node_dataframe$coalescence_time <- as.numeric(node_dataframe$coalescence_time)
   # Order dataframe by node depth value
-  node_dataframe <- node_dataframe[order(node_dataframe$ndepth),]
+  node_dataframe <- node_dataframe[order(node_dataframe$ndepth, node_dataframe$coalescence_time),]
   # Make a list of all the taxa to remove
   removed_taxa <- as.numeric(node_dataframe$removed_taxa[!is.na(node_dataframe$removed_taxa)])
   # Iterate through the dataframe row by row to check 
