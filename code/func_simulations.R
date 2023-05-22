@@ -5,6 +5,8 @@
 library(ape)
 library(phytools)
 
+
+
 #### Functions to run the simulation pipeline ####
 generate.one.alignment.wrapper <- function(row_id, sim_df, renamed_taxa, partition_path, gene_models, rerun = FALSE){
   # Wrapper to easily run generate.one.alignment via dataframe rows
@@ -16,7 +18,9 @@ generate.one.alignment.wrapper <- function(row_id, sim_df, renamed_taxa, partiti
   return(output)
 }
 
-generate.one.alignment <- function(sim_row, renamed_taxa, partition_path, gene_models, rerun = FALSE){
+
+
+generate.one.alignment.partitioned <- function(sim_row, renamed_taxa, partition_path, gene_models, rerun = FALSE){
   # Function to take one row from the simulation parameters dataframe and run start to finish
   
   ## Create the folder for this replicate
@@ -82,6 +86,78 @@ generate.one.alignment <- function(sim_row, renamed_taxa, partition_path, gene_m
   # Return the updated simulation row
   return(sim_row)
 }
+
+
+
+generate.one.alignment.empirical.partition <- function(sim_row, renamed_taxa, partition_path, gene_models, rerun = FALSE){
+  # Function to take one row from the simulation parameters dataframe and run start to finish
+  
+  ## Create the folder for this replicate
+  if (dir.exists(sim_row$output_folder) == FALSE){
+    dir.create(sim_row$output_folder)
+  }
+  
+  ## Create output file paths
+  hyp_tree_file = paste0(sim_row$output_folder, sim_row$ID, "_hypothesis_tree.treefile")
+  sim_row_rooted_tree_file = paste0(sim_row$output_folder, sim_row$ID, "_branch_lengths_modified.treefile")
+  sim_row_partition_file <- paste0(sim_row$output_folder, sim_row$ID, "_partitions.nexus")
+  sim_row_output_alignment_file <- paste0(sim_row$output_folder, sim_row$ID, "_alignment")
+  check_ms_gene_tree_file <- paste0(sim_row$output_folder, sim_row$ID, "_ms_gene_trees.txt")
+  
+  # Check if all the above files exist
+  all_files_exist <- file.exists(hyp_tree_file) & file.exists(sim_row_rooted_tree_file) & 
+    file.exists(sim_row_partition_file) & file.exists(paste0(sim_row_output_alignment_file, ".fa")) & 
+    file.exists(check_ms_gene_tree_file)
+  
+  if (all_files_exist == FALSE | rerun == TRUE){
+    ## Modify the branch lengths of the starting tree based on the simulation parameters
+    # Copy the hypothesis tree to the folder
+    file.copy(from = sim_row$hypothesis_tree_file, to = hyp_tree_file, overwrite = TRUE)
+    # Open the hypothesis tree
+    tree <- read.tree(hyp_tree_file)
+    # Modify branch lengths for this simulation replicate
+    rooted_tree <- manipulate.branch.lengths(starting_tree = tree, parameters_row = sim_row)
+    # Save the tree
+    write.tree(rooted_tree, file = sim_row_rooted_tree_file)
+    
+    ## Write the tree in ms command line format and generate gene trees in ms
+    ms_files <- ms.generate.trees(unique_id = sim_row$ID, base_tree = rooted_tree, ntaxa = sim_row$num_taxa, 
+                                  ntrees = sim_row$num_genes, output_directory = sim_row$output_folder, 
+                                  ms_path = sim_row$ms, renamed_taxa = renamed_taxa)
+    # Extract gene tree file
+    sim_row_gene_tree_file <- ms_files[["ms_gene_tree_file"]]
+    
+    ## Generate DNA data using Alisim in IQ-Tree
+    # Extract gene start and end points from partition file
+    gene_ranges <- extract.genes.from.partition.file(partition_path, return.dataframe = FALSE)
+    # Create partition file
+    partition.gene.trees(num_trees = sim_row$num_genes, gene_ranges = gene_ranges, sequence_type = "AA", 
+                         models = gene_models, rescaled_tree_lengths = sim_row$tree_length, 
+                         output_filepath = sim_row_partition_file)
+    # Generate alignments along gene trees
+    alisim.topology.unlinked.partition.model(iqtree_path = sim_row$iqtree2, output_alignment_path = sim_row_output_alignment_file,
+                                             partition_file_path = sim_row_partition_file, trees_path = sim_row_gene_tree_file, 
+                                             output_format = "fasta", sequence_type = "AA")
+    
+    # Append information to the simulation row
+    sim_row$output_base_tree_file <- sim_row_rooted_tree_file
+    sim_row$output_gene_tree_file <- sim_row_gene_tree_file
+    sim_row$output_partition_file <- sim_row_partition_file
+    sim_row$output_alignment_file <- paste0(sim_row_output_alignment_file, ".fa")
+  } else {
+    # If all output files already exist, append information to the simulation row
+    sim_row$output_base_tree_file <- sim_row_rooted_tree_file
+    sim_row$output_gene_tree_file <- check_ms_gene_tree_file
+    sim_row$output_partition_file <- sim_row_partition_file
+    sim_row$output_alignment_file <- paste0(sim_row_output_alignment_file, ".fa")
+  }
+  
+  # Return the updated simulation row
+  return(sim_row)
+}
+
+
+
 
 
 
@@ -178,6 +254,9 @@ manipulate.branch.lengths <- function(starting_tree, parameters_row){
   ## Return the manipulated and modified tree
   return(rooted_tree)
 }
+
+
+
 
 
 
@@ -307,6 +386,7 @@ extract.clade.from.node <- function(node, tree){
 }
 
 
+
 find.branching.times <- function(node, tree){
   ## Small function to take a node, extract the clade from that node, and return the number and names of taxa in that node
   
@@ -338,6 +418,7 @@ find.branching.times <- function(node, tree){
 }
 
 
+
 calculate.ms.coalescent.times <- function(number_of_nodes, coalescent_intervals){
   ## Small function to take a number of nodes and determine all the coalescent times needed to run ms
   
@@ -357,6 +438,7 @@ calculate.ms.coalescent.times <- function(number_of_nodes, coalescent_intervals)
   # Return coalescent times
   return(times_vec)
 }
+
 
 
 determine.coalescence.taxa <- function(node_dataframe){
@@ -404,6 +486,7 @@ determine.coalescence.taxa <- function(node_dataframe){
 }
 
 
+
 select.noncoalesced.taxa <- function(df){
   # Function to add root by coalescing the two remaining lineages together
   
@@ -424,6 +507,7 @@ select.noncoalesced.taxa <- function(df){
   noncoal_taxa <- noncoal_df$Taxon
   return(noncoal_taxa)
 }
+
 
 
 check.coalesced <- function(test_taxon, coalesced_taxa, df){
@@ -469,6 +553,9 @@ check.coalesced <- function(test_taxon, coalesced_taxa, df){
 
 
 
+
+
+
 #### Functions for partition files ####
 extract.genes.from.partition.file <- function(partition_path, return.dataframe = FALSE){
   # Small function to take a partition file and return a list of gene lengths
@@ -504,6 +591,8 @@ extract.genes.from.partition.file <- function(partition_path, return.dataframe =
   # Return output
   return(output)
 }
+
+
 
 partition.gene.trees <- function(num_trees, gene_ranges, sequence_type, models = NA, rescaled_tree_lengths = NA, output_filepath){
   # This function generates a charpartition file for a set of genes extracted from a partition file
@@ -544,6 +633,9 @@ partition.gene.trees <- function(num_trees, gene_ranges, sequence_type, models =
 
 
 
+
+
+
 #### Functions for IQ-Tree and Alisim ####
 alisim.topology.unlinked.partition.model <- function(iqtree_path, output_alignment_path, partition_file_path, trees_path, 
                                                      output_format = "fasta", sequence_type = "DNA"){
@@ -559,5 +651,8 @@ alisim.topology.unlinked.partition.model <- function(iqtree_path, output_alignme
   # Print completion statement
   print("Alisim (IQ-Tree2) run complete")
 }
+
+
+
 
 
