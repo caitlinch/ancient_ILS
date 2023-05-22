@@ -3,11 +3,14 @@
 # Caitlin Cherryh, 2023
 
 #### 1. Input parameters ####
-# repo_dir                              <- Location of caitlinch/ancient_ILS github repository
-# published_tree_dir                   <- directory to save other ML trees estimated from the alignment
+# repo_dir                  <- location of caitlinch/ancient_ILS github repository
+# published_tree_dir        <- directory to save other ML trees estimated from the alignment
+# bl_directory              <- output directory to save test runs for determining appropriate branch lengths
+
 
 repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 published_tree_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_dataset_published_trees/01_ml_trees/"
+bl_directory                <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/00_determine_branch_lengths"
 
 
 
@@ -71,8 +74,8 @@ summary(branch_df$tree_depth)
 # Prepare the three sets of simulations separately
 ils_df$simulation_type = "ILS" # vary branch a
 ils_df$simulation_number = "sim2"
-ils_df <- as.data.frame(expand.grid(replicates = 1, branch_a_percent_height = 5.8, 
-                                      branch_b_percent_height = c(1,10,20,30,40,50,60,70), hypothesis_tree = c(1,2,3)))
+ils_df <- as.data.frame(expand.grid(replicates = 1, branch_a_height = 5.8, 
+                                      branch_b_height = c(1,10,20,30,40,50,60,70), hypothesis_tree = c(1,2,3)))
 # Add the other columns for the dataframes
 ils_df$tree_length <- 1.28
 ils_df$branch_a_empirical_length <- 0.0746
@@ -102,11 +105,48 @@ ils_df <- ils_df[,c("ID", "dataset", "dataset_type", "num_taxa", "num_genes", "g
                     "replicates", "output_folder", "ms", "iqtree2")]
 # Save the dataframe
 write.csv(ils_df, file = ils_df_op_file, row.names = FALSE)
-}
 
 
 
-#### 5. Generate simulated alignments ####
+#### 5. Determine branch lengths for LBA ####
+# Prepare the three sets of simulations separately
+ils_df$simulation_type = "ILS" # vary branch a
+ils_df$simulation_number = "sim2"
+ils_df <- as.data.frame(expand.grid(replicates = 1, branch_a_height = 5.8, 
+                                    branch_b_height = c(1,10,20,30,40,50,60,70), hypothesis_tree = c(1,2,3)))
+# Add the other columns for the dataframes
+ils_df$tree_length <- 1.28
+ils_df$branch_a_empirical_length <- 0.0746
+ils_df$branch_b_empirical_length <- 0.4927
+ils_df$num_taxa <- 75
+ils_df$num_genes <- 200
+ils_df$gene_length <- 225
+ils_df$num_sites <- (ils_df$gene_length*ils_df$num_genes)
+ils_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
+ils_df$dataset_type <- "Protein"
+# Add path for executables
+ils_df$ms <- ms
+ils_df$iqtree2 <- iqtree2
+# Add the hypothesis tree name in a new column
+ils_df$hypothesis_tree_file <- as.character(ils_df$hypothesis_tree)
+ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_1_Cten.treefile")
+ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_2_Pori.treefile")
+ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 3)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_3_CtenPori.treefile")
+# Add an ID column
+ils_df$ID <- paste0(ils_df$simulation_number, "_h", ils_df$hypothesis_tree, "_a", ils_df$branch_a_percent_height, "_b", ils_df$branch_b_percent_height, "_rep", ils_df$replicates)
+# Add separate output folder for each rep
+ils_df$output_folder <- paste0(output_dir, ils_df$ID, "/")
+# Reorder columns
+ils_df <- ils_df[,c("ID", "dataset", "dataset_type", "num_taxa", "num_genes", "gene_length", "num_sites", "tree_length",
+                    "branch_a_empirical_length", "branch_b_empirical_length", "simulation_number", "simulation_type",
+                    "hypothesis_tree", "hypothesis_tree_file", "branch_a_percent_height", "branch_b_percent_height",
+                    "replicates", "output_folder", "ms", "iqtree2")]
+# Save the dataframe
+write.csv(ils_df, file = ils_df_op_file, row.names = FALSE)
+
+
+
+#### 6. Generate simulated alignments ####
 if (generate.alignments == TRUE){
   # # To generate one simulated alignment
   # generate.one.alignment(sim_row = ils_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
@@ -125,7 +165,7 @@ if (generate.alignments == TRUE){
 
 
 
-#### 6. Estimate trees ####
+#### 7. Estimate trees ####
 if (estimate.trees == TRUE){
   # Read in the output_df from the previous step
   output_df <- read.csv(op_df_op_file)
@@ -160,7 +200,7 @@ if (estimate.trees == TRUE){
 
 
 
-#### 7. Estimate concordance factors ####
+#### 8. Estimate concordance factors ####
 if (estimate.gCF == TRUE){
   # Read in the output from the previous step
   tree_df <- read.csv(tree_df_op_file)
