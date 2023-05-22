@@ -20,7 +20,7 @@ generate.one.alignment.wrapper <- function(row_id, sim_df, renamed_taxa, partiti
 
 
 
-generate.one.alignment.partitioned <- function(sim_row, renamed_taxa, partition_path, gene_models, rerun = FALSE){
+generate.one.alignment.partitioned <- function(sim_row, renamed_taxa, rerun = FALSE){
   # Function to take one row from the simulation parameters dataframe and run start to finish
   
   ## Create the folder for this replicate
