@@ -20,7 +20,7 @@ generate.one.alignment.wrapper <- function(row_id, sim_df, renamed_taxa, partiti
 
 
 
-generate.one.alignment.partitioned <- function(sim_row, renamed_taxa, rerun = FALSE){
+generate.one.alignment <- function(sim_row, renamed_taxa, rerun = FALSE){
   # Function to take one row from the simulation parameters dataframe and run start to finish
   
   ## Create the folder for this replicate
@@ -57,15 +57,26 @@ generate.one.alignment.partitioned <- function(sim_row, renamed_taxa, rerun = FA
                                   ms_path = sim_row$ms, renamed_taxa = renamed_taxa)
     # Extract gene tree file
     sim_row_gene_tree_file <- ms_files[["ms_gene_tree_file"]]
-    # Open gene trees and rescale
+    # Open gene trees
     gene_trees <- read.tree(sim_row_gene_tree_file)
+    for (i in 1:length(gene_trees)){
+      # Select one gene tree
+      gt <- gene_trees[[i]]
+      # Scale gene tree to match ML tree depth (convert gene trees into subs/site)
+      gt$edge.length <- gt$edge.length * (sim_row$ML_tree_depth / max(branching.times(gt)))
+      # Replace gene tree
+      gene_trees[[i]] <- gt
+    }
     
     ## Generate DNA data using Alisim in IQ-Tree
-    # Extract gene start and end points from partition file
-    gene_ranges <- extract.genes.from.partition.file(partition_path, return.dataframe = FALSE)
+    # Create ranges for gene partitions of the form X-Y (where x and y are numbers)
+    num_sites <- sim_row$gene_length * sim_row$num_genes
+    gene_end <- seq(sim_row$gene_length, sim_row$gene_length * sim_row$num_genes, sim_row$gene_length)
+    gene_start <- c(1, gene_end[1:(length(gene_end) - 1)]+1)
+    gene_ranges <- paste0(gene_start, "-", gene_end)
     # Create partition file
     partition.gene.trees(num_trees = sim_row$num_genes, gene_ranges = gene_ranges, sequence_type = "AA", 
-                         models = gene_models, rescaled_tree_lengths = sim_row$tree_length, 
+                         models = sim_row$alisim_gene_models, rescaled_tree_lengths = NA, 
                          output_filepath = sim_row_partition_file)
     # Generate alignments along gene trees
     alisim.topology.unlinked.partition.model(iqtree_path = sim_row$iqtree2, output_alignment_path = sim_row_output_alignment_file,
