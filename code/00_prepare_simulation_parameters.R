@@ -165,8 +165,8 @@ write.csv(ils_df, file = paste0(output_dir, "ils_df.csv"), row.names = FALSE)
 #### 5. Determine branch lengths for LBA ####
 lba_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
                                     branch_a_length = 0.1729, branch_b_length = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10)))
-lba_df$simulation_type = "ILS" # vary branch a
-lba_df$simulation_number = "sim2"
+lba_df$simulation_type = "LBA" # vary branch b
+lba_df$simulation_number = "sim1"
 # Add the other columns for the dataframes
 lba_df$branch_c_length <- 0.4145
 lba_df$branch_cnidaria_length <- 0.737
