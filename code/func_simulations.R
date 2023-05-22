@@ -13,7 +13,7 @@ generate.one.alignment.wrapper <- function(row_id, sim_df, renamed_taxa, partiti
   
   # Apply generate.one.alignment to a single row
   id_row <- sim_df[row_id,]
-  output <- generate.one.alignment(sim_row = id_row, renamed_taxa = renamed_taxa, partition_path = partition_path, gene_models = gene_models, rerun = rerun)
+  output <- generate.one.alignment(sim_row = id_row, renamed_taxa = renamed_taxa, rerun = rerun)
   # Return output
   return(output)
 }
