@@ -5,12 +5,33 @@
 #### 1. Input parameters ####
 # repo_dir                  <- location of caitlinch/ancient_ILS github repository
 # published_tree_dir        <- directory to save other ML trees estimated from the alignment
-# bl_directory              <- output directory to save test runs for determining appropriate branch lengths
+# output_dir                <- output directory to save test runs for determining appropriate branch lengths
 
+# iqtree2                   <- path to iqtree2 version 2.2.2
+# ms                        <- path to ms executable
+
+## Phylogenetic parameters
+# alisim_gene_models        <- models to use when estimating the alignment using Alisim. 
+#                                 Should be either one model (e.g. "LG") or a vector the same length as the number of genes (e.g. 117 models long)
+# ML_tree_estimation_models <- models to use when estimating the ML trees from simulated alignments in IQ-Tree 2
+# iqtree2_num_threads       <- number of threads for IQ-Tree2 to use
+# iqtree2_num_ufb           <- number of ultrafast bootstraps for IQ-Tree2 to generate
+
+# extract.length.ratio      <- flag to run code to determine ratio of length of internal branches to sum of all branches in empirical phylogenetic trees (to run = TRUE)
 
 repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 published_tree_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_dataset_published_trees/01_ml_trees/"
-bl_directory                <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/00_determine_branch_lengths"
+output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/00_determine_branch_lengths/"
+iqtree2                     <- "iqtree2"
+ms                          <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
+
+num_parallel_cores          <- 1
+iqtree2_num_threads         <- 3
+alisim_gene_models          <- "'LG+G4'"
+ML_tree_estimation_models   <- "'LG+G4'"
+iqtree2_num_ufb             <- 1000
+
+extract.length.ratio        <- FALSE
 
 
 
@@ -22,64 +43,75 @@ library(ape)
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
 source(paste0(repo_dir, "code/func_simulations.R"))
 
+## Assemble file names
+hypothesis_tree_dir <- paste0(repo_dir, "hypothesis_trees/")
+
 
 
 #### 3. Determine ratio of internal to external branches for all ML trees downloaded from previous empirical studies ####
-# Extract all tree file from the folder 
-all_files <- list.files(published_tree_dir)
-tree_files <- c(grep("\\.contree|\\.treefile|\\.tre", all_files, value = TRUE), 
-                grep("Borowiec.Best108.RAxML_bestTree.part_matrix13.out", all_files, value = TRUE),
-                grep("Chang2015.from_Feuda2017.RAxML_bestTree.BOOT_CHANG_FAST", all_files, value = TRUE))
-tree_file_paths <- paste0(published_tree_dir, tree_files)
-
-# Determine the ratio of internal to external branches for each tree
-branch_list <- lapply(tree_file_paths, function(f){internal.branch.proportion(read.tree(f))})
-# Make a nice dataframe
-branch_df <- as.data.frame(do.call(rbind, branch_list))
-# Add extra information to the dataframe
-branch_df$tree_depth <- unlist(lapply(tree_file_paths, function(f){max(branching.times(read.tree(f)))}))
-branch_df$tree_file <- tree_files
-branch_df$dataset <- unlist(lapply(strsplit(tree_files, "\\."), function(x){x[[1]][1]}))
-branch_df$model_details <- c("Partitioned", "WAG","GTR20", "ModelFinder","Poisson+C60","WAG",
-                             "GTR20", "WAG", "LG+C60", "LG+C60", "Poisson+C60", "LG+C20",
-                             "LG+C20", "LG+C60", "LG+C60", "ModelFinder", "ModelFinder", "ModelFinder",
-                             "ModelFinder", "ModelFinder", "Poisson+C60", "WAG", "GTR20", "GTR20",
-                             "ModelFinder", "Poisson+C60", "WAG", "WAG+C60", "ModelFinder", "WAG+C60",
-                             "GTR20", "ModelFinder", "Poisson+C60", "WAG", "LG+G4+F (Partitioned)", "Partitioned",
-                             "Partitioned", "Partitioned", "Partitioned")
-branch_df$matrix_details <- c(NA, "Choano only outgroup", "All outgroups", NA, NA, NA,
-                              NA, NA, NA, NA, NA, "Tplx_phylo_d1_withbnni_Tadhonly",
-                              "Tplx_phylo_d1_withbnni_Tadhonly", "Tplx_phylo_d1", "Tplx_phylo_d1", "nonbilateria_MARE_BMGE", "nonbilateria_MARE_BMGE", "nonbilateria_cho_MARE_BMGE",
-                              "nonbilateria_cho_MARE_BMGE", "3d", "3d", "3d", "3d", NA,
-                              NA, NA, NA, NA, "est_only_choanozoa", "est_only_choanozoa",
-                              "est", "est", "est", "est", "tree_97sp", "Dataset10_CertainPruned_LBAtaxa_LBAandHeteroGenesPruned",
-                              "Metazoa_Choano_RCFV_strict", "Best108", NA)
-# Format the dataframe
-names(branch_df) <- c("total_branch_length", "sum_internal_branch_lengths", "percent_internal_branch_length", "tree_depth", "tree_file", "dataset", "model_details", "matrix_details")
-branch_df <- branch_df[, c("dataset", "matrix_details", "model_details", "tree_depth", "total_branch_length", "sum_internal_branch_lengths", "percent_internal_branch_length", "tree_file")]
-branch_df <- branch_df[order(branch_df$dataset, branch_df$matrix_details, branch_df$model_details),]
-# Write out the dataframe
-branch_csv_file <- paste0(dirname(published_tree_dir), "/", "published_tree_internal_branch_length_ratios.csv")
-write.csv(branch_df, file = branch_csv_file)
-
-# Calculate summary statistics
-summary(branch_df$total_branch_length)
-summary(branch_df$sum_internal_branch_lengths)
-summary(branch_df$percent_internal_branch_length)
-summary(branch_df$tree_depth)
+if (extract.length.ratio == TRUE){
+  # Extract all tree file from the folder 
+  all_files <- list.files(published_tree_dir)
+  tree_files <- c(grep("\\.contree|\\.treefile|\\.tre", all_files, value = TRUE), 
+                  grep("Borowiec.Best108.RAxML_bestTree.part_matrix13.out", all_files, value = TRUE),
+                  grep("Chang2015.from_Feuda2017.RAxML_bestTree.BOOT_CHANG_FAST", all_files, value = TRUE))
+  tree_file_paths <- paste0(published_tree_dir, tree_files)
+  
+  # Determine the ratio of internal to external branches for each tree
+  branch_list <- lapply(tree_file_paths, function(f){internal.branch.proportion(read.tree(f))})
+  # Make a nice dataframe
+  branch_df <- as.data.frame(do.call(rbind, branch_list))
+  # Add extra information to the dataframe
+  branch_df$tree_depth <- unlist(lapply(tree_file_paths, function(f){max(branching.times(read.tree(f)))}))
+  branch_df$tree_file <- tree_files
+  branch_df$dataset <- unlist(lapply(strsplit(tree_files, "\\."), function(x){x[[1]][1]}))
+  branch_df$model_details <- c("Partitioned", "WAG","GTR20", "ModelFinder","Poisson+C60","WAG",
+                               "GTR20", "WAG", "LG+C60", "LG+C60", "Poisson+C60", "LG+C20",
+                               "LG+C20", "LG+C60", "LG+C60", "ModelFinder", "ModelFinder", "ModelFinder",
+                               "ModelFinder", "ModelFinder", "Poisson+C60", "WAG", "GTR20", "GTR20",
+                               "ModelFinder", "Poisson+C60", "WAG", "WAG+C60", "ModelFinder", "WAG+C60",
+                               "GTR20", "ModelFinder", "Poisson+C60", "WAG", "LG+G4+F (Partitioned)", "Partitioned",
+                               "Partitioned", "Partitioned", "Partitioned")
+  branch_df$matrix_details <- c(NA, "Choano only outgroup", "All outgroups", NA, NA, NA,
+                                NA, NA, NA, NA, NA, "Tplx_phylo_d1_withbnni_Tadhonly",
+                                "Tplx_phylo_d1_withbnni_Tadhonly", "Tplx_phylo_d1", "Tplx_phylo_d1", "nonbilateria_MARE_BMGE", "nonbilateria_MARE_BMGE", "nonbilateria_cho_MARE_BMGE",
+                                "nonbilateria_cho_MARE_BMGE", "3d", "3d", "3d", "3d", NA,
+                                NA, NA, NA, NA, "est_only_choanozoa", "est_only_choanozoa",
+                                "est", "est", "est", "est", "tree_97sp", "Dataset10_CertainPruned_LBAtaxa_LBAandHeteroGenesPruned",
+                                "Metazoa_Choano_RCFV_strict", "Best108", NA)
+  # Format the dataframe
+  names(branch_df) <- c("total_branch_length", "sum_internal_branch_lengths", "percent_internal_branch_length", "tree_depth", "tree_file", "dataset", "model_details", "matrix_details")
+  branch_df <- branch_df[, c("dataset", "matrix_details", "model_details", "tree_depth", "total_branch_length", "sum_internal_branch_lengths", "percent_internal_branch_length", "tree_file")]
+  branch_df <- branch_df[order(branch_df$dataset, branch_df$matrix_details, branch_df$model_details),]
+  # Write out the dataframe
+  branch_csv_file <- paste0(dirname(published_tree_dir), "/", "published_tree_internal_branch_length_ratios.csv")
+  write.csv(branch_df, file = branch_csv_file)
+  
+  # Calculate summary statistics
+  summary(branch_df$total_branch_length)
+  summary(branch_df$sum_internal_branch_lengths)
+  summary(branch_df$percent_internal_branch_length)
+  summary(branch_df$tree_depth)
+}
 
 
 
 #### 4. Determine branch lengths for ILS ####
 # Prepare the three sets of simulations separately
+ils_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
+                                    branch_a_length = 0.1729, branch_b_length = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10)))
 ils_df$simulation_type = "ILS" # vary branch a
 ils_df$simulation_number = "sim2"
-ils_df <- as.data.frame(expand.grid(replicates = 1, branch_a_height = 5.8, 
-                                      branch_b_height = c(1,10,20,30,40,50,60,70), hypothesis_tree = c(1,2,3)))
 # Add the other columns for the dataframes
-ils_df$tree_length <- 1.28
-ils_df$branch_a_empirical_length <- 0.0746
-ils_df$branch_b_empirical_length <- 0.4927
+ils_df$branch_c_length <- 0.4145
+ils_df$branch_cnidaria_length <- 0.737
+ils_df$branch_bilateria_length <- 0.9214
+ils_df$branch_porifera_length <- 0.0853
+ils_df$branch_all_animals_length <- 0.6278
+ils_df$branch_outgroup_length <- 0.6278
+ils_df$ML_tree_depth <- 1.177
+ils_df$ASTRAL_tree_depth <- 11.24
+ils_df$proportion_internal_branches <- 0.25
 ils_df$num_taxa <- 75
 ils_df$num_genes <- 200
 ils_df$gene_length <- 225
@@ -91,80 +123,96 @@ ils_df$ms <- ms
 ils_df$iqtree2 <- iqtree2
 # Add the hypothesis tree name in a new column
 ils_df$hypothesis_tree_file <- as.character(ils_df$hypothesis_tree)
-ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_1_Cten.treefile")
-ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_2_Pori.treefile")
-ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 3)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_3_CtenPori.treefile")
+ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_1_Cten.treefile")
+ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_2_Pori.treefile")
 # Add an ID column
-ils_df$ID <- paste0(ils_df$simulation_number, "_h", ils_df$hypothesis_tree, "_a", ils_df$branch_a_percent_height, "_b", ils_df$branch_b_percent_height, "_rep", ils_df$replicates)
+ils_df$ID <- paste0(ils_df$simulation_number, "_h", ils_df$hypothesis_tree, "_a", ils_df$branch_a_length, "_b", ils_df$branch_b_length, "_rep", ils_df$replicates)
 # Add separate output folder for each rep
 ils_df$output_folder <- paste0(output_dir, ils_df$ID, "/")
+# Add phylogenetic parameters
+ils_df$iqtree2_num_threads <- iqtree2_num_threads
+ils_df$iqtree2_num_ufb <- iqtree2_num_ufb
+ils_df$alisim_gene_models <- alisim_gene_models
+ils_df$ML_tree_estimation_models <- ML_tree_estimation_models
 # Reorder columns
-ils_df <- ils_df[,c("ID", "dataset", "dataset_type", "num_taxa", "num_genes", "gene_length", "num_sites", "tree_length",
-                    "branch_a_empirical_length", "branch_b_empirical_length", "simulation_number", "simulation_type",
-                    "hypothesis_tree", "hypothesis_tree_file", "branch_a_percent_height", "branch_b_percent_height",
-                    "replicates", "output_folder", "ms", "iqtree2")]
+ils_df <- ils_df[,c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type", "hypothesis_tree", "hypothesis_tree_file", "replicates",
+                    "branch_a_length", "branch_b_length", "branch_c_length", "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
+                    "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "ASTRAL_tree_depth", "ML_tree_depth", "num_taxa",
+                    "num_genes", "gene_length", "num_sites", "output_folder", "ms", "iqtree2", "alisim_gene_models", "iqtree2_num_threads", "iqtree2_num_ufb",
+                    "ML_tree_estimation_models")]
 # Save the dataframe
-write.csv(ils_df, file = ils_df_op_file, row.names = FALSE)
+write.csv(ils_df, file = paste0(output_dir, "ils_df.csv"), row.names = FALSE)
 
 
 
 #### 5. Determine branch lengths for LBA ####
-# Prepare the three sets of simulations separately
-ils_df$simulation_type = "ILS" # vary branch a
-ils_df$simulation_number = "sim2"
-ils_df <- as.data.frame(expand.grid(replicates = 1, branch_a_height = 5.8, 
-                                    branch_b_height = c(1,10,20,30,40,50,60,70), hypothesis_tree = c(1,2,3)))
+lba_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
+                                    branch_a_length = 0.1729, branch_b_length = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10)))
+lba_df$simulation_type = "ILS" # vary branch a
+lba_df$simulation_number = "sim2"
 # Add the other columns for the dataframes
-ils_df$tree_length <- 1.28
-ils_df$branch_a_empirical_length <- 0.0746
-ils_df$branch_b_empirical_length <- 0.4927
-ils_df$num_taxa <- 75
-ils_df$num_genes <- 200
-ils_df$gene_length <- 225
-ils_df$num_sites <- (ils_df$gene_length*ils_df$num_genes)
-ils_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
-ils_df$dataset_type <- "Protein"
+lba_df$branch_c_length <- 0.4145
+lba_df$branch_cnidaria_length <- 0.737
+lba_df$branch_bilateria_length <- 0.9214
+lba_df$branch_porifera_length <- 0.0853
+lba_df$branch_all_animals_length <- 0.6278
+lba_df$branch_outgroup_length <- 0.6278
+lba_df$ML_tree_depth <- 1.177
+lba_df$ASTRAL_tree_depth <- 11.24
+lba_df$proportion_internal_branches <- 0.25
+lba_df$num_taxa <- 75
+lba_df$num_genes <- 200
+lba_df$gene_length <- 225
+lba_df$num_sites <- (lba_df$gene_length*lba_df$num_genes)
+lba_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
+lba_df$dataset_type <- "Protein"
 # Add path for executables
-ils_df$ms <- ms
-ils_df$iqtree2 <- iqtree2
+lba_df$ms <- ms
+lba_df$iqtree2 <- iqtree2
 # Add the hypothesis tree name in a new column
-ils_df$hypothesis_tree_file <- as.character(ils_df$hypothesis_tree)
-ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_1_Cten.treefile")
-ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_2_Pori.treefile")
-ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 3)] <- paste0(hypothesis_tree_dir, "Whelan2017_hypothesis_tree_3_CtenPori.treefile")
+lba_df$hypothesis_tree_file <- as.character(lba_df$hypothesis_tree)
+lba_df$hypothesis_tree_file[which(lba_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_1_Cten.treefile")
+lba_df$hypothesis_tree_file[which(lba_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_2_Pori.treefile")
 # Add an ID column
-ils_df$ID <- paste0(ils_df$simulation_number, "_h", ils_df$hypothesis_tree, "_a", ils_df$branch_a_percent_height, "_b", ils_df$branch_b_percent_height, "_rep", ils_df$replicates)
+lba_df$ID <- paste0(lba_df$simulation_number, "_h", lba_df$hypothesis_tree, "_a", lba_df$branch_a_length, "_b", lba_df$branch_b_length, "_rep", lba_df$replicates)
 # Add separate output folder for each rep
-ils_df$output_folder <- paste0(output_dir, ils_df$ID, "/")
+lba_df$output_folder <- paste0(output_dir, lba_df$ID, "/")
+# Add phylogenetic parameters
+lba_df$iqtree2_num_threads <- iqtree2_num_threads
+lba_df$iqtree2_num_ufb <- iqtree2_num_ufb
+lba_df$alisim_gene_models <- alisim_gene_models
+lba_df$ML_tree_estimation_models <- ML_tree_estimation_models
 # Reorder columns
-ils_df <- ils_df[,c("ID", "dataset", "dataset_type", "num_taxa", "num_genes", "gene_length", "num_sites", "tree_length",
-                    "branch_a_empirical_length", "branch_b_empirical_length", "simulation_number", "simulation_type",
-                    "hypothesis_tree", "hypothesis_tree_file", "branch_a_percent_height", "branch_b_percent_height",
-                    "replicates", "output_folder", "ms", "iqtree2")]
+lba_df <- lba_df[,c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type", "hypothesis_tree", "hypothesis_tree_file", "replicates",
+                    "branch_a_length", "branch_b_length", "branch_c_length", "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
+                    "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "ASTRAL_tree_depth", "ML_tree_depth", "num_taxa",
+                    "num_genes", "gene_length", "num_sites", "output_folder", "ms", "iqtree2", "alisim_gene_models", "iqtree2_num_threads", "iqtree2_num_ufb",
+                    "ML_tree_estimation_models")]
 # Save the dataframe
-write.csv(ils_df, file = ils_df_op_file, row.names = FALSE)
+write.csv(lba_df, file = paste0(output_dir, "lba_df.csv"), row.names = FALSE)
 
 
 
 #### 6. Generate simulated alignments ####
-if (generate.alignments == TRUE){
-  # # To generate one simulated alignment
-  # generate.one.alignment(sim_row = ils_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
-  # To generate all simulated alignments
-  if (location == "local"){
-    output_list <- lapply(1:nrow(ils_df), generate.one.alignment.wrapper, ils_df = ils_df, renamed_taxa = simulation_taxa_names, 
-                          partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
-  } else {
-    output_list <- mclapply(1:nrow(ils_df), generate.one.alignment.wrapper, ils_df = ils_df, renamed_taxa = simulation_taxa_names, 
-                            partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE, mc.cores = num_parallel_cores)
-  }
-  output_df <- as.data.frame(do.call(rbind, output_list))
-  # Save output dataframe
-  write.csv(output_df, file = op_df_op_file, row.names = FALSE)
-}
+## For the ils_df
+# # To generate one simulated alignment
+# generate.one.alignment(sim_row = ils_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
+# To generate all simulated alignments
+output_list <- lapply(1:nrow(ils_df), generate.one.alignment.wrapper, sim_df = ils_df, renamed_taxa = simulation_taxa_names, 
+                      partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
+output_df <- as.data.frame(do.call(rbind, output_list))
+# Save output dataframe
+write.csv(output_df, file = paste0(output_dir, "ils_generate_alignments.csv"), row.names = FALSE)
+
+## For the lba df
+output_list <- lapply(1:nrow(lba_df), generate.one.alignment.wrapper, sim_df = lba_df, renamed_taxa = simulation_taxa_names, 
+                      partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
+output_df <- as.data.frame(do.call(rbind, output_list))
+# Save output dataframe
+write.csv(output_df, file = paste0(output_dir, "lba_generate_alignments.csv"), row.names = FALSE)
 
 
-
+############ Up to here #########
 #### 7. Estimate trees ####
 if (estimate.trees == TRUE){
   # Read in the output_df from the previous step
