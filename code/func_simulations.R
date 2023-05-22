@@ -360,7 +360,8 @@ manipulate.branch.lengths <- function(starting_tree, parameters_row, change.inte
 
 #### Functions for ms ####
 ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_directory, ms_path = "ms", renamed_taxa){
-  ## Randomly generate a tree with n taxa; format into an ms command and run ms; generate and save the resulting gene trees
+  ## Take a given tree; format into an ms command and run ms; generate and save the resulting gene trees
+  # Works for random trees but not trees generated from the sponge datasets
   
   ## Generate file paths using the unique id
   t_path <- paste0(output_directory, unique_id, "_starting_tree.txt")
@@ -442,7 +443,7 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
   }
   
   ## Generate gene trees in ms
-  # Sort all rows by colescence time (put in correct order for ms call)
+  # Sort all rows by coalescence time (put in correct order for ms call)
   node_df <- node_df[order(node_df$coalescence_time, decreasing = TRUE),]
   # Create a new column containing -ej event for each row
   node_df$ej <- paste0("-ej ", node_df$coalescence_time, " ", node_df$ms_input)
