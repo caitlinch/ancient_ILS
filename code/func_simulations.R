@@ -57,6 +57,8 @@ generate.one.alignment.partitioned <- function(sim_row, renamed_taxa, rerun = FA
                                   ms_path = sim_row$ms, renamed_taxa = renamed_taxa)
     # Extract gene tree file
     sim_row_gene_tree_file <- ms_files[["ms_gene_tree_file"]]
+    # Open gene trees and rescale
+    gene_trees <- read.tree(sim_row_gene_tree_file)
     
     ## Generate DNA data using Alisim in IQ-Tree
     # Extract gene start and end points from partition file
@@ -406,8 +408,24 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
     new_row["max_branching_time"] <- round(as.numeric(max(node_df$max_branching_time)) + 0.02, digits = 6)
     new_row["coalescence_time"] <- round(as.numeric(max(node_df$coalescence_time)) + 0.02, digits = 6)
     node_df <- rbind(node_df, new_row)
-  } else {
-    break
+  }
+  # Check for duplicate times
+  if (length(unique(node_df$coalescence_time)) != length(node_df$coalescence_time)){
+    # Determine the matching rows
+    duplicate_rows <- which(duplicated(node_df$coalescence_time))
+    # Iterate through the duplicate rows
+    for (d in duplicate_rows){
+      # Find which row matches
+      matched_rows <- which(node_df$coalescence_time == node_df$coalescence_time[[d]])
+      # Get the time to change
+      time_to_change <- tail(matched_rows, 1)
+      # Get both those times and the time after that
+      temp_times <- node_df$coalescence_time[c(matched_rows[1], tail(matched_rows,1)+1)]
+      # Make the second time halfway between the other two times
+      new_time <- min(temp_times) + ((max(temp_times) - min(temp_times))/2)
+      # Update the new time
+      node_df$coalescence_time[time_to_change] <- new_time
+    }
   }
   
   ## Generate gene trees in ms
