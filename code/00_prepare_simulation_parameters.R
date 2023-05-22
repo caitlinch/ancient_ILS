@@ -140,8 +140,8 @@ ils_df$ms <- ms
 ils_df$iqtree2 <- iqtree2
 # Add the hypothesis tree name in a new column
 ils_df$hypothesis_tree_file <- as.character(ils_df$hypothesis_tree)
-ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_1_Cten.treefile")
-ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_2_Pori.treefile")
+ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_1_Cten.tre")
+ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_2_Pori.tre")
 # Add an ID column
 ils_df$ID <- paste0(ils_df$simulation_number, "_h", ils_df$hypothesis_tree, "_a", ils_df$branch_a_length, "_b", ils_df$branch_b_length, "_rep", ils_df$replicates)
 # Add separate output folder for each rep
@@ -188,8 +188,8 @@ lba_df$ms <- ms
 lba_df$iqtree2 <- iqtree2
 # Add the hypothesis tree name in a new column
 lba_df$hypothesis_tree_file <- as.character(lba_df$hypothesis_tree)
-lba_df$hypothesis_tree_file[which(lba_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_1_Cten.treefile")
-lba_df$hypothesis_tree_file[which(lba_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_2_Pori.treefile")
+lba_df$hypothesis_tree_file[which(lba_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_1_Cten.tre")
+lba_df$hypothesis_tree_file[which(lba_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_2_Pori.tre")
 # Add an ID column
 lba_df$ID <- paste0(lba_df$simulation_number, "_h", lba_df$hypothesis_tree, "_a", lba_df$branch_a_length, "_b", lba_df$branch_b_length, "_rep", lba_df$replicates)
 # Add separate output folder for each rep
