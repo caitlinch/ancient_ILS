@@ -99,7 +99,7 @@ if (extract.length.ratio == TRUE){
 #### 4. Determine branch lengths for ILS ####
 # Prepare the three sets of simulations separately
 ils_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
-                                    branch_a_length = 0.1729, branch_b_length = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10)))
+                                    branch_a_length = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10), branch_b_length = 1.647))
 ils_df$simulation_type = "ILS" # vary branch a
 ils_df$simulation_number = "sim2"
 # Add the other columns for the dataframes
