@@ -162,97 +162,182 @@ generate.one.alignment.empirical.partition <- function(sim_row, renamed_taxa, pa
 
 
 #### Functions to modify trees and manipulate branch lengths
-manipulate.branch.lengths <- function(starting_tree, parameters_row){
+manipulate.branch.lengths <- function(starting_tree, parameters_row, change.internal.branch.length.percentage = FALSE){
   
   ## Root the tree at the outgroup and scale the tree length 
   # Root the hypothesis tree
   rooted_tree <- root(starting_tree, outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
                       resolve.root = TRUE)
-  # Make the tree ultrametric
-  rooted_tree <- force.ultrametric(rooted_tree, method = "extend")
-  # Scale rooted tree to be tree age
-  rooted_tree$edge.length <- rooted_tree$edge.length * (parameters_row$tree_length / max(branching.times(rooted_tree)))
+  # Make all terminal branch lengths equal to 0.01
+  rooted_tree$edge.length[which(is.nan(rooted_tree$edge.length))] <- 0.01
+  ## Scale rooted tree to be tree age
+  rooted_tree$edge.length <- rooted_tree$edge.length * (parameters_row$ASTRAL_tree_depth / max(branching.times(rooted_tree)))
+  # Make a copy of the tree for modifying the branch lengths
+  bl_tree <- rooted_tree
   
   ## Identify the two branches to vary
   # Find the nodes for the branch depending on which tree is being used
-  if (basename(parameters_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_1_Cten.treefile"){
+  if (grepl("_Cten.tre", basename(parameters_row$hypothesis_tree_file)) == TRUE){
     # Extract the nodes by checking for monophyletic clades
-    a_end <- getMRCA(rooted_tree, c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex",
-                                    "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
-                                    "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
-                                    "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla", "Cliona_varians", "Sycon_coactum", "Sycon_ciliatum",
-                                    "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum", "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux",
-                                    "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica", "Petrosia_ficiformis", "Spongilla_lacustris", 
-                                    "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", "Crella_elegans", "Kirkpatrickia_variolosa"))
-    a_start <- rooted_tree$edge[which(rooted_tree$edge[,2] == a_end),1]
-    b_end <- getMRCA(rooted_tree, c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus",
-                                    "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
-                                    "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
-                                    "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
-                                    "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
-                                    "Ctenophora_sp_Florida_USA"))
-    b_start <- rooted_tree$edge[which(rooted_tree$edge[,2] == b_end),1]
-  } else if (basename(parameters_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_2_Pori.treefile"){
-    a_end <- getMRCA(rooted_tree, c("Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum",
-                                    "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica",
-                                    "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", 
-                                    "Crella_elegans", "Kirkpatrickia_variolosa"))
-    a_start <- rooted_tree$edge[which(rooted_tree$edge[,2] == a_end),1]
-    b_end <- getMRCA(rooted_tree, c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus",
-                                    "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
-                                    "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
-                                    "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
-                                    "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
-                                    "Ctenophora_sp_Florida_USA"))
-    b_start <- rooted_tree$edge[which(rooted_tree$edge[,2] == b_end),1]
-  } else if (basename(parameters_row$hypothesis_tree_file) == "Whelan2017_hypothesis_tree_3_CtenPori.treefile"){
-    a_end <- getMRCA(rooted_tree, c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus",
-                                    "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
-                                    "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
-                                    "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
-                                    "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
-                                    "Ctenophora_sp_Florida_USA", "Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum",
-                                    "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica",
-                                    "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", 
-                                    "Crella_elegans", "Kirkpatrickia_variolosa"))
-    a_start <- rooted_tree$edge[which(rooted_tree$edge[,2] == a_end),1]
-    b_end <- getMRCA(rooted_tree, c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus",
-                                    "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
-                                    "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
-                                    "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
-                                    "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
-                                    "Ctenophora_sp_Florida_USA"))
-    b_start <- rooted_tree$edge[which(rooted_tree$edge[,2] == b_end),1]
+    a_end <- getMRCA(bl_tree, c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex",
+                                "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
+                                "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
+                                "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla", "Cliona_varians", "Sycon_coactum", "Sycon_ciliatum",
+                                "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum", "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux",
+                                "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica", "Petrosia_ficiformis", "Spongilla_lacustris", 
+                                "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", "Crella_elegans", "Kirkpatrickia_variolosa"))
+    a_start <- bl_tree$edge[which(bl_tree$edge[,2] == a_end),1]
+    b_end <- getMRCA(bl_tree, c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus",
+                                "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
+                                "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
+                                "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
+                                "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
+                                "Ctenophora_sp_Florida_USA"))
+    b_start <- bl_tree$edge[which(bl_tree$edge[,2] == b_end),1]
+  } else if (grepl("_Pori.tre", basename(parameters_row$hypothesis_tree_file)) == TRUE){
+    a_end <- getMRCA(bl_tree, c("Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum",
+                                "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica",
+                                "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", 
+                                "Crella_elegans", "Kirkpatrickia_variolosa"))
+    a_start <- bl_tree$edge[which(bl_tree$edge[,2] == a_end),1]
+    b_end <- getMRCA(bl_tree, c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus",
+                                "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
+                                "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
+                                "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
+                                "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
+                                "Ctenophora_sp_Florida_USA"))
+    b_start <- bl_tree$edge[which(bl_tree$edge[,2] == b_end),1]
+  } else if (grepl("_CtenPori.tre", basename(parameters_row$hypothesis_tree_file)) == TRUE){
+    a_end <- getMRCA(bl_tree, c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus",
+                                "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
+                                "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
+                                "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
+                                "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
+                                "Ctenophora_sp_Florida_USA", "Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum",
+                                "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica",
+                                "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", 
+                                "Crella_elegans", "Kirkpatrickia_variolosa"))
+    a_start <- bl_tree$edge[which(bl_tree$edge[,2] == a_end),1]
+    b_end <- getMRCA(bl_tree, c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus",
+                                "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
+                                "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
+                                "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
+                                "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
+                                "Ctenophora_sp_Florida_USA"))
+    b_start <- bl_tree$edge[which(bl_tree$edge[,2] == b_end),1]
   }
-  # Identify branch a
-  branch_a <- which(rooted_tree$edge[,1] == a_start & rooted_tree$edge[,2] == a_end)
-  # Identify branch b
-  branch_b <- which(rooted_tree$edge[,1] == b_start & rooted_tree$edge[,2] == b_end)
-  
-  ## Modify branch b length
-  # LBA simulation - vary branch b (branch that leads to Ctenophore clade)
-  branch_b_value <- rooted_tree$edge.length[branch_b]
-  # Multiply existing branch to be that percent of the current tree height
-  # e.g. if branch_b_percent_height is 30% and the tree is 1.0 sub/site long, then branch b should be 0.33 sub/site long
-  new_branch_b_value <- max(branching.times(rooted_tree)) * (parameters_row$branch_b_percent_height/100)
-  rooted_tree$edge.length[branch_b] <- new_branch_b_value
   
   ## Modify branch a length
+  # Identify branch a
+  branch_a <- which(bl_tree$edge[,1] == a_start & bl_tree$edge[,2] == a_end)
   # ILS simulation - vary branch a (branch that allows more time for the two species to differentiate)
-  branch_a_value <- rooted_tree$edge.length[branch_a]
-  # Multiply existing branch to be that percent of the current tree height
-  # e.g. if branch_a_percent_height is 50% and the tree is 1.0 sub/site long, then branch a should be 0.5 sub/site long
-  new_branch_a_value <- max(branching.times(rooted_tree)) * (parameters_row$branch_a_percent_height/100)
-  rooted_tree$edge.length[branch_a] <- new_branch_a_value
+  bl_tree$edge.length[branch_a] <- parameters_row$branch_a_length
   
-  ## Rescale the tree and make it ultrametric again
-  # Scale rooted tree to be tree age (reset impacts from modifying branch lengths)
-  rooted_tree$edge.length <- rooted_tree$edge.length * (parameters_row$tree_length / max(branching.times(rooted_tree)))
+  ## Modify branch b length
+  # Identify branch b
+  branch_b <- which(bl_tree$edge[,1] == b_start & bl_tree$edge[,2] == b_end)
+  # LBA simulation - vary branch b (branch that leads to Ctenophore clade)
+  bl_tree$edge.length[branch_b] <- parameters_row$branch_b_length
+  
+  ## Modify the other branch lengths
+  # Branch c - branch leading to Bilateria/Cnidaria
+  c_end <- getMRCA(bl_tree, c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex",
+                              "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
+                              "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
+                              "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla"))
+  c_start <- bl_tree$edge[which(bl_tree$edge[,2] == c_end),1]
+  branch_c <- which(bl_tree$edge[,1] == c_start & bl_tree$edge[,2] == c_end)
+  bl_tree$edge.length[branch_c] <- parameters_row$branch_c_length
+  # Branch leading to Cnidaria
+  cnidaria_end <- getMRCA(bl_tree, c("Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
+                                     "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
+                                     "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla"))
+  cnidaria_start <- bl_tree$edge[which(bl_tree$edge[,2] == cnidaria_end),1]
+  branch_cnidaria <- which(bl_tree$edge[,1] == cnidaria_start & bl_tree$edge[,2] == cnidaria_end)
+  bl_tree$edge.length[branch_cnidaria] <- parameters_row$branch_cnidaria_length 
+  # Branch leading to Bilateria
+  bilateria_end <- getMRCA(bl_tree, c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex"))
+  bilateria_start <- bl_tree$edge[which(bl_tree$edge[,2] == bilateria_end),1]
+  branch_bilateria <- which(bl_tree$edge[,1] == bilateria_start & bl_tree$edge[,2] == bilateria_end)
+  bl_tree$edge.length[branch_bilateria] <- parameters_row$branch_bilateria_length
+  # Branch leading to Porifera
+  porifera_end <- getMRCA(bl_tree, c("Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum",
+                                     "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica",
+                                     "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", 
+                                     "Crella_elegans", "Kirkpatrickia_variolosa"))
+  porifera_start <- bl_tree$edge[which(bl_tree$edge[,2] == porifera_end),1]
+  branch_porifera <- which(bl_tree$edge[,1] == porifera_start & bl_tree$edge[,2] == porifera_end)
+  bl_tree$edge.length[branch_porifera] <- parameters_row$branch_porifera_length
+  # Branch leading to all animals
+  all_end <- getMRCA(bl_tree, c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex",
+                                "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
+                                "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
+                                "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla",
+                                "Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum",
+                                "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica",
+                                "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", 
+                                "Crella_elegans", "Kirkpatrickia_variolosa",
+                                "Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus",
+                                "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
+                                "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
+                                "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
+                                "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
+                                "Ctenophora_sp_Florida_USA"))
+  all_start <- bl_tree$edge[which(bl_tree$edge[,2] == all_end),1]
+  branch_all <- which(bl_tree$edge[,1] == all_start & bl_tree$edge[,2] == all_end)
+  bl_tree$edge.length[branch_all] <- parameters_row$branch_all_animals_length
+  # Branch leading to outgroup
+  outgroup_end <- getMRCA(bl_tree, c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"))
+  outgroup_start <- bl_tree$edge[which(bl_tree$edge[,2] == outgroup_end),1]
+  branch_outgroup <- which(bl_tree$edge[,1] == outgroup_start & bl_tree$edge[,2] == outgroup_end)
+  bl_tree$edge.length[branch_outgroup] <- parameters_row$branch_outgroup_length
+  
+  ## Force the tree to be ultrametric
+  # Copy the tree across
+  um_tree <- bl_tree
   # Make the tree ultrametric
-  rooted_tree <- force.ultrametric(rooted_tree, method = "extend")
+  um_tree <- force.ultrametric(um_tree, method = "extend")
+  
+  ## Manipulate the tree depth and length of terminal branches 
+  if (change.internal.branch.length.percentage == TRUE){
+    # Identify all terminal branches
+    terminal_branch_ids <- which(um_tree$edge[,2] <= Ntip(um_tree))
+    internal_branch_ids <- which(um_tree$edge[,2] > Ntip(um_tree))
+    # Determine how long the sum of all terminal branches would have to be to match the parameters_row$proportion_internal_branches
+    current_tree_length <- sum(um_tree$edge.length)
+    current_external_length <- sum(um_tree$edge.length[terminal_branch_ids])
+    current_internal_length <- sum(um_tree$edge.length[internal_branch_ids])
+    # Get minimum and maximum terminal and internal branch lengths
+    min_terminal_bl <- min(um_tree$edge.length[terminal_branch_ids])
+    max_terminal_bl <- max(um_tree$edge.length[terminal_branch_ids])
+    min_internal_bl <- min(um_tree$edge.length[internal_branch_ids])
+    max_internal_bl <- max(um_tree$edge.length[internal_branch_ids])
+    # Check whether to extend the internal or external branches
+    final_percent_internal_branches <- parameters_row$proportion_internal_branches * 100
+    um_tree_percent_internal_branches <- current_internal_length/current_tree_length * 100
+    if (um_tree_percent_internal_branches < final_percent_internal_branches){
+      # The internal branch length is shorter than it should be.
+      # Reduce the terminal branches
+      final_tree_length <- current_external_length/(100-final_percent_internal_branches)*100
+      final_internal_branch_length <- final_tree_length * (final_percent_internal_branches/100)
+      # Determine how much each terminal branch must be extended to reach that final tree length
+      extend_internal_branches_by <- final_internal_branch_length/Ntip(um_tree)
+      # Reduce terminal branches
+      um_tree$edge.length[terminal_branch_ids] <- um_tree$edge.length[terminal_branch_ids] + extend_terminal_branches_by
+    } else if (um_tree_percent_internal_branches > final_percent_internal_branches){
+      # The internal branch length is longer than it should be.
+      # Extend the terminal branches
+      final_tree_length <- current_internal_length/final_percent_internal_branches*100
+      final_terminal_branch_length <- final_tree_length * ((100-final_percent_internal_branches)/100)
+      # Determine how much each terminal branch must be extended to reach that final tree length
+      extend_terminal_branches_by <- final_terminal_branch_length/Ntip(um_tree)
+      # Extend terminal branches
+      um_tree$edge.length[terminal_branch_ids] <- um_tree$edge.length[terminal_branch_ids] + extend_terminal_branches_by
+    }
+  }
   
   ## Return the manipulated and modified tree
-  return(rooted_tree)
+  return(um_tree)
 }
 
 
