@@ -741,3 +741,23 @@ alisim.topology.unlinked.partition.model <- function(iqtree_path, output_alignme
 
 
 
+##### Calculate tree length ####
+tree.length.ratio <- function(tree){
+  # Quick function to calculate the tree length and percentage of internal branches for any tree
+  terminal_branch_ids <- which(tree$edge[,2] <= Ntip(tree))
+  internal_branch_ids <- which(tree$edge[,2] > Ntip(tree))
+  # Determine how long the sum of all terminal branches would have to be to match the parameters_row$proportion_internal_branches
+  current_tree_length <- sum(tree$edge.length)
+  current_external_length <- sum(tree$edge.length[terminal_branch_ids])
+  current_internal_length <- sum(tree$edge.length[internal_branch_ids])
+  # Calculate percentage
+  percentage_internal_length <- current_internal_length / current_tree_length * 100
+  # Assemble output
+  op_vec <- c(current_tree_length, current_internal_length, percentage_internal_length)
+  names(op_vec) <- c("current_tree_length", "current_internal_length", "percentage_internal_length")
+  # Return output
+  return(op_vec)
+}
+
+
+
