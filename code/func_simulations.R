@@ -371,6 +371,7 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
   node_df <- do.call(rbind.data.frame, lapply(nodes, find.branching.times, tree = base_tree))
   names(node_df) <- c("node", "tip_names", "tip_numbers", "ms_tip_order", "ntips", "ndepth", "max_branching_time", "removed_taxa", "ms_input")
   # Order by descending branching time
+  node_df$max_branching_time <- as.numeric(node_df$max_branching_time)
   node_df <- node_df[order(node_df$max_branching_time, decreasing = TRUE),]
   # Add coalescent times in descending order and reorder columns
   node_df$coalescence_time <- ms_coal_ints
@@ -409,6 +410,7 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
     new_row["coalescence_time"] <- round(as.numeric(max(node_df$coalescence_time)) + 0.02, digits = 6)
     node_df <- rbind(node_df, new_row)
   }
+  
   # Check for duplicate times
   if (length(unique(node_df$coalescence_time)) != length(node_df$coalescence_time)){
     # Determine the matching rows
@@ -429,8 +431,8 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
   }
   
   ## Generate gene trees in ms
-  # Sort all rows by branching times
-  node_df <- node_df[order(node_df$max_branching_time, decreasing = TRUE),]
+  # Sort all rows by colescence time (put in correct order for ms call)
+  node_df <- node_df[order(node_df$coalescence_time, decreasing = TRUE),]
   # Create a new column containing -ej event for each row
   node_df$ej <- paste0("-ej ", node_df$coalescence_time, " ", node_df$ms_input)
   # No recombination event is present. Do not add any extra splitting (-es) or joining (-ej) events
