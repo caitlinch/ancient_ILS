@@ -18,6 +18,10 @@ estimate.trees <- function(row_id, df){
   astral_output <- run.astral(unique_id = df_row$ID, gene_tree_file = df_row$output_gene_tree_file,
                               output_directory = df_row$output_folder, astral_path = df_row$ASTRAL,
                               call.ASTRAL = TRUE)
+  # Assemble all output - ML tree estimaton from IQ-Tree2 and summary coalescent tree estimation from ASTRAL
+  output_row <- c(as.character(df_row), iqtree2_output, astral_output)
+  names(output_row) <- c(names(df_row), names(iqtree2_output), names(astral_output))
+  return(output_row)
 }
 
 
