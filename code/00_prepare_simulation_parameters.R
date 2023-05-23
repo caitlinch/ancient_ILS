@@ -159,7 +159,7 @@ ils_df <- ils_df[,c("dataset", "dataset_type", "ID", "simulation_number", "simul
                     "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "iqtree2", "alisim_gene_models", "iqtree2_num_threads", "iqtree2_num_ufb",
                     "ML_tree_estimation_models")]
 # Save the dataframe
-write.csv(ils_df, file = paste0(output_dir, "ils_df.csv"), row.names = FALSE)
+write.csv(ils_df, file = paste0(output_dir, "test_ils_parameters.csv"), row.names = FALSE)
 
 
 
@@ -208,27 +208,21 @@ lba_df <- lba_df[,c("dataset", "dataset_type", "ID", "simulation_number", "simul
                     "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "iqtree2", "alisim_gene_models", "iqtree2_num_threads", "iqtree2_num_ufb",
                     "ML_tree_estimation_models")]
 # Save the dataframe
-write.csv(lba_df, file = paste0(output_dir, "lba_df.csv"), row.names = FALSE)
+write.csv(lba_df, file = paste0(output_dir, "test_lba_parameters.csv"), row.names = FALSE)
 
 
 
 #### 6. Generate simulated alignments ####
-## For the ils_df
+## Assemble the dataframes into one
+sim_df <- rbind(lba_df, ils_df)
 # # To generate one simulated alignment
-# generate.one.alignment(sim_row = ils_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
+# generate.one.alignment(sim_row = sim_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
 # To generate all simulated alignments
-output_list <- lapply(1:nrow(ils_df), generate.one.alignment.wrapper, sim_df = ils_df, renamed_taxa = simulation_taxa_names, 
+output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, 
                       partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
 output_df <- as.data.frame(do.call(rbind, output_list))
 # Save output dataframe
-write.csv(output_df, file = paste0(output_dir, "ils_generate_alignments.csv"), row.names = FALSE)
-
-## For the lba df
-output_list <- lapply(1:nrow(lba_df), generate.one.alignment.wrapper, sim_df = lba_df, renamed_taxa = simulation_taxa_names, 
-                      partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
-output_df <- as.data.frame(do.call(rbind, output_list))
-# Save output dataframe
-write.csv(output_df, file = paste0(output_dir, "lba_generate_alignments.csv"), row.names = FALSE)
+write.csv(output_df, file = paste0(output_dir, "test_generate_alignments.csv"), row.names = FALSE)
 
 
 ############ Up to here #########
