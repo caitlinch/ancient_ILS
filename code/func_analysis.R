@@ -81,8 +81,10 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
 gcf.wrapper <- function(alignment_path, iqtree2_path, iqtree2_model = NA, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, renamed_taxa){
   # Function to calculate the estimated and empirical gCF and return relevant gCFs
   
-  ## Calculate the exact/expected gCFs using IQ-Tree2
+  ## Calculate the exact/input/actual gCFs using IQ-Tree2
   expected_gcfs <- extract.input.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads, rename.taxa.for.ms = TRUE, renamed_taxa)
+  
+  ## Calculate the expected gCFs using IQ-Tree2
   estimated_gcfs <- extract.output.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads, iqtree2_model)
   
   ## Extract information from the actual gCFS
@@ -272,55 +274,70 @@ iqtree2.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_nu
   ## Get the directory and list of files in that directory
   al_dir <- paste0(dirname(alignment_path),"/")
   al_files <- list.files(al_dir)
-  # Change to that dorectory
+  # Change to that directory
   setwd(al_dir)
   # Extract the unique id for this alignment
   al_id <- tail(unlist(strsplit(al_dir, "/")),1)
   
-  # Construct a prefix and check whether the gCF has already been calculate
+  ## Construct a prefix and check whether the gCF has already been calculate
   check_gcf_tree_prefix <- paste0(al_id, "-concord")
   check_files <- grep(check_gcf_tree_prefix, al_files, value = TRUE)
   
   ## If the estimated gCFs have not been calculated, calculate them now
   if (length(check_files) == 0){
-    ## Create a gene partition file with no models
-    # Find and open the alisim partition file
-    alisim_partition_file <- paste0(al_dir, grep("log", grep("partition", al_files, value = TRUE), value = TRUE, invert = TRUE))
-    # Generate the gcf partition file
-    gcf_partition_file <- generate.gcf.partition.file(alisim_partition_file)
-    
     ## Inferring species tree
-    # Create model call
-    if (is.na(iqtree2_model) == TRUE){
-      model_call <- " -m MFP+MERGE "
-    } else if (is.na(iqtree2_model) == FALSE){
-      model_call <- paste0(" -m ", iqtree2_model, " ")
+    # Check for presence of species tree
+    species_tree_file_check <- paste0(dirname(alignment_path), "/", df_row$ID,"_ML_tree.treefile")
+    species_tree_iqfile_check <- paste0(dirname(alignment_path), "/", df_row$ID,"_ML_tree.iqtree")
+    if (file.exists(species_tree_file_check) == FALSE | file.exists(species_tree_iqfile_check) == FALSE){
+      ## If the output files don't exist, call IQ-Tree to estimate species tree
+      # Create a gene partition file with no models
+      # Find and open the alisim partition file
+      alisim_partition_file <- paste0(al_dir, grep("log", grep("partition", al_files, value = TRUE), value = TRUE, invert = TRUE))
+      # Generate the gcf partition file
+      gcf_partition_file <- generate.gcf.partition.file(alisim_partition_file)
+      
+      # Create model call
+      if (is.na(iqtree2_model) == TRUE){
+        model_call <- " -m MFP+MERGE "
+      } else if (is.na(iqtree2_model) == FALSE){
+        model_call <- paste0(" -m ", iqtree2_model, " ")
+      }
+      # Create IQ-Tree call
+      species_tree_prefix <- paste0(al_id, "-concat")
+      species_tree_call <- paste0(iqtree2_path, " -s ", alignment_path, " -p ", gcf_partition_file, model_call, " --prefix ", species_tree_prefix, " -nt ",iqtree2_num_threads)
+      system(species_tree_call)
     }
-    # Create IQ-Tree call
-    species_tree_prefix <- paste0(al_id, "-concat")
-    species_tree_call <- paste0(iqtree2_path, " -s ", alignment_path, " -p ", gcf_partition_file, model_call, " --prefix ", species_tree_prefix, " -nt ",iqtree2_num_threads)
-    system(species_tree_call)
     
     ## Inferring gene/locus trees  
-    # Create model call
-    if (is.na(iqtree2_model) == TRUE){
-      model_call <- " -m MFP+MERGE "
-    } else if (is.na(iqtree2_model) == FALSE){
-      model_call <- paste0(" -m ", iqtree2_model, " ")
+    # Check for presence of gene tree file
+    gene_tree_file_check <- paste0(dirname(alignment_path), "/", df_row$ID,"_gene_trees.treefile")
+    gene_tree_iqfile_check <- paste0(dirname(alignment_path), "/", df_row$ID,"_gene_trees.iqtree")
+    if (file.exists(gene_tree_file_check) == FALSE | file.exists(gene_tree_iqfile_check) == FALSE){
+      ## If the output files don't exist, call IQ-Tree to estimate gene trees
+      # Create model call
+      if (is.na(iqtree2_model) == TRUE){
+        model_call <- " -m MFP+MERGE "
+      } else if (is.na(iqtree2_model) == FALSE){
+        model_call <- paste0(" -m ", iqtree2_model, " ")
+      }
+      # Create IQ-Tree call
+      gene_tree_prefix <- paste0(al_id, "-gene_trees")
+      gene_tree_call <- paste0(iqtree2_path, " -s ", alignment_path, " -S ", gcf_partition_file, model_call, " --prefix ", gene_tree_prefix, " -nt ",iqtree2_num_threads)
+      system(gene_tree_call)
     }
-    # Create IQ-Tree call
-    gene_tree_prefix <- paste0(al_id, "-gene_trees")
-    gene_tree_call <- paste0(iqtree2_path, " -s ", alignment_path, " -S ", gcf_partition_file, model_call, " --prefix ", gene_tree_prefix, " -nt ",iqtree2_num_threads)
-    system(gene_tree_call)
     
     ## Calculating gene concordance factors
     gcf_tree_prefix <- paste0(al_id, "-concord")
-    gcf_call <- paste0(iqtree2_path ," -t ", species_tree_prefix, ".treefile --gcf ", gene_tree_prefix, ".treefile --prefix ", gcf_tree_prefix)
+    species_tree_file <- paste0(dirname(alignment_path), "/", df_row$ID,"_ML_tree.treefile")
+    gene_tree_file <- paste0(dirname(alignment_path), "/", df_row$ID,"_gene_trees.treefile")
+    gcf_call <- paste0(iqtree2_path ," -t ", species_tree_file, " --gcf ", gene_tree_file, " --prefix ", gcf_tree_prefix)
     system(gcf_call)
   }
   
   ## Return output
   # Assemble output files
+  gcf_tree_prefix <- paste0(al_id, "-concord")
   gcf_tree_file <- paste0(al_dir, gcf_tree_prefix, ".cf.tree")
   gcf_branch_file <- paste0(al_dir, gcf_tree_prefix, ".cf.branch")
   gcf_table_file <- paste0(al_dir, gcf_tree_prefix, ".cf.stat")
