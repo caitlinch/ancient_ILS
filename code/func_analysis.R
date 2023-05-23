@@ -8,18 +8,19 @@ library(phangorn)
 #### Analysis wrapper function ####
 analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, renamed_taxa){
   # Wrapper function to calculate:
-  #   - actual and estimated gcfs (IQ-Tree)
-  #   - actual and estimated qcfs (ASTRAL)
-  #   - hypothesis tree distances for both ML and ASTRAL trees
+  #   - [x] actual and estimated gcfs (IQ-Tree)
+  #   - [ ] actual and estimated qcfs (ASTRAL)
+  #   - [x] hypothesis tree distances for both ML and ASTRAL trees
+  #   - [ ] hypothesis tests in IQ-Tree to see if any hypothesis can be ignored for this alignment
   
   # Open the row of interest
   df_row <- df[row_id, ]
   
   # Calculate the differences between the three trees
-  astral_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$ASTRAL_tree_treefile, hypothesis_tree_dir, tree_type = "ASTRAL", 
-                                                              rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
   iqtree2_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$ML_tree_treefile, hypothesis_tree_dir, tree_type = "ML", 
                                                                rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
+  astral_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$ASTRAL_tree_treefile, hypothesis_tree_dir, tree_type = "ASTRAL", 
+                                                              rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
   
   # Calculate the gCFs using IQ-Tree
   iqtree2_gcfs <- gcf.wrapper(alignment_path = df_row$output_alignment_file, iqtree2_path = df_row$iqtree2, iqtree2_model = NA,
@@ -29,6 +30,22 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, renamed_taxa){
   astral_qcfs <- qcf.wrapper(starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
                              ASTRAL_tree = df_row$ASTRAL_tree_treefile, ML_gene_trees = df_row$iqtree2_gene_tree_treefile, 
                              ASTRAL_path = df_row$ASTRAL)
+  
+  # Perform hypothesis tests in IQ-Tree
+  hypothesis_tests <- ""
+  
+  # Trim unwanted columns
+  trimmed_df_row <- df_row[, c("dataset", "dataset_type", "ID", "output_folder", "simulation_number", "simulation_type",
+                               "hypothesis_tree", "replicates", "num_taxa", "num_genes", "gene_length", "num_sites",
+                               "ML_tree_estimation_models", "branch_a_length", "branch_b_length", "branch_c_length",
+                               "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
+                               "branch_outgroup_length", "branch_porifera_length", "total_tree_length",
+                               "sum_internal_branch_lengths", "percentage_internal_branch_lengths")]
+  # Assemble output vector
+  analysis_output         <- c(as.character(trimmed_df_row), iqtree2_tree_diffs, astral_tree_diffs,
+                               iqtree2_gcfs, astral_qcfs, hypothesis_tests)
+  names(analysis_output)  <- c(names(trimmed_df_row), names(iqtree2_tree_diffs), names(astral_tree_diffs),
+                               names(iqtree2_gcfs), names(astral_qcfs), names(hypothesis_tests))
 }
 
 
@@ -110,7 +127,7 @@ qcf.wrapper <- function(starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_trees
   ## Calculate estimated quartet concordance factors
   estimated_prefix <- "estimated_qcf"
   estimated_qcf_command <- paste0("java -jar ", ASTRAL_path, " -q ", ASTRAL_tree, " -i ", ML_gene_trees,
-                               " -o ", qcf_dir, estimated_prefix, ".tre 2> ", qcf_dir, estimated_prefix, ".log")
+                                  " -o ", qcf_dir, estimated_prefix, ".tre 2> ", qcf_dir, estimated_prefix, ".log")
   system(estimated_qcf_command)
   
 }
