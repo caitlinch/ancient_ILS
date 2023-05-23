@@ -54,7 +54,8 @@ generate.one.alignment <- function(sim_row, renamed_taxa, rerun = FALSE){
     ## Write the tree in ms command line format and generate gene trees in ms
     ms_files <- ms.generate.trees(unique_id = sim_row$ID, base_tree = rooted_tree, ntaxa = sim_row$num_taxa, 
                                   ntrees = sim_row$num_genes, output_directory = sim_row$output_folder, 
-                                  ms_path = sim_row$ms, rename.taxa = TRUE, renamed_taxa = renamed_taxa)
+                                  ms_path = sim_row$ms, rename.taxa = TRUE, renamed_taxa = renamed_taxa,
+                                  preferred_time_difference = 0.001)
     # Extract gene tree file
     sim_row_gene_tree_file <- ms_files[["ms_gene_tree_file"]]
     # Open gene trees
@@ -292,7 +293,7 @@ manipulate.branch.lengths <- function(starting_tree, parameters_row, change.inte
 
 
 #### Functions for ms ####
-ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_directory, ms_path = "ms", rename.taxa = FALSE, renamed_taxa){
+ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_directory, ms_path = "ms", rename.taxa = FALSE, renamed_taxa, preferred_time_difference = 0.001){
   ## Take a given tree; format into an ms command and run ms; generate and save the resulting gene trees
   # Works for random coalescent trees but not trees generated from the sponge datasets
   
@@ -327,7 +328,7 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
   # Format coalescences for ms input
   node_df <- determine.coalescence.taxa(node_df)
   # Check for duplicated times
-  node_df <- check.duplicated.coalescent.times(node_df)
+  node_df <- check.duplicated.coalescent.times(node_df, preferred_time_difference)
   # Determine which taxa have not yet coalesced
   root_taxa <- select.noncoalesced.taxa(node_df)
   node_df <- check.root.coalesced(root_taxa, node_df)
