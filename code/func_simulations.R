@@ -369,7 +369,9 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
   ms_gene_trees_path <- paste0(output_directory, unique_id, "_ms_gene_trees.txt")
   
   ## Rename taxa to short versions
-  base_tree$tip.label <- unlist(lapply(base_tree$tip.label, function(x){renamed_taxa[[x]]}))
+  if ( (length(renamed_taxa) == ntaxa) & ( (TRUE %in% is.na(renamed_taxa)) == FALSE) ){
+    base_tree$tip.label <- unlist(lapply(base_tree$tip.label, function(x){renamed_taxa[[x]]}))
+  }
   
   ## Save the input tree
   write.tree(base_tree, file = t_path)
