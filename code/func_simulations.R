@@ -82,19 +82,20 @@ generate.one.alignment <- function(sim_row, renamed_taxa, rerun = FALSE){
     alisim.topology.unlinked.partition.model(iqtree_path = sim_row$iqtree2, output_alignment_path = sim_row_output_alignment_file,
                                              partition_file_path = sim_row_partition_file, trees_path = sim_row_gene_tree_file, 
                                              output_format = "fasta", sequence_type = "AA")
-    
-    # Append information to the simulation row
-    sim_row$output_base_tree_file <- sim_row_rooted_tree_file
-    sim_row$output_gene_tree_file <- sim_row_gene_tree_file
-    sim_row$output_partition_file <- sim_row_partition_file
-    sim_row$output_alignment_file <- paste0(sim_row_output_alignment_file, ".fa")
-  } else {
-    # If all output files already exist, append information to the simulation row
-    sim_row$output_base_tree_file <- sim_row_rooted_tree_file
-    sim_row$output_gene_tree_file <- check_ms_gene_tree_file
-    sim_row$output_partition_file <- sim_row_partition_file
-    sim_row$output_alignment_file <- paste0(sim_row_output_alignment_file, ".fa")
   }
+  
+  # Prepare output
+  # Calculate the ratio of internal branches
+  tree_length_params <- tree.length.ratio(rooted_tree)
+  # Append tree length parameters to the simulation row
+  sim_row$total_tree_length <- tree_length_params$total_tree_length
+  sim_row$sum_internal_branch_lengths <- tree_length_params$sum_internal_branch_lengths
+  sim_row$percentage_internal_branch_lengths <- tree_length_params$percentage_internal_branch_lengths
+  # Append output files to the simulation row
+  sim_row$output_base_tree_file <- sim_row_rooted_tree_file
+  sim_row$output_gene_tree_file <- sim_row_gene_tree_file
+  sim_row$output_partition_file <- sim_row_partition_file
+  sim_row$output_alignment_file <- paste0(sim_row_output_alignment_file, ".fa")
   
   # Return the updated simulation row
   return(sim_row)
@@ -788,7 +789,7 @@ tree.length.ratio <- function(tree){
   percentage_internal_length <- current_internal_length / current_tree_length * 100
   # Assemble output
   op_vec <- c(current_tree_length, current_internal_length, percentage_internal_length)
-  names(op_vec) <- c("current_tree_length", "current_internal_length", "percentage_internal_length")
+  names(op_vec) <- c("total_tree_length", "sum_internal_branch_lengths", "percentage_internal_branch_lengths")
   # Return output
   return(op_vec)
 }
