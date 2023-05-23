@@ -16,8 +16,17 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, renamed_taxa){
   df_row <- df[row_id, ]
   
   # Calculate the differences between the three trees
-  calculate.distance.between.three.trees(tree_path = df_row$ASTRAL_tree_treefile, hypothesis_tree_dir, tree_type = "ASTRAL", rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
-  calculate.distance.between.three.trees(tree_path = df_row$ML_tree_treefile, hypothesis_tree_dir, tree_type = "ML", rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
+  astral_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$ASTRAL_tree_treefile, hypothesis_tree_dir, tree_type = "ASTRAL", 
+                                                              rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
+  iqtree2_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$ML_tree_treefile, hypothesis_tree_dir, tree_type = "ML", 
+                                                               rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
+  
+  # Calculate the gCFs using IQ-Tree
+  iqtree2_gcfs <- gcf.wrapper(alignment_path = df_row$output_alignment_file, iqtree2_path = df_row$iqtree2, iqtree2_model = NA,
+                              iqtree2_num_threads = df_row$iqtree2_num_threads, rename.taxa.for.ms = TRUE, renamed_taxa = renamed_taxa)
+  
+  # Calculate the qCFs using ASTRAL
+  
 }
 
 #### Calculate distance between trees ####
