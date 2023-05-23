@@ -45,6 +45,7 @@ library(ape)
 ## Source functions
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
 source(paste0(repo_dir, "code/func_simulations.R"))
+source(paste0(repo_dir, "code/func_analysis.R"))
 
 ## Assemble file names
 hypothesis_tree_dir <- paste0(repo_dir, "hypothesis_trees/")
