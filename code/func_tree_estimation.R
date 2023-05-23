@@ -10,13 +10,13 @@ estimate.trees <- function(row_id, df, call.executable.programs = FALSE){
   df_row <- df[row_id, ]
   
   # Call IQ-Tree to estimate an ML tree
-  iqtree2_ML_output <- run.iqtree2(alignment_path = df_row$output_alignment_file, unique_id = df_row$ID, unique.output.path = TRUE,
+  iqtree2_ML_output <- run.iqtree2(alignment_path = df_row$output_alignment_file, unique_id = df_row$ID, unique.output.path = FALSE,
                                    iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads, 
                                    iqtree2_num_ufb = df_row$iqtree2_num_ufb, iqtree2_model = df_row$ML_tree_estimation_models, 
                                    use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE, call.iqtree2 = call.executable.programs)
   # Call IQ-Tree to estimate gene trees
   iqtree2_gt_output <- estimate.gene.trees(alignment_path = df_row$output_alignment_file, partition_path = df_row$output_partition_file, 
-                                           unique_id = df_row$ID, unique.output.path = TRUE, iqtree2_path = df_row$iqtree2,
+                                           unique_id = df_row$ID, unique.output.path = FALSE, iqtree2_path = df_row$iqtree2,
                                            iqtree2_num_threads = df_row$iqtree2_num_threads, iqtree2_num_ufb = df_row$iqtree2_num_ufb,
                                            iqtree2_model = NA, use.partition.models = TRUE, call.iqtree2 = call.executable.programs)
   # Call ASTRAL
