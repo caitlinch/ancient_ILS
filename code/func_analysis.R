@@ -6,13 +6,20 @@ library(ape)
 library(phangorn)
 
 #### Calculate distance between trees ####
-calculate.distance.between.trees <- function(tree_path, hypothesis_tree_dir, rename.hypothesis.tree.tips = FALSE, renamed_taxa){
+calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_dir, tree_type, rename.hypothesis.tree.tips = FALSE, renamed_taxa){
   # Function to calculate the distance between a tree and three hypothesis trees
+  # tree_type = "ASTRAL" | tree_type = "IQ-Tree2"
   
   ## Open the hypothesis trees
   # Extract the tree files
   all_hyp_dir_files <- list.files(hypothesis_tree_dir)
-  tree_files <- grep("treefile", all_hyp_dir_files,value = T)
+  # Extract only either the ASTRAL or IQ-Tree tree files
+  if (tree_type == "ASTRAL"){
+    tree_files <- grep("ASTRAL", all_hyp_dir_files,value = T)
+  } else if (tree_type == "IQ-Tree2"){
+    tree_files <- grep("treefile", all_hyp_dir_files,value = T)    
+  }
+  # Extract the three hypothesis tree files
   h1_path <- paste0(hypothesis_tree_dir, grep("hypothesis_tree_1", tree_files, value = T))
   h2_path <- paste0(hypothesis_tree_dir, grep("hypothesis_tree_2", tree_files, value = T))
   h3_path <- paste0(hypothesis_tree_dir, grep("hypothesis_tree_3", tree_files, value = T))
