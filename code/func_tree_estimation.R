@@ -9,18 +9,23 @@ estimate.trees <- function(row_id, df, call.executable.programs = FALSE){
   # Extract a single row
   df_row <- df[row_id, ]
   
-  # Call IQ-Tree
-  iqtree2_output <- run.iqtree2(alignment_path = df_row$output_alignment_file, unique_id = df_row$ID, unique.output.path = TRUE,
-                                iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads, 
-                                iqtree2_num_ufb = df_row$iqtree2_num_ufb, iqtree2_model = df_row$ML_tree_estimation_models, 
-                                use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE, call.iqtree2 = call.executable.programs)
+  # Call IQ-Tree to estimate an ML tree
+  iqtree2_ML_output <- run.iqtree2(alignment_path = df_row$output_alignment_file, unique_id = df_row$ID, unique.output.path = TRUE,
+                                   iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads, 
+                                   iqtree2_num_ufb = df_row$iqtree2_num_ufb, iqtree2_model = df_row$ML_tree_estimation_models, 
+                                   use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE, call.iqtree2 = call.executable.programs)
+  # Call IQ-Tree to estimate gene trees
+  iqtree2_gt_output <- estimate.gene.trees(alignment_path = df_row$output_alignment_file, partition_path = df_row$output_partition_file, 
+                                           unique_id = df_row$ID, unique.output.path = TRUE, iqtree2_path = df_row$iqtree2,
+                                           iqtree2_num_threads = df_row$iqtree2_num_threads, iqtree2_num_ufb = df_row$iqtree2_num_ufb,
+                                           iqtree2_model = NA, use.partition.models = TRUE, call.iqtree2 = call.executable.programs)
   # Call ASTRAL
-  astral_output <- run.astral(unique_id = df_row$ID, gene_tree_file = df_row$output_gene_tree_file,
+  astral_output <- run.astral(unique_id = df_row$ID, gene_tree_file = iqtree2_gt_output$iqtree2_gene_tree_treefile,
                               output_directory = df_row$output_folder, astral_path = df_row$ASTRAL,
                               call.ASTRAL = call.executable.programs)
-  # Assemble all output - ML tree estimaton from IQ-Tree2 and summary coalescent tree estimation from ASTRAL
-  output_row <- c(as.character(df_row), iqtree2_output, astral_output)
-  names(output_row) <- c(names(df_row), names(iqtree2_output), names(astral_output))
+  # Assemble all output - ML tree estimation from IQ-Tree2 and summary coalescent tree estimation from ASTRAL
+  output_row <- c(as.character(df_row), iqtree2_ML_output, iqtree2_gt_output, astral_output)
+  names(output_row) <- c(names(df_row), names(iqtree2_output), names(iqtree2_gt_output), names(astral_output))
   return(output_row)
 }
 
@@ -69,18 +74,18 @@ estimate.gene.trees <- function(alignment_path, partition_path, unique_id, uniqu
     if (use.partition.models == TRUE){
       print("Partitions and models provided - use partition file")
       model_call <- ""
-      output_model <- "Partitioned"
+      gt_model <- "Partitioned"
     } else if (use.partition.models == FALSE){
       # Model not provided - iqtree2_model is NA
       print("Model not provided for concatenated alignment: use ModelFinder")
       model_call <- "-m MFP"
-      output_model <- "MFP"
+      gt_model <- "MFP"
     }
   } else if (is.na(iqtree2_model) == FALSE){
     # Model provided - iqtree2_model is NOT NA
     print(paste0("Model provided for concatenated alignment: ", iqtree2_model))
     model_call <- paste0("-m ", iqtree2_model)
-    output_model <- gsub("'", "", iqtree2_model)
+    gt_model <- gsub("'", "", iqtree2_model)
   } 
   # Set number of ultrafast bootstraps
   bootstrap_call <- paste0("-bb ", iqtree2_num_ufb)
@@ -88,14 +93,14 @@ estimate.gene.trees <- function(alignment_path, partition_path, unique_id, uniqu
   num_threads_call <- paste0("-nt ", iqtree2_num_threads)
   # Determine the prefix to give iqtree2 to create unique output
   if (unique.output.path == TRUE){
-    output_prefix = paste0(unique_id, "-", gsub("\\+", "_", gsub("'", "", iqtree2_model)), "_gene_trees")
+    gt_prefix = paste0(unique_id, "-", gsub("\\+", "_", gsub("'", "", iqtree2_model)), "_gene_trees")
   } else if (unique.output.path == FALSE){
-    output_prefix = paste0(unique_id, "_gene_trees")
+    gt_prefix = paste0(unique_id, "_gene_trees")
   }
   # Set output prefix call
-  output_prefix_call = paste0("-pre ", output_prefix)
+  output_prefix_call = paste0("-pre ", gt_prefix)
   # Assemble the whole iqtree2 call
-  iqtree2_call <- paste(iqtree2_path, alignment_call, model_call, bootstrap_call, num_threads_call, output_prefix_call, sep = " ")
+  iqtree2_call <- paste(iqtree2_path, alignment_call, partition_call, model_call, bootstrap_call, num_threads_call, output_prefix_call, sep = " ")
   
   ## If call.iqtree2 = TRUE, run the iqtree call
   if (call.iqtree2 == TRUE){
@@ -104,15 +109,16 @@ estimate.gene.trees <- function(alignment_path, partition_path, unique_id, uniqu
   
   ## Return the output files
   # Assemble iqtree2 file filepaths
-  output_tree_file <- paste0(dirname(alignment_path), output_prefix, ".treefile")
-  output_iqtree_file <- paste0(dirname(alignment_path), output_prefix, ".iqtree")
-  output_log_file <- paste0(dirname(alignment_path), output_prefix, ".log")
+  gt_tree_file <- paste0(dirname(alignment_path), gt_prefix, ".treefile")
+  gt_iqtree_file <- paste0(dirname(alignment_path), gt_prefix, ".iqtree")
+  gt_log_file <- paste0(dirname(alignment_path), gt_prefix, ".log")
   
   # Assemble output
-  output_vec <- c(alignment_path, partition_path, output_prefix, output_model, 
-                  iqtree2_call, call.iqtree2, output_tree_file, output_iqtree_file, output_log_file)
-  names(output_vec) <- c("gene_tree_alignment_path", "gene_tree_partition_path", "gene_tree_ID", "gene_tree_model",
-                         "gene_tree_iqtree2_command", "gene_tree_iqtree2_command_run", "gene_tree_treefile", "gene_tree_iqtree_file", "gene_tree_log_file")
+  output_vec <- c(alignment_path, partition_path, gt_prefix, gt_model, 
+                  iqtree2_call, call.iqtree2, gt_tree_file, gt_iqtree_file, gt_log_file)
+  names(output_vec) <- c("gene_tree_alignment_path", "gene_tree_partition_path", "gene_tree_ID", "iqtree2_gene_tree_model",
+                         "iqtree2_gene_tree_command", "iqtree2_gene_tree_command_run", "iqtree2_gene_tree_treefile",
+                         "iqtree2_gene_tree_iqtree_file", "iqtree2_gene_tree_log_file")
   return(output_vec)
 }
 
