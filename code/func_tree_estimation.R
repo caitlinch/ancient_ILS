@@ -2,12 +2,55 @@
 ## This script includes functions to run tree estimation for this project
 # Caitlin Cherryh, 2023
 
+#### Wrapper function to estimate trees ####
+estimate.trees <- function(row_id, df){
+  # Wrapper function to estimate a tree in IQ-Tree and in ASTRAL
+  
+  # Extract a single row
+  df_row <- df[row_id, ]
+  
+  # Call IQ-Tree
+  iqtree2_output <- run.iqtree2(alignment_path = df_row$output_alignment_file, unique_id = df_row$ID, unique.output.path = TRUE,
+                                iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads, 
+                                iqtree2_num_ufb = df_row$iqtree2_num_ufb, iqtree2_model = df_row$ML_tree_estimation_models, 
+                                use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE, call.iqtree2 = TRUE)
+  # Call ASTRAL
+  astral_output <- run.astral(unique_id = df_row$ID, gene_tree_file = df_row$output_gene_tree_file,
+                              output_directory = df_row$output_folder, astral_path = df_row$ASTRAL,
+                              call.ASTRAL = TRUE)
+}
+
+
+#### Functions for ASTRAL ####
+run.astral <- function(unique_id, gene_tree_file, output_directory, astral_path, call.ASTRAL = FALSE){
+  # Function to take one simulated alignment and estimate a single tree in ASTRAL
+  
+  ## Change working directory to be in the output directory (same directory as gene tree file)
+  setwd(output_directory)
+  
+  # Construct the output files
+  astral_output_tree <- paste0(output_directory, unique_id, "_ASTRAL_tree.tre")
+  astral_output_log <- paste0(output_directory, unique_id, "_ASTRAL_tree.log")
+  # Construct the astral command
+  astral_command <- paste0("java -jar ", astral_path, " -i ", gene_tree_file, " -o ", astral_output_tree, " 2> ", astral_output_log)
+  # Call ASTRAL if desired
+  if (call.ASTRAL == TRUE){
+    system(astral_command)
+  }
+  # Assemble output
+  output_vec        <- c(unique_id, astral_command, call.ASTRAL,
+                         gene_tree_file, astral_output_tree, astral_output_log)
+  names(output_vec) <- c("gene_tree_ID", "ASTRAL_command", "ASTRAL_command_run",
+                         "ASTRAL_input_gene_tree_file", "ASTRAL_tree_treefile", "ASTRAL_tree_log_file")
+  return(output_vec)
+}
+
 
 #### Functions for IQ-Tree2 ####
-estimate.one.tree <- function(alignment_path, unique.output.path = TRUE, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_num_ufb = 1000,
-                              iqtree2_model = NA, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE,
-                              run.iqtree2 = FALSE){
-  # Function to take one simulated alignment and estimate a single tree using the specified model
+run.iqtree2 <- function(alignment_path, unique_id, unique.output.path = TRUE, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_num_ufb = 1000,
+                        iqtree2_model = NA, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE,
+                        call.iqtree2 = FALSE){
+  # Function to take one simulated alignment and estimate a single tree in IQ-Tree2 using the specified model
   
   ## Change working directory to be in the same directory as the alignment 
   setwd(dirname(alignment_path))
@@ -51,17 +94,17 @@ estimate.one.tree <- function(alignment_path, unique.output.path = TRUE, iqtree2
   num_threads_call <- paste0("-nt ", iqtree2_num_threads)
   # Determine the prefix to give iqtree2 to create unique output
   if (unique.output.path == TRUE){
-    output_prefix = paste0(gsub("_alignment.fa", "", basename(alignment_path)), "-", gsub("\\+", "_", gsub("'", "", iqtree2_model)))
+    output_prefix = paste0(unique_id, "-", gsub("\\+", "_", gsub("'", "", iqtree2_model)), "_ML_tree")
   } else if (unique.output.path == FALSE){
-    output_prefix = gsub("_alignment.fa", "", basename(alignment_path))
+    output_prefix = paste0(unique_id, "_ML_tree")
   }
   # Set output prefix call
   output_prefix_call = paste0("-pre ", output_prefix)
   # Assemble the whole iqtree2 call
   iqtree2_call <- paste(iqtree2_path, alignment_call, model_call, bootstrap_call, num_threads_call, output_prefix_call, sep = " ")
   
-  ## If run.iqtree2 = TRUE, run the iqtree call
-  if (run.iqtree2 == TRUE){
+  ## If call.iqtree2 = TRUE, run the iqtree call
+  if (call.iqtree2 == TRUE){
     system(iqtree2_call)
   }
   
@@ -72,11 +115,10 @@ estimate.one.tree <- function(alignment_path, unique.output.path = TRUE, iqtree2
   output_log_file <- paste0(dirname(alignment_path), output_prefix, ".log")
   
   # Assemble output
-  output_vec <- c(alignment_path, output_prefix, output_model, iqtree2_call, run.iqtree2, output_tree_file, output_iqtree_file, output_log_file)
+  output_vec <- c(alignment_path, output_prefix, output_model, iqtree2_call, call.iqtree2, output_tree_file, output_iqtree_file, output_log_file)
   names(output_vec) <- c("alignment_path", "alignment_model_ID", "tree_estimation_model", "iqtree2_command", "iqtree2_command_run", "ML_tree_treefile", "ML_tree_iqtree_file", "ML_tree_log_file")
   return(output_vec)
 }
 
 
-  
-  
+
