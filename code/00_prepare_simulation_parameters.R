@@ -241,7 +241,9 @@ write.csv(tree_df, file = paste0(output_dir, "test_generate_trees.csv"), row.nam
 
 
 
-#### 8. Estimate concordance factors ####
+#### 8. Conduct analysis ####
+# wrapper function to calculate actual and estimated gcfs, actual and estimated qcfs, and tree distances for both ML and ASTRAL trees
+
 if (estimate.gCF == TRUE){
   # Read in the output from the previous step
   tree_df <- read.csv(tree_df_op_file)
