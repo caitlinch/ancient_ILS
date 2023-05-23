@@ -54,7 +54,7 @@ generate.one.alignment <- function(sim_row, renamed_taxa, rerun = FALSE){
     ## Write the tree in ms command line format and generate gene trees in ms
     ms_files <- ms.generate.trees(unique_id = sim_row$ID, base_tree = rooted_tree, ntaxa = sim_row$num_taxa, 
                                   ntrees = sim_row$num_genes, output_directory = sim_row$output_folder, 
-                                  ms_path = sim_row$ms, renamed_taxa = renamed_taxa)
+                                  ms_path = sim_row$ms, rename.taxa = TRUE, renamed_taxa = renamed_taxa)
     # Extract gene tree file
     sim_row_gene_tree_file <- ms_files[["ms_gene_tree_file"]]
     # Open gene trees
@@ -292,7 +292,7 @@ manipulate.branch.lengths <- function(starting_tree, parameters_row, change.inte
 
 
 #### Functions for ms ####
-ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_directory, ms_path = "ms", renamed_taxa = NA){
+ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_directory, ms_path = "ms", rename.taxa = FALSE, renamed_taxa){
   ## Take a given tree; format into an ms command and run ms; generate and save the resulting gene trees
   # Works for random coalescent trees but not trees generated from the sponge datasets
   
@@ -302,7 +302,7 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
   ms_gene_trees_path <- paste0(output_directory, unique_id, "_ms_gene_trees.txt")
   
   ## Rename taxa to short versions
-  if ( (length(renamed_taxa) == ntaxa) & ( (TRUE %in% is.na(renamed_taxa)) == FALSE) ){
+  if (rename.taxa == TRUE){
     base_tree$tip.label <- unlist(lapply(base_tree$tip.label, function(x){renamed_taxa[[x]]}))
   }
   
@@ -331,25 +331,6 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
   # Determine which taxa have not yet coalesced
   root_taxa <- select.noncoalesced.taxa(node_df)
   node_df <- check.root.coalesced(root_taxa, node_df)
-  
-  # Check for duplicate times
-  if (length(unique(node_df$coalescence_time)) != length(node_df$coalescence_time)){
-    # Determine the matching rows
-    duplicate_rows <- which(duplicated(node_df$coalescence_time))
-    # Iterate through the duplicate rows
-    for (d in duplicate_rows){
-      # Find which row matches
-      matched_rows <- which(node_df$coalescence_time == node_df$coalescence_time[[d]])
-      # Get the time to change
-      time_to_change <- tail(matched_rows, 1)
-      # Get both those times and the time after that
-      temp_times <- node_df$coalescence_time[c(matched_rows[1], tail(matched_rows,1)+1)]
-      # Make the second time halfway between the other two times
-      new_time <- min(temp_times) + ((max(temp_times) - min(temp_times))/2)
-      # Update the new time
-      node_df$coalescence_time[time_to_change] <- new_time
-    }
-  }
   
   ## Generate gene trees in ms
   # Sort all rows by coalescence time (put in correct order for ms call)
@@ -381,8 +362,69 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
 
 
 
-check.duplicated.coalescent.times <- function(node_df){
+check.duplicated.coalescent.times <- function(node_df, preferred_time_difference = 0.001){
   ## Small function to check for duplicate coalescent events and space them out so no events occur at the same time
+  
+  # Identify all duplicate times
+  if (length(unique(node_df$coalescence_time)) != length(node_df$coalescence_time)){
+    ## Work out which rows have multiple values
+    # Determine the matching rows
+    duplicate_rows <- which(duplicated(node_df$coalescence_time))
+    # For each duplicated row, get all rows with the same time
+    rows_equal_to_duplicate_rows <- which(node_df$coalescence_time %in% node_df$coalescence_time[duplicate_rows])
+    unduplicate_rows <- setdiff(rows_equal_to_duplicate_rows, duplicate_rows)
+    
+    ## Find smallest difference between coalescent times
+    all_diff_times <- unlist(lapply(1:length(node_df$coalescence_time), function(i){node_df$coalescence_time[i]-node_df$coalescence_time[i+1]}))
+    diff_times <- all_diff_times[which(all_diff_times != 0)]
+    min_diff_time <- min(diff_times, na.rm = TRUE)
+    
+    ## For each of the unduplicated rows, need to update coalescent times so that there is no duplicate
+    for (u in unduplicate_rows){
+      # Get which rows are identical to this row
+      u_dupes <- which(node_df$coalescence_time == node_df$coalescence_time[u])
+      # Check whether those rows have the same taxa as the u row
+      dupes_ms_input <- node_df$ms_input[u_dupes]
+      dupe_time_df <- data.frame(row = u_dupes,
+                                 coalescence_time = node_df$coalescence_time[u],
+                                 taxa_1 = unlist(lapply(1:length(dupes_ms_input), function(x){strsplit(dupes_ms_input, " ")[[x]][1]})),
+                                 taxa_2 = unlist(lapply(1:length(dupes_ms_input), function(x){strsplit(dupes_ms_input, " ")[[x]][2]})))
+      # Find the next time (the constraint for updating the identical coalescent time)
+      next_coalescence_time <- node_df$coalescence_time[max(u_dupes)+1]
+      # Find which rows have the same taxa involved AND the same coalescence time
+      row_to_update_id <- u_dupes[duplicated(dupe_time_df$taxa_2) | duplicated(dupe_time_df$taxa_2)]
+      dupe_time_update_row_id <- which((duplicated(dupe_time_df$taxa_2) | duplicated(dupe_time_df$taxa_2)))
+      # Update any rows with the same taxa involved AND the same coalescence time
+      # Check whether adding the min_diff_time is larger than the next_coalescence_time
+      potential_coalescent_time <- 
+    }
+  }
+  
+  # Check for duplicate times
+  if (length(unique(node_df$coalescence_time)) != length(node_df$coalescence_time)){
+    # Determine the matching rows
+    duplicate_rows <- which(duplicated(node_df$coalescence_time))
+    # Iterate through the duplicate rows
+    for (d in duplicate_rows){
+      # Find which row matches
+      matched_rows <- which(node_df$coalescence_time == node_df$coalescence_time[[d]])
+      # Get the time to change
+      time_to_change <- tail(matched_rows, 1)
+      # Get both those times and the time after that
+      temp_times <- node_df$coalescence_time[c(matched_rows[1], tail(matched_rows,1)+1)]
+      # Make the second time halfway between the other two times
+      new_time <- min(temp_times) + ((max(temp_times) - min(temp_times))/2)
+      # Update the new time
+      node_df$coalescence_time[time_to_change] <- new_time
+    }
+  }
+}
+
+
+get.conflicting.coalescent.event <- function(row_number, node_df){
+  ## Identify coalescent events occuring at same time with same taxa
+  
+  
 }
 
 
