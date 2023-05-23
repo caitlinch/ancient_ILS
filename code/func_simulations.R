@@ -86,6 +86,7 @@ generate.one.alignment <- function(sim_row, renamed_taxa, rerun = FALSE){
   }
   
   # Calculate the ratio of internal branches
+  rooted_tree <- read.tree(sim_row_rooted_tree_file)
   tree_length_params <- tree.length.ratio(rooted_tree)
   
   # Construct output
@@ -96,7 +97,7 @@ generate.one.alignment <- function(sim_row, renamed_taxa, rerun = FALSE){
                                     "output_gene_tree_file", "output_partition_file", "output_alignment_file")
 
   # Return the updated simulation row
-  return(sim_row)
+  return(sim_row_output_vector)
 }
 
 
