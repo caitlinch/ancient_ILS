@@ -3,7 +3,7 @@
 # Caitlin Cherryh, 2023
 
 #### Wrapper function to estimate trees ####
-estimate.trees <- function(row_id, df){
+estimate.trees <- function(row_id, df, call.executable.programs = FALSE){
   # Wrapper function to estimate a tree in IQ-Tree and in ASTRAL
   
   # Extract a single row
@@ -13,11 +13,11 @@ estimate.trees <- function(row_id, df){
   iqtree2_output <- run.iqtree2(alignment_path = df_row$output_alignment_file, unique_id = df_row$ID, unique.output.path = TRUE,
                                 iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads, 
                                 iqtree2_num_ufb = df_row$iqtree2_num_ufb, iqtree2_model = df_row$ML_tree_estimation_models, 
-                                use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE, call.iqtree2 = TRUE)
+                                use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE, call.iqtree2 = call.executable.programs)
   # Call ASTRAL
   astral_output <- run.astral(unique_id = df_row$ID, gene_tree_file = df_row$output_gene_tree_file,
                               output_directory = df_row$output_folder, astral_path = df_row$ASTRAL,
-                              call.ASTRAL = TRUE)
+                              call.ASTRAL = call.executable.programs)
   # Assemble all output - ML tree estimaton from IQ-Tree2 and summary coalescent tree estimation from ASTRAL
   output_row <- c(as.character(df_row), iqtree2_output, astral_output)
   names(output_row) <- c(names(df_row), names(iqtree2_output), names(astral_output))
