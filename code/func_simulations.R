@@ -55,7 +55,7 @@ generate.one.alignment <- function(sim_row, renamed_taxa, rerun = FALSE){
     ms_files <- ms.generate.trees(unique_id = sim_row$ID, base_tree = rooted_tree, ntaxa = sim_row$num_taxa, 
                                   ntrees = sim_row$num_genes, output_directory = sim_row$output_folder, 
                                   ms_path = sim_row$ms, rename.taxa = TRUE, renamed_taxa = renamed_taxa,
-                                  preferred_time_difference = 0.001)
+                                  preferred_time_difference = sim_row$minimum_coalescent_time_difference)
     # Extract gene tree file
     sim_row_gene_tree_file <- ms_files[["ms_gene_tree_file"]]
     # Open gene trees
@@ -85,19 +85,16 @@ generate.one.alignment <- function(sim_row, renamed_taxa, rerun = FALSE){
                                              output_format = "fasta", sequence_type = "AA")
   }
   
-  # Prepare output
   # Calculate the ratio of internal branches
   tree_length_params <- tree.length.ratio(rooted_tree)
-  # Append tree length parameters to the simulation row
-  sim_row$total_tree_length <- tree_length_params$total_tree_length
-  sim_row$sum_internal_branch_lengths <- tree_length_params$sum_internal_branch_lengths
-  sim_row$percentage_internal_branch_lengths <- tree_length_params$percentage_internal_branch_lengths
-  # Append output files to the simulation row
-  sim_row$output_base_tree_file <- sim_row_rooted_tree_file
-  sim_row$output_gene_tree_file <- sim_row_gene_tree_file
-  sim_row$output_partition_file <- sim_row_partition_file
-  sim_row$output_alignment_file <- paste0(sim_row_output_alignment_file, ".fa")
   
+  # Construct output
+  sim_row_output_vector <- c(as.character(sim_row), as.character(round(tree_length_params, digits = 5)), 
+                             sim_row_rooted_tree_file, sim_row_gene_tree_file, sim_row_partition_file, 
+                             paste0(sim_row_output_alignment_file, ".fa"))
+  names(sim_row_output_vector) <- c(names(sim_row), names(tree_length_params), "output_base_tree_file",
+                                    "output_gene_tree_file", "output_partition_file", "output_alignment_file")
+
   # Return the updated simulation row
   return(sim_row)
 }
