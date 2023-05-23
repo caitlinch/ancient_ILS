@@ -6,12 +6,18 @@ library(ape)
 library(phangorn)
 
 #### Analysis wrapper function ####
-analysis.wrapper <- function(row_id, df){
+analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, renamed_taxa){
   # Wrapper function to calculate:
   #   - actual and estimated gcfs (IQ-Tree)
   #   - actual and estimated qcfs (ASTRAL)
   #   - hypothesis tree distances for both ML and ASTRAL trees
   
+  # Open the row of interest
+  df_row <- df[row_id, ]
+  
+  # Calculate the differences between the three trees
+  calculate.distance.between.three.trees(tree_path = df_row$ASTRAL_tree_treefile, hypothesis_tree_dir, tree_type = "ASTRAL", rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
+  calculate.distance.between.three.trees(tree_path = df_row$ML_tree_treefile, hypothesis_tree_dir, tree_type = "ML", rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
 }
 
 #### Calculate distance between trees ####
@@ -23,9 +29,9 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
   # Extract the tree files
   all_hyp_dir_files <- list.files(hypothesis_tree_dir)
   # Extract only either the ASTRAL or IQ-Tree tree files
-  if (tree_type == "ASTRAL"){
+  if (tree_type == "ASTRAL" | tree_type == "astral"){
     tree_files <- grep("ASTRAL", all_hyp_dir_files,value = T)
-  } else if (tree_type == "IQ-Tree2"){
+  } else if (tree_type == "IQ-Tree2" | tree_type == "IQ-Tree" | tree_type == "ML" | tree_type == "iqtree" | tree_type == "iqtree2"){
     tree_files <- grep("treefile", all_hyp_dir_files,value = T)    
   }
   # Extract the three hypothesis tree files
@@ -60,7 +66,8 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
   
   ## Calculate RF and wRF for the trees
   output_vec <- c(tree_path, RF.dist(t, h1_tree), wRF.dist(t, h1_tree), RF.dist(t, h2_tree), wRF.dist(t, h2_tree), RF.dist(t, h3_tree), wRF.dist(t, h3_tree))
-  names(output_vec) <- c("tree_path", "h1_RF_dist", "h1_wRF_dist", "h2_RF_dist", "h2_wRF_dist", "h3_RF_dist", "h3_wRF_dist")
+  names(output_vec) <- c(paste0(tree_type, "_tree_path"), paste0(tree_type, "_h1_RF_dist"), paste0(tree_type, "_h1_wRF_dist"), paste0(tree_type, "_h2_RF_dist"),
+                         paste0(tree_type, "_h2_wRF_dist"), paste0(tree_type, "_h3_RF_dist"), paste0(tree_type, "_h3_wRF_dist") )
   
   ## Return the RF/wRF distances
   return(output_vec)
