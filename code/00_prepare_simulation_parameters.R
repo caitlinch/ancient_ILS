@@ -8,6 +8,7 @@
 # output_dir                <- output directory to save test runs for determining appropriate branch lengths
 
 # iqtree2                   <- path to iqtree2 version 2.2.2
+# astral                    <- path to ASTRAL executable version 5.7.8
 # ms                        <- path to ms executable
 
 ## Phylogenetic parameters
@@ -23,7 +24,9 @@ repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/anc
 published_tree_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_dataset_published_trees/01_ml_trees/"
 output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/00_determine_branch_lengths/"
 iqtree2                     <- "iqtree2"
+astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8/Astral/astral.5.7.8.jar"
 ms                          <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
+
 
 num_parallel_cores          <- 1
 iqtree2_num_threads         <- 3
@@ -138,6 +141,7 @@ ils_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
 ils_df$dataset_type <- "Protein"
 # Add path for executables
 ils_df$ms <- ms
+ils_df$ASTRAL <- astral
 ils_df$iqtree2 <- iqtree2
 # Add the hypothesis tree name in a new column
 ils_df$hypothesis_tree_file <- as.character(ils_df$hypothesis_tree)
@@ -156,8 +160,8 @@ ils_df$ML_tree_estimation_models <- ML_tree_estimation_models
 ils_df <- ils_df[,c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type", "hypothesis_tree", "hypothesis_tree_file", "replicates",
                     "branch_a_length", "branch_b_length", "branch_c_length", "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
                     "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "minimum_coalescent_time_difference", "ASTRAL_tree_depth",
-                    "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "iqtree2", "alisim_gene_models", "iqtree2_num_threads", "iqtree2_num_ufb",
-                    "ML_tree_estimation_models")]
+                    "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "ASTRAL", "iqtree2", "alisim_gene_models",
+                    "iqtree2_num_threads", "iqtree2_num_ufb", "ML_tree_estimation_models")]
 # Save the dataframe
 write.csv(ils_df, file = paste0(output_dir, "test_ils_parameters.csv"), row.names = FALSE)
 
@@ -187,6 +191,7 @@ lba_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
 lba_df$dataset_type <- "Protein"
 # Add path for executables
 lba_df$ms <- ms
+lba_df$ASTRAL <- astral
 lba_df$iqtree2 <- iqtree2
 # Add the hypothesis tree name in a new column
 lba_df$hypothesis_tree_file <- as.character(lba_df$hypothesis_tree)
@@ -205,8 +210,8 @@ lba_df$ML_tree_estimation_models <- ML_tree_estimation_models
 lba_df <- lba_df[,c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type", "hypothesis_tree", "hypothesis_tree_file", "replicates",
                     "branch_a_length", "branch_b_length", "branch_c_length", "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
                     "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "minimum_coalescent_time_difference", "ASTRAL_tree_depth",
-                    "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "iqtree2", "alisim_gene_models", "iqtree2_num_threads", "iqtree2_num_ufb",
-                    "ML_tree_estimation_models")]
+                    "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "ASTRAL", "iqtree2", "alisim_gene_models",
+                    "iqtree2_num_threads", "iqtree2_num_ufb", "ML_tree_estimation_models")]
 # Save the dataframe
 write.csv(lba_df, file = paste0(output_dir, "test_lba_parameters.csv"), row.names = FALSE)
 
@@ -225,7 +230,7 @@ output_df <- as.data.frame(do.call(rbind, output_list))
 write.csv(output_df, file = paste0(output_dir, "test_generate_alignments.csv"), row.names = FALSE)
 
 
-############ Up to here #########
+
 #### 7. Estimate trees ####
 if (estimate.trees == TRUE){
   # Read in the output_df from the previous step
