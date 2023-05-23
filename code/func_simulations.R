@@ -361,7 +361,7 @@ manipulate.branch.lengths <- function(starting_tree, parameters_row, change.inte
 #### Functions for ms ####
 ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_directory, ms_path = "ms", renamed_taxa){
   ## Take a given tree; format into an ms command and run ms; generate and save the resulting gene trees
-  # Works for random trees but not trees generated from the sponge datasets
+  # Works for random coalescent trees but not trees generated from the sponge datasets
   
   ## Generate file paths using the unique id
   t_path <- paste0(output_directory, unique_id, "_starting_tree.txt")
