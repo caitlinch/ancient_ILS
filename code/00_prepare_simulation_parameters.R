@@ -129,6 +129,7 @@ ils_df$branch_outgroup_length <- 0.6278
 ils_df$ML_tree_depth <- 1.177
 ils_df$ASTRAL_tree_depth <- 11.24
 ils_df$proportion_internal_branches <- 0.25
+ils_df$minimum_coalescent_time_difference <- 0.001
 ils_df$num_taxa <- 75
 ils_df$num_genes <- 200
 ils_df$gene_length <- 225
@@ -154,8 +155,8 @@ ils_df$ML_tree_estimation_models <- ML_tree_estimation_models
 # Reorder columns
 ils_df <- ils_df[,c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type", "hypothesis_tree", "hypothesis_tree_file", "replicates",
                     "branch_a_length", "branch_b_length", "branch_c_length", "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
-                    "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "ASTRAL_tree_depth", "ML_tree_depth", "num_taxa",
-                    "num_genes", "gene_length", "num_sites", "output_folder", "ms", "iqtree2", "alisim_gene_models", "iqtree2_num_threads", "iqtree2_num_ufb",
+                    "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "minimum_coalescent_time_difference", "ASTRAL_tree_depth",
+                    "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "iqtree2", "alisim_gene_models", "iqtree2_num_threads", "iqtree2_num_ufb",
                     "ML_tree_estimation_models")]
 # Save the dataframe
 write.csv(ils_df, file = paste0(output_dir, "ils_df.csv"), row.names = FALSE)
@@ -177,6 +178,7 @@ lba_df$branch_outgroup_length <- 0.6278
 lba_df$ML_tree_depth <- 1.177
 lba_df$ASTRAL_tree_depth <- 11.24
 lba_df$proportion_internal_branches <- 0.25
+lba_df$minimum_coalescent_time_difference <- 0.001
 lba_df$num_taxa <- 75
 lba_df$num_genes <- 200
 lba_df$gene_length <- 225
@@ -202,8 +204,8 @@ lba_df$ML_tree_estimation_models <- ML_tree_estimation_models
 # Reorder columns
 lba_df <- lba_df[,c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type", "hypothesis_tree", "hypothesis_tree_file", "replicates",
                     "branch_a_length", "branch_b_length", "branch_c_length", "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
-                    "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "ASTRAL_tree_depth", "ML_tree_depth", "num_taxa",
-                    "num_genes", "gene_length", "num_sites", "output_folder", "ms", "iqtree2", "alisim_gene_models", "iqtree2_num_threads", "iqtree2_num_ufb",
+                    "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "minimum_coalescent_time_difference", "ASTRAL_tree_depth",
+                    "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "iqtree2", "alisim_gene_models", "iqtree2_num_threads", "iqtree2_num_ufb",
                     "ML_tree_estimation_models")]
 # Save the dataframe
 write.csv(lba_df, file = paste0(output_dir, "lba_df.csv"), row.names = FALSE)
