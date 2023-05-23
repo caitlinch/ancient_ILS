@@ -9,7 +9,7 @@ library(phytools)
 
 #### Functions to run the simulation pipeline ####
 generate.one.alignment.wrapper <- function(row_id, sim_df, renamed_taxa, partition_path, gene_models, rerun = FALSE){
-  # Wrapper to easily run generate.one.alignment via dataframe rows
+  ## Wrapper to easily run generate.one.alignment via dataframe rows
   
   # Apply generate.one.alignment to a single row
   id_row <- sim_df[row_id,]
@@ -21,7 +21,7 @@ generate.one.alignment.wrapper <- function(row_id, sim_df, renamed_taxa, partiti
 
 
 generate.one.alignment <- function(sim_row, renamed_taxa, rerun = FALSE){
-  # Function to take one row from the simulation parameters dataframe and run start to finish
+  ## Function to take one row from the simulation parameters dataframe and run start to finish
   
   ## Create the folder for this replicate
   if (dir.exists(sim_row$output_folder) == FALSE){
@@ -108,6 +108,7 @@ generate.one.alignment <- function(sim_row, renamed_taxa, rerun = FALSE){
 
 #### Functions to modify trees and manipulate branch lengths
 manipulate.branch.lengths <- function(starting_tree, parameters_row, change.internal.branch.length.percentage = FALSE){
+  ## Function to manipulate branch lengths and scale tree
   
   ## Root the tree at the outgroup and scale the tree length 
   # Root the hypothesis tree
@@ -316,46 +317,20 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
   # Extract information about all clades from tree
   node_df <- do.call(rbind.data.frame, lapply(nodes, find.branching.times, tree = base_tree))
   names(node_df) <- c("node", "tip_names", "tip_numbers", "ms_tip_order", "ntips", "ndepth", "max_branching_time", "removed_taxa", "ms_input")
-  # Order by descending branching time
   node_df$max_branching_time <- as.numeric(node_df$max_branching_time)
   node_df <- node_df[order(node_df$max_branching_time, decreasing = TRUE),]
   # Add coalescent times in descending order and reorder columns
   node_df$coalescence_time <- ms_coal_ints
   node_df <- node_df[,c("node", "tip_names", "tip_numbers", "ms_tip_order", "ntips", "ndepth", "max_branching_time", "coalescence_time", "removed_taxa", "ms_input")]
+  # Order by descending coalescence time
+  node_df <- node_df[order(node_df$coalescence_time, decreasing = TRUE),]
   # Format coalescences for ms input
   node_df <- determine.coalescence.taxa(node_df)
+  # Check for duplicated times
+  node_df <- check.duplicated.coalescent.times(node_df)
   # Determine which taxa have not yet coalesced
   root_taxa <- select.noncoalesced.taxa(node_df)
-  if (length(root_taxa) == 1){
-    # Update the coalescence time of the root taxa
-    node_df$ms_input_1 <- as.numeric(unlist(lapply(strsplit(node_df$ms_input, " "), function(x){x[1]})))
-    node_df$ms_input_2 <- as.numeric(unlist(lapply(strsplit(node_df$ms_input, " "), function(x){x[2]})))
-    root_df <- node_df[which(node_df$ms_input_2 == root_taxa),]
-    root_row <- root_df[which(root_df$coalescence_time == max(root_df$coalescence_time)),]
-    # Check whether the coalescence time is smaller or equal to any other coalescence time
-    time_check <- root_row$coalescence_time > max(node_df$coalescence_time)
-    if (time_check == FALSE){
-      # Slightly increase the coalescent time/max branching time for the root
-      new_coal_time <- round(as.numeric(root_row$coalescence_time) + 0.02, digits = 6)
-      new_branch_time <- round(as.numeric(root_row$max_branching_time) + 0.02, digits = 6)
-      # Determine which row to update in the dataframe
-      row_id <- which(node_df$ms_input_1 == root_row$ms_input_1 & node_df$ms_input_2 == root_row$ms_input_2 & 
-                        node_df$coalescence_time == root_row$coalescence_time)
-      # Update the row
-      node_df$coalescence_time[row_id] <- new_coal_time
-      node_df$max_branching_time[row_id] <- new_branch_time
-    }
-  } else if (length(root_taxa) == 2){
-    # Make a new row
-    new_row <- rep(NA, 10)
-    names(new_row) <- c("node", "tip_names", "tip_numbers", "ms_tip_order", "ntips", "ndepth", "max_branching_time", "coalescence_time", "removed_taxa", "ms_input")
-    # Create a new coalescence event
-    # Specify the two species
-    new_row["ms_input"] <- paste0(max(as.numeric(root_taxa)), " ", min(as.numeric(root_taxa)))
-    new_row["max_branching_time"] <- round(as.numeric(max(node_df$max_branching_time)) + 0.02, digits = 6)
-    new_row["coalescence_time"] <- round(as.numeric(max(node_df$coalescence_time)) + 0.02, digits = 6)
-    node_df <- rbind(node_df, new_row)
-  }
+  node_df <- check.root.coalesced(root_taxa, node_df)
   
   # Check for duplicate times
   if (length(unique(node_df$coalescence_time)) != length(node_df$coalescence_time)){
@@ -402,6 +377,12 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
   output_files <- c(t_path, ms_op_path, ms_gene_trees_path)
   names(output_files) <- c("starting_tree_file", "ms_output_file", "ms_gene_tree_file")
   return(output_files)
+}
+
+
+
+check.duplicated.coalescent.times <- function(node_df){
+  ## Small function to check for duplicate coalescent events and space them out so no events occur at the same time
 }
 
 
@@ -539,7 +520,7 @@ determine.coalescence.taxa <- function(node_dataframe){
 
 
 select.noncoalesced.taxa <- function(df){
-  # Function to add root by coalescing the two remaining lineages together
+  ## Function to add root by coalescing the two remaining lineages together
   
   # Split the ms input column into two separate columns (one for the first number and one for the second number)
   df$ms_input_1 <- as.numeric(unlist(lapply(strsplit(df$ms_input, " "), function(x){x[1]})))
@@ -562,7 +543,7 @@ select.noncoalesced.taxa <- function(df){
 
 
 check.coalesced <- function(test_taxon, coalesced_taxa, df){
-  # Quick function to check whether a single taxa coalesced at the first node
+  ## Quick function to check whether a single taxa coalesced at the first node
   
   # Get the row of the dataframe where this taxon coalesced
   check_rows <- which(df$ms_input_1 == test_taxon)
@@ -600,6 +581,45 @@ check.coalesced <- function(test_taxon, coalesced_taxa, df){
   op <- c(as.character(test_taxon), coalesce, coalesced_into)
   names(op) <- c("Taxon", "Coalesced", "Coalesced_into")
   return(op)
+}
+
+
+
+check.root.coalesced <- function(root_taxa, node_df){
+  ## Function to add a final coalescence event, if there is not one 
+  
+  if (length(root_taxa) == 1){
+    # Update the coalescence time of the root taxa
+    node_df$ms_input_1 <- as.numeric(unlist(lapply(strsplit(node_df$ms_input, " "), function(x){x[1]})))
+    node_df$ms_input_2 <- as.numeric(unlist(lapply(strsplit(node_df$ms_input, " "), function(x){x[2]})))
+    root_df <- node_df[which(node_df$ms_input_2 == root_taxa),]
+    root_row <- root_df[which(root_df$coalescence_time == max(root_df$coalescence_time)),]
+    # Check whether the coalescence time is smaller or equal to any other coalescence time
+    time_check <- root_row$coalescence_time > max(node_df$coalescence_time)
+    if ( (TRUE %in% time_check) == FALSE) {
+      # Slightly increase the coalescent time/max branching time for the root
+      new_coal_time <- round(as.numeric(root_row$coalescence_time) + 0.02, digits = 6)
+      new_branch_time <- round(as.numeric(root_row$max_branching_time) + 0.02, digits = 6)
+      # Determine which row to update in the dataframe
+      row_id <- which(node_df$ms_input_1 == root_row$ms_input_1 & node_df$ms_input_2 == root_row$ms_input_2 & 
+                        node_df$coalescence_time == root_row$coalescence_time)
+      # Update the row
+      node_df$coalescence_time[row_id] <- new_coal_time
+      node_df$max_branching_time[row_id] <- new_branch_time
+    }
+  } else if (length(root_taxa) == 2){
+    # Make a new row
+    new_row <- rep(NA, 10)
+    names(new_row) <- c("node", "tip_names", "tip_numbers", "ms_tip_order", "ntips", "ndepth", "max_branching_time", "coalescence_time", "removed_taxa", "ms_input")
+    # Create a new coalescence event
+    # Specify the two species
+    new_row["ms_input"] <- paste0(max(as.numeric(root_taxa)), " ", min(as.numeric(root_taxa)))
+    new_row["max_branching_time"] <- round(as.numeric(max(node_df$max_branching_time)) + 0.02, digits = 6)
+    new_row["coalescence_time"] <- round(as.numeric(max(node_df$coalescence_time)) + 0.02, digits = 6)
+    node_df <- rbind(node_df, new_row)
+  }
+  # return the node_df
+  return(node_df)
 }
 
 
@@ -646,7 +666,7 @@ extract.genes.from.partition.file <- function(partition_path, return.dataframe =
 
 
 partition.gene.trees <- function(num_trees, gene_ranges, sequence_type, models = NA, rescaled_tree_lengths = NA, output_filepath){
-  # This function generates a charpartition file for a set of genes extracted from a partition file
+  ## This function generates a charpartition file for a set of genes extracted from a partition file
   
   # Create gene names
   gene_names <- paste0("gene_", 1:length(gene_ranges))
@@ -690,7 +710,7 @@ partition.gene.trees <- function(num_trees, gene_ranges, sequence_type, models =
 #### Functions for IQ-Tree and Alisim ####
 alisim.topology.unlinked.partition.model <- function(iqtree_path, output_alignment_path, partition_file_path, trees_path, 
                                                      output_format = "fasta", sequence_type = "DNA"){
-  # This function uses the topology-unlinked partition model in Alisim to generate a sequence alignment
+  ## This function uses the topology-unlinked partition model in Alisim to generate a sequence alignment
   #     containing multiple concatenated genes, each with its own tree topology and branch lengths
   
   # Assemble function call 
@@ -709,7 +729,7 @@ alisim.topology.unlinked.partition.model <- function(iqtree_path, output_alignme
 
 ##### Calculate tree length ####
 tree.length.ratio <- function(tree){
-  # Quick function to calculate the tree length and percentage of internal branches for any tree
+  ## Quick function to calculate the tree length and percentage of internal branches for any tree
   terminal_branch_ids <- which(tree$edge[,2] <= Ntip(tree))
   internal_branch_ids <- which(tree$edge[,2] > Ntip(tree))
   # Determine how long the sum of all terminal branches would have to be to match the parameters_row$proportion_internal_branches
