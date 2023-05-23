@@ -26,8 +26,15 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, renamed_taxa){
                               iqtree2_num_threads = df_row$iqtree2_num_threads, rename.taxa.for.ms = TRUE, renamed_taxa = renamed_taxa)
   
   # Calculate the qCFs using ASTRAL
-  
+  astral_qcfs <- qcf.wrapper(starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
+                             ASTRAL_tree = df_row$ASTRAL_tree_treefile, ML_gene_trees = df_row$iqtree2_gene_tree_treefile, 
+                             ASTRAL_path = df_row$ASTRAL)
 }
+
+
+
+
+
 
 #### Calculate distance between trees ####
 calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_dir, tree_type, rename.hypothesis.tree.tips = FALSE, renamed_taxa){
@@ -86,7 +93,33 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
 
 
 
-#### Concordance factors wrapper ####
+
+#### Quartet concordance factors ####
+qcf.wrapper <- function(starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_trees, ASTRAL_path){
+  ## Function to call ASTRAL and calculate quartet concordance factors
+  
+  ## Identify directory
+  qcf_dir <- paste0(dirame(starting_tree), "/")
+  
+  ## Calculate actual quartet concordance factors
+  actual_prefix <- "expected_qcf"
+  actual_qcf_command <- paste0("java -jar ", ASTRAL_path, " -q ", starting_tree, " -i ", ms_gene_trees,
+                               " -o ", qcf_dir, actual_prefix, ".tre 2> ", qcf_dir, actual_prefix, ".log")
+  system(actual_qcf_command)
+  
+  ## Calculate estimated quartet concordance factors
+  estimated_prefix <- "estimated_qcf"
+  estimated_qcf_command <- paste0("java -jar ", ASTRAL_path, " -q ", ASTRAL_tree, " -i ", ML_gene_trees,
+                               " -o ", qcf_dir, estimated_prefix, ".tre 2> ", qcf_dir, estimated_prefix, ".log")
+  system(estimated_qcf_command)
+  
+}
+
+
+
+
+
+#### Gene concordance factors wrapper ####
 gcf.wrapper <- function(alignment_path, iqtree2_path, iqtree2_model = NA, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, renamed_taxa){
   # Function to calculate the estimated and empirical gCF and return relevant gCFs
   
@@ -197,7 +230,8 @@ gcf.wrapper <- function(alignment_path, iqtree2_path, iqtree2_model = NA, iqtree
 
 
 
-#### Calculate concordance factors ####
+
+#### Calculate gene concordance factors ####
 extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, renamed_taxa){
   # Function to return concordance factors (calculated in iqtree), for a simulated tree
   #     gCFs estimated from the base tree supplied to ms and from the set of gene trees estimated in AliSim
@@ -355,6 +389,7 @@ iqtree2.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_nu
   names(op_vector) <- c("alignment_path", "gCF_tree_file", "gCF_branch_file", "gCF_table_file")
   return(op_vector)
 }
+
 
 
 
