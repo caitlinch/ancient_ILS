@@ -5,6 +5,15 @@
 library(ape)
 library(phangorn)
 
+#### Analysis wrapper function ####
+analysis.wrapper <- function(row_id, df){
+  # Wrapper function to calculate:
+  #   - actual and estimated gcfs (IQ-Tree)
+  #   - actual and estimated qcfs (ASTRAL)
+  #   - hypothesis tree distances for both ML and ASTRAL trees
+  
+}
+
 #### Calculate distance between trees ####
 calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_dir, tree_type, rename.hypothesis.tree.tips = FALSE, renamed_taxa){
   # Function to calculate the distance between a tree and three hypothesis trees
