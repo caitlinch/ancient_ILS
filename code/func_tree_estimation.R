@@ -20,12 +20,12 @@ estimate.trees <- function(row_id, df, call.executable.programs = FALSE){
                                            iqtree2_num_threads = df_row$iqtree2_num_threads, iqtree2_num_ufb = df_row$iqtree2_num_ufb,
                                            iqtree2_model = NA, use.partition.models = TRUE, call.iqtree2 = call.executable.programs)
   # Call ASTRAL
-  astral_output <- run.astral(unique_id = df_row$ID, gene_tree_file = iqtree2_gt_output$iqtree2_gene_tree_treefile,
+  astral_output <- run.astral(unique_id = df_row$ID, gene_tree_file = iqtree2_gt_output[["iqtree2_gene_tree_treefile"]],
                               output_directory = df_row$output_folder, astral_path = df_row$ASTRAL,
                               call.ASTRAL = call.executable.programs)
   # Assemble all output - ML tree estimation from IQ-Tree2 and summary coalescent tree estimation from ASTRAL
   output_row <- c(as.character(df_row), iqtree2_ML_output, iqtree2_gt_output, astral_output)
-  names(output_row) <- c(names(df_row), names(iqtree2_output), names(iqtree2_gt_output), names(astral_output))
+  names(output_row) <- c(names(df_row), names(iqtree2_ML_output), names(iqtree2_gt_output), names(astral_output))
   return(output_row)
 }
 
