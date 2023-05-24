@@ -112,23 +112,21 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
 
 
 #### Quartet concordance factors ####
-qcf.wrapper <- function(starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_trees, ASTRAL_path, call.astral = TRUE){
+qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_trees, ASTRAL_path, call.astral = TRUE){
   ## Function to determine expected and estimated qCF in ASTRAL and return summary statistics
   
   ## Identify directory
   qcf_dir <- paste0(dirame(starting_tree), "/")
   
   ## Calculate actual quartet concordance factors
-  actual_prefix <- "expected_qcf"
-  actual_qcf_command <- paste0("java -jar ", ASTRAL_path, " -q ", starting_tree, " -i ", ms_gene_trees,
-                               " -o ", qcf_dir, actual_prefix, ".tre 2> ", qcf_dir, actual_prefix, ".log")
-  system(actual_qcf_command)
+  expected_qcf_paths <- qcf.call(output_ID = ID, output_directory = qcf_dir, tree = starting_tree, gene_trees = ms_gene_trees,
+                                  ASTRAL_path = ASTRAL_path, call.astral = TRUE)
+  names(expected_qcf_paths) <- paste0("expected_", names(expected_qcf_paths))
   
   ## Calculate estimated quartet concordance factors
-  estimated_prefix <- "estimated_qcf"
-  estimated_qcf_command <- paste0("java -jar ", ASTRAL_path, " -q ", ASTRAL_tree, " -i ", ML_gene_trees,
-                                  " -o ", qcf_dir, estimated_prefix, ".tre 2> ", qcf_dir, estimated_prefix, ".log")
-  system(estimated_qcf_command)
+  estimated_qcf_paths <- qcf.call(output_ID = ID, output_directory = qcf_dir, tree = ASTRAL_tree, gene_trees = ML_gene_trees,
+                                  ASTRAL_path = ASTRAL_path, call.astral = TRUE)
+  names(estimated_qcf_paths) <- paste0("estimated_", names(estimated_qcf_paths))
   
 }
 
@@ -147,7 +145,7 @@ qcf.call <- function(output_ID, output_directory, tree, gene_trees, ASTRAL_path,
   }
   # Assemble output vector
   qcf_output <- c(output_ID, qcf_command, call.astral, output_tree, output_log)
-  names(qcf_output) <- c("ID", "astral_qCF_command", "astral_qCF_run", "qcf_output_tree", "qcf_output_log")
+  names(qcf_output) <- c("qcf_ID", "astral_qCF_command", "astral_qCF_run", "qcf_output_tree", "qcf_output_log")
   # Return the output
   return(qcf_output)
 }
