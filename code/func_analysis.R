@@ -27,9 +27,9 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, renamed_taxa){
                               iqtree2_num_threads = df_row$iqtree2_num_threads, rename.taxa.for.ms = TRUE, renamed_taxa = renamed_taxa)
   
   # Calculate the qCFs using ASTRAL
-  astral_qcfs <- qcf.wrapper(starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
+  astral_qcfs <- qcf.wrapper(ID = df_row$ID, starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
                              ASTRAL_tree = df_row$ASTRAL_tree_treefile, ML_gene_trees = df_row$iqtree2_gene_tree_treefile, 
-                             ASTRAL_path = df_row$ASTRAL)
+                             ASTRAL_path = df_row$ASTRAL, call.astral = TRUE)
   
   # Perform hypothesis tests in IQ-Tree
   hypothesis_tests <- ""
@@ -46,6 +46,28 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, renamed_taxa){
                                iqtree2_gcfs, astral_qcfs, hypothesis_tests)
   names(analysis_output)  <- c(names(trimmed_df_row), names(iqtree2_tree_diffs), names(astral_tree_diffs),
                                names(iqtree2_gcfs), names(astral_qcfs), names(hypothesis_tests))
+}
+
+
+
+
+
+
+
+#### Perform hypothesis tests in IQ-Tree2 ####
+perform.hypothesis.tests <- function(ID, alignment_path, hypothesis_tree_file, iqtree2_path){
+  # Function to perform hypothesis tests in IQ-Tree2 on the simulated alignment with either 2 or 3 hypothesis trees
+  
+  ## Change directories to the same directory as the alignment
+  
+  ## Assemble the IQ-Tree command and call IQ-Tree
+  
+  ## Extract output from the IQ-Tree file
+  
+  ## Format output
+  
+  ## Return output
+  
 }
 
 
