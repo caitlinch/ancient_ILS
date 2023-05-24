@@ -112,8 +112,8 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
 
 
 #### Quartet concordance factors ####
-qcf.wrapper <- function(starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_trees, ASTRAL_path){
-  ## Function to call ASTRAL and calculate quartet concordance factors
+qcf.wrapper <- function(starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_trees, ASTRAL_path, call.astral = TRUE){
+  ## Function to determine expected and estimated qCF in ASTRAL and return summary statistics
   
   ## Identify directory
   qcf_dir <- paste0(dirame(starting_tree), "/")
@@ -130,6 +130,26 @@ qcf.wrapper <- function(starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_trees
                                   " -o ", qcf_dir, estimated_prefix, ".tre 2> ", qcf_dir, estimated_prefix, ".log")
   system(estimated_qcf_command)
   
+}
+
+
+
+qcf.call <- function(output_ID, output_directory, tree, gene_trees, ASTRAL_path, call.astral = TRUE){
+  ## Function to call ASTRAL and calculate quartet concordance factors
+  
+  # Assemble ASTRAL command to calculate quartet concordance factors
+  output_tree <- paste0(output_directory, output_ID, ".tre")
+  output_log <- paste0(output_directory, output_ID, ".log")
+  qcf_command <- paste0("java -jar ", ASTRAL_path, " -q ", tree, " -i ", gene_trees, " -o ", output_tree, " 2> ", output_log)
+  # if call.astral == TRUE, run ASTRAL to calculate quartet concordance factors
+  if (call.astral == TRUE){
+    system(qcf_command)
+  }
+  # Assemble output vector
+  qcf_output <- c(output_ID, qcf_command, call.astral, output_tree, output_log)
+  names(qcf_output) <- c("ID", "astral_qCF_command", "astral_qCF_run", "qcf_output_tree", "qcf_output_log")
+  # Return the output
+  return(qcf_output)
 }
 
 
