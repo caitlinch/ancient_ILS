@@ -151,9 +151,9 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_t
                                   ASTRAL_path = ASTRAL_path, call.astral = TRUE)
   
   ## Extract relevant qCF values
-  expected_qcf_values <-  extract.qcf.values(qcf_tree = expected_qcf_paths[["qcf_output_tree"]], 
+  expected_qcf_values <-  extract.qcf.values(qcf_tree_path = expected_qcf_paths[["qcf_output_tree"]], 
                                              qcf_log_path = expected_qcf_paths[["qcf_output_log"]])
-  estimated_qcf_values <-  extract.qcf.values(qcf_tree = estimated_qcf_paths[["qcf_output_tree"]], 
+  estimated_qcf_values <-  extract.qcf.values(qcf_tree_path = estimated_qcf_paths[["qcf_output_tree"]], 
                                               qcf_log_path = estimated_qcf_paths[["qcf_output_log"]])
   
   ## Assemble output
@@ -204,10 +204,51 @@ extract.qcf.values <- function(qcf_tree_path, qcf_log_path){
   normalised_quartet_score <- gsub(" ", "", unlist(strsplit(log_lines[normalised_quartet_score_ind], ":"))[2])
   
   ## Open the tree and extract quartet concordance factors for specific branches
+  # Read in the qcf output tree
+  qcf_tree <- read.tree(file = qcf_tree_path)
+  # Extract the node labels (i.e. qCF values) from the qCF tree
+  node_labs <- qcf_tree$node.label
+  # Find the "a" branch and the "b" branch
+  if (grepl("h1", basename(qcf_tree_path)) == TRUE){
+    # Extract the nodes by checking for monophyletic clades
+    a_end <- getMRCA(qcf_tree, c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+                               "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38",
+                               "39", "40"))
+    a_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == a_end),1]
+    b_end <- getMRCA(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
+                               "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
+    b_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == b_end),1]
+  } else if (grepl("h2", basename(qcf_tree_path)) == TRUE){
+    a_end <- getMRCA(qcf_tree, c("22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"))
+    a_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == a_end),1]
+    b_end <- getMRCA(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
+                               "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
+    b_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == b_end),1]
+  } else if (grepl("h3", basename(qcf_tree_path)) == TRUE){
+    a_end <- getMRCA(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
+                               "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "22", "23", "24", "25", "26", "27",
+                               "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"))
+    a_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == a_end),1]
+    b_end <- getMRCA(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
+                               "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
+    b_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == b_end),1]
+  }
+  # Extract information from those two branches
+  qcf_branch_a <- node_labs[a_end-Ntip(qcf_tree)]
+  qcf_branch_b <- node_labs[b_end-Ntip(qcf_tree)]
+  qcf_mean <- mean(as.numeric(node_labs), na.rm = TRUE)
+  qcf_median <- median(as.numeric(node_labs), na.rm = TRUE)
+  qcf_min <- min(as.numeric(node_labs), na.rm = TRUE)
+  qcf_max <- min(as.numeric(node_labs), na.rm = TRUE)
   
   ## Assemble the output
-  qcf_extracted <- c(num_quartet_trees, final_quartet_score, normalised_quartet_score)
-  names(qcf_extracted) <- c("num_quartet_trees", "final_quartet_score", "final_normalised_quartet_score")
+  qcf_extracted <- c(num_quartet_trees, final_quartet_score, normalised_quartet_score,
+                     qcf_mean, qcf_median, qcf_min, qcf_max, qcf_branch_a, qcf_branch_b)
+  names(qcf_extracted) <- c("num_quartet_trees", "final_quartet_score", "final_normalised_quartet_score",
+                            "qcf_mean", "qcf_median", "qcf_min", "qcf_max", "qcf_branch_a", "qcf_branch_b")
+  
+  ## Return the qCF values 
+  return(qcf_extracted)
 }
 
 
