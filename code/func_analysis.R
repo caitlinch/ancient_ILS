@@ -141,12 +141,12 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_t
   qcf_dir <- paste0(dirame(starting_tree), "/")
   
   ## Calculate actual quartet concordance factors
-  expected_qcf_paths <- qcf.call(output_ID = ID, output_directory = qcf_dir, tree = starting_tree, gene_trees = ms_gene_trees,
+  expected_qcf_paths <- qcf.call(output_id = paste0(ID, "_expected_qcfs"), output_directory = qcf_dir, tree = starting_tree, gene_trees = ms_gene_trees,
                                   ASTRAL_path = ASTRAL_path, call.astral = TRUE)
   names(expected_qcf_paths) <- paste0("expected_", names(expected_qcf_paths))
   
   ## Calculate estimated quartet concordance factors
-  estimated_qcf_paths <- qcf.call(output_ID = ID, output_directory = qcf_dir, tree = ASTRAL_tree, gene_trees = ML_gene_trees,
+  estimated_qcf_paths <- qcf.call(output_id = paste0(ID, "_estimated_qcfs"), output_directory = qcf_dir, tree = ASTRAL_tree, gene_trees = ML_gene_trees,
                                   ASTRAL_path = ASTRAL_path, call.astral = TRUE)
   names(estimated_qcf_paths) <- paste0("estimated_", names(estimated_qcf_paths))
   
@@ -154,19 +154,19 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_t
 
 
 
-qcf.call <- function(output_ID, output_directory, tree, gene_trees, ASTRAL_path, call.astral = TRUE){
+qcf.call <- function(output_id, output_directory, tree, gene_trees, ASTRAL_path, call.astral = TRUE){
   ## Function to call ASTRAL and calculate quartet concordance factors
   
   # Assemble ASTRAL command to calculate quartet concordance factors
-  output_tree <- paste0(output_directory, output_ID, ".tre")
-  output_log <- paste0(output_directory, output_ID, ".log")
+  output_tree <- paste0(output_directory, output_id, ".tre")
+  output_log <- paste0(output_directory, output_id, ".log")
   qcf_command <- paste0("java -jar ", ASTRAL_path, " -q ", tree, " -i ", gene_trees, " -o ", output_tree, " 2> ", output_log)
   # if call.astral == TRUE, run ASTRAL to calculate quartet concordance factors
   if (call.astral == TRUE){
     system(qcf_command)
   }
   # Assemble output vector
-  qcf_output <- c(output_ID, qcf_command, call.astral, output_tree, output_log)
+  qcf_output <- c(output_id, qcf_command, call.astral, output_tree, output_log)
   names(qcf_output) <- c("qcf_ID", "astral_qCF_command", "astral_qCF_run", "qcf_output_tree", "qcf_output_log")
   # Return the output
   return(qcf_output)
