@@ -56,6 +56,8 @@ extract.length.ratio        <- FALSE
 #### 2. Open packages and functions ####
 ## Open packages
 library(ape)
+library(phangorn)
+library(phytools)
 
 ## Source functions
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
@@ -237,10 +239,10 @@ write.csv(lba_df, file = paste0(output_dir, "test_lba_parameters.csv"), row.name
 ## Assemble the dataframes into one
 sim_df <- rbind(lba_df, ils_df)
 # # To generate one simulated alignment
-# generate.one.alignment(sim_row = sim_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
+# generate.one.alignment(sim_row = sim_df[1,], renamed_taxa = simulation_taxa_names, gene_models = alisim_gene_models)
 # To generate all simulated alignments
 output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, 
-                      partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
+                      gene_models = alisim_gene_models, rerun = FALSE)
 output_df <- as.data.frame(do.call(rbind, output_list))
 # Save output dataframe
 write.csv(output_df, file = paste0(output_dir, "test_generate_alignments.csv"), row.names = FALSE)

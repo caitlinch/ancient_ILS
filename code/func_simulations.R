@@ -8,7 +8,7 @@ library(phytools)
 
 
 #### Functions to run the simulation pipeline ####
-generate.one.alignment.wrapper <- function(row_id, sim_df, renamed_taxa, partition_path, gene_models, rerun = FALSE){
+generate.one.alignment.wrapper <- function(row_id, sim_df, renamed_taxa, gene_models, rerun = FALSE){
   ## Wrapper to easily run generate.one.alignment via dataframe rows
   
   # Apply generate.one.alignment to a single row
