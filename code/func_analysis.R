@@ -170,26 +170,12 @@ qcf.call <- function(output_id, output_directory, tree_path, gene_trees_path, AS
   ## Function to call ASTRAL and calculate quartet concordance factors
   
   ## Check whether the tree tips match
-  test_tree <- read.tree(tree_path)
-  tree_tips <- test_tree$tip.label
-  if (TRUE %in% grepl("t", tree_tips)){
-    # Replace tree tips without "t"
-    new_tree_tips <- gsub("t", "", tree_tips)
-    # Replace tree tips in original tree
-    test_tree$tip.label <- new_tree_tips
-    # Create new file path
-    split_path <- unlist(strsplit(basename(tree_path), "\\."))
-    relabelled_tree_path <- paste0(dirname(tree_path), paste(head(split_path, (length(split_path) - 1)), collapse = "."), "_relabelled.", tail(split_path, 1))
-    # Save the relabelled tree
-    write.tree(test_tree, file = relabelled_tree_path)
-  } else {
-    relabelled_tree_path <- tree_path
-  }
+  qcf_tree_path <- check.tip.labels(tree_path)
   
   # Assemble ASTRAL command to calculate quartet concordance factors
   output_tree <- paste0(output_directory, output_id, ".tre")
   output_log <- paste0(output_directory, output_id, ".log")
-  qcf_command <- paste0("java -jar ", ASTRAL_path, " -q ", tree_path, " -i ", gene_trees_path, " -o ", output_tree, " 2> ", output_log)
+  qcf_command <- paste0("java -jar ", ASTRAL_path, " -q ", qcf_tree_path, " -i ", gene_trees_path, " -o ", output_tree, " 2> ", output_log)
   # if call.astral == TRUE, run ASTRAL to calculate quartet concordance factors
   if (call.astral == TRUE){
     system(qcf_command)
