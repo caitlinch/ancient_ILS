@@ -99,10 +99,11 @@ perform.hypothesis.tests <- function(ID, alignment_path, hypothesis_tree_file, i
   
   ## Change directories to the same directory as the alignment
   alignment_directory <- paste0(dirname(alignment_path), "/")
+  setwd(alignment_directory)
   
   ## Assemble the IQ-Tree command and call IQ-Tree
-  test_command <- paste0(iqtree2_path)
-  
+  test_command <- paste0(iqtree2_path, " -s ", alignment_path, " -z ", hypothesis_tree_file, " -n 0 -zb 1000 -zw -au -nt ", iqtree2_num_threads, " -pre ", ID)
+  system(test_command)
   
   ## Extract output from the IQ-Tree file
   
