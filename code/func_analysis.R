@@ -35,7 +35,7 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.hypothe
   # Extract all files from folder
   all_files <- list.files(hypothesis_tree_dir)
   # Extract hypothesis tree files
-  if (test.three.hypothesis.trees = TRUE){
+  if (test.three.hypothesis.trees == TRUE){
     # Test all three hypothesis trees
     astral_hyp_trees <- paste0(hypothesis_tree_dir, grep("ASTRAL_hypothesis_trees_relabelled_tbl", all_files, value = TRUE))
     ml_hyp_trees <- paste0(hypothesis_tree_dir, grep("ML_hypothesis_trees_relabelled", all_files, value = TRUE))
