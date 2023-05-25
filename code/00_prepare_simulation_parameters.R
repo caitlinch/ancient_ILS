@@ -250,7 +250,7 @@ write.csv(output_df, file = paste0(output_dir, "test_generate_alignments.csv"), 
 
 #### 7. Estimate trees ####
 # Call function to estimate all trees
-tree_list <- lapply(1:nrow(output_df), estimate.trees, df = output_df, call.executable.programs = FALSE)
+tree_list <- lapply(1:nrow(output_df), estimate.trees, df = output_df, call.executable.programs = TRUE)
 tree_df <- as.data.frame(do.call(rbind, tree_list))
 # Save output dataframe
 write.csv(tree_df, file = paste0(output_dir, "test_generate_trees.csv"), row.names = FALSE)
