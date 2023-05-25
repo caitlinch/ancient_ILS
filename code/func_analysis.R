@@ -9,7 +9,7 @@ library(phangorn)
 analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.hypothesis.trees = TRUE, renamed_taxa){
   # Wrapper function to calculate:
   #   - [x] actual and estimated gcfs (IQ-Tree)
-  #   - [ ] actual and estimated qcfs (ASTRAL)
+  #   - [x] actual and estimated qcfs (ASTRAL)
   #   - [x] hypothesis tree distances for both ML and ASTRAL trees
   #   - [ ] hypothesis tests in IQ-Tree to see if any hypothesis can be ignored for this alignment
   
@@ -45,10 +45,23 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.hypothe
     ml_hyp_trees <- paste0(hypothesis_tree_dir, grep("ML_hypothesis_trees_2tree_relabelled", all_files, value = TRUE))
   }
   astral_hyp_tests <- perform.hypothesis.tests(ID = paste0(df_row$ID, "_ASTRAL_hyps"), alignment_path = df_row$output_alignment_file, hypothesis_tree_file = astral_hyp_trees,
-                                               iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads)
+                                               iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads, iqtree2_model = df_row$ML_tree_estimation_models)
   ml_hyp_tests <- perform.hypothesis.tests(ID = paste0(df_row$ID, "_ML_hyps"), alignment_path = df_row$output_alignment_file, hypothesis_tree_file = ml_hyp_trees,
-                                           iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads)
-  hypothesis_tests <- ""
+                                           iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads, iqtree2_model = df_row$ML_tree_estimation_models)
+  hypothesis_tests <- c(astral_hyp_tests[["t1_logL"]], astral_hyp_tests[["t2_logL"]], astral_hyp_tests[["t3_logL"]],
+                        astral_hyp_tests[["t1_deltaL"]], astral_hyp_tests[["t2_deltaL"]], astral_hyp_tests[["t3_deltaL"]],
+                        astral_hyp_tests[["t1_bpRELL"]], astral_hyp_tests[["t2_bpRELL"]], astral_hyp_tests[["t3_bpRELL"]],
+                        astral_hyp_tests[["t1_cELW"]], astral_hyp_tests[["t2_cELW"]], astral_hyp_tests[["t3_cELW"]],
+                        astral_hyp_tests[["t1_pAU"]], astral_hyp_tests[["t2_pAU"]], astral_hyp_tests[["t3_pAU"]],
+                        ml_hyp_tests[["t1_logL"]], ml_hyp_tests[["t2_logL"]], astral_hyp_tests[["t3_logL"]],
+                        ml_hyp_tests[["t1_deltaL"]], ml_hyp_tests[["t2_deltaL"]], ml_hyp_tests[["t3_deltaL"]],
+                        ml_hyp_tests[["t1_bpRELL"]], ml_hyp_tests[["t2_bpRELL"]], ml_hyp_tests[["t3_bpRELL"]],
+                        ml_hyp_tests[["t1_cELW"]], ml_hyp_tests[["t2_cELW"]], ml_hyp_tests[["t3_cELW"]],
+                        ml_hyp_tests[["t1_pAU"]], ml_hyp_tests[["t2_pAU"]], ml_hyp_tests[["t3_pAU"]])
+  trimmed_hypothesis_test_names <- c("t1_logL", "t2_logL", "t3_logL", "t1_deltaL", "t2_deltaL", "t3_deltaL",
+                                     "t1_bpRELL", "t2_bpRELL", "t3_bpRELL", "t1_cELW", "t2_cELW", "t3_cELW",
+                                     "t1_pAU", "t2_pAU", "t3_pAU")
+  names(hypothesis_tests) <- c(paste0("ASTRAL_hyp_", trimmed_hypothesis_test_names), paste0("ML_hyp_", trimmed_hypothesis_test_names))
   
   ## Get maximum branching time for ASTRAl and IQ-Tree trees
   # Root all trees at Monosiga ovata (label = "72") - so that if the 5 outgroup species are paraphyletic, the tree depths are still comparable
@@ -98,7 +111,7 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.hypothe
 
 
 #### Perform hypothesis tests in IQ-Tree2 ####
-perform.hypothesis.tests <- function(ID, alignment_path, hypothesis_tree_file, iqtree2_path, iqtree2_num_threads){
+perform.hypothesis.tests <- function(ID, alignment_path, hypothesis_tree_file, iqtree2_path, iqtree2_num_threads, iqtree2_model = NA){
   # Function to perform hypothesis tests in IQ-Tree2 on the simulated alignment with either 2 or 3 hypothesis trees
   
   ## Change directories to the same directory as the alignment
@@ -106,15 +119,74 @@ perform.hypothesis.tests <- function(ID, alignment_path, hypothesis_tree_file, i
   setwd(alignment_directory)
   
   ## Assemble the IQ-Tree command and call IQ-Tree
-  test_command <- paste0(iqtree2_path, " -s ", alignment_path, " -z ", hypothesis_tree_file, " -n 0 -zb 1000 -zw -au -nt ", iqtree2_num_threads, " -pre ", ID)
+  # Specify model, if one is provided
+  if (is.na(iqtree_model) == TRUE){
+    model_code = "MFP"
+  } else {
+    model_code <- iqtree2_model
+  }
+  test_command <- paste0(iqtree2_path, " -s ", alignment_path, " -z ", hypothesis_tree_file, " -m ", model_code,
+                         " -n 0 -zb 10000 -zw -au -nt ", iqtree2_num_threads, " -pre ", ID)
   system(test_command)
   
   ## Extract output from the IQ-Tree file
+  # List all files in the directory
+  all_files <- list.files(alignment_directory)
+  # Find .iqtree file
+  htest_files <- grep(ID, all_files, value = TRUE)
+  htest_iqfile <- paste0(alignment_directory, grep("\\.iqtree", htest_files, value = TRUE))
+  htest_trees <- paste0(alignment_directory, grep("\\.trees", htest_files, value = TRUE))
+  # Open .iqtree file
+  iq_lines <- readLines(htest_iqfile)
+  # Find headings for table
+  header_ind <- intersect(intersect(grep("Tree", iq_lines), grep("logL", iq_lines)), 
+                          intersect(grep("p-AU", iq_lines), grep("bp-RELL", iq_lines)) )
+  # Split lines for trees into components 
+  t1_line <- iq_lines[header_ind+2]
+  t2_line <- iq_lines[header_ind+3]
+  t3_line <- iq_lines[header_ind+4]
+  t1_split_raw <- unlist(strsplit(t1_line, " "))
+  t2_split_raw <- unlist(strsplit(t2_line, " "))
+  t3_split_raw <- unlist(strsplit(t3_line, " "))
+  # Remove strings - "", "-", "_", "+"
+  t1_split <- gsub("+","_", t1_split_raw, fixed = TRUE)
+  t1_split <- t1_split[which(t1_split != "")]
+  t1_split <- t1_split[which(t1_split != "_")]
+  t1_split <- t1_split[which(t1_split != "-")]
+  t2_split <- gsub("+","_", t2_split_raw, fixed = TRUE)
+  t2_split <- t2_split[which(t2_split != "")]
+  t2_split <- t2_split[which(t2_split != "_")]
+  t2_split <- t2_split[which(t2_split != "-")]
+  t3_split <- gsub("+","_", t3_split_raw, fixed = TRUE)
+  t3_split <- t3_split[which(t3_split != "")]
+  t3_split <- t3_split[which(t3_split != "_")]
+  t3_split <- t3_split[which(t3_split != "-")]
   
   ## Format output
-  
+  # Assemble output
+  test_output <- c(t1_split[2], t2_split[2], t3_split[2],
+                   t1_split[3], t2_split[3], t3_split[3],
+                   t1_split[4], t2_split[4], t3_split[4],
+                   t1_split[5], t2_split[5], t3_split[5],
+                   t1_split[6], t2_split[6], t3_split[6],
+                   t1_split[7], t2_split[7], t3_split[7],
+                   t1_split[8], t2_split[8], t3_split[8],
+                   t1_split[9], t2_split[9], t3_split[9],
+                   t1_split[10], t2_split[10], t3_split[10],
+                   htest_trees)
+  output_names <- c("t1_logL", "t2_logL", "t3_logL",
+                    "t1_deltaL", "t2_deltaL", "t3_deltaL",
+                    "t1_bpRELL", "t2_bpRELL", "t3_bpRELL",
+                    "t1_pKH", "t2_pKH", "t3_pKH",
+                    "t1_pSH", "t2_pSH", "t3_pSH",
+                    "t1_pWKH", "t2_pWKH", "t3_pWKH",
+                    "t1_pWSH", "t2_pWSH", "t3_pWSH",
+                    "t1_cELW", "t2_cELW", "t3_cELW",
+                    "t1_pAU", "t2_pAU", "t3_pAU",
+                    "trees")   
+  names(test_output) <- output_names
   ## Return output
-  
+  return(test_output)
 }
 
 
