@@ -150,6 +150,17 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_t
                                   ASTRAL_path = ASTRAL_path, call.astral = TRUE)
   names(estimated_qcf_paths) <- paste0("estimated_", names(estimated_qcf_paths))
   
+  ## Extract relevant qCF values
+  
+  
+  ## Assemble output
+  qcf_output <- c(expected_qcf_paths,
+                  estimated_qcf_paths)
+  names(qcf_output) <- c(paste0("expected_", names(expected_qcf_paths)), 
+                         paste0("estimated_", names(estimated_qcf_paths)))
+  
+  ## Return output
+  return(qcf_output)
 }
 
 
