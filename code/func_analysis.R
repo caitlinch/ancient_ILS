@@ -177,7 +177,7 @@ qcf.call <- function(output_id, output_directory, tree_path, gene_trees_path, AS
   output_log <- paste0(output_directory, output_id, ".log")
   qcf_command <- paste0("java -jar ", ASTRAL_path, " -q ", qcf_tree_path, " -i ", gene_trees_path, " -o ", output_tree, " 2> ", output_log)
   # if call.astral == TRUE, run ASTRAL to calculate quartet concordance factors
-  if (call.astral == TRUE){
+  if ((call.astral == TRUE) & (file.exists(output_tree) == FALSE) & (file.exists(output_log) == FALSE)){
     system(qcf_command)
   }
   # Assemble output vector
