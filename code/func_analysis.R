@@ -505,25 +505,29 @@ generate.gcf.partition.file <- function(partition_file){
 check.tip.labels <- function(tree_path){
   # Function to ensure tip labels in gene trees and trees match before calculating qCF values
   
-  # Open tree and get tip labels  
-  test_tree <- read.tree(tree_path)
-  tree_tips <- test_tree$tip.label
-  # Check if tip labels have a "t" in them - e.g. "t72"
-  if (TRUE %in% grepl("t", tree_tips)){
-    # Replace tree tips without "t"
-    new_tree_tips <- gsub("t", "", tree_tips)
-    # Replace tree tips in original tree
-    test_tree$tip.label <- new_tree_tips
-    # Create new file path
-    split_path <- unlist(strsplit(basename(tree_path), "\\."))
-    relabelled_tree_path <- paste0(dirname(tree_path), "/",
-                                   paste(head(split_path, (length(split_path) - 1)), collapse = "."), 
-                                   "_relabelled.", 
-                                   tail(split_path, 1))
-    # Save the relabelled tree
-    write.tree(test_tree, file = relabelled_tree_path)
-  } else {
-    relabelled_tree_path <- tree_path
+  # Create new file path
+  split_path <- unlist(strsplit(basename(tree_path), "\\."))
+  relabelled_tree_path <- paste0(dirname(tree_path), "/",
+                                 paste(head(split_path, (length(split_path) - 1)), collapse = "."), 
+                                 "_relabelled.", 
+                                 tail(split_path, 1))
+  # If the file path already exists, skip the rest of this section. 
+  # Otherwise, open the tree and edit the tip labels
+  if (file.exists(relabelled_tree_path) == FALSE){
+    # Open tree and get tip labels  
+    test_tree <- read.tree(tree_path)
+    tree_tips <- test_tree$tip.label
+    # Check if tip labels have a "t" in them - e.g. "t72"
+    if (TRUE %in% grepl("t", tree_tips)){
+      # Replace tree tips without "t"
+      new_tree_tips <- gsub("t", "", tree_tips)
+      # Replace tree tips in original tree
+      test_tree$tip.label <- new_tree_tips
+      # Save the relabelled tree
+      write.tree(test_tree, file = relabelled_tree_path)
+    } else {
+      relabelled_tree_path <- tree_path
+    }
   }
   # Return the relabelled tree path and use that to calculate qcfs
   return(relabelled_tree_path)
