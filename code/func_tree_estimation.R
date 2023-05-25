@@ -116,9 +116,9 @@ estimate.gene.trees <- function(alignment_path, partition_path, unique_id, uniqu
   
   ## Return the output files
   # Assemble iqtree2 file filepaths
-  gt_tree_file <- paste0(dirname(alignment_path), gt_prefix, ".treefile")
-  gt_iqtree_file <- paste0(dirname(alignment_path), gt_prefix, ".iqtree")
-  gt_log_file <- paste0(dirname(alignment_path), gt_prefix, ".log")
+  gt_tree_file <- paste0(dirname(alignment_path), "/", gt_prefix, ".treefile")
+  gt_iqtree_file <- paste0(dirname(alignment_path), "/", gt_prefix, ".iqtree")
+  gt_log_file <- paste0(dirname(alignment_path), "/", gt_prefix, ".log")
   
   # Assemble output
   output_vec <- c(alignment_path, partition_path, gt_prefix, gt_model, 
@@ -200,9 +200,9 @@ run.iqtree2 <- function(alignment_path, unique_id, unique.output.path = TRUE, iq
   
   ## Return the output files
   # Assemble iqtree2 file filepaths
-  output_tree_file <- paste0(dirname(alignment_path), output_prefix, ".treefile")
-  output_iqtree_file <- paste0(dirname(alignment_path), output_prefix, ".iqtree")
-  output_log_file <- paste0(dirname(alignment_path), output_prefix, ".log")
+  output_tree_file <- paste0(dirname(alignment_path), "/", output_prefix, ".treefile")
+  output_iqtree_file <- paste0(dirname(alignment_path), "/", output_prefix, ".iqtree")
+  output_log_file <- paste0(dirname(alignment_path), "/", output_prefix, ".log")
   
   # Assemble output
   output_vec <- c(alignment_path, output_prefix, output_model, iqtree2_call, call.iqtree2, output_tree_file, output_iqtree_file, output_log_file)
