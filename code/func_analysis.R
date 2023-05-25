@@ -44,6 +44,10 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.hypothe
     astral_hyp_trees <- paste0(hypothesis_tree_dir, grep("ASTRAL_hypothesis_trees_2tree_relabelled_tbl", all_files, value = TRUE))
     ml_hyp_trees <- paste0(hypothesis_tree_dir, grep("ML_hypothesis_trees_2tree_relabelled", all_files, value = TRUE))
   }
+  astral_hyp_tests <- perform.hypothesis.tests(ID = paste0(df_row$ID, "_ASTRAL_hyps"), alignment_path = df_row$output_alignment_file, hypothesis_tree_file = astral_hyp_trees,
+                                               iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads)
+  ml_hyp_tests <- perform.hypothesis.tests(ID = paste0(df_row$ID, "_ML_hyps"), alignment_path = df_row$output_alignment_file, hypothesis_tree_file = ml_hyp_trees,
+                                           iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads)
   hypothesis_tests <- ""
   
   ## Get maximum branching time for ASTRAl and IQ-Tree trees
@@ -255,25 +259,25 @@ extract.qcf.values <- function(qcf_tree_path, qcf_log_path){
   if (grepl("h1", basename(qcf_tree_path)) == TRUE){
     # Extract the nodes by checking for monophyletic clades
     a_end <- getMRCA(qcf_tree, c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
-                               "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38",
-                               "39", "40"))
+                                 "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38",
+                                 "39", "40"))
     a_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == a_end),1]
     b_end <- getMRCA(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
-                               "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
+                                 "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
     b_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == b_end),1]
   } else if (grepl("h2", basename(qcf_tree_path)) == TRUE){
     a_end <- getMRCA(qcf_tree, c("22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"))
     a_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == a_end),1]
     b_end <- getMRCA(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
-                               "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
+                                 "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
     b_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == b_end),1]
   } else if (grepl("h3", basename(qcf_tree_path)) == TRUE){
     a_end <- getMRCA(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
-                               "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "22", "23", "24", "25", "26", "27",
-                               "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"))
+                                 "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "22", "23", "24", "25", "26", "27",
+                                 "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"))
     a_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == a_end),1]
     b_end <- getMRCA(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
-                               "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
+                                 "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
     b_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == b_end),1]
   }
   # Extract information from those two branches
