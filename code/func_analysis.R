@@ -13,39 +13,66 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, renamed_taxa){
   #   - [x] hypothesis tree distances for both ML and ASTRAL trees
   #   - [ ] hypothesis tests in IQ-Tree to see if any hypothesis can be ignored for this alignment
   
-  # Open the row of interest
+  ## Open the row of interest
   df_row <- df[row_id, ]
   
-  # Calculate the differences between the three trees
+  ## Calculate the differences between the three trees
   iqtree2_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$ML_tree_treefile, hypothesis_tree_dir, tree_type = "ML", 
                                                                rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
   astral_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$ASTRAL_tree_treefile, hypothesis_tree_dir, tree_type = "ASTRAL", 
                                                               rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
   
-  # Calculate the gCFs using IQ-Tree
+  ## Calculate the gCFs using IQ-Tree
   iqtree2_gcfs <- gcf.wrapper(alignment_path = df_row$output_alignment_file, iqtree2_path = df_row$iqtree2, iqtree2_model = NA,
                               iqtree2_num_threads = df_row$iqtree2_num_threads, rename.taxa.for.ms = TRUE, renamed_taxa = renamed_taxa)
   
-  # Calculate the qCFs using ASTRAL
+  ## Calculate the qCFs using ASTRAL
   astral_qcfs <- qcf.wrapper(ID = df_row$ID, starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
                              ASTRAL_tree = df_row$ASTRAL_tree_treefile, ML_gene_trees = df_row$iqtree2_gene_tree_treefile, 
                              ASTRAL_path = df_row$ASTRAL, call.astral = TRUE)
   
-  # Perform hypothesis tests in IQ-Tree
+  ## Perform hypothesis tests in IQ-Tree
   hypothesis_tests <- ""
   
-  # Trim unwanted columns
+  ## Get maximum branching time for ASTRAl and IQ-Tree trees
+  # Root all trees at Monosiga ovata (label = "72") - so that if the 5 outgroup species are paraphyletic, the tree depths are still comparable
+  # Extract branching times and tree length for ML tree
+  ml_tree <- read.tree(df_row$ML_tree_treefile)
+  ml_tree <- root(ml_tree, "72")
+  mbt_ML_tree <- max(branching.times(ml_tree))
+  length_ML_tree <- extract.tree.length(ml_tree)
+  names(length_ML_tree) <- paste0("ML_", names(length_ML_tree))
+  # Extract branching times and tree length for ASTRAL tree
+  astral_tree <- read.tree(df_row$ASTRAL_tree_treefile)
+  astral_tree <- root(astral_tree, "72")
+  mbt_astral_tree <- max(branching.times(astral_tree))
+  length_astral_tree <- extract.tree.length(astral_tree)
+  names(length_astral_tree) <- paste0("ASTRAL_", names(length_astral_tree))
+  # Compile output
+  length_op <- c(mbt_ML_tree, length_ML_tree, 
+                 mbt_astral_tree, length_astral_tree)
+  names(length_op) <- c("ML_tree_max_branching_time", names(length_ML_tree),
+                        "ASTRAL_tree_max_branching_time", names(length_astral_tree))
+  
+  ## Trim unwanted columns
   trimmed_df_row <- df_row[, c("dataset", "dataset_type", "ID", "output_folder", "simulation_number", "simulation_type",
                                "hypothesis_tree", "replicates", "num_taxa", "num_genes", "gene_length", "num_sites",
                                "ML_tree_estimation_models", "branch_a_length", "branch_b_length", "branch_c_length",
                                "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
                                "branch_outgroup_length", "branch_porifera_length", "total_tree_length",
                                "sum_internal_branch_lengths", "percentage_internal_branch_lengths")]
-  # Assemble output vector
-  analysis_output         <- c(as.character(trimmed_df_row), iqtree2_tree_diffs, astral_tree_diffs,
-                               iqtree2_gcfs, astral_qcfs, hypothesis_tests)
-  names(analysis_output)  <- c(names(trimmed_df_row), names(iqtree2_tree_diffs), names(astral_tree_diffs),
-                               names(iqtree2_gcfs), names(astral_qcfs), names(hypothesis_tests))
+  ## Assemble output vector
+  analysis_output         <- c(as.character(trimmed_df_row), length_op,
+                               iqtree2_tree_diffs, astral_tree_diffs,
+                               iqtree2_gcfs, astral_qcfs, 
+                               hypothesis_tests)
+  names(analysis_output)  <- c(names(trimmed_df_row), names(length_op),
+                               names(iqtree2_tree_diffs), names(astral_tree_diffs),
+                               names(iqtree2_gcfs), names(astral_qcfs), 
+                               names(hypothesis_tests))
+  
+  ## Return the output
+  return(analysis_output)
 }
 
 
@@ -589,5 +616,23 @@ check.tip.labels <- function(tree_path){
   }
   # Return the relabelled tree path and use that to calculate qcfs
   return(relabelled_tree_path)
+}
+
+
+extract.tree.length <- function(tree){
+  ## Quick function to calculate the tree length and percentage of internal branches for any tree
+  terminal_branch_ids <- which(tree$edge[,2] <= Ntip(tree))
+  internal_branch_ids <- which(tree$edge[,2] > Ntip(tree))
+  # Determine how long the sum of all terminal branches would have to be to match the parameters_row$proportion_internal_branches
+  current_tree_length <- sum(tree$edge.length)
+  current_external_length <- sum(tree$edge.length[terminal_branch_ids])
+  current_internal_length <- sum(tree$edge.length[internal_branch_ids])
+  # Calculate percentage
+  percentage_internal_length <- current_internal_length / current_tree_length * 100
+  # Assemble output
+  op_vec <- c(current_tree_length, current_internal_length, percentage_internal_length)
+  names(op_vec) <- c("total_tree_length", "sum_internal_branch_lengths", "percentage_internal_branch_lengths")
+  # Return output
+  return(op_vec)
 }
 
