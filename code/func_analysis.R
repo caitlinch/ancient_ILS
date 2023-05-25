@@ -142,22 +142,21 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_t
   
   ## Calculate actual quartet concordance factors
   expected_qcf_paths <- qcf.call(output_id = paste0(ID, "_expected_qcfs"), output_directory = qcf_dir, tree = starting_tree, gene_trees = ms_gene_trees,
-                                  ASTRAL_path = ASTRAL_path, call.astral = TRUE)
-  names(expected_qcf_paths) <- paste0("expected_", names(expected_qcf_paths))
+                                 ASTRAL_path = ASTRAL_path, call.astral = TRUE)
   
   ## Calculate estimated quartet concordance factors
   estimated_qcf_paths <- qcf.call(output_id = paste0(ID, "_estimated_qcfs"), output_directory = qcf_dir, tree = ASTRAL_tree, gene_trees = ML_gene_trees,
                                   ASTRAL_path = ASTRAL_path, call.astral = TRUE)
-  names(estimated_qcf_paths) <- paste0("estimated_", names(estimated_qcf_paths))
   
   ## Extract relevant qCF values
-  
+  expected_qcf_values <-  extract.qcf.values(qcf_tree = expected_qcf_paths[["qcf_output_tree"]])
+  estimated_qcf_values <-  extract.qcf.values(qcf_tree = estimated_qcf_paths[["qcf_output_tree"]])
   
   ## Assemble output
-  qcf_output <- c(expected_qcf_paths,
-                  estimated_qcf_paths)
-  names(qcf_output) <- c(paste0("expected_", names(expected_qcf_paths)), 
-                         paste0("estimated_", names(estimated_qcf_paths)))
+  qcf_output <- c(expected_qcf_paths, expected_qcf_values,
+                  estimated_qcf_paths, estimated_qcf_values)
+  names(qcf_output) <- c(paste0("expected_", names(expected_qcf_paths)), paste0("expected_", names(expected_qcf_values)),
+                         paste0("estimated_", names(estimated_qcf_paths)), paste0("estimated_", names(estimated_qcf_values)))
   
   ## Return output
   return(qcf_output)
@@ -181,6 +180,12 @@ qcf.call <- function(output_id, output_directory, tree, gene_trees, ASTRAL_path,
   names(qcf_output) <- c("qcf_ID", "astral_qCF_command", "astral_qCF_run", "qcf_output_tree", "qcf_output_log")
   # Return the output
   return(qcf_output)
+}
+
+
+
+extract.qcf.values <- function(qcf_tree){
+  ## Function to open a qCF tree, extract the values of interest and return some summary statistics
 }
 
 
