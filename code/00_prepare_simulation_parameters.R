@@ -238,8 +238,6 @@ write.csv(lba_df, file = paste0(output_dir, "test_lba_parameters.csv"), row.name
 #### 6. Generate simulated alignments ####
 ## Assemble the dataframes into one
 sim_df <- rbind(lba_df, ils_df)
-# # To generate one simulated alignment
-# generate.one.alignment(sim_row = sim_df[1,], renamed_taxa = simulation_taxa_names, rerun = FALSE)
 # To generate all simulated alignments
 output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, rerun = FALSE)
 output_df <- as.data.frame(do.call(rbind, output_list))
@@ -258,33 +256,11 @@ write.csv(tree_df, file = paste0(output_dir, "test_generate_trees.csv"), row.nam
 
 
 #### 8. Conduct analysis ####
-# wrapper function to calculate actual and estimated gcfs, actual and estimated qcfs, and tree distances for both ML and ASTRAL trees
-
-if (estimate.gCF == TRUE){
-  # Read in the output from the previous step
-  tree_df <- read.csv(tree_df_op_file)
-  # Iterate through each of the provided models for the ML tree estimation
-  for (m in ML_tree_estimation_models){
-    # Create a code to identify each combination of model and ID
-    model_code <- gsub("\\+", "_", gsub("'", "", m))
-    # Iterate through each alignment and calculate the actual and estimated gCFs
-    if (location == "local"){
-      gcf_list <- lapply(tree_df$alignment_path, gcf.wrapper, iqtree2_path, iqtree2_model, iqtree2_num_threads,
-                         rename.taxa.for.ms = TRUE, renamed_taxa = simulation_taxa_names)
-    } else {
-      gcf_list <- mclapply(tree_df$alignment_path, gcf.wrapper, iqtree2_path, iqtree2_model, iqtree2_num_threads,
-                           rename.taxa.for.ms = TRUE, renamed_taxa = simulation_taxa_names,
-                           mc.cores = round(num_parallel_cores/iqtree2_num_threads))
-    }
-    gcf_df <- as.data.frame(do.call(rbind, gcf_list))
-    # Combine completed rows of the output dataframe with the tree dataframe
-    gcf_combined_df <- cbind(gcf_df[which(gcf_df$alignment_path == tree_df$alignment_path),], tree_df[which(tree_df$alignment_path == gcf_df$alignment_path),])
-    # Save combined output dataframe
-    gcf_df_op_file <- paste0(gcf_df_op_formula, model_code, ".csv")
-    write.csv(gcf_combined_df, file = gcf_df_op_file, row.names = FALSE)
-  }
-}
-
-
+# Call function to apply analyses to simulated alignments and estimated trees
+analysis_list <- lapply(1:nrow(output_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
+                        test.three.hypothesis.trees = TRUE, renamed_taxa = simulation_taxa_names)
+analysis_df <- as.data.frame(do.call(rbind, analysis_list))
+# Save output dataframe
+write.csv(analysis_df, file = paste0(output_dir, "test_analysis.csv"), row.names = FALSE)
 
 
