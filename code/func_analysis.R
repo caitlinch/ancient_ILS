@@ -6,7 +6,7 @@ library(ape)
 library(phangorn)
 
 #### Analysis wrapper function ####
-analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, renamed_taxa){
+analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.hypothesis.trees = TRUE, renamed_taxa){
   # Wrapper function to calculate:
   #   - [x] actual and estimated gcfs (IQ-Tree)
   #   - [ ] actual and estimated qcfs (ASTRAL)
@@ -32,6 +32,18 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, renamed_taxa){
                              ASTRAL_path = df_row$ASTRAL, call.astral = TRUE)
   
   ## Perform hypothesis tests in IQ-Tree
+  # Extract all files from folder
+  all_files <- list.files(hypothesis_tree_dir)
+  # Extract hypothesis tree files
+  if (test.three.hypothesis.trees = TRUE){
+    # Test all three hypothesis trees
+    astral_hyp_trees <- paste0(hypothesis_tree_dir, grep("ASTRAL_hypothesis_trees_relabelled_tbl", all_files, value = TRUE))
+    ml_hyp_trees <- paste0(hypothesis_tree_dir, grep("ML_hypothesis_trees_relabelled", all_files, value = TRUE))
+  } else {
+    # Test only two hypothesis trees
+    astral_hyp_trees <- paste0(hypothesis_tree_dir, grep("ASTRAL_hypothesis_trees_2tree_relabelled_tbl", all_files, value = TRUE))
+    ml_hyp_trees <- paste0(hypothesis_tree_dir, grep("ML_hypothesis_trees_2tree_relabelled", all_files, value = TRUE))
+  }
   hypothesis_tests <- ""
   
   ## Get maximum branching time for ASTRAl and IQ-Tree trees
