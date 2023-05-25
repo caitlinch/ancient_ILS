@@ -82,12 +82,15 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, renamed_taxa){
 
 
 #### Perform hypothesis tests in IQ-Tree2 ####
-perform.hypothesis.tests <- function(ID, alignment_path, hypothesis_tree_file, iqtree2_path){
+perform.hypothesis.tests <- function(ID, alignment_path, hypothesis_tree_file, iqtree2_path, iqtree2_num_threads){
   # Function to perform hypothesis tests in IQ-Tree2 on the simulated alignment with either 2 or 3 hypothesis trees
   
   ## Change directories to the same directory as the alignment
+  alignment_directory <- paste0(dirname(alignment_path), "/")
   
   ## Assemble the IQ-Tree command and call IQ-Tree
+  test_command <- paste0(iqtree2_path)
+  
   
   ## Extract output from the IQ-Tree file
   
