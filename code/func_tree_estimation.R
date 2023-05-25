@@ -88,7 +88,13 @@ estimate.gene.trees <- function(alignment_path, partition_path, unique_id, uniqu
     gt_model <- gsub("'", "", iqtree2_model)
   } 
   # Set number of ultrafast bootstraps
-  bootstrap_call <- paste0("-bb ", iqtree2_num_ufb)
+  if (use.partition.models == TRUE){
+    # If using a partition model, add the -bsam GENESITE option to resample partitions then resample sites within partitions
+    bootstrap_call <- paste0("-bb ", iqtree2_num_ufb, " -bsam GENESITE")
+  } else if (use.partition.models == FALSE){
+    # If not using a partition model, use default -bsam option (resample alignment sites within partitions)
+    bootstrap_call <- paste0("-bb ", iqtree2_num_ufb) 
+  }
   # Assemble the number of threads call
   num_threads_call <- paste0("-nt ", iqtree2_num_threads)
   # Determine the prefix to give iqtree2 to create unique output
@@ -165,7 +171,14 @@ run.iqtree2 <- function(alignment_path, unique_id, unique.output.path = TRUE, iq
     output_model <- "UNCLEAR_DEFAULT_MFP"
   }
   # Set number of ultrafast bootstraps
-  bootstrap_call <- paste0("-bb ", iqtree2_num_ufb)
+  # Set number of ultrafast bootstraps
+  if (use.partitions == TRUE){
+    # If using a partition model, add the -bsam GENESITE option to resample partitions then resample sites within partitions
+    bootstrap_call <- paste0("-bb ", iqtree2_num_ufb, " -bsam GENESITE")
+  } else if (use.partitions == FALSE){
+    # If not using a partition model, use default -bsam option (resample alignment sites within partitions)
+    bootstrap_call <- paste0("-bb ", iqtree2_num_ufb) 
+  }
   # Assemble the number of threads call
   num_threads_call <- paste0("-nt ", iqtree2_num_threads)
   # Determine the prefix to give iqtree2 to create unique output
