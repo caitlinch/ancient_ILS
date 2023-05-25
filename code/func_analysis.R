@@ -11,7 +11,7 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.hypothe
   #   - [x] actual and estimated gcfs (IQ-Tree)
   #   - [x] actual and estimated qcfs (ASTRAL)
   #   - [x] hypothesis tree distances for both ML and ASTRAL trees
-  #   - [ ] hypothesis tests in IQ-Tree to see if any hypothesis can be ignored for this alignment
+  #   - [x] hypothesis tests in IQ-Tree to see if any hypothesis can be ignored for this alignment
   
   ## Open the row of interest
   df_row <- df[row_id, ]
