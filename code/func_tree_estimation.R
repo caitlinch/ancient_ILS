@@ -13,7 +13,7 @@ estimate.trees <- function(row_id, df, call.executable.programs = FALSE){
   iqtree2_ML_output <- run.iqtree2(alignment_path = df_row$output_alignment_file, unique_id = df_row$ID, unique.output.path = FALSE,
                                    iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads, 
                                    iqtree2_num_ufb = df_row$iqtree2_num_ufb, iqtree2_model = NA, 
-                                   use.partitions = TRUE, partition_file = df_row$output_partition_file, use.model.finder = FALSE, 
+                                   use.partition.models = TRUE, partition_file = df_row$output_partition_file, use.model.finder = FALSE, 
                                    call.iqtree2 = call.executable.programs)
   # Call IQ-Tree to estimate gene trees
   iqtree2_gt_output <- estimate.gene.trees(alignment_path = df_row$output_alignment_file, partition_path = df_row$output_partition_file, 
@@ -131,7 +131,7 @@ estimate.gene.trees <- function(alignment_path, partition_path, unique_id, uniqu
 
 
 run.iqtree2 <- function(alignment_path, unique_id, unique.output.path = TRUE, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_num_ufb = 1000,
-                        iqtree2_model = NA, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE,
+                        iqtree2_model = NA, use.partition.models = FALSE, partition_file = NA, use.model.finder = FALSE,
                         call.iqtree2 = FALSE){
   # Function to take one simulated alignment and estimate a single tree in IQ-Tree2 using the specified model
   
@@ -148,18 +148,18 @@ run.iqtree2 <- function(alignment_path, unique_id, unique.output.path = TRUE, iq
     print(paste0("Model provided for concatenated alignment: ", iqtree2_model))
     model_call <- paste0("-m ", iqtree2_model)
     output_model <- gsub("'", "", iqtree2_model)
-  } else if (is.na(iqtree2_model) == TRUE & use.model.finder == TRUE & use.partitions == FALSE){
+  } else if (is.na(iqtree2_model) == TRUE & use.model.finder == TRUE & use.partition.models == FALSE){
     # Gene models not provided but use modelfinder
     print("Model not provided for concatenated alignment: use ModelFinder")
     model_call <- "-m MFP"
     output_model <- "MFP"
-  } else if (use.partitions == TRUE & is.na(partition_file) == FALSE & use.model.finder == TRUE){
+  } else if (use.partition.models == TRUE & is.na(partition_file) == FALSE & use.model.finder == TRUE){
     # Use partitions flag on and partition file supplied, model finder to be used
     print("Partition file provided for concatenated alignment: use genes from partition file and models from ModelFinder")
     print(paste0("Partition file: ", partition_file))
     model_call <- paste0("-p ", partition_file, " -m MFP+MERGE")
     output_model <- "Partition_MFP+MERGE"
-  } else if (use.partitions == TRUE & is.na(partition_file) == FALSE){
+  } else if (use.partition.models == TRUE & is.na(partition_file) == FALSE){
     # Use partitions flag on and partition file supplied. Do not use model finder
     print(paste0("Partition file provided for concatenated alignment: use genes and model from partition file"))
     print(paste0("Partition file: ", partition_file))
@@ -173,10 +173,10 @@ run.iqtree2 <- function(alignment_path, unique_id, unique.output.path = TRUE, iq
   }
   # Set number of ultrafast bootstraps
   # Set number of ultrafast bootstraps
-  if (use.partitions == TRUE){
+  if (use.partition.models == TRUE){
     # If using a partition model, add the -bsam GENESITE option to resample partitions then resample sites within partitions
     bootstrap_call <- paste0("-bb ", iqtree2_num_ufb, " -bsam GENESITE")
-  } else if (use.partitions == FALSE){
+  } else if (use.partition.models == FALSE){
     # If not using a partition model, use default -bsam option (resample alignment sites within partitions)
     bootstrap_call <- paste0("-bb ", iqtree2_num_ufb) 
   }
