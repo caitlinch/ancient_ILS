@@ -22,7 +22,7 @@ if (location == "local"){
   alignment_path              <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Whelan2017.Metazoa_Choano_RCFV_strict.aa.alignment.fa"
   models_path                 <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Metazoa_Choano_RCFV_strict_Models.txt"
   iqtree2                     <- "iqtree2"
-  iqtree_num_threads          <- "2"
+  iqtree_num_threads          <- 2
   astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
   astral_constrained          <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-constrained/astral.5.6.9.jar"
   estimate.trees              <- FALSE
@@ -33,7 +33,7 @@ if (location == "local"){
   alignment_path              <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/01_empirical_data/Whelan2017.Metazoa_Choano_RCFV_strict.aa.alignment.fa"
   models_path                 <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/01_empirical_data/Metazoa_Choano_RCFV_strict_Models.txt"
   iqtree2                     <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree-2.2.0-Linux/bin/iqtree2"
-  iqtree_num_threads          <- "15"
+  iqtree_num_threads          <- 15
   astral                      <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/Astral/astral.5.7.8.jar"
   astral_constrained          <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/Astral-constrained/Astral/astral.5.6.9.jar"
   estimate.trees              <- FALSE

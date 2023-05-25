@@ -32,6 +32,7 @@ if (location == "local"){
   
   partition_path        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_ML_tree_estimation/Whelan2017_replicateOriginal_models_partitions.nex"
   iqtree2               <- "iqtree2"
+  astral                <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
   ms                    <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
   
   num_parallel_cores <- 1
@@ -44,6 +45,7 @@ if (location == "local"){
   
   partition_path        <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/01_empirical_data/Whelan2017_replicateOriginal_models_partitions.nex"
   iqtree2               <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree-2.2.0-Linux/bin/iqtree2"
+  astral                <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/Astral/astral.5.7.8.jar"
   ms                    <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/msdir/ms"
   
   num_parallel_cores <- 30
@@ -51,8 +53,8 @@ if (location == "local"){
 }
 
 ## Phylogenetic parameters
-alisim_gene_models <- "'WAG+C60+R4'" # Most common model for this dataset when allowing any model in Redmond and McLysaght (2021) - want only LBA/ILS to vary (no systematic bias from model misspecification)
-ML_tree_estimation_models <- c("'WAG+C60+R4") # No F - cite recent preprint. Other possible models: "'LG+G4'", "'LG+C60+R4"
+alisim_gene_models <- "'LG+G4'"
+ML_tree_estimation_models <- "'LG+G4'"
 iqtree2_num_ufb = 1000
 
 ## Control parameters

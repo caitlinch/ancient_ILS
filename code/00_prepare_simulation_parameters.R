@@ -20,16 +20,31 @@
 
 # extract.length.ratio      <- flag to run code to determine ratio of length of internal branches to sum of all branches in empirical phylogenetic trees (to run = TRUE)
 
-repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-published_tree_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_dataset_published_trees/01_ml_trees/"
-output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/00_determine_branch_lengths/"
-iqtree2                     <- "iqtree2"
-astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
-ms                          <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
+location = "local"
+if (location == local){
+  repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
+  hypothesis_tree_dir         <- paste0(repo_dir, "hypothesis_trees/")
+  published_tree_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_dataset_published_trees/01_ml_trees/"
+  output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/00_determine_branch_lengths/"
+  iqtree2                     <- "iqtree2"
+  astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
+  ms                          <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
+  
+  num_parallel_cores          <- 1
+  iqtree2_num_threads         <- 3
+} else if (location == "dayhoff"){
+  repo_dir                    <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
+  hypothesis_tree_dir         <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/02_empirical_hypothesis_trees/"
+  published_tree_dir          <- NA
+  output_dir                  <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/03_simulation_output/"
+  iqtree2                     <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree-2.2.0-Linux/bin/iqtree2"
+  astral                      <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/Astral/astral.5.7.8.jar"
+  ms                          <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/msdir/ms"
+  
+  num_parallel_cores          <- 30
+  iqtree2_num_threads         <- 10
+}
 
-
-num_parallel_cores          <- 1
-iqtree2_num_threads         <- 3
 alisim_gene_models          <- "'LG+G4'"
 ML_tree_estimation_models   <- "'LG+G4'"
 iqtree2_num_ufb             <- 1000
