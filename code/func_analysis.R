@@ -151,8 +151,10 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_t
                                   ASTRAL_path = ASTRAL_path, call.astral = TRUE)
   
   ## Extract relevant qCF values
-  expected_qcf_values <-  extract.qcf.values(qcf_tree = expected_qcf_paths[["qcf_output_tree"]])
-  estimated_qcf_values <-  extract.qcf.values(qcf_tree = estimated_qcf_paths[["qcf_output_tree"]])
+  expected_qcf_values <-  extract.qcf.values(qcf_tree = expected_qcf_paths[["qcf_output_tree"]], 
+                                             qcf_log_path = expected_qcf_paths[["qcf_output_log"]])
+  estimated_qcf_values <-  extract.qcf.values(qcf_tree = estimated_qcf_paths[["qcf_output_tree"]], 
+                                              qcf_log_path = estimated_qcf_paths[["qcf_output_log"]])
   
   ## Assemble output
   qcf_output <- c(expected_qcf_paths, expected_qcf_values,
@@ -170,12 +172,12 @@ qcf.call <- function(output_id, output_directory, tree_path, gene_trees_path, AS
   ## Function to call ASTRAL and calculate quartet concordance factors
   
   ## Check whether the tree tips match
-  qcf_tree_path <- check.tip.labels(tree_path)
+  input_tree_path <- check.tip.labels(tree_path)
   
   # Assemble ASTRAL command to calculate quartet concordance factors
   output_tree <- paste0(output_directory, output_id, ".tre")
   output_log <- paste0(output_directory, output_id, ".log")
-  qcf_command <- paste0("java -jar ", ASTRAL_path, " -q ", qcf_tree_path, " -i ", gene_trees_path, " -o ", output_tree, " 2> ", output_log)
+  qcf_command <- paste0("java -jar ", ASTRAL_path, " -q ", input_tree_path, " -i ", gene_trees_path, " -o ", output_tree, " 2> ", output_log)
   # if call.astral == TRUE, run ASTRAL to calculate quartet concordance factors
   if ((call.astral == TRUE) & (file.exists(output_tree) == FALSE) & (file.exists(output_log) == FALSE)){
     system(qcf_command)
@@ -189,8 +191,23 @@ qcf.call <- function(output_id, output_directory, tree_path, gene_trees_path, AS
 
 
 
-extract.qcf.values <- function(qcf_tree){
-  ## Function to open a qCF tree, extract the values of interest and return some summary statistics
+extract.qcf.values <- function(qcf_tree_path, qcf_log_path){
+  ## Function to open an ASTRAL output qCF tree and log file, extract the values of interest and return some summary statistics
+  
+  ## Open the log file and extract some values of interest
+  log_lines <- readLines(qcf_log_path)
+  num_quartet_trees_ind <- grep("Number of quartet trees in the gene trees:", log_lines)
+  num_quartet_trees <- gsub(" ", "", unlist(strsplit(log_lines[num_quartet_trees_ind], ":"))[2])
+  final_quartet_score_ind <- grep("Final quartet score is:", log_lines)
+  final_quartet_score <- gsub(" ", "", unlist(strsplit(log_lines[final_quartet_score_ind], ":"))[2])
+  normalised_quartet_score_ind <- grep("Final normalized quartet score is:", log_lines)
+  normalised_quartet_score <- gsub(" ", "", unlist(strsplit(log_lines[normalised_quartet_score_ind], ":"))[2])
+  
+  ## Open the tree and extract quartet concordance factors for specific branches
+  
+  ## Assemble the output
+  qcf_extracted <- c(num_quartet_trees, final_quartet_score, normalised_quartet_score)
+  names(qcf_extracted) <- c("num_quartet_trees", "final_quartet_score", "final_normalised_quartet_score")
 }
 
 
