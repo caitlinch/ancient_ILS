@@ -23,7 +23,7 @@ if (location == "local"){
   models_path                 <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Metazoa_Choano_RCFV_strict_Models.txt"
   iqtree2                     <- "iqtree2"
   iqtree_num_threads          <- "2"
-  astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8/Astral/astral.5.7.8.jar"
+  astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
   astral_constrained          <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-constrained/astral.5.6.9.jar"
   estimate.trees              <- FALSE
 } else if (location == "dayhoff"){

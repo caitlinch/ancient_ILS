@@ -24,7 +24,7 @@ repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/anc
 published_tree_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_dataset_published_trees/01_ml_trees/"
 output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/00_determine_branch_lengths/"
 iqtree2                     <- "iqtree2"
-astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8/astral.5.7.8.jar"
+astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
 ms                          <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
 
 
