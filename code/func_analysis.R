@@ -141,11 +141,13 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_t
   qcf_dir <- paste0(dirame(starting_tree), "/")
   
   ## Calculate actual quartet concordance factors
-  expected_qcf_paths <- qcf.call(output_id = paste0(ID, "_expected_qcfs"), output_directory = qcf_dir, tree = starting_tree, gene_trees = ms_gene_trees,
+  expected_qcf_paths <- qcf.call(output_id = paste0(ID, "_expected_qcfs"), output_directory = qcf_dir, 
+                                 tree_path = starting_tree, gene_trees_path = ms_gene_trees,
                                  ASTRAL_path = ASTRAL_path, call.astral = TRUE)
   
   ## Calculate estimated quartet concordance factors
-  estimated_qcf_paths <- qcf.call(output_id = paste0(ID, "_estimated_qcfs"), output_directory = qcf_dir, tree = ASTRAL_tree, gene_trees = ML_gene_trees,
+  estimated_qcf_paths <- qcf.call(output_id = paste0(ID, "_estimated_qcfs"), output_directory = qcf_dir, 
+                                  tree_path = ASTRAL_tree, gene_trees_path = ML_gene_trees,
                                   ASTRAL_path = ASTRAL_path, call.astral = TRUE)
   
   ## Extract relevant qCF values
@@ -164,13 +166,30 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_t
 
 
 
-qcf.call <- function(output_id, output_directory, tree, gene_trees, ASTRAL_path, call.astral = TRUE){
+qcf.call <- function(output_id, output_directory, tree_path, gene_trees_path, ASTRAL_path, call.astral = TRUE){
   ## Function to call ASTRAL and calculate quartet concordance factors
+  
+  ## Check whether the tree tips match
+  test_tree <- read.tree(tree_path)
+  tree_tips <- test_tree$tip.label
+  if (TRUE %in% grepl("t", tree_tips)){
+    # Replace tree tips without "t"
+    new_tree_tips <- gsub("t", "", tree_tips)
+    # Replace tree tips in original tree
+    test_tree$tip.label <- new_tree_tips
+    # Create new file path
+    split_path <- unlist(strsplit(basename(tree_path), "\\."))
+    relabelled_tree_path <- paste0(dirname(tree_path), paste(head(split_path, (length(split_path) - 1)), collapse = "."), "_relabelled.", tail(split_path, 1))
+    # Save the relabelled tree
+    write.tree(test_tree, file = relabelled_tree_path)
+  } else {
+    relabelled_tree_path <- tree_path
+  }
   
   # Assemble ASTRAL command to calculate quartet concordance factors
   output_tree <- paste0(output_directory, output_id, ".tre")
   output_log <- paste0(output_directory, output_id, ".log")
-  qcf_command <- paste0("java -jar ", ASTRAL_path, " -q ", tree, " -i ", gene_trees, " -o ", output_tree, " 2> ", output_log)
+  qcf_command <- paste0("java -jar ", ASTRAL_path, " -q ", tree_path, " -i ", gene_trees_path, " -o ", output_tree, " 2> ", output_log)
   # if call.astral == TRUE, run ASTRAL to calculate quartet concordance factors
   if (call.astral == TRUE){
     system(qcf_command)
@@ -490,3 +509,37 @@ generate.gcf.partition.file <- function(partition_file){
   # Return the gcf partition file path
   return(gcf_partitions)
 }
+
+
+
+
+
+
+#### Functions for manipulating trees ####
+check.tip.labels <- function(tree_path){
+  # Function to ensure tip labels in gene trees and trees match before calculating qCF values
+  
+  # Open tree and get tip labels  
+  test_tree <- read.tree(tree_path)
+  tree_tips <- test_tree$tip.label
+  # Check if tip labels have a "t" in them - e.g. "t72"
+  if (TRUE %in% grepl("t", tree_tips)){
+    # Replace tree tips without "t"
+    new_tree_tips <- gsub("t", "", tree_tips)
+    # Replace tree tips in original tree
+    test_tree$tip.label <- new_tree_tips
+    # Create new file path
+    split_path <- unlist(strsplit(basename(tree_path), "\\."))
+    relabelled_tree_path <- paste0(dirname(tree_path), 
+                                   paste(head(split_path, (length(split_path) - 1)), collapse = "."), 
+                                   "_relabelled.", 
+                                   tail(split_path, 1))
+    # Save the relabelled tree
+    write.tree(test_tree, file = relabelled_tree_path)
+  } else {
+    relabelled_tree_path <- tree_path
+  }
+  # Return the relabelled tree path and use that to calculate qcfs
+  return(relabelled_tree_path)
+}
+
