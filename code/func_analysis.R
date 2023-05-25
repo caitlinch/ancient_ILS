@@ -516,7 +516,7 @@ check.tip.labels <- function(tree_path){
     test_tree$tip.label <- new_tree_tips
     # Create new file path
     split_path <- unlist(strsplit(basename(tree_path), "\\."))
-    relabelled_tree_path <- paste0(dirname(tree_path), 
+    relabelled_tree_path <- paste0(dirname(tree_path), "/",
                                    paste(head(split_path, (length(split_path) - 1)), collapse = "."), 
                                    "_relabelled.", 
                                    tail(split_path, 1))
