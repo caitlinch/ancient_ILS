@@ -244,9 +244,10 @@ if (estimate.trees == TRUE){
 
 
 #### 10. Estimate hypothesis trees under each constraint tree ####
-# Whelan et al. 2017 dataset Metazoa_Choano_RCFV_strict
-# Partitioned by gene
-# Models selected by ModelFinder (MFP)
+# Details:
+#      Whelan et al. 2017 dataset Metazoa_Choano_RCFV_strict
+#      Partitioned by gene
+#      Models selected by ModelFinder (MFP)
 
 # Prepare IQ-Tree2 command lines
 constraint_Cten_iqtree_call       <- paste0(iqtree2, " -s ", new_alignment_path, " -p ", hypothesis_tree_partition_file_name, 
@@ -265,8 +266,8 @@ if (estimate.trees == TRUE){
   lapply(estimate_hypothesis_trees, system)
 }
 
-# Whelan et al. 2017 dataset Metazoa_Choano_RCFV_strict
-
+# Details: 
+#      Whelan et al. 2017 dataset Metazoa_Choano_RCFV_strict
 # Prepare ASTRAL-constraint command lines
 constraint_Cten_prefix <- "Whelan2017_ASTRAL_hypothesis_tree_1_Cten"
 constraint_Cten_astral_call <- paste0("java -jar ", astral_constrained, " -i ", tree_output_dir, gene_trees_path,
@@ -324,5 +325,99 @@ estimate_all_trees <- c(paste0("cd ", tree_output_dir),
                         paste0("cd ", constrained_tree_output_dir),
                         estimate_hypothesis_trees, estimate_astral_hypothesis_trees)
 write(estimate_all_trees, file = executable_commands_text_file)
+
+
+
+#### 14. Collate hypothesis trees into a single file ####
+whelan2017_tips <- c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex",
+                     "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
+                     "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
+                     "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla", "Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum",
+                     "Oscarella_carmela", "Hyalonema_populiferum", "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata",
+                     "Chondrilla_nucula", "Amphimedon_queenslandica", "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides",
+                     "Mycale_phylophylla", "Latrunculia_apicalis", "Crella_elegans", "Kirkpatrickia_variolosa", "Euplokamis_dunlapae", "Vallicula_sp",
+                     "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus", "Pleurobrachia_bachei",
+                     "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
+                     "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
+                     "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
+                     "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
+                     "Ctenophora_sp_Florida_USA","Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
+relabelled_tips <- paste0(1:length(whelan2017_tips))
+names(relabelled_tips) <- whelan2017_tips
+
+# List all files in the hypothesis tree directory
+all_files <- list.files(constrained_tree_output_dir)
+
+## ASTRAL hypothesis trees
+# Extract file paths
+astral_trees <- grep("\\.tre", grep("ASTRAL_hypothesis_tree", all_files, value = T), value = T)
+ordered_astral_trees <- paste0(constrained_tree_output_dir, 
+                               c(grep("1_Cten", astral_trees, value = T), grep("2_Pori", astral_trees, value = T), grep("3_CtenPori", astral_trees, value = T)) )
+# Save three tree version
+astral_tree_text <- c(unlist(lapply(ordered_astral_trees, readLines)), "")
+astral_tree_op_file <- paste0(constrained_tree_output_dir, "ASTRAL_hypothesis_trees.tre")
+write(astral_tree_text, astral_tree_op_file)
+# Save 2 tree version
+astral_2tree_text <- astral_tree_text[c(1,2,4)]
+astral_2tree_op_file <- paste0(constrained_tree_output_dir, "ASTRAL_hypothesis_trees_2tree.tre")
+write(astral_2tree_text, astral_2tree_op_file)
+
+## ML hypothesis trees
+# Extract file paths
+ML_trees <- grep("\\.treefile", grep("ASTRAL_hypothesis_tree", all_files, value = T, invert = T), value = T)
+ordered_ML_trees <- paste0(constrained_tree_output_dir, 
+                           c(grep("1_Cten", ML_trees, value = T), grep("2_Pori", ML_trees, value = T), grep("3_CtenPori", ML_trees, value = T)) )
+# Save three tree version
+ML_tree_text <- c(unlist(lapply(ordered_ML_trees, readLines)), "")
+ML_tree_op_file <- paste0(constrained_tree_output_dir, "ML_hypothesis_trees.treefile")
+write(ML_tree_text, ML_tree_op_file)
+# Save 2 tree version
+ML_2tree_text <- ML_tree_text[c(1,2,4)]
+ML_2tree_op_file <- paste0(constrained_tree_output_dir, "ML_hypothesis_trees_2tree.treefile")
+write(ML_2tree_text, ML_2tree_op_file)
+
+## Open trees and relabel
+relabel_tree_files <- c(astral_tree_op_file, astral_2tree_op_file, ML_tree_op_file, ML_2tree_op_file)
+for (file in relabel_tree_files){
+  # Rename file path
+  split_file <- unlist(strsplit(file, "\\."))
+  new_file <- paste0(split_file[1:(length(split_file) - 1)], "_relabelled", ".", split_file[length(split_file)])
+  # Open trees
+  Ts <- read.tree(file)
+  # Iterate through each tree and update the taxa labels 
+  for (i in 1:length(Ts)){
+    # Extract the tree
+    t <- Ts[[i]]
+    # Relabel tips as numbers (to match simulated alignments)
+    t$tip.label <- unlist(lapply(t$tip.label, function(x){relabelled_tips[[x]]}))
+    # Replace the tree
+    Ts[[i]] <- t
+  }
+  # Save the trees to the new file
+  write.tree(Ts, file = new_file)
+  
+  # For ASTRAL trees, make a second copy with added terminal branch lengths
+  if (grepl("ASTRAL", file) == TRUE){
+    # Create new file
+    new_file2 <- paste0(split_file[1:(length(split_file) - 1)], "_relabelled_tbl", ".", split_file[length(split_file)])
+    # Iterate through each tree
+    for (j in 1:length(Ts)){
+      # Extract the tree
+      t <- Ts[[j]]
+      # Identify terminal branch lengths
+      terminal_branch_ids <- which(t$edge[,2] <= Ntip(t))
+      # Replace terminal branch lengths of NaN with arbitrary terminal branch length of 0.1
+      t$edge.length[terminal_branch_ids] <- 0.1
+      # Replace the tree
+      Ts[[j]] <- t
+    }
+    # Save the trees to the new file
+    write.tree(Ts, file = new_file2)
+    
+  } # end if (grepl("ASTRAL", file) == TRUE){
+  
+} # end for (file in relabel_tree_files){
+
+
 
 
