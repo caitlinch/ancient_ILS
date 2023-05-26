@@ -18,8 +18,9 @@ estimate.trees <- function(row_id, df, call.executable.programs = FALSE){
   # Call IQ-Tree to estimate gene trees
   iqtree2_gt_output <- estimate.gene.trees(alignment_path = df_row$output_alignment_file, partition_path = df_row$output_partition_file, 
                                            unique_id = df_row$ID, unique.output.path = FALSE, iqtree2_path = df_row$iqtree2,
-                                           iqtree2_num_threads = df_row$iqtree2_num_threads, iqtree2_num_ufb = df_row$iqtree2_num_ufb,
-                                           iqtree2_model = NA, use.partition.models = TRUE, call.iqtree2 = call.executable.programs)
+                                           iqtree2_num_threads = df_row$iqtree2_num_threads, iqtree2_num_ufb = NA,
+                                           iqtree2_model = NA, use.partition.models = TRUE, call.iqtree2 = call.executable.programs,
+                                           include.bootstraps = FALSE)
   # Call ASTRAL
   astral_output <- run.astral(unique_id = df_row$ID, gene_tree_file = iqtree2_gt_output[["iqtree2_gene_tree_treefile"]],
                               output_directory = df_row$output_folder, astral_path = df_row$ASTRAL,
@@ -58,7 +59,7 @@ run.astral <- function(unique_id, gene_tree_file, output_directory, astral_path,
 
 #### Functions for IQ-Tree2 ####
 estimate.gene.trees <- function(alignment_path, partition_path, unique_id, unique.output.path = TRUE, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_num_ufb = 1000,
-                                iqtree2_model = NA, use.partition.models = TRUE, call.iqtree2 = FALSE){
+                                iqtree2_model = NA, use.partition.models = TRUE, call.iqtree2 = FALSE, include.bootstraps = FALSE){
   # Function to take one simulated alignment and estimate a single tree in IQ-Tree2 using the specified model
   
   ## Change working directory to be in the same directory as the alignment 
@@ -89,12 +90,20 @@ estimate.gene.trees <- function(alignment_path, partition_path, unique_id, uniqu
     gt_model <- gsub("'", "", iqtree2_model)
   } 
   # Set number of ultrafast bootstraps
-  if (use.partition.models == TRUE){
-    # If using a partition model, add the -bsam GENESITE option to resample partitions then resample sites within partitions
-    bootstrap_call <- paste0("-bb ", iqtree2_num_ufb, " -bsam GENESITE")
-  } else if (use.partition.models == FALSE){
-    # If not using a partition model, use default -bsam option (resample alignment sites within partitions)
-    bootstrap_call <- paste0("-bb ", iqtree2_num_ufb) 
+  if (include.bootstraps == TRUE){
+    # Include ultrafast bootstraps when estimating gene trees
+    # Input: include.bootstraps = TRUE
+    if (use.partition.models == TRUE){
+      # If using a partition model, add the -bsam GENESITE option to resample partitions then resample sites within partitions
+      bootstrap_call <- paste0("-bb ", iqtree2_num_ufb, " -bsam GENESITE")
+    } else if (use.partition.models == FALSE){
+      # If not using a partition model, use default -bsam option (resample alignment sites within partitions)
+      bootstrap_call <- paste0("-bb ", iqtree2_num_ufb) 
+    }
+  } else if (include.bootstraps == FALSE){
+    # Do not estimate ultrafast bootstraps
+    # Input: include.bootstraps = FALSE
+    bootstrap_call <- ""
   }
   # Assemble the number of threads call
   num_threads_call <- paste0("-nt ", iqtree2_num_threads)
