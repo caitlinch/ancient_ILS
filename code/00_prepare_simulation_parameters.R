@@ -1,15 +1,16 @@
 # ancient_ILS/code/00_prepare_simulation_parameters.R
-## This script is used to determine realistic simulation parameters
+## This script is used to determine realistic simulation parameters for the main set of simulations
 # Caitlin Cherryh, 2023
 
 #### 1. Input parameters ####
+## File paths and computational parameters
 # repo_dir                  <- location of caitlinch/ancient_ILS github repository
 # published_tree_dir        <- directory to save other ML trees estimated from the alignment
 # output_dir                <- output directory to save test runs for determining appropriate branch lengths
-
 # iqtree2                   <- path to iqtree2 version 2.2.2
 # astral                    <- path to ASTRAL executable version 5.7.8
 # ms                        <- path to ms executable
+# num_parallel_threads      <- Maximum number of parallel threads to allow for 
 
 ## Phylogenetic parameters
 # alisim_gene_models        <- models to use when estimating the alignment using Alisim. 
@@ -18,6 +19,7 @@
 # iqtree2_num_threads       <- number of threads for IQ-Tree2 to use
 # iqtree2_num_ufb           <- number of ultrafast bootstraps for IQ-Tree2 to generate
 
+## Control parameters
 # extract.length.ratio      <- flag to run code to determine ratio of length of internal branches to sum of all branches in empirical phylogenetic trees (to run = TRUE)
 
 location = "local"
@@ -30,7 +32,7 @@ if (location == local){
   astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
   ms                          <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
   
-  num_parallel_cores          <- 1
+  num_parallel_threads        <- 1
   iqtree2_num_threads         <- 3
 } else if (location == "dayhoff"){
   repo_dir                    <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
@@ -41,7 +43,7 @@ if (location == local){
   astral                      <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/Astral/astral.5.7.8.jar"
   ms                          <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/msdir/ms"
   
-  num_parallel_cores          <- 30
+  num_parallel_threads        <- 30
   iqtree2_num_threads         <- 10
 }
 
@@ -239,7 +241,12 @@ write.csv(lba_df, file = paste0(output_dir, "test_lba_parameters.csv"), row.name
 ## Assemble the dataframes into one
 sim_df <- rbind(lba_df, ils_df)
 # To generate all simulated alignments
-output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, rerun = FALSE)
+if (num_parallel_threads > 1){
+  output_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, rerun = FALSE, 
+                          mc.cores = (num_parallel_threads/iqtree2_num_threads))
+} else {
+  output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, rerun = FALSE)
+}
 output_df <- as.data.frame(do.call(rbind, output_list))
 # Save output dataframe
 write.csv(output_df, file = paste0(output_dir, "test_generate_alignments.csv"), row.names = FALSE)
@@ -248,7 +255,12 @@ write.csv(output_df, file = paste0(output_dir, "test_generate_alignments.csv"), 
 
 #### 7. Estimate trees ####
 # Call function to estimate all trees
-tree_list <- lapply(1:nrow(output_df), estimate.trees, df = output_df, call.executable.programs = TRUE)
+if (num_parallel_threads > 1){
+  tree_list <- mclapply(1:nrow(output_df), estimate.trees, df = output_df, call.executable.programs = TRUE, 
+                        mc.cores = (num_parallel_threads/iqtree2_num_threads))
+} else {
+  tree_list <- lapply(1:nrow(output_df), estimate.trees, df = output_df, call.executable.programs = TRUE)
+}
 tree_df <- as.data.frame(do.call(rbind, tree_list))
 # Save output dataframe
 write.csv(tree_df, file = paste0(output_dir, "test_generate_trees.csv"), row.names = FALSE)
@@ -257,8 +269,14 @@ write.csv(tree_df, file = paste0(output_dir, "test_generate_trees.csv"), row.nam
 
 #### 8. Conduct analysis ####
 # Call function to apply analyses to simulated alignments and estimated trees
-analysis_list <- lapply(1:nrow(output_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
-                        test.three.hypothesis.trees = TRUE, renamed_taxa = simulation_taxa_names)
+if (num_parallel_threads > 1){
+  analysis_list <- mclapply(1:nrow(output_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
+                            test.three.hypothesis.trees = TRUE, renamed_taxa = simulation_taxa_names,
+                            mc.cores = (num_parallel_threads/iqtree2_num_threads))
+} else {
+  analysis_list <- lapply(1:nrow(output_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
+                          test.three.hypothesis.trees = TRUE, renamed_taxa = simulation_taxa_names)
+}
 analysis_df <- as.data.frame(do.call(rbind, analysis_list))
 # Save output dataframe
 write.csv(analysis_df, file = paste0(output_dir, "test_analysis.csv"), row.names = FALSE)
