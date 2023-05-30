@@ -3,6 +3,7 @@
 # Caitlin Cherryh, 2023
 
 #### 1. Input parameters ####
+print("#### 1. Input parameters ####")
 ## File paths and computational parameters
 # repo_dir                  <- location of caitlinch/ancient_ILS github repository
 # published_tree_dir        <- directory to save other ML trees estimated from the alignment
@@ -43,7 +44,7 @@ if (location == "local"){
   astral                      <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/Astral/astral.5.7.8.jar"
   ms                          <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/msdir/ms"
   
-  num_parallel_threads        <- 30
+  num_parallel_threads        <- 40
   iqtree2_num_threads         <- 10
 }
 
@@ -56,6 +57,7 @@ extract.length.ratio        <- FALSE
 
 
 #### 2. Open packages and functions ####
+print("#### 2. Open packages and functions ####")
 ## Open packages
 library(ape)
 library(phangorn)
@@ -72,7 +74,7 @@ source(paste0(repo_dir, "code/func_analysis.R"))
 hypothesis_tree_dir <- paste0(repo_dir, "hypothesis_trees/")
 
 ## Rename the taxa to generate gene trees in ms
-simulation_taxa_names <- paste0("t", 1:length(original_taxa))
+simulation_taxa_names <- paste0("t", 1:75)
 names(simulation_taxa_names) <- c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex",
                                   "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
                                   "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
@@ -90,6 +92,7 @@ names(simulation_taxa_names) <- c("Homo_sapiens", "Strongylocentrotus_purpatus",
 
 
 #### 3. Determine ratio of internal to external branches for all ML trees downloaded from previous empirical studies ####
+print("#### 3. Determine ratio of internal to external branches for all ML trees downloaded from previous empirical studies ####")
 if (extract.length.ratio == TRUE){
   # Extract all tree file from the folder 
   all_files <- list.files(published_tree_dir)
@@ -138,6 +141,7 @@ if (extract.length.ratio == TRUE){
 
 
 #### 4. Determine branch lengths for ILS ####
+print("#### 4. Determine branch lengths for ILS ####")
 if (file.exists(paste0(output_dir, "test_ils_parameters.csv")) == FALSE){
   ils_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
                                       branch_a_length = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10), branch_b_length = 1.647))
@@ -192,6 +196,7 @@ if (file.exists(paste0(output_dir, "test_ils_parameters.csv")) == FALSE){
 
 
 #### 5. Determine branch lengths for LBA ####
+print("#### 5. Determine branch lengths for LBA ####")
 if (file.exists(paste0(output_dir, "test_lba_parameters.csv")) == FALSE){
   lba_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
                                       branch_a_length = 0.1729, branch_b_length = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10)))
@@ -246,6 +251,7 @@ if (file.exists(paste0(output_dir, "test_lba_parameters.csv")) == FALSE){
 
 
 #### 6. Generate simulated alignments ####
+print("#### 6. Generate simulated alignments ####")
 ## Assemble the dataframes into one
 sim_df <- rbind(lba_df, ils_df)
 if (file.exists(paste0(output_dir, "test_generate_alignments.csv")) == FALSE){
@@ -264,8 +270,12 @@ if (file.exists(paste0(output_dir, "test_generate_alignments.csv")) == FALSE){
 
 
 #### 7. Estimate trees ####
+print("#### 7. Estimate trees ####")
 # Call function to estimate all trees
 if (file.exists(paste0(output_dir, "test_generate_trees.csv")) == FALSE){
+  # Open output_df
+  output_df <- read.csv(paste0(output_dir, "test_generate_alignments.csv"), stringsAsFactors = FALSE)
+  # Estimate trees
   if (num_parallel_threads > 1){
     tree_list <- mclapply(1:nrow(output_df), estimate.trees, df = output_df, call.executable.programs = TRUE, 
                           mc.cores = (num_parallel_threads/iqtree2_num_threads))
@@ -280,8 +290,12 @@ if (file.exists(paste0(output_dir, "test_generate_trees.csv")) == FALSE){
 
 
 #### 8. Conduct analysis ####
+print("#### 8. Conduct analysis ####")
 # Call function to apply analyses to simulated alignments and estimated trees
 if (file.exists(paste0(output_dir, "test_analysis.csv")) == FALSE){
+  # Open tree_df
+  tree_df <- read.csv(paste0(output_dir, "test_generate_trees.csv"), stringsAsFactors = FALSE)
+  # Conduct analysis
   if (num_parallel_threads > 1){
     analysis_list <- mclapply(1:nrow(output_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
                               test.three.hypothesis.trees = TRUE, renamed_taxa = simulation_taxa_names,
