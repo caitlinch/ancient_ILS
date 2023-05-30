@@ -46,10 +46,13 @@ run.astral <- function(unique_id, gene_tree_file, output_directory, astral_path,
   filepaths_missing <- FALSE %in% filepath_status
   # Construct the astral command
   astral_command <- paste0("java -jar ", astral_path, " -i ", gene_tree_file, " -o ", astral_output_tree, " 2> ", astral_output_log)
-  # Call ASTRAL if desired
-  if (call.ASTRAL == TRUE | filepaths_missing == TRUE){
-    system(astral_command)
+  ## If the ASTRAL command has not been run previously AND call.ASTRAL = TRUE, run the iqtree call
+  if (filepaths_missing == TRUE){
+    if (call.ASTRAL == TRUE){
+      system(astral_command)
+    }
   }
+  
   # Assemble output
   output_vec        <- c(unique_id, astral_command, call.ASTRAL,
                          gene_tree_file, astral_output_tree, astral_output_log)
@@ -125,13 +128,15 @@ estimate.gene.trees <- function(alignment_path, partition_path, unique_id, uniqu
   }
   # Assemble the number of threads call
   num_threads_call <- paste0("-nt ", iqtree2_num_threads)
-
+  
   # Assemble the whole iqtree2 call
   iqtree2_call <- paste(iqtree2_path, alignment_call, partition_call, model_call, bootstrap_call, num_threads_call, output_prefix_call, sep = " ")
   
   ## If call.iqtree2 = TRUE, run the iqtree call
-  if (call.iqtree2 == TRUE | filepaths_missing == TRUE){
-    system(iqtree2_call)
+  if (filepaths_missing == TRUE){
+    if (call.iqtree2 == TRUE){
+      system(iqtree2_call)
+    }
   }
   
   ## Assemble output
@@ -212,13 +217,15 @@ run.iqtree2 <- function(alignment_path, unique_id, unique.output.path = TRUE, iq
   }
   # Assemble the number of threads call
   num_threads_call <- paste0("-nt ", iqtree2_num_threads)
-
+  
   # Assemble the whole iqtree2 call
   iqtree2_call <- paste(iqtree2_path, alignment_call, model_call, bootstrap_call, num_threads_call, output_prefix_call, sep = " ")
   
-  ## If call.iqtree2 = TRUE, run the iqtree call
-  if (call.iqtree2 == TRUE | filepaths_missing == TRUE){
-    system(iqtree2_call)
+  ## If the iqtree command has not been run previously AND call.iqtree2 = TRUE, run the iqtree call
+  if (filepaths_missing == TRUE){
+    if (call.iqtree2 == TRUE){
+      system(iqtree2_call)
+    }
   }
   
   ## Assemble output
