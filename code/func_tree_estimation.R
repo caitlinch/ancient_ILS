@@ -67,6 +67,15 @@ estimate.gene.trees <- function(alignment_path, partition_path, unique_id, uniqu
   ## Change working directory to be in the same directory as the alignment 
   setwd(dirname(alignment_path))
   
+  # Determine the prefix to give iqtree2 to create unique output
+  if (unique.output.path == TRUE){
+    gt_prefix = paste0(unique_id, "-", gsub("\\+", "_", gsub("'", "", iqtree2_model)), "_gene_trees")
+  } else if (unique.output.path == FALSE){
+    gt_prefix = paste0(unique_id, "_gene_trees")
+  }
+  # Set output prefix call
+  output_prefix_call = paste0("-pre ", gt_prefix)
+  
   # Assemble iqtree2 file filepaths
   gt_tree_file <- paste0(dirname(alignment_path), "/", gt_prefix, ".treefile")
   gt_iqtree_file <- paste0(dirname(alignment_path), "/", gt_prefix, ".iqtree")
@@ -116,14 +125,7 @@ estimate.gene.trees <- function(alignment_path, partition_path, unique_id, uniqu
   }
   # Assemble the number of threads call
   num_threads_call <- paste0("-nt ", iqtree2_num_threads)
-  # Determine the prefix to give iqtree2 to create unique output
-  if (unique.output.path == TRUE){
-    gt_prefix = paste0(unique_id, "-", gsub("\\+", "_", gsub("'", "", iqtree2_model)), "_gene_trees")
-  } else if (unique.output.path == FALSE){
-    gt_prefix = paste0(unique_id, "_gene_trees")
-  }
-  # Set output prefix call
-  output_prefix_call = paste0("-pre ", gt_prefix)
+
   # Assemble the whole iqtree2 call
   iqtree2_call <- paste(iqtree2_path, alignment_call, partition_call, model_call, bootstrap_call, num_threads_call, output_prefix_call, sep = " ")
   
@@ -150,7 +152,16 @@ run.iqtree2 <- function(alignment_path, unique_id, unique.output.path = TRUE, iq
   ## Change working directory to be in the same directory as the alignment 
   setwd(dirname(alignment_path))
   
-  # Assemble iqtree2 file filepaths
+  ## Determine the prefix to give iqtree2 to create unique output
+  if (unique.output.path == TRUE){
+    output_prefix = paste0(unique_id, "-", gsub("\\+", "_", gsub("'", "", iqtree2_model)), "_ML_tree")
+  } else if (unique.output.path == FALSE){
+    output_prefix = paste0(unique_id, "_ML_tree")
+  }
+  # Set output prefix call
+  output_prefix_call = paste0("-pre ", output_prefix)
+  
+  ## Assemble iqtree2 file filepaths
   output_tree_file <- paste0(dirname(alignment_path), "/", output_prefix, ".treefile")
   output_iqtree_file <- paste0(dirname(alignment_path), "/", output_prefix, ".iqtree")
   output_log_file <- paste0(dirname(alignment_path), "/", output_prefix, ".log")
@@ -201,14 +212,7 @@ run.iqtree2 <- function(alignment_path, unique_id, unique.output.path = TRUE, iq
   }
   # Assemble the number of threads call
   num_threads_call <- paste0("-nt ", iqtree2_num_threads)
-  # Determine the prefix to give iqtree2 to create unique output
-  if (unique.output.path == TRUE){
-    output_prefix = paste0(unique_id, "-", gsub("\\+", "_", gsub("'", "", iqtree2_model)), "_ML_tree")
-  } else if (unique.output.path == FALSE){
-    output_prefix = paste0(unique_id, "_ML_tree")
-  }
-  # Set output prefix call
-  output_prefix_call = paste0("-pre ", output_prefix)
+
   # Assemble the whole iqtree2 call
   iqtree2_call <- paste(iqtree2_path, alignment_call, model_call, bootstrap_call, num_threads_call, output_prefix_call, sep = " ")
   
