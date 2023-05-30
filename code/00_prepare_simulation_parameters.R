@@ -60,6 +60,7 @@ extract.length.ratio        <- FALSE
 library(ape)
 library(phangorn)
 library(phytools)
+library(parallel)
 
 ## Source functions
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
