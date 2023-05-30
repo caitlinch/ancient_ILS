@@ -22,7 +22,7 @@
 ## Control parameters
 # extract.length.ratio      <- flag to run code to determine ratio of length of internal branches to sum of all branches in empirical phylogenetic trees (to run = TRUE)
 
-location = "local"
+location = "dayhoff"
 if (location == local){
   repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   hypothesis_tree_dir         <- paste0(repo_dir, "hypothesis_trees/")
@@ -47,8 +47,8 @@ if (location == local){
   iqtree2_num_threads         <- 10
 }
 
-alisim_gene_models          <- "'LG+G4'"
-ML_tree_estimation_models   <- "'LG+G4'"
+alisim_gene_models          <- "LG"
+ML_tree_estimation_models   <- "LG"
 iqtree2_num_ufb             <- 1000
 
 extract.length.ratio        <- FALSE
