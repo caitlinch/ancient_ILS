@@ -42,10 +42,12 @@ run.astral <- function(unique_id, gene_tree_file, output_directory, astral_path,
   # Construct the output files
   astral_output_tree <- paste0(output_directory, unique_id, "_ASTRAL_tree.tre")
   astral_output_log <- paste0(output_directory, unique_id, "_ASTRAL_tree.log")
+  filepath_status <- c(file.exists(astral_output_tree), file.exists(astral_output_log))
+  filepaths_missing <- FALSE %in% filepath_status
   # Construct the astral command
   astral_command <- paste0("java -jar ", astral_path, " -i ", gene_tree_file, " -o ", astral_output_tree, " 2> ", astral_output_log)
   # Call ASTRAL if desired
-  if (call.ASTRAL == TRUE){
+  if (call.ASTRAL == TRUE | filepaths_missing == TRUE){
     system(astral_command)
   }
   # Assemble output
@@ -64,6 +66,13 @@ estimate.gene.trees <- function(alignment_path, partition_path, unique_id, uniqu
   
   ## Change working directory to be in the same directory as the alignment 
   setwd(dirname(alignment_path))
+  
+  # Assemble iqtree2 file filepaths
+  gt_tree_file <- paste0(dirname(alignment_path), "/", gt_prefix, ".treefile")
+  gt_iqtree_file <- paste0(dirname(alignment_path), "/", gt_prefix, ".iqtree")
+  gt_log_file <- paste0(dirname(alignment_path), "/", gt_prefix, ".log")
+  filepath_status <- c(file.exists(gt_tree_file), file.exists(gt_iqtree_file), file.exists(gt_log_file))
+  filepaths_missing <- FALSE %in% filepath_status
   
   ## Assemble the iqtree2 command
   # Assemble the alignment call
@@ -119,17 +128,11 @@ estimate.gene.trees <- function(alignment_path, partition_path, unique_id, uniqu
   iqtree2_call <- paste(iqtree2_path, alignment_call, partition_call, model_call, bootstrap_call, num_threads_call, output_prefix_call, sep = " ")
   
   ## If call.iqtree2 = TRUE, run the iqtree call
-  if (call.iqtree2 == TRUE){
+  if (call.iqtree2 == TRUE | filepaths_missing == TRUE){
     system(iqtree2_call)
   }
   
-  ## Return the output files
-  # Assemble iqtree2 file filepaths
-  gt_tree_file <- paste0(dirname(alignment_path), "/", gt_prefix, ".treefile")
-  gt_iqtree_file <- paste0(dirname(alignment_path), "/", gt_prefix, ".iqtree")
-  gt_log_file <- paste0(dirname(alignment_path), "/", gt_prefix, ".log")
-  
-  # Assemble output
+  ## Assemble output
   output_vec <- c(alignment_path, partition_path, gt_prefix, gt_model, 
                   iqtree2_call, call.iqtree2, gt_tree_file, gt_iqtree_file, gt_log_file)
   names(output_vec) <- c("gene_tree_alignment_path", "gene_tree_partition_path", "gene_tree_ID", "iqtree2_gene_tree_model",
@@ -146,6 +149,13 @@ run.iqtree2 <- function(alignment_path, unique_id, unique.output.path = TRUE, iq
   
   ## Change working directory to be in the same directory as the alignment 
   setwd(dirname(alignment_path))
+  
+  # Assemble iqtree2 file filepaths
+  output_tree_file <- paste0(dirname(alignment_path), "/", output_prefix, ".treefile")
+  output_iqtree_file <- paste0(dirname(alignment_path), "/", output_prefix, ".iqtree")
+  output_log_file <- paste0(dirname(alignment_path), "/", output_prefix, ".log")
+  filepath_status <- c(file.exists(output_tree_file), file.exists(output_iqtree_file), file.exists(output_log_file))
+  filepaths_missing <- FALSE %in% filepath_status
   
   ## Assemble the iqtree2 command
   # Assemble the alignment call
@@ -203,19 +213,15 @@ run.iqtree2 <- function(alignment_path, unique_id, unique.output.path = TRUE, iq
   iqtree2_call <- paste(iqtree2_path, alignment_call, model_call, bootstrap_call, num_threads_call, output_prefix_call, sep = " ")
   
   ## If call.iqtree2 = TRUE, run the iqtree call
-  if (call.iqtree2 == TRUE){
+  if (call.iqtree2 == TRUE | filepaths_missing == TRUE){
     system(iqtree2_call)
   }
   
-  ## Return the output files
-  # Assemble iqtree2 file filepaths
-  output_tree_file <- paste0(dirname(alignment_path), "/", output_prefix, ".treefile")
-  output_iqtree_file <- paste0(dirname(alignment_path), "/", output_prefix, ".iqtree")
-  output_log_file <- paste0(dirname(alignment_path), "/", output_prefix, ".log")
-  
-  # Assemble output
-  output_vec <- c(alignment_path, output_prefix, output_model, iqtree2_call, call.iqtree2, output_tree_file, output_iqtree_file, output_log_file)
-  names(output_vec) <- c("alignment_path", "alignment_model_ID", "tree_estimation_model", "iqtree2_command", "iqtree2_command_run", "ML_tree_treefile", "ML_tree_iqtree_file", "ML_tree_log_file")
+  ## Assemble output
+  output_vec <- c(alignment_path, output_prefix, output_model, iqtree2_call, call.iqtree2,
+                  output_tree_file, output_iqtree_file, output_log_file)
+  names(output_vec) <- c("alignment_path", "alignment_model_ID", "tree_estimation_model", "iqtree2_command", "iqtree2_command_run",
+                         "ML_tree_treefile", "ML_tree_iqtree_file", "ML_tree_log_file")
   return(output_vec)
 }
 
