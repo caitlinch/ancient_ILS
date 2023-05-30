@@ -23,7 +23,7 @@
 # extract.length.ratio      <- flag to run code to determine ratio of length of internal branches to sum of all branches in empirical phylogenetic trees (to run = TRUE)
 
 location = "dayhoff"
-if (location == local){
+if (location == "local"){
   repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   hypothesis_tree_dir         <- paste0(repo_dir, "hypothesis_trees/")
   published_tree_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_dataset_published_trees/01_ml_trees/"
