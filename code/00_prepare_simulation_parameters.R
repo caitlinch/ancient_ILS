@@ -65,6 +65,7 @@ library(parallel)
 ## Source functions
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
 source(paste0(repo_dir, "code/func_simulations.R"))
+source(paste0(repo_dir, "code/func_tree_estimation.R"))
 source(paste0(repo_dir, "code/func_analysis.R"))
 
 ## Assemble file names
@@ -138,148 +139,161 @@ if (extract.length.ratio == TRUE){
 
 
 #### 4. Determine branch lengths for ILS ####
-# Prepare the three sets of simulations separately
-ils_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
-                                    branch_a_length = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10), branch_b_length = 1.647))
-ils_df$simulation_type = "ILS" # vary branch a
-ils_df$simulation_number = "sim2"
-# Add the other columns for the dataframes
-ils_df$branch_c_length <- 0.4145
-ils_df$branch_cnidaria_length <- 0.737
-ils_df$branch_bilateria_length <- 0.9214
-ils_df$branch_porifera_length <- 0.0853
-ils_df$branch_all_animals_length <- 0.6278
-ils_df$branch_outgroup_length <- 0.6278
-ils_df$ML_tree_depth <- 1.177
-ils_df$ASTRAL_tree_depth <- 11.24
-ils_df$proportion_internal_branches <- 0.25
-ils_df$minimum_coalescent_time_difference <- 0.001
-ils_df$num_taxa <- 75
-ils_df$num_genes <- 200
-ils_df$gene_length <- 225
-ils_df$num_sites <- (ils_df$gene_length*ils_df$num_genes)
-ils_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
-ils_df$dataset_type <- "Protein"
-# Add path for executables
-ils_df$ms <- ms
-ils_df$ASTRAL <- astral
-ils_df$iqtree2 <- iqtree2
-# Add the hypothesis tree name in a new column
-ils_df$hypothesis_tree_file <- as.character(ils_df$hypothesis_tree)
-ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_1_Cten.tre")
-ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_2_Pori.tre")
-# Add an ID column
-ils_df$ID <- paste0(ils_df$simulation_number, "_h", ils_df$hypothesis_tree, "_a", ils_df$branch_a_length, "_b", ils_df$branch_b_length, "_rep", ils_df$replicates)
-# Add separate output folder for each rep
-ils_df$output_folder <- paste0(output_dir, ils_df$ID, "/")
-# Add phylogenetic parameters
-ils_df$iqtree2_num_threads <- iqtree2_num_threads
-ils_df$iqtree2_num_ufb <- iqtree2_num_ufb
-ils_df$alisim_gene_models <- alisim_gene_models
-ils_df$ML_tree_estimation_models <- ML_tree_estimation_models
-# Reorder columns
-ils_df <- ils_df[,c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type", "hypothesis_tree", "hypothesis_tree_file", "replicates",
-                    "branch_a_length", "branch_b_length", "branch_c_length", "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
-                    "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "minimum_coalescent_time_difference", "ASTRAL_tree_depth",
-                    "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "ASTRAL", "iqtree2", "alisim_gene_models",
-                    "iqtree2_num_threads", "iqtree2_num_ufb", "ML_tree_estimation_models")]
-# Save the dataframe
-write.csv(ils_df, file = paste0(output_dir, "test_ils_parameters.csv"), row.names = FALSE)
+if (file.exists(paste0(output_dir, "test_ils_parameters.csv")) == FALSE){
+  ils_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
+                                      branch_a_length = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10), branch_b_length = 1.647))
+  ils_df$simulation_type = "ILS" # vary branch a
+  ils_df$simulation_number = "sim2"
+  # Add the other columns for the dataframes
+  ils_df$branch_c_length <- 0.4145
+  ils_df$branch_cnidaria_length <- 0.737
+  ils_df$branch_bilateria_length <- 0.9214
+  ils_df$branch_porifera_length <- 0.0853
+  ils_df$branch_all_animals_length <- 0.6278
+  ils_df$branch_outgroup_length <- 0.6278
+  ils_df$ML_tree_depth <- 1.177
+  ils_df$ASTRAL_tree_depth <- 11.24
+  ils_df$proportion_internal_branches <- 0.25
+  ils_df$minimum_coalescent_time_difference <- 0.001
+  ils_df$num_taxa <- 75
+  ils_df$num_genes <- 200
+  ils_df$gene_length <- 225
+  ils_df$num_sites <- (ils_df$gene_length*ils_df$num_genes)
+  ils_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
+  ils_df$dataset_type <- "Protein"
+  # Add path for executables
+  ils_df$ms <- ms
+  ils_df$ASTRAL <- astral
+  ils_df$iqtree2 <- iqtree2
+  # Add the hypothesis tree name in a new column
+  ils_df$hypothesis_tree_file <- as.character(ils_df$hypothesis_tree)
+  ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_1_Cten.tre")
+  ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_2_Pori.tre")
+  # Add an ID column
+  ils_df$ID <- paste0(ils_df$simulation_number, "_h", ils_df$hypothesis_tree, "_a", ils_df$branch_a_length, "_b", ils_df$branch_b_length, "_rep", ils_df$replicates)
+  # Add separate output folder for each rep
+  ils_df$output_folder <- paste0(output_dir, ils_df$ID, "/")
+  # Add phylogenetic parameters
+  ils_df$iqtree2_num_threads <- iqtree2_num_threads
+  ils_df$iqtree2_num_ufb <- iqtree2_num_ufb
+  ils_df$alisim_gene_models <- alisim_gene_models
+  ils_df$ML_tree_estimation_models <- ML_tree_estimation_models
+  # Reorder columns
+  ils_df <- ils_df[,c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type", "hypothesis_tree", "hypothesis_tree_file", "replicates",
+                      "branch_a_length", "branch_b_length", "branch_c_length", "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
+                      "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "minimum_coalescent_time_difference", "ASTRAL_tree_depth",
+                      "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "ASTRAL", "iqtree2", "alisim_gene_models",
+                      "iqtree2_num_threads", "iqtree2_num_ufb", "ML_tree_estimation_models")]
+  # Save the dataframe
+  write.csv(ils_df, file = paste0(output_dir, "test_ils_parameters.csv"), row.names = FALSE)
+} else {
+  ils_df <- read.csv(paste0(output_dir, "test_ils_parameters.csv"), header = TRUE, stringsAsFactors = FALSE)
+}
 
 
 
 #### 5. Determine branch lengths for LBA ####
-lba_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
-                                    branch_a_length = 0.1729, branch_b_length = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10)))
-lba_df$simulation_type = "LBA" # vary branch b
-lba_df$simulation_number = "sim1"
-# Add the other columns for the dataframes
-lba_df$branch_c_length <- 0.4145
-lba_df$branch_cnidaria_length <- 0.737
-lba_df$branch_bilateria_length <- 0.9214
-lba_df$branch_porifera_length <- 0.0853
-lba_df$branch_all_animals_length <- 0.6278
-lba_df$branch_outgroup_length <- 0.6278
-lba_df$ML_tree_depth <- 1.177
-lba_df$ASTRAL_tree_depth <- 11.24
-lba_df$proportion_internal_branches <- 0.25
-lba_df$minimum_coalescent_time_difference <- 0.001
-lba_df$num_taxa <- 75
-lba_df$num_genes <- 200
-lba_df$gene_length <- 225
-lba_df$num_sites <- (lba_df$gene_length*lba_df$num_genes)
-lba_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
-lba_df$dataset_type <- "Protein"
-# Add path for executables
-lba_df$ms <- ms
-lba_df$ASTRAL <- astral
-lba_df$iqtree2 <- iqtree2
-# Add the hypothesis tree name in a new column
-lba_df$hypothesis_tree_file <- as.character(lba_df$hypothesis_tree)
-lba_df$hypothesis_tree_file[which(lba_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_1_Cten.tre")
-lba_df$hypothesis_tree_file[which(lba_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_2_Pori.tre")
-# Add an ID column
-lba_df$ID <- paste0(lba_df$simulation_number, "_h", lba_df$hypothesis_tree, "_a", lba_df$branch_a_length, "_b", lba_df$branch_b_length, "_rep", lba_df$replicates)
-# Add separate output folder for each rep
-lba_df$output_folder <- paste0(output_dir, lba_df$ID, "/")
-# Add phylogenetic parameters
-lba_df$iqtree2_num_threads <- iqtree2_num_threads
-lba_df$iqtree2_num_ufb <- iqtree2_num_ufb
-lba_df$alisim_gene_models <- alisim_gene_models
-lba_df$ML_tree_estimation_models <- ML_tree_estimation_models
-# Reorder columns
-lba_df <- lba_df[,c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type", "hypothesis_tree", "hypothesis_tree_file", "replicates",
-                    "branch_a_length", "branch_b_length", "branch_c_length", "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
-                    "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "minimum_coalescent_time_difference", "ASTRAL_tree_depth",
-                    "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "ASTRAL", "iqtree2", "alisim_gene_models",
-                    "iqtree2_num_threads", "iqtree2_num_ufb", "ML_tree_estimation_models")]
-# Save the dataframe
-write.csv(lba_df, file = paste0(output_dir, "test_lba_parameters.csv"), row.names = FALSE)
+if (file.exists(paste0(output_dir, "test_lba_parameters.csv")) == FALSE){
+  lba_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
+                                      branch_a_length = 0.1729, branch_b_length = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10)))
+  lba_df$simulation_type = "LBA" # vary branch b
+  lba_df$simulation_number = "sim1"
+  # Add the other columns for the dataframes
+  lba_df$branch_c_length <- 0.4145
+  lba_df$branch_cnidaria_length <- 0.737
+  lba_df$branch_bilateria_length <- 0.9214
+  lba_df$branch_porifera_length <- 0.0853
+  lba_df$branch_all_animals_length <- 0.6278
+  lba_df$branch_outgroup_length <- 0.6278
+  lba_df$ML_tree_depth <- 1.177
+  lba_df$ASTRAL_tree_depth <- 11.24
+  lba_df$proportion_internal_branches <- 0.25
+  lba_df$minimum_coalescent_time_difference <- 0.001
+  lba_df$num_taxa <- 75
+  lba_df$num_genes <- 200
+  lba_df$gene_length <- 225
+  lba_df$num_sites <- (lba_df$gene_length*lba_df$num_genes)
+  lba_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
+  lba_df$dataset_type <- "Protein"
+  # Add path for executables
+  lba_df$ms <- ms
+  lba_df$ASTRAL <- astral
+  lba_df$iqtree2 <- iqtree2
+  # Add the hypothesis tree name in a new column
+  lba_df$hypothesis_tree_file <- as.character(lba_df$hypothesis_tree)
+  lba_df$hypothesis_tree_file[which(lba_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_1_Cten.tre")
+  lba_df$hypothesis_tree_file[which(lba_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_2_Pori.tre")
+  # Add an ID column
+  lba_df$ID <- paste0(lba_df$simulation_number, "_h", lba_df$hypothesis_tree, "_a", lba_df$branch_a_length, "_b", lba_df$branch_b_length, "_rep", lba_df$replicates)
+  # Add separate output folder for each rep
+  lba_df$output_folder <- paste0(output_dir, lba_df$ID, "/")
+  # Add phylogenetic parameters
+  lba_df$iqtree2_num_threads <- iqtree2_num_threads
+  lba_df$iqtree2_num_ufb <- iqtree2_num_ufb
+  lba_df$alisim_gene_models <- alisim_gene_models
+  lba_df$ML_tree_estimation_models <- ML_tree_estimation_models
+  # Reorder columns
+  lba_df <- lba_df[,c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type", "hypothesis_tree", "hypothesis_tree_file", "replicates",
+                      "branch_a_length", "branch_b_length", "branch_c_length", "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
+                      "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "minimum_coalescent_time_difference", "ASTRAL_tree_depth",
+                      "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "ASTRAL", "iqtree2", "alisim_gene_models",
+                      "iqtree2_num_threads", "iqtree2_num_ufb", "ML_tree_estimation_models")]
+  # Save the dataframe
+  write.csv(lba_df, file = paste0(output_dir, "test_lba_parameters.csv"), row.names = FALSE)
+} else {
+  lba_df <- read.csv(paste0(output_dir, "test_lba_parameters.csv"), header = TRUE, stringsAsFactors = FALSE)
+}
 
 
 
 #### 6. Generate simulated alignments ####
 ## Assemble the dataframes into one
 sim_df <- rbind(lba_df, ils_df)
-# To generate all simulated alignments
-if (num_parallel_threads > 1){
-  output_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, rerun = FALSE, 
-                          mc.cores = (num_parallel_threads/iqtree2_num_threads))
-} else {
-  output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, rerun = FALSE)
+if (file.exists(paste0(output_dir, "test_generate_alignments.csv")) == FALSE){
+  # To generate all simulated alignments
+  if (num_parallel_threads > 1){
+    output_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, rerun = FALSE, 
+                            mc.cores = (num_parallel_threads/iqtree2_num_threads))
+  } else {
+    output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, rerun = FALSE)
+  }
+  output_df <- as.data.frame(do.call(rbind, output_list))
+  # Save output dataframe
+  write.csv(output_df, file = paste0(output_dir, "test_generate_alignments.csv"), row.names = FALSE)
 }
-output_df <- as.data.frame(do.call(rbind, output_list))
-# Save output dataframe
-write.csv(output_df, file = paste0(output_dir, "test_generate_alignments.csv"), row.names = FALSE)
 
 
 
 #### 7. Estimate trees ####
 # Call function to estimate all trees
-if (num_parallel_threads > 1){
-  tree_list <- mclapply(1:nrow(output_df), estimate.trees, df = output_df, call.executable.programs = TRUE, 
-                        mc.cores = (num_parallel_threads/iqtree2_num_threads))
-} else {
-  tree_list <- lapply(1:nrow(output_df), estimate.trees, df = output_df, call.executable.programs = TRUE)
+if (file.exists(paste0(output_dir, "test_generate_trees.csv")) == FALSE){
+  if (num_parallel_threads > 1){
+    tree_list <- mclapply(1:nrow(output_df), estimate.trees, df = output_df, call.executable.programs = TRUE, 
+                          mc.cores = (num_parallel_threads/iqtree2_num_threads))
+  } else {
+    tree_list <- lapply(1:nrow(output_df), estimate.trees, df = output_df, call.executable.programs = TRUE)
+  }
+  tree_df <- as.data.frame(do.call(rbind, tree_list))
+  # Save output dataframe
+  write.csv(tree_df, file = paste0(output_dir, "test_generate_trees.csv"), row.names = FALSE)
 }
-tree_df <- as.data.frame(do.call(rbind, tree_list))
-# Save output dataframe
-write.csv(tree_df, file = paste0(output_dir, "test_generate_trees.csv"), row.names = FALSE)
 
 
 
 #### 8. Conduct analysis ####
 # Call function to apply analyses to simulated alignments and estimated trees
-if (num_parallel_threads > 1){
-  analysis_list <- mclapply(1:nrow(output_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
-                            test.three.hypothesis.trees = TRUE, renamed_taxa = simulation_taxa_names,
-                            mc.cores = (num_parallel_threads/iqtree2_num_threads))
-} else {
-  analysis_list <- lapply(1:nrow(output_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
-                          test.three.hypothesis.trees = TRUE, renamed_taxa = simulation_taxa_names)
+if (file.exists(paste0(output_dir, "test_analysis.csv")) == FALSE){
+  if (num_parallel_threads > 1){
+    analysis_list <- mclapply(1:nrow(output_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
+                              test.three.hypothesis.trees = TRUE, renamed_taxa = simulation_taxa_names,
+                              mc.cores = (num_parallel_threads/iqtree2_num_threads))
+  } else {
+    analysis_list <- lapply(1:nrow(output_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
+                            test.three.hypothesis.trees = TRUE, renamed_taxa = simulation_taxa_names)
+  }
+  analysis_df <- as.data.frame(do.call(rbind, analysis_list))
+  # Save output dataframe
+  write.csv(analysis_df, file = paste0(output_dir, "test_analysis.csv"), row.names = FALSE)
 }
-analysis_df <- as.data.frame(do.call(rbind, analysis_list))
-# Save output dataframe
-write.csv(analysis_df, file = paste0(output_dir, "test_analysis.csv"), row.names = FALSE)
 
 
