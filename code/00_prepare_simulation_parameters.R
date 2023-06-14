@@ -201,8 +201,6 @@ if (file.exists(ils_df_file) == FALSE){
                       "iqtree2_num_threads", "iqtree2_num_ufb", "ML_tree_estimation_models")]
   # Save the dataframe
   write.csv(ils_df, file = ils_df_file, row.names = FALSE)
-} else {
-  ils_df <- read.csv(ils_df_file, header = TRUE, stringsAsFactors = FALSE)
 }
 
 
@@ -256,8 +254,6 @@ if (file.exists(lba_df_file) == FALSE){
                       "iqtree2_num_threads", "iqtree2_num_ufb", "ML_tree_estimation_models")]
   # Save the dataframe
   write.csv(lba_df, file = lba_df_file, row.names = FALSE)
-} else {
-  lba_df <- read.csv(lba_df_file, header = TRUE, stringsAsFactors = FALSE)
 }
 
 
