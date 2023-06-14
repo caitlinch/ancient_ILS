@@ -23,13 +23,13 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.hypothe
                                                               rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
   
   ## Calculate the gCFs using IQ-Tree
-  iqtree2_gcfs <- gcf.wrapper(alignment_path = df_row$output_alignment_file, iqtree2_path = df_row$iqtree2, iqtree2_model = NA,
+  iqtree2_gcfs <- gcf.wrapper(alignment_path = df_row$output_alignment_file, iqtree2_path = df_row$iqtree2, iqtree2_model = df_row$ML_tree_estimation_models,
                               iqtree2_num_threads = df_row$iqtree2_num_threads, rename.taxa.for.ms = TRUE, renamed_taxa = renamed_taxa)
   
   ## Calculate the qCFs using ASTRAL
   astral_qcfs <- qcf.wrapper(ID = df_row$ID, starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
                              ASTRAL_tree = df_row$ASTRAL_tree_treefile, ML_gene_trees = df_row$iqtree2_gene_tree_treefile, 
-                             ASTRAL_path = df_row$ASTRAL, call.astral = TRUE)
+                             ASTRAL_path = df_row$ASTRAL, call.astral = TRUE, renamed_taxa)
   
   ## Perform hypothesis tests in IQ-Tree
   # Extract all files from folder
@@ -120,7 +120,7 @@ perform.hypothesis.tests <- function(ID, alignment_path, hypothesis_tree_file, i
   
   ## Assemble the IQ-Tree command and call IQ-Tree
   # Specify model, if one is provided
-  if (is.na(iqtree_model) == TRUE){
+  if (is.na(iqtree2_model) == TRUE){
     model_code = "MFP"
   } else {
     model_code <- iqtree2_model
@@ -204,7 +204,7 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
   all_hyp_dir_files <- list.files(hypothesis_tree_dir)
   # Extract only either the ASTRAL or IQ-Tree tree files
   if (tree_type == "ASTRAL" | tree_type == "astral"){
-    tree_files <- grep("ASTRAL", all_hyp_dir_files,value = T)
+    tree_files <- grep("\\.tre", grep("ASTRAL", all_hyp_dir_files,value = T), value = T)
   } else if (tree_type == "IQ-Tree2" | tree_type == "IQ-Tree" | tree_type == "ML" | tree_type == "iqtree" | tree_type == "iqtree2"){
     tree_files <- grep("treefile", all_hyp_dir_files,value = T)    
   }
@@ -218,12 +218,12 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
   h3_tree <- read.tree(file = h3_path)
   
   ## Prepare the hypothesis trees for comparison with the test tree
-  # Reroot the trees
-  h1_tree <- root(h1_tree, outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
+  # Reroot the trees (only at one outgroup taxon, in case outgroup is paraphyletic)
+  h1_tree <- root(h1_tree, outgroup = c("Monosiga_ovata"),
                   resolve.root = TRUE)
-  h2_tree <- root(h2_tree, outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
+  h2_tree <- root(h2_tree, outgroup = c("Monosiga_ovata"),
                   resolve.root = TRUE)
-  h3_tree <- root(h3_tree, outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
+  h3_tree <- root(h3_tree, outgroup = c("Monosiga_ovata"),
                   resolve.root = TRUE)
   if (rename.hypothesis.tree.tips == TRUE){
     # Rename taxa to short versions (numbers only)
@@ -237,11 +237,19 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
   
   ## Open the tree of interest
   t <- read.tree(file = tree_path)
+  # Root at Monosiga ovata
+  t <- root(t, outgroup = gsub("t", "", renamed_taxa["Monosiga_ovata"]),
+            resolve.root = TRUE)
   
   ## Calculate RF and wRF for the trees
-  output_vec <- c(tree_path, RF.dist(t, h1_tree), wRF.dist(t, h1_tree), RF.dist(t, h2_tree), wRF.dist(t, h2_tree), RF.dist(t, h3_tree), wRF.dist(t, h3_tree))
-  names(output_vec) <- c(paste0(tree_type, "_tree_path"), paste0(tree_type, "_h1_RF_dist"), paste0(tree_type, "_h1_wRF_dist"), paste0(tree_type, "_h2_RF_dist"),
-                         paste0(tree_type, "_h2_wRF_dist"), paste0(tree_type, "_h3_RF_dist"), paste0(tree_type, "_h3_wRF_dist") )
+  output_vec <- c(tree_path, 
+                  RF.dist(t, h1_tree), round(wRF.dist(t, h1_tree), digits = 2), 
+                  RF.dist(t, h2_tree), round(wRF.dist(t, h2_tree), digits = 2), 
+                  RF.dist(t, h3_tree), round(wRF.dist(t, h3_tree), digits = 2))
+  names(output_vec) <- c(paste0(tree_type, "_tree_path"), 
+                         paste0(tree_type, "_h1_RF_dist"), paste0(tree_type, "_h1_wRF_dist"), 
+                         paste0(tree_type, "_h2_RF_dist"), paste0(tree_type, "_h2_wRF_dist"), 
+                         paste0(tree_type, "_h3_RF_dist"), paste0(tree_type, "_h3_wRF_dist") )
   
   ## Return the RF/wRF distances
   return(output_vec)
@@ -253,21 +261,23 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
 
 
 #### Quartet concordance factors ####
-qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_trees, ASTRAL_path, call.astral = TRUE){
+qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_trees, ASTRAL_path, call.astral = TRUE, renamed_taxa){
   ## Function to determine expected and estimated qCF in ASTRAL and return summary statistics
   
   ## Identify directory
-  qcf_dir <- paste0(dirame(starting_tree), "/")
+  qcf_dir <- paste0(dirname(starting_tree), "/")
   
   ## Calculate actual quartet concordance factors
   expected_qcf_paths <- qcf.call(output_id = paste0(ID, "_expected_qcfs"), output_directory = qcf_dir, 
                                  tree_path = starting_tree, gene_trees_path = ms_gene_trees,
-                                 ASTRAL_path = ASTRAL_path, call.astral = TRUE)
+                                 ASTRAL_path = ASTRAL_path, call.astral, 
+                                 rename.tree.tips = TRUE, renamed_taxa)
   
   ## Calculate estimated quartet concordance factors
   estimated_qcf_paths <- qcf.call(output_id = paste0(ID, "_estimated_qcfs"), output_directory = qcf_dir, 
                                   tree_path = ASTRAL_tree, gene_trees_path = ML_gene_trees,
-                                  ASTRAL_path = ASTRAL_path, call.astral = TRUE)
+                                  ASTRAL_path = ASTRAL_path, call.astral,
+                                  rename.tree.tips = FALSE, renamed_taxa)
   
   ## Extract relevant qCF values
   expected_qcf_values <-  extract.qcf.values(qcf_tree_path = expected_qcf_paths[["qcf_output_tree"]], 
@@ -287,11 +297,33 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_t
 
 
 
-qcf.call <- function(output_id, output_directory, tree_path, gene_trees_path, ASTRAL_path, call.astral = TRUE){
+qcf.call <- function(output_id, output_directory, tree_path, gene_trees_path, ASTRAL_path, call.astral = TRUE, rename.tree.tips = TRUE, renamed_taxa, redo = FALSE){
   ## Function to call ASTRAL and calculate quartet concordance factors
   
   ## Check whether the tree tips match
+  # Replace tip labels with numeric labels
+  if (rename.tree.tips == TRUE){
+    # Open tree
+    og_tree <- read.tree(tree_path)
+    # Update tip labels
+    new_tip_labels <- unlist(lapply(og_tree$tip.label, function(i){renamed_taxa[[i]]}))
+    # Replace og tip labels with new tip labels
+    numericTipLabels_tree <- og_tree
+    numericTipLabels_tree$tip.label <- new_tip_labels
+    # Create file path to save new tree
+    split_path <- unlist(strsplit(basename(tree_path), "\\."))
+    numericTipLabels_tree_path <- paste0(dirname(tree_path), "/",
+                                         paste(head(split_path, (length(split_path) - 1)), collapse = "."), 
+                                         "_numericTipLabels", ".",
+                                         tail(split_path, 1))
+    # Save new tree
+    write.tree(numericTipLabels_tree, numericTipLabels_tree_path)
+    # Update tree path file
+    tree_path <- numericTipLabels_tree_path
+  }
+  # Remove any "t" in tip labels
   input_tree_path <- check.tip.labels(tree_path)
+  
   
   # Assemble ASTRAL command to calculate quartet concordance factors
   output_tree <- paste0(output_directory, output_id, ".tre")
@@ -299,6 +331,8 @@ qcf.call <- function(output_id, output_directory, tree_path, gene_trees_path, AS
   qcf_command <- paste0("java -jar ", ASTRAL_path, " -q ", input_tree_path, " -i ", gene_trees_path, " -o ", output_tree, " 2> ", output_log)
   # if call.astral == TRUE, run ASTRAL to calculate quartet concordance factors
   if ((call.astral == TRUE) & (file.exists(output_tree) == FALSE) & (file.exists(output_log) == FALSE)){
+    system(qcf_command)
+  } else if (redo == TRUE){
     system(qcf_command)
   }
   # Assemble output vector
@@ -334,27 +368,42 @@ extract.qcf.values <- function(qcf_tree_path, qcf_log_path){
                                  "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38",
                                  "39", "40"))
     a_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == a_end),1]
+    branch_a_mono <- is.monophyletic(qcf_tree, c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+                                                 "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38",
+                                                 "39", "40"))
     b_end <- getMRCA(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
                                  "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
     b_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == b_end),1]
+    branch_b_mono <- is.monophyletic(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
+                                                 "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
   } else if (grepl("h2", basename(qcf_tree_path)) == TRUE){
     a_end <- getMRCA(qcf_tree, c("22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"))
     a_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == a_end),1]
+    branch_a_mono <- is.monophyletic(qcf_tree, c("22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"))
     b_end <- getMRCA(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
                                  "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
     b_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == b_end),1]
+    branch_b_mono <- is.monophyletic(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
+                                                 "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
   } else if (grepl("h3", basename(qcf_tree_path)) == TRUE){
     a_end <- getMRCA(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
                                  "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "22", "23", "24", "25", "26", "27",
                                  "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"))
     a_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == a_end),1]
+    branch_a_mono <- is.monophyletic(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
+                                                 "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "22", "23", "24", "25", "26", "27",
+                                                 "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"))
     b_end <- getMRCA(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
                                  "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
     b_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == b_end),1]
+    branch_b_mono <- is.monophyletic(qcf_tree, c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58",
+                                                 "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
   }
   # Extract information from those two branches
-  qcf_branch_a <- node_labs[a_end-Ntip(qcf_tree)]
-  qcf_branch_b <- node_labs[b_end-Ntip(qcf_tree)]
+  qcf_branch_a <- node_labs[ ( a_end-Ntip(qcf_tree) ) ]
+  qcf_branch_a_mono <- branch_a_mono
+  qcf_branch_b <- node_labs[ ( b_end-Ntip(qcf_tree) ) ]
+  qcf_branch_b_mono <- branch_b_mono
   qcf_mean <- mean(as.numeric(node_labs), na.rm = TRUE)
   qcf_median <- median(as.numeric(node_labs), na.rm = TRUE)
   qcf_min <- min(as.numeric(node_labs), na.rm = TRUE)
@@ -362,9 +411,11 @@ extract.qcf.values <- function(qcf_tree_path, qcf_log_path){
   
   ## Assemble the output
   qcf_extracted <- c(num_quartet_trees, final_quartet_score, normalised_quartet_score,
-                     qcf_mean, qcf_median, qcf_min, qcf_max, qcf_branch_a, qcf_branch_b)
+                     qcf_mean, qcf_median, qcf_min, qcf_max, 
+                     qcf_branch_a_mono, qcf_branch_a, qcf_branch_b_mono, qcf_branch_b)
   names(qcf_extracted) <- c("num_quartet_trees", "final_quartet_score", "final_normalised_quartet_score",
-                            "qcf_mean", "qcf_median", "qcf_min", "qcf_max", "qcf_branch_a", "qcf_branch_b")
+                            "qcf_mean", "qcf_median", "qcf_min", "qcf_max", 
+                            "qcf_branch_a_monophyletic", "qcf_branch_a_value", "qcf_branch_b_monophyletic", "qcf_branch_b_value")
   
   ## Return the qCF values 
   return(qcf_extracted)
@@ -508,7 +559,7 @@ extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtr
   ## If the file length is 0, then continue
   if (length(check_gcf_files) == 0){
     ## Identify the files for the starting tree and the gene trees
-    tree_file <- paste0(al_dir, grep("branch_lengths_modified", al_files, value = T))
+    tree_file <- paste0(al_dir, grep("renamed", grep("branch_lengths_modified", al_files, value = T), value = T, invert = T))
     gene_tree_file <- paste0(al_dir, grep("ms_gene_trees", al_files, value = T))
     
     ## Rename taxa (if necessary)
@@ -553,9 +604,9 @@ extract.output.concordance.factors <- function(alignment_path, iqtree2_path, iqt
   #     gCFs estimated from the ML tree estimated from the partitioned simulated alignment and gene trees estimated from each partition
   
   # Run iqtree to estimate gene concordance factors
-  gcf_files <- iqtree2.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads, iqtree2_num_ufb, iqtree2_model)
+  gcf_files <- iqtree2.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads, iqtree2_model)
   # Retrieve gcf from output table
-  gcf_stat_file <- op_vector[["gCF_table_file"]]
+  gcf_stat_file <- gcf_files[["gCF_table_file"]]
   gcf_table <- read.table(gcf_stat_file, header = TRUE, sep = "\t")
   # Return the gCF table
   # Return the gCF table and file names
@@ -585,8 +636,8 @@ iqtree2.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_nu
   if (length(check_files) == 0){
     ## Inferring species tree
     # Check for presence of species tree
-    species_tree_file_check <- paste0(dirname(alignment_path), "/", df_row$ID,"_ML_tree.treefile")
-    species_tree_iqfile_check <- paste0(dirname(alignment_path), "/", df_row$ID,"_ML_tree.iqtree")
+    species_tree_file_check <- paste0(dirname(alignment_path), "/", al_id,"_ML_tree.treefile")
+    species_tree_iqfile_check <- paste0(dirname(alignment_path), "/", al_id,"_ML_tree.iqtree")
     if (file.exists(species_tree_file_check) == FALSE | file.exists(species_tree_iqfile_check) == FALSE){
       ## If the output files don't exist, call IQ-Tree to estimate species tree
       # Create a gene partition file with no models
@@ -609,8 +660,8 @@ iqtree2.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_nu
     
     ## Inferring gene/locus trees  
     # Check for presence of gene tree file
-    gene_tree_file_check <- paste0(dirname(alignment_path), "/", df_row$ID,"_gene_trees.treefile")
-    gene_tree_iqfile_check <- paste0(dirname(alignment_path), "/", df_row$ID,"_gene_trees.iqtree")
+    gene_tree_file_check <- paste0(dirname(alignment_path), "/", al_id,"_gene_trees.treefile")
+    gene_tree_iqfile_check <- paste0(dirname(alignment_path), "/", al_id,"_gene_trees.iqtree")
     if (file.exists(gene_tree_file_check) == FALSE | file.exists(gene_tree_iqfile_check) == FALSE){
       ## If the output files don't exist, call IQ-Tree to estimate gene trees
       # Create model call
@@ -627,8 +678,8 @@ iqtree2.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_nu
     
     ## Calculating gene concordance factors
     gcf_tree_prefix <- paste0(al_id, "-concord")
-    species_tree_file <- paste0(dirname(alignment_path), "/", df_row$ID,"_ML_tree.treefile")
-    gene_tree_file <- paste0(dirname(alignment_path), "/", df_row$ID,"_gene_trees.treefile")
+    species_tree_file <- paste0(dirname(alignment_path), "/", al_id,"_ML_tree.treefile")
+    gene_tree_file <- paste0(dirname(alignment_path), "/", al_id,"_gene_trees.treefile")
     gcf_call <- paste0(iqtree2_path ," -t ", species_tree_file, " --gcf ", gene_tree_file, " --prefix ", gcf_tree_prefix)
     system(gcf_call)
   }
@@ -686,7 +737,7 @@ check.tip.labels <- function(tree_path){
   split_path <- unlist(strsplit(basename(tree_path), "\\."))
   relabelled_tree_path <- paste0(dirname(tree_path), "/",
                                  paste(head(split_path, (length(split_path) - 1)), collapse = "."), 
-                                 "_relabelled.", 
+                                 "_relablled", ".",
                                  tail(split_path, 1))
   # If the file path already exists, skip the rest of this section. 
   # Otherwise, open the tree and edit the tip labels
