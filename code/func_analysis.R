@@ -137,7 +137,7 @@ perform.hypothesis.tests <- function(ID, alignment_path, hypothesis_tree_file, i
     model_code <- iqtree2_model
   }
   test_command <- paste0(iqtree2_path, " -s ", alignment_path, " -z ", hypothesis_tree_file, " -m ", model_code,
-                         " -n 0 -zb 10000 -zw -au -nt ", iqtree2_num_threads, " -pre ", ID)
+                         " -n 0 -zb 10000 -zw -au -nt ", iqtree2_num_threads, " -pre ", ID, " -safe")
   system(test_command)
   
   ## Extract output from the IQ-Tree file
