@@ -94,6 +94,13 @@ names(simulation_taxa_names) <- c("Homo_sapiens", "Strongylocentrotus_purpatus",
                                   "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
                                   "Ctenophora_sp_Florida_USA","Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
 
+## Assemble output file paths
+lba_df_file       <- paste0(output_dir, "test_lba_parameters.csv")
+ils_df_file       <- paste0(output_dir, "test_ils_parameters.csv")
+genAl_df_file     <- paste0(output_dir, "test_generate_alignments.csv")
+genTrees_df_file  <- paste0(output_dir, "test_generate_trees.csv")
+analysis_df_file  <- paste0(output_dir, "test_analysis.csv")
+
 
 
 #### 3. Determine ratio of internal to external branches for all ML trees downloaded from previous empirical studies ####
@@ -147,7 +154,7 @@ if (extract.length.ratio == TRUE){
 
 #### 4. Determine branch lengths for ILS ####
 print("#### 4. Determine branch lengths for ILS ####")
-if (file.exists(paste0(output_dir, "test_ils_parameters.csv")) == FALSE){
+if (file.exists(ils_df_file) == FALSE){
   ils_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
                                       branch_a_length = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10), branch_b_length = 1.647))
   ils_df$simulation_type = "ILS" # vary branch a
@@ -193,16 +200,16 @@ if (file.exists(paste0(output_dir, "test_ils_parameters.csv")) == FALSE){
                       "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "ASTRAL", "iqtree2", "alisim_gene_models",
                       "iqtree2_num_threads", "iqtree2_num_ufb", "ML_tree_estimation_models")]
   # Save the dataframe
-  write.csv(ils_df, file = paste0(output_dir, "test_ils_parameters.csv"), row.names = FALSE)
+  write.csv(ils_df, file = ils_df_file, row.names = FALSE)
 } else {
-  ils_df <- read.csv(paste0(output_dir, "test_ils_parameters.csv"), header = TRUE, stringsAsFactors = FALSE)
+  ils_df <- read.csv(ils_df_file, header = TRUE, stringsAsFactors = FALSE)
 }
 
 
 
 #### 5. Determine branch lengths for LBA ####
 print("#### 5. Determine branch lengths for LBA ####")
-if (file.exists(paste0(output_dir, "test_lba_parameters.csv")) == FALSE){
+if (file.exists(lba_df_file) == FALSE){
   lba_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
                                       branch_a_length = 0.1729, branch_b_length = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10)))
   lba_df$simulation_type = "LBA" # vary branch b
@@ -248,9 +255,9 @@ if (file.exists(paste0(output_dir, "test_lba_parameters.csv")) == FALSE){
                       "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "ASTRAL", "iqtree2", "alisim_gene_models",
                       "iqtree2_num_threads", "iqtree2_num_ufb", "ML_tree_estimation_models")]
   # Save the dataframe
-  write.csv(lba_df, file = paste0(output_dir, "test_lba_parameters.csv"), row.names = FALSE)
+  write.csv(lba_df, file = lba_df_file, row.names = FALSE)
 } else {
-  lba_df <- read.csv(paste0(output_dir, "test_lba_parameters.csv"), header = TRUE, stringsAsFactors = FALSE)
+  lba_df <- read.csv(lba_df_file, header = TRUE, stringsAsFactors = FALSE)
 }
 
 
@@ -258,8 +265,10 @@ if (file.exists(paste0(output_dir, "test_lba_parameters.csv")) == FALSE){
 #### 6. Generate simulated alignments ####
 print("#### 6. Generate simulated alignments ####")
 ## Assemble the dataframes into one
-sim_df <- rbind(lba_df, ils_df)
-if (file.exists(paste0(output_dir, "test_generate_alignments.csv")) == FALSE){
+if (file.exists(genAl_df_file) == FALSE){
+  # Open the simulation dataframes
+  sim_df <- rbind(read.csv(lba_df_file, header = TRUE, stringsAsFactors = FALSE),
+                  read.csv(ils_df_file, header = TRUE, stringsAsFactors = FALSE))
   # To generate all simulated alignments
   if (num_parallel_threads > 1){
     output_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, rerun = FALSE, 
@@ -269,7 +278,7 @@ if (file.exists(paste0(output_dir, "test_generate_alignments.csv")) == FALSE){
   }
   output_df <- as.data.frame(do.call(rbind, output_list))
   # Save output dataframe
-  write.csv(output_df, file = paste0(output_dir, "test_generate_alignments.csv"), row.names = FALSE)
+  write.csv(output_df, file = genAl_df_file, row.names = FALSE)
 }
 
 
@@ -277,9 +286,9 @@ if (file.exists(paste0(output_dir, "test_generate_alignments.csv")) == FALSE){
 #### 7. Estimate trees ####
 print("#### 7. Estimate trees ####")
 # Call function to estimate all trees
-if (file.exists(paste0(output_dir, "test_generate_trees.csv")) == FALSE){
+if (file.exists(genTrees_df_file) == FALSE){
   # Open output_df
-  output_df <- read.csv(paste0(output_dir, "test_generate_alignments.csv"), stringsAsFactors = FALSE)
+  output_df <- read.csv(genAl_df_file, stringsAsFactors = FALSE)
   # Estimate trees
   if (num_parallel_threads > 1){
     tree_list <- mclapply(1:nrow(output_df), estimate.trees, df = output_df, call.executable.programs = TRUE, 
@@ -289,7 +298,7 @@ if (file.exists(paste0(output_dir, "test_generate_trees.csv")) == FALSE){
   }
   tree_df <- as.data.frame(do.call(rbind, tree_list))
   # Save output dataframe
-  write.csv(tree_df, file = paste0(output_dir, "test_generate_trees.csv"), row.names = FALSE)
+  write.csv(tree_df, file = genTrees_df_file, row.names = FALSE)
 }
 
 
@@ -297,21 +306,21 @@ if (file.exists(paste0(output_dir, "test_generate_trees.csv")) == FALSE){
 #### 8. Conduct analysis ####
 print("#### 8. Conduct analysis ####")
 # Call function to apply analyses to simulated alignments and estimated trees
-if (file.exists(paste0(output_dir, "test_analysis.csv")) == FALSE){
+if (file.exists(analysis_df_file) == FALSE){
   # Open tree_df
-  tree_df <- read.csv(paste0(output_dir, "test_generate_trees.csv"), stringsAsFactors = FALSE)
+  tree_df <- read.csv(genTrees_df_file, stringsAsFactors = FALSE)
   # Conduct analysis
   if (num_parallel_threads > 1){
     analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
-                              test.three.hypothesis.trees = TRUE, perform.topology.tests = FALSE, renamed_taxa = simulation_taxa_names,
+                              test.three.hypothesis.trees = TRUE, perform.topology.tests = TRUE, renamed_taxa = simulation_taxa_names,
                               mc.cores = (num_parallel_threads/iqtree2_num_threads))
   } else {
     analysis_list <- lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
-                            test.three.hypothesis.trees = TRUE, perform.topology.tests = FALSE, renamed_taxa = simulation_taxa_names)
+                            test.three.hypothesis.trees = TRUE, perform.topology.tests = TRUE, renamed_taxa = simulation_taxa_names)
   }
   analysis_df <- as.data.frame(do.call(rbind, analysis_list))
   # Save output dataframe
-  write.csv(analysis_df, file = paste0(output_dir, "test_analysis.csv"), row.names = FALSE)
+  write.csv(analysis_df, file = analysis_df_file, row.names = FALSE)
 }
 
 
