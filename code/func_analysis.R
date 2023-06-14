@@ -570,7 +570,7 @@ extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtr
   ## If the file length is 0, then continue
   if (length(check_gcf_files) == 0){
     ## Identify the files for the starting tree and the gene trees
-    tree_file <- paste0(al_dir, grep("renamed", grep("branch_lengths_modified", al_files, value = T), value = T, invert = T))
+    tree_file <- paste0(al_dir, grep("numericTipLabels", grep("renamed", grep("branch_lengths_modified", al_files, value = T), value = T, invert = T), value = T, invert = T))
     gene_tree_file <- paste0(al_dir, grep("ms_gene_trees", al_files, value = T))
     
     ## Rename taxa (if necessary)
