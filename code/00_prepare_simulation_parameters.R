@@ -21,10 +21,13 @@ print("#### 1. Input parameters ####")
 # iqtree2_num_ufb           <- number of ultrafast bootstraps for IQ-Tree2 to generate
 
 ## Control parameters
-# extract.length.ratio      <- flag to run code to determine ratio of length of internal branches to sum of all branches in empirical phylogenetic trees (to run = TRUE)
+# extract.length.ratio      <- flag to run code to determine ratio of length of internal branches to sum of all branches in empirical phylogenetic trees 
+#                                     (to run: extract.length.ratio=TRUE)
+# copy.completed.files      <- flag to run code to determine whether to copy output trees to a new file (to copy: copy.completed.files=TRUE)
 
-location = "dayhoff"
+location = "local"
 if (location == "local"){
+  ## File paths and computational parameters
   repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   hypothesis_tree_dir         <- paste0(repo_dir, "hypothesis_trees/")
   published_tree_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_dataset_published_trees/01_ml_trees/"
@@ -32,10 +35,10 @@ if (location == "local"){
   iqtree2                     <- "iqtree2"
   astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
   ms                          <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
-  
   num_parallel_threads        <- 1
   iqtree2_num_threads         <- 3
 } else if (location == "dayhoff"){
+  ## File paths and computational parameters
   repo_dir                    <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
   hypothesis_tree_dir         <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/02_empirical_hypothesis_trees/"
   published_tree_dir          <- NA
@@ -43,16 +46,18 @@ if (location == "local"){
   iqtree2                     <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree-2.2.0-Linux/bin/iqtree2"
   astral                      <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/Astral/astral.5.7.8.jar"
   ms                          <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/msdir/ms"
-  
   num_parallel_threads        <- 40
   iqtree2_num_threads         <- 10
 }
 
+## Phylogenetic parameters
 alisim_gene_models          <- "LG"
 ML_tree_estimation_models   <- alisim_gene_models
 iqtree2_num_ufb             <- 1000
 
+## Control parameters
 extract.length.ratio        <- FALSE
+copy.completed.files        <- FALSE
 
 
 
@@ -313,33 +318,37 @@ if (file.exists(paste0(output_dir, "test_analysis.csv")) == FALSE){
 
 #### 9. Copy files to save ####
 print("#### 9. Copy files to save ####")
-# List all directories in the output_dir (except the directory containing trees to save)
-all_dirs <- list.dirs(output_dir, full.names = FALSE)
-all_dirs <- all_dirs[which(all_dirs != "")]
-all_dirs <- all_dirs[which(all_dirs != "all_sims_output_files")]
-# Create new output dir
-new_output_dir <- paste0(output_dir, "all_sims_output_files/")
-if (dir.exists(new_output_dir) == FALSE){dir.create(new_output_dir)}
-# Enter each folder one at a time and extract certain files
-for (d in all_dirs){
-  # Create full path for d folder
-  old_d <- paste0(output_dir, d, "/")
-  # Create new directory for each existing directory
-  new_d <- paste0(new_output_dir, d, "/")
-  if (dir.exists(new_d) == FALSE){dir.create(new_d)}
-  # Determine which files to copy
-  all_files <- list.files(old_d)
-  regex_checks <- c("_alignment.fa", "_partitions.nexus", "_starting_tree.txt", "branch_lengths_modified.treefile", 
-                    "ms_gene_trees.txt", "_gene_trees.iqtree", "_gene_trees.log", "_gene_trees.treefile",
-                    "_ML_tree.iqtree", "_ML_tree.log", "_ML_tree.treefile", "_ASTRAL_tree.log", "_ASTRAL_tree.tre",
-                    "_estimated_qcfs.log", "_estimated_qcfs.tre", "expected_qcfs.log", "expected_qcfs.tre",
-                    "-actual.cf.branch", "-actual.cf.stat", "-actual.cf.tree", "-actual.cf.tree.nex",
-                    "-concord.cf.branch", "-concord.cf.stat", "-concord.cf.tree", "-concord.cf.tree.nex")
-  files_to_copy <- grep(paste(regex_checks, collapse = "|"), all_files, value = T)
-  # Copy files
-  for (i in 1:length(files_to_copy)){
-    f <- files_to_copy[i]
-    file.copy(from = paste0(old_d, f), to = paste0(new_d, f))
-  } # end iterating through files_to_copy
-} # end iterating through all_dirs
+if (copy.completed.files == TRUE){
+  # List all directories in the output_dir (except the directory containing trees to save)
+  all_dirs <- list.dirs(output_dir, full.names = FALSE)
+  all_dirs <- all_dirs[which(all_dirs != "")]
+  all_dirs <- grep("all_sims_output_files", all_dirs, value = TRUE, invert = TRUE)
+  # Create new output dir
+  new_output_dir <- paste0(output_dir, "all_sims_output_files/")
+  if (dir.exists(new_output_dir) == FALSE){dir.create(new_output_dir)}
+  # Enter each folder one at a time and extract certain files
+  for (d in all_dirs){
+    # Create full path for d folder
+    old_d <- paste0(output_dir, d, "/")
+    # Create new directory for each existing directory
+    new_d <- paste0(new_output_dir, d, "/")
+    if (dir.exists(new_d) == FALSE){dir.create(new_d)}
+    # Determine which files to copy
+    all_files <- list.files(old_d)
+    regex_checks <- c("_alignment.fa", "_partitions.nexus", "_starting_tree.txt", "branch_lengths_modified.treefile", 
+                      "ms_gene_trees.txt", "_gene_trees.iqtree", "_gene_trees.log", "_gene_trees.treefile",
+                      "_ML_tree.iqtree", "_ML_tree.log", "_ML_tree.treefile", "_ASTRAL_tree.log", "_ASTRAL_tree.tre",
+                      "_estimated_qcfs.log", "_estimated_qcfs.tre", "expected_qcfs.log", "expected_qcfs.tre",
+                      "-actual.cf.branch", "-actual.cf.stat", "-actual.cf.tree", "-actual.cf.tree.nex",
+                      "-concord.cf.branch", "-concord.cf.stat", "-concord.cf.tree", "-concord.cf.tree.nex")
+    files_to_copy <- grep(paste(regex_checks, collapse = "|"), all_files, value = T)
+    # Copy files
+    for (i in 1:length(files_to_copy)){
+      f <- files_to_copy[i]
+      file.copy(from = paste0(old_d, f), to = paste0(new_d, f))
+    } # end iterating through files_to_copy
+  } # end iterating through all_dirs
+}
+
+
 
