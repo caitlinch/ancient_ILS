@@ -310,3 +310,36 @@ if (file.exists(paste0(output_dir, "test_analysis.csv")) == FALSE){
 }
 
 
+
+#### 9. Copy files to save ####
+print("#### 9. Copy files to save ####")
+# List all directories in the output_dir (except the directory containing trees to save)
+all_dirs <- list.dirs(output_dir, full.names = FALSE)
+all_dirs <- all_dirs[which(all_dirs != "")]
+all_dirs <- all_dirs[which(all_dirs != "all_sims_output_files")]
+# Create new output dir
+new_output_dir <- paste0(output_dir, "all_sims_output_files/")
+if (dir.exists(new_output_dir) == FALSE){dir.create(new_output_dir)}
+# Enter each folder one at a time and extract certain files
+for (d in all_dirs){
+  # Create full path for d folder
+  old_d <- paste0(output_dir, d, "/")
+  # Create new directory for each existing directory
+  new_d <- paste0(new_output_dir, d, "/")
+  if (dir.exists(new_d) == FALSE){dir.create(new_d)}
+  # Determine which files to copy
+  all_files <- list.files(old_d)
+  regex_checks <- c("_alignment.fa", "_partitions.nexus", "_starting_tree.txt", "branch_lengths_modified.treefile", 
+                    "ms_gene_trees.txt", "_gene_trees.iqtree", "_gene_trees.log", "_gene_trees.treefile",
+                    "_ML_tree.iqtree", "_ML_tree.log", "_ML_tree.treefile", "_ASTRAL_tree.log", "_ASTRAL_tree.tre",
+                    "_estimated_qcfs.log", "_estimated_qcfs.tre", "expected_qcfs.log", "expected_qcfs.tre",
+                    "-actual.cf.branch", "-actual.cf.stat", "-actual.cf.tree", "-actual.cf.tree.nex",
+                    "-concord.cf.branch", "-concord.cf.stat", "-concord.cf.tree", "-concord.cf.tree.nex")
+  files_to_copy <- grep(paste(regex_checks, collapse = "|"), all_files, value = T)
+  # Copy files
+  for (i in 1:length(files_to_copy)){
+    f <- files_to_copy[i]
+    file.copy(from = paste0(old_d, f), to = paste0(new_d, f))
+  } # end iterating through files_to_copy
+} # end iterating through all_dirs
+
