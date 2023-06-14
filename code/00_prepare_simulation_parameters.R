@@ -312,11 +312,11 @@ if (file.exists(analysis_df_file) == FALSE){
   # Conduct analysis
   if (num_parallel_threads > 1){
     analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
-                              test.three.hypothesis.trees = TRUE, perform.topology.tests = TRUE, renamed_taxa = simulation_taxa_names,
+                              test.three.hypothesis.trees = TRUE, perform.topology.tests = FALSE, renamed_taxa = simulation_taxa_names,
                               mc.cores = (num_parallel_threads/iqtree2_num_threads))
   } else {
     analysis_list <- lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
-                            test.three.hypothesis.trees = TRUE, perform.topology.tests = TRUE, renamed_taxa = simulation_taxa_names)
+                            test.three.hypothesis.trees = TRUE, perform.topology.tests = FALSE, renamed_taxa = simulation_taxa_names)
   }
   analysis_df <- as.data.frame(do.call(rbind, analysis_list))
   # Save output dataframe
