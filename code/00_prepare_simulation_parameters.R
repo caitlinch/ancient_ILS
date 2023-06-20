@@ -24,6 +24,7 @@ print("#### 1. Input parameters ####")
 # extract.length.ratio      <- flag to run code to determine ratio of length of internal branches to sum of all branches in empirical phylogenetic trees 
 #                                     (to run: extract.length.ratio=TRUE)
 # copy.completed.files      <- flag to run code to determine whether to copy output trees to a new file (to copy: copy.completed.files=TRUE)
+# plot.test.results         <- flag to run code to determine whether to plot preliminary results from these test simulations (to plot: plot.test.results=TRUE)
 
 location = "local"
 if (location == "local"){
@@ -57,7 +58,8 @@ iqtree2_num_ufb             <- 1000
 
 ## Control parameters
 extract.length.ratio        <- FALSE
-copy.completed.files        <- FALSE
+copy.completed.files        <- TRUE
+plot.test.results           <- TRUE
 
 
 
@@ -68,6 +70,8 @@ library(ape)
 library(phangorn)
 library(phytools)
 library(parallel)
+library(reshape2)
+library(ggplot2)
 
 ## Source functions
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
@@ -156,7 +160,8 @@ if (extract.length.ratio == TRUE){
 print("#### 4. Determine branch lengths for ILS ####")
 if (file.exists(ils_df_file) == FALSE){
   ils_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
-                                      branch_a_length = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10), branch_b_length = 1.647))
+                                      branch_a_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10), 
+                                      branch_b_length = 1.647))
   ils_df$simulation_type = "ILS" # vary branch a
   ils_df$simulation_number = "sim2"
   # Add the other columns for the dataframes
@@ -209,7 +214,7 @@ if (file.exists(ils_df_file) == FALSE){
 print("#### 5. Determine branch lengths for LBA ####")
 if (file.exists(lba_df_file) == FALSE){
   lba_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
-                                      branch_a_length = 0.1729, branch_b_length = c(0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10)))
+                                      branch_a_length = 0.1729, branch_b_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10)))
   lba_df$simulation_type = "LBA" # vary branch b
   lba_df$simulation_number = "sim1"
   # Add the other columns for the dataframes
@@ -265,6 +270,13 @@ if (file.exists(genAl_df_file) == FALSE){
   # Open the simulation dataframes
   sim_df <- rbind(read.csv(lba_df_file, header = TRUE, stringsAsFactors = FALSE),
                   read.csv(ils_df_file, header = TRUE, stringsAsFactors = FALSE))
+  # Open the analysis file, if it exists, and remove all completed runs from the sim_df
+  all_output_files <- list.files(output_dir)
+  analysis_file <- grep("test_analysis", all_output_files, value = TRUE)
+  a_full_df <- read.csv(paste0(output_dir, analysis_file))
+  completed_runs <- which(sim_df$ID %in% a_full_df$ID)
+  remaining_runs <- setdiff(1:nrow(sim_df), completed_runs)
+  sim_df <- sim_df[remaining_runs, ]
   # To generate all simulated alignments
   if (num_parallel_threads > 1){
     output_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, rerun = FALSE, 
@@ -355,5 +367,72 @@ if (copy.completed.files == TRUE){
   } # end iterating through all_dirs
 }
 
+
+
+#### 10. Investigate and plot preliminary results from test simulations ####
+print("#### 10. Investigate preliminary results ####")
+# Find and open the output file
+all_output_files <- list.files(output_dir)
+analysis_file <- grep("test_analysis", all_output_files, value = TRUE)
+a_full_df <- read.csv(paste0(output_dir, analysis_file))
+# Update hypothesis tree column values
+a_full_df$hypothesis_tree[which(a_full_df$hypothesis_tree == "1")] <- "Ctenophora-sister"
+a_full_df$hypothesis_tree[which(a_full_df$hypothesis_tree == "2")] <- "Porifera-sister"
+# Trim dataframe to just the variables of interest
+a_df <- a_full_df[, c("dataset", "ID", "simulation_number",  "simulation_type",
+                      "hypothesis_tree", "branch_a_length", "branch_b_length", 
+                      "expected_final_normalised_quartet_score",
+                      "expected_qcf_min", "expected_qcf_max", "expected_qcf_mean",
+                      "expected_qcf_branch_a_value", "expected_qcf_branch_b_value")]
+# Melt data from wide to long format
+plot_df <- melt(data = a_df, 
+                id.vars = c("dataset", "ID", "simulation_number", "simulation_type",
+                            "hypothesis_tree", "branch_a_length", "branch_b_length"), 
+                measure.vars = c("expected_final_normalised_quartet_score",
+                                 "expected_qcf_min", "expected_qcf_max",
+                                 "expected_qcf_mean","expected_qcf_branch_a_value",
+                                 "expected_qcf_branch_b_value") )
+
+## Plot 1: Plot branch a length against the expected qCF value for branch a for the two hypothesis trees
+# Simulation 1: LBA - branch a length stays the same, branch b length varies
+p1_df <- plot_df[which(plot_df$simulation_type == "LBA" & plot_df$variable == "expected_qcf_branch_b_value"), ]
+bl_b_plot <- ggplot(data = p1_df, aes(x = branch_b_length, y = value, group = hypothesis_tree, color = hypothesis_tree)) +
+  geom_line() +
+  geom_point() +
+  geom_vline(xintercept = 1.6470) +
+  scale_x_continuous(name = "\nLength of branch b (in coalescent units)", trans='log10') +
+  scale_y_continuous(name = "Expected qCF value\n", limits = c(0,1),breaks = seq(0,1,0.1)) +
+  labs(title = "Branch b: branch leading to leading to Ctenophora clade\n") +
+  annotate("text", x = 1.8, y = 0.5, label = "Empirical\nASTRAL value", color = "Black",
+           hjust = 0, vjust = 0.5, size = 4) +
+  guides(color=guide_legend(title="Hypothesis")) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5, vjust = 0.5, size = 18),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12) ) 
+ggsave(filename = paste0(output_dir, "plot_testSet_Sim1_LBA_branch.B_expected.qCF.png"), plot = bl_b_plot, device = "png")
+
+## Plot 2: Plot branch a length against the expected qCF value for branch a for the two hypothesis trees
+# Simulation 2: ILS - branch a length varies, branch b length stays the same
+p2_df <- plot_df[which(plot_df$simulation_type == "ILS" & plot_df$variable == "expected_qcf_branch_a_value"), ]
+bl_a_plot <- ggplot(data = p2_df, aes(x = branch_a_length, y = value, group = hypothesis_tree, color = hypothesis_tree)) +
+  geom_line() +
+  geom_point() +
+  geom_vline(xintercept = 0.1729) +
+  scale_x_continuous(name = "\nLength of branch a (in coalescent units)", trans='log10') +
+  scale_y_continuous(name = "Expected qCF value\n", limits = c(0,1), breaks = seq(0,1,0.1)) +
+  labs(title = "Branch a: branch leading to leading to all other animals\n") +
+  annotate("text", x = 0.19, y = 0.5, label = "Empirical\nASTRAL value", color = "Black",
+           hjust = 0, vjust = 0.5, size = 4) +
+  guides(color=guide_legend(title="Hypothesis")) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5, vjust = 0.5, size = 18),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12) )
+ggsave(filename = paste0(output_dir, "plot_testSet_Sim2_ILS_branch.a_expected.qCF.png"), plot = bl_a_plot, device = "png")
 
 
