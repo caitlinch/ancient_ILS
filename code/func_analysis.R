@@ -120,7 +120,7 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.hypothe
 
 
 #### Calculate expected qCF ####
-calculate.expected.qCF <- function(row_id, df, hypothesis_tree_dir, test.three.hypothesis.trees = TRUE, perform.topology.tests = TRUE, renamed_taxa){
+calculate.expected.qCF <- function(row_id, df, call.ASTRAL = TRUE, renamed_taxa){
   # Wrapper function to calculate expected qCFS 
   
   ## Open the row of interest
@@ -128,11 +128,11 @@ calculate.expected.qCF <- function(row_id, df, hypothesis_tree_dir, test.three.h
   
   ## Calculate the qCFs using ASTRAL
   ## Identify directory
-  qcf_dir <- paste0(dirname(starting_tree), "/")
+  qcf_dir <- paste0(dirname(df_row$output_base_tree_file), "/")
   ## Calculate actual quartet concordance factors
-  expected_qcf_paths <- qcf.call(output_id = paste0(ID, "_expected_qcfs"), output_directory = qcf_dir, 
-                                 tree_path = starting_tree, gene_trees_path = ms_gene_trees,
-                                 ASTRAL_path = ASTRAL_path, call.astral, 
+  expected_qcf_paths <- qcf.call(output_id = paste0(df_row$ID, "_expected_qcfs"), output_directory = qcf_dir, 
+                                 tree_path = df_row$output_base_tree_file, gene_trees_path = df_row$output_gene_tree_file,
+                                 ASTRAL_path = df_row$ASTRAL, call.astral = call.ASTRAL, 
                                  rename.tree.tips = TRUE, renamed_taxa)
   ## Extract relevant qCF values
   expected_qcf_values <-  extract.qcf.values(qcf_tree_path = expected_qcf_paths[["qcf_output_tree"]], 
@@ -140,7 +140,6 @@ calculate.expected.qCF <- function(row_id, df, hypothesis_tree_dir, test.three.h
   ## Assemble output
   qcf_output <- c(expected_qcf_paths, expected_qcf_values)
   names(qcf_output) <- c(paste0("expected_", names(expected_qcf_paths)), paste0("expected_", names(expected_qcf_values)))
-  
   
   ## Trim unwanted columns
   trimmed_df_row <- df_row[, c("dataset", "dataset_type", "ID", "output_folder", "simulation_number", "simulation_type",
