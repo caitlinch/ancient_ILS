@@ -119,6 +119,46 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.hypothe
 
 
 
+#### Calculate expected qCF ####
+calculate.expected.qCF <- function(row_id, df, hypothesis_tree_dir, test.three.hypothesis.trees = TRUE, perform.topology.tests = TRUE, renamed_taxa){
+  # Wrapper function to calculate expected qCFS 
+  
+  ## Open the row of interest
+  df_row <- df[row_id, ]
+  
+  ## Calculate the qCFs using ASTRAL
+  ## Identify directory
+  qcf_dir <- paste0(dirname(starting_tree), "/")
+  ## Calculate actual quartet concordance factors
+  expected_qcf_paths <- qcf.call(output_id = paste0(ID, "_expected_qcfs"), output_directory = qcf_dir, 
+                                 tree_path = starting_tree, gene_trees_path = ms_gene_trees,
+                                 ASTRAL_path = ASTRAL_path, call.astral, 
+                                 rename.tree.tips = TRUE, renamed_taxa)
+  ## Extract relevant qCF values
+  expected_qcf_values <-  extract.qcf.values(qcf_tree_path = expected_qcf_paths[["qcf_output_tree"]], 
+                                             qcf_log_path = expected_qcf_paths[["qcf_output_log"]])
+  ## Assemble output
+  qcf_output <- c(expected_qcf_paths, expected_qcf_values)
+  names(qcf_output) <- c(paste0("expected_", names(expected_qcf_paths)), paste0("expected_", names(expected_qcf_values)))
+  
+  
+  ## Trim unwanted columns
+  trimmed_df_row <- df_row[, c("dataset", "dataset_type", "ID", "output_folder", "simulation_number", "simulation_type",
+                               "hypothesis_tree", "replicates", "num_taxa", "num_genes", "gene_length", "num_sites",
+                               "ML_tree_estimation_models", "branch_a_length", "branch_b_length", "branch_c_length",
+                               "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
+                               "branch_outgroup_length", "branch_porifera_length", "total_tree_length",
+                               "sum_internal_branch_lengths", "percentage_internal_branch_lengths")]
+  ## Assemble output vector
+  analysis_output         <- c(as.character(trimmed_df_row), qcf_output)
+  names(analysis_output)  <- c(names(trimmed_df_row), names(qcf_output))
+  
+  ## Return the output
+  return(analysis_output)
+}
+
+
+
 
 
 #### Perform hypothesis tests in IQ-Tree2 ####
