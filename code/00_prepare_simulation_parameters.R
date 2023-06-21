@@ -72,6 +72,7 @@ library(phytools)
 library(parallel)
 library(reshape2)
 library(ggplot2)
+library(RColorBrewer)
 
 ## Source functions
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
@@ -344,6 +345,10 @@ if (copy.completed.files == TRUE){
 #### 9. Investigate and plot preliminary results from test simulations ####
 print("#### 9. Investigate preliminary results ####")
 if (plot.test.results == TRUE){
+  # Create a color palette for plots
+  # Note: To use the color palettes from RColorBrewer, add `+ scale_color_brewer(palette = "Dark2")`
+  color_palette <- brewer.pal(n = 8, name = "Dark2")
+  
   # Open the analysis file (containing the expected qCF values)
   a_df <- read.csv(analysis_df_file, stringsAsFactors = FALSE)
   # Update hypothesis tree column values
@@ -351,10 +356,10 @@ if (plot.test.results == TRUE){
   a_df$hypothesis_tree[which(a_df$hypothesis_tree == "2")] <- "Porifera-sister"
   # Trim dataframe to just the variables of interest
   a_df <- a_df[, c("dataset", "ID", "simulation_number",  "simulation_type",
-                        "hypothesis_tree", "branch_a_length", "branch_b_length", 
-                        "expected_final_normalised_quartet_score",
-                        "expected_qcf_min", "expected_qcf_max", "expected_qcf_mean",
-                        "expected_qcf_branch_a_value", "expected_qcf_branch_b_value")]
+                   "hypothesis_tree", "branch_a_length", "branch_b_length", 
+                   "expected_final_normalised_quartet_score",
+                   "expected_qcf_min", "expected_qcf_max", "expected_qcf_mean",
+                   "expected_qcf_branch_a_value", "expected_qcf_branch_b_value")]
   # Melt data from wide to long format
   plot_df <- melt(data = a_df, 
                   id.vars = c("dataset", "ID", "simulation_number", "simulation_type",
@@ -366,37 +371,19 @@ if (plot.test.results == TRUE){
   
   ## Plot 1: Plot branch a length against the expected qCF value for branch a for the two hypothesis trees
   # Simulation 1: LBA - branch a length stays the same, branch b length varies
+  # Filter the dataframe to just relevant variables
   p1_df <- plot_df[which(plot_df$simulation_type == "LBA" & plot_df$variable == "expected_qcf_branch_b_value"), ]
+  # Create ggplot
   bl_b_plot <- ggplot(data = p1_df, aes(x = branch_b_length, y = value, group = hypothesis_tree, color = hypothesis_tree)) +
-    geom_line() +
-    geom_point() +
+    geom_point(alpha = 0.5) +
+    geom_smooth() +
     geom_vline(xintercept = 1.6470) +
     scale_x_continuous(name = "\nLength of branch b (in coalescent units)", trans='log10') +
-    scale_y_continuous(name = "Expected qCF value\n", limits = c(0,1),breaks = seq(0,1,0.1)) +
+    scale_y_continuous(name = "Expected qCF value\n", limits = c(0,1.1), breaks = seq(0,1.1,0.1)) +
     labs(title = "Branch b: branch leading to leading to Ctenophora clade\n") +
     annotate("text", x = 1.8, y = 0.5, label = "Empirical\nASTRAL value", color = "Black",
              hjust = 0, vjust = 0.5, size = 4) +
-    guides(color=guide_legend(title="Hypothesis")) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, vjust = 0.5, size = 18),
-          axis.title = element_text(size = 14),
-          axis.text = element_text(size = 12),
-          legend.title = element_text(size = 14),
-          legend.text = element_text(size = 12) ) 
-  ggsave(filename = paste0(output_dir, "plot_testSet_Sim1_LBA_branch.B_expected.qCF.png"), plot = bl_b_plot, device = "png")
-  
-  ## Plot 2: Plot branch a length against the expected qCF value for branch a for the two hypothesis trees
-  # Simulation 2: ILS - branch a length varies, branch b length stays the same
-  p2_df <- plot_df[which(plot_df$simulation_type == "ILS" & plot_df$variable == "expected_qcf_branch_a_value"), ]
-  bl_a_plot <- ggplot(data = p2_df, aes(x = branch_a_length, y = value, group = hypothesis_tree, color = hypothesis_tree)) +
-    geom_line() +
-    geom_point() +
-    geom_vline(xintercept = 0.1729) +
-    scale_x_continuous(name = "\nLength of branch a (in coalescent units)", trans='log10') +
-    scale_y_continuous(name = "Expected qCF value\n", limits = c(0,1), breaks = seq(0,1,0.1)) +
-    labs(title = "Branch a: branch leading to leading to all other animals\n") +
-    annotate("text", x = 0.19, y = 0.5, label = "Empirical\nASTRAL value", color = "Black",
-             hjust = 0, vjust = 0.5, size = 4) +
+    scale_color_manual(values = c(color_palette[6], color_palette[1]), na.value = "grey50") +
     guides(color=guide_legend(title="Hypothesis")) +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, vjust = 0.5, size = 18),
@@ -404,7 +391,35 @@ if (plot.test.results == TRUE){
           axis.text = element_text(size = 12),
           legend.title = element_text(size = 14),
           legend.text = element_text(size = 12) )
+  # Save the plot
+  ggsave(filename = paste0(output_dir, "plot_testSet_Sim1_LBA_branch.B_expected.qCF.png"), plot = bl_b_plot, device = "png")
+  ggsave(filename = paste0(output_dir, "plot_testSet_Sim1_LBA_branch.B_expected.qCF.pdf"), plot = bl_b_plot, device = "pdf")
+  
+  ## Plot 2: Plot branch a length against the expected qCF value for branch a for the two hypothesis trees
+  # Simulation 2: ILS - branch a length varies, branch b length stays the same
+  # Filter the dataframe to just relevant variables
+  p2_df <- plot_df[which(plot_df$simulation_type == "ILS" & plot_df$variable == "expected_qcf_branch_a_value"), ]
+  # Create ggplot
+  bl_a_plot <- ggplot(data = p2_df, aes(x = branch_a_length, y = value, group = hypothesis_tree, color = hypothesis_tree)) +
+    geom_point(alpha = 0.5) +
+    geom_smooth() +
+    geom_vline(xintercept = 0.1729) +
+    scale_x_continuous(name = "\nLength of branch a (in coalescent units)", trans='log10') +
+    scale_y_continuous(name = "Expected qCF value\n", limits = c(0,1.1), breaks = seq(0,1.1,0.1)) +
+    labs(title = "Branch a: branch leading to leading to all other animals\n") +
+    annotate("text", x = 0.19, y = 0.5, label = "Empirical\nASTRAL value", color = "Black",
+             hjust = 0, vjust = 0.5, size = 4) +
+    scale_color_manual(values = c(color_palette[6], color_palette[1]), na.value = "grey50") +
+    guides(color=guide_legend(title="Hypothesis")) +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5, vjust = 0.5, size = 18),
+          axis.title = element_text(size = 14),
+          axis.text = element_text(size = 12),
+          legend.title = element_text(size = 14),
+          legend.text = element_text(size = 12) )
+  # Save the plot
   ggsave(filename = paste0(output_dir, "plot_testSet_Sim2_ILS_branch.a_expected.qCF.png"), plot = bl_a_plot, device = "png")
+  ggsave(filename = paste0(output_dir, "plot_testSet_Sim2_ILS_branch.a_expected.qCF.pdf"), plot = bl_a_plot, device = "pdf")
 }
 
 
