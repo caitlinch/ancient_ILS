@@ -159,7 +159,7 @@ if (extract.length.ratio == TRUE){
 #### 4. Determine branch lengths for ILS ####
 print("#### 4. Determine branch lengths for ILS ####")
 if (file.exists(ils_df_file) == FALSE){
-  ils_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
+  ils_df <- as.data.frame(expand.grid(replicates = 1:5, hypothesis_tree = c(1,2),
                                       branch_a_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10), 
                                       branch_b_length = 1.647))
   ils_df$simulation_type = "ILS" # vary branch a
@@ -213,7 +213,7 @@ if (file.exists(ils_df_file) == FALSE){
 #### 5. Determine branch lengths for LBA ####
 print("#### 5. Determine branch lengths for LBA ####")
 if (file.exists(lba_df_file) == FALSE){
-  lba_df <- as.data.frame(expand.grid(replicates = 1, hypothesis_tree = c(1,2),
+  lba_df <- as.data.frame(expand.grid(replicates = 1:5, hypothesis_tree = c(1,2),
                                       branch_a_length = 0.1729, branch_b_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10)))
   lba_df$simulation_type = "LBA" # vary branch b
   lba_df$simulation_number = "sim1"
@@ -279,7 +279,7 @@ if (file.exists(genAl_df_file) == FALSE){
   sim_df <- sim_df[remaining_runs, ]
   # To generate all simulated alignments
   if (num_parallel_threads > 1){
-    output_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, rerun = FALSE, 
+    output_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, rerun = FALSE,
                             mc.cores = (num_parallel_threads/iqtree2_num_threads))
   } else {
     output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, rerun = FALSE)
@@ -291,41 +291,23 @@ if (file.exists(genAl_df_file) == FALSE){
 
 
 
-#### 7. Estimate trees ####
-print("#### 7. Estimate trees ####")
-# Call function to estimate all trees
-if (file.exists(genTrees_df_file) == FALSE){
-  # Open output_df
-  output_df <- read.csv(genAl_df_file, stringsAsFactors = FALSE)
-  # Estimate trees
-  if (num_parallel_threads > 1){
-    tree_list <- mclapply(1:nrow(output_df), estimate.trees, df = output_df, call.executable.programs = TRUE, 
-                          mc.cores = (num_parallel_threads/iqtree2_num_threads))
-  } else {
-    tree_list <- lapply(1:nrow(output_df), estimate.trees, df = output_df, call.executable.programs = TRUE)
-  }
-  tree_df <- as.data.frame(do.call(rbind, tree_list))
-  # Save output dataframe
-  write.csv(tree_df, file = genTrees_df_file, row.names = FALSE)
-}
-
-
-
-#### 8. Conduct analysis ####
-print("#### 8. Conduct analysis ####")
+#### 7. Calculate expected qCF ####
+print("#### 7. Calculate expected qCF ####")
 # Call function to apply analyses to simulated alignments and estimated trees
 if (file.exists(analysis_df_file) == FALSE){
   # Open tree_df
   tree_df <- read.csv(genTrees_df_file, stringsAsFactors = FALSE)
-  # Conduct analysis
-  if (num_parallel_threads > 1){
-    analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
-                              test.three.hypothesis.trees = TRUE, perform.topology.tests = FALSE, renamed_taxa = simulation_taxa_names,
-                              mc.cores = (num_parallel_threads/iqtree2_num_threads))
-  } else {
-    analysis_list <- lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
-                            test.three.hypothesis.trees = TRUE, perform.topology.tests = FALSE, renamed_taxa = simulation_taxa_names)
-  }
+  # Calculate expected qCF
+  # if (num_parallel_threads > 1){
+  #   analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
+  #                             test.three.hypothesis.trees = TRUE, perform.topology.tests = FALSE, renamed_taxa = simulation_taxa_names,
+  #                             mc.cores = (num_parallel_threads/iqtree2_num_threads))
+  # } else {
+  #   analysis_list <- lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
+  #                           test.three.hypothesis.trees = TRUE, perform.topology.tests = FALSE, renamed_taxa = simulation_taxa_names)
+  #   
+  # }
+  analysis_list <- lapply(1:nrow(tree_df), calculate.expected.qCF, df = tree_df, call.ASTRAL = TRUE, renamed_taxa = simulation_taxa_names)
   analysis_df <- as.data.frame(do.call(rbind, analysis_list))
   # Save output dataframe
   write.csv(analysis_df, file = analysis_df_file, row.names = FALSE)
@@ -333,8 +315,8 @@ if (file.exists(analysis_df_file) == FALSE){
 
 
 
-#### 9. Copy files to save ####
-print("#### 9. Copy files to save ####")
+#### 8. Copy files to save ####
+print("#### 8. Copy files to save ####")
 if (copy.completed.files == TRUE){
   # List all directories in the output_dir (except the directory containing trees to save)
   all_dirs <- list.dirs(output_dir, full.names = FALSE)
@@ -369,8 +351,8 @@ if (copy.completed.files == TRUE){
 
 
 
-#### 10. Investigate and plot preliminary results from test simulations ####
-print("#### 10. Investigate preliminary results ####")
+#### 9. Investigate and plot preliminary results from test simulations ####
+print("#### 9. Investigate preliminary results ####")
 if (plot.test.results == TRUE){
   # Find and open the output file
   all_output_files <- list.files(output_dir)
