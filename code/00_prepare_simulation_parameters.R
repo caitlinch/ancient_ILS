@@ -374,8 +374,9 @@ if (plot.test.results == TRUE){
   # Filter the dataframe to just relevant variables
   p1_df <- plot_df[which(plot_df$simulation_type == "LBA" & plot_df$variable == "expected_qcf_branch_b_value"), ]
   # Create ggplot
-  bl_b_plot <- ggplot(data = p1_df, aes(x = branch_b_length, y = value, group = hypothesis_tree, color = hypothesis_tree)) +
-    geom_point(alpha = 0.5) +
+  bl_b_plot <- ggplot(data = p1_df, aes(x = branch_b_length, y = value, 
+                                        group = hypothesis_tree, color = hypothesis_tree, shape = hypothesis_tree)) +
+    geom_point(size = 3, alpha = 0.6) +
     geom_smooth() +
     geom_vline(xintercept = 1.6470) +
     scale_x_continuous(name = "\nLength of branch b (in coalescent units)", trans='log10') +
@@ -384,7 +385,7 @@ if (plot.test.results == TRUE){
     annotate("text", x = 1.8, y = 0.5, label = "Empirical\nASTRAL value", color = "Black",
              hjust = 0, vjust = 0.5, size = 4) +
     scale_color_manual(values = c(color_palette[6], color_palette[1]), na.value = "grey50") +
-    guides(color=guide_legend(title="Hypothesis")) +
+    guides(color = guide_legend(title="Hypothesis"), shape = guide_legend(title="Hypothesis")) +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, vjust = 0.5, size = 18),
           axis.title = element_text(size = 14),
@@ -400,8 +401,9 @@ if (plot.test.results == TRUE){
   # Filter the dataframe to just relevant variables
   p2_df <- plot_df[which(plot_df$simulation_type == "ILS" & plot_df$variable == "expected_qcf_branch_a_value"), ]
   # Create ggplot
-  bl_a_plot <- ggplot(data = p2_df, aes(x = branch_a_length, y = value, group = hypothesis_tree, color = hypothesis_tree)) +
-    geom_point(alpha = 0.5) +
+  bl_a_plot <- ggplot(data = p2_df, aes(x = branch_a_length, y = value, 
+                                        group = hypothesis_tree, color = hypothesis_tree, shape = hypothesis_tree)) +
+    geom_point(size = 3, alpha = 0.6) +
     geom_smooth() +
     geom_vline(xintercept = 0.1729) +
     scale_x_continuous(name = "\nLength of branch a (in coalescent units)", trans='log10') +
@@ -410,7 +412,7 @@ if (plot.test.results == TRUE){
     annotate("text", x = 0.19, y = 0.5, label = "Empirical\nASTRAL value", color = "Black",
              hjust = 0, vjust = 0.5, size = 4) +
     scale_color_manual(values = c(color_palette[6], color_palette[1]), na.value = "grey50") +
-    guides(color=guide_legend(title="Hypothesis")) +
+    guides(color = guide_legend(title="Hypothesis"), shape = guide_legend(title="Hypothesis")) +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, vjust = 0.5, size = 18),
           axis.title = element_text(size = 14),
