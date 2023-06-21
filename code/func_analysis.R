@@ -457,7 +457,7 @@ extract.qcf.values <- function(qcf_tree_path, qcf_log_path){
   qcf_mean <- mean(as.numeric(node_labs), na.rm = TRUE)
   qcf_median <- median(as.numeric(node_labs), na.rm = TRUE)
   qcf_min <- min(as.numeric(node_labs), na.rm = TRUE)
-  qcf_max <- min(as.numeric(node_labs), na.rm = TRUE)
+  qcf_max <- max(as.numeric(node_labs), na.rm = TRUE)
   
   ## Assemble the output
   qcf_extracted <- c(num_quartet_trees, final_quartet_score, normalised_quartet_score,
