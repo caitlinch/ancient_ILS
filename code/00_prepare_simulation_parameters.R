@@ -102,7 +102,6 @@ names(simulation_taxa_names) <- c("Homo_sapiens", "Strongylocentrotus_purpatus",
 lba_df_file       <- paste0(output_dir, "test_lba_parameters.csv")
 ils_df_file       <- paste0(output_dir, "test_ils_parameters.csv")
 genAl_df_file     <- paste0(output_dir, "test_generate_alignments.csv")
-genTrees_df_file  <- paste0(output_dir, "test_generate_trees.csv")
 analysis_df_file  <- paste0(output_dir, "test_analysis.csv")
 
 
@@ -296,18 +295,9 @@ print("#### 7. Calculate expected qCF ####")
 # Call function to apply analyses to simulated alignments and estimated trees
 if (file.exists(analysis_df_file) == FALSE){
   # Open tree_df
-  tree_df <- read.csv(genTrees_df_file, stringsAsFactors = FALSE)
+  output_df <- read.csv(genAl_df_file, stringsAsFactors = FALSE)
   # Calculate expected qCF
-  # if (num_parallel_threads > 1){
-  #   analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
-  #                             test.three.hypothesis.trees = TRUE, perform.topology.tests = FALSE, renamed_taxa = simulation_taxa_names,
-  #                             mc.cores = (num_parallel_threads/iqtree2_num_threads))
-  # } else {
-  #   analysis_list <- lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, hypothesis_tree_dir = hypothesis_tree_dir,
-  #                           test.three.hypothesis.trees = TRUE, perform.topology.tests = FALSE, renamed_taxa = simulation_taxa_names)
-  #   
-  # }
-  analysis_list <- lapply(1:nrow(tree_df), calculate.expected.qCF, df = tree_df, call.ASTRAL = TRUE, renamed_taxa = simulation_taxa_names)
+  analysis_list <- lapply(1:nrow(output_df), calculate.expected.qCF, df = output_df, call.ASTRAL = TRUE, renamed_taxa = simulation_taxa_names)
   analysis_df <- as.data.frame(do.call(rbind, analysis_list))
   # Save output dataframe
   write.csv(analysis_df, file = analysis_df_file, row.names = FALSE)
