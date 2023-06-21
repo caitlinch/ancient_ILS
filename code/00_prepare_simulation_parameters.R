@@ -58,8 +58,8 @@ iqtree2_num_ufb             <- 1000
 
 ## Control parameters
 extract.length.ratio        <- FALSE
-copy.completed.files        <- TRUE
-plot.test.results           <- FALSE
+copy.completed.files        <- FALSE
+plot.test.results           <- TRUE
 
 
 
@@ -344,15 +344,13 @@ if (copy.completed.files == TRUE){
 #### 9. Investigate and plot preliminary results from test simulations ####
 print("#### 9. Investigate preliminary results ####")
 if (plot.test.results == TRUE){
-  # Find and open the output file
-  all_output_files <- list.files(output_dir)
-  analysis_file <- grep("test_analysis", all_output_files, value = TRUE)
-  a_full_df <- read.csv(paste0(output_dir, analysis_file))
+  # Open the analysis file (containing the expected qCF values)
+  a_df <- read.csv(analysis_df_file, stringsAsFactors = FALSE)
   # Update hypothesis tree column values
-  a_full_df$hypothesis_tree[which(a_full_df$hypothesis_tree == "1")] <- "Ctenophora-sister"
-  a_full_df$hypothesis_tree[which(a_full_df$hypothesis_tree == "2")] <- "Porifera-sister"
+  a_df$hypothesis_tree[which(a_df$hypothesis_tree == "1")] <- "Ctenophora-sister"
+  a_df$hypothesis_tree[which(a_df$hypothesis_tree == "2")] <- "Porifera-sister"
   # Trim dataframe to just the variables of interest
-  a_df <- a_full_df[, c("dataset", "ID", "simulation_number",  "simulation_type",
+  a_df <- a_df[, c("dataset", "ID", "simulation_number",  "simulation_type",
                         "hypothesis_tree", "branch_a_length", "branch_b_length", 
                         "expected_final_normalised_quartet_score",
                         "expected_qcf_min", "expected_qcf_max", "expected_qcf_mean",
