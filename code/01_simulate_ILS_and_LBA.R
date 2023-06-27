@@ -153,6 +153,8 @@ if ( (file.exists(output_files[["simulations"]]) == FALSE) | (control_parameters
 if ((control_parameters[["generate.alignments"]] == TRUE) & (file.exists(output_files[["alignments"]]) == FALSE) ){
   # Open dataframe of simulation parameters
   sim_df <- read.csv(output_files[["simulations"]], stringsAsFactors = FALSE)
+  # Trim repeats 6-10 (to save time - can run later if desired)
+  sim_df <- sim_df[which(sim_df$replicates <= 5), ]
   # To generate all simulated alignments
   if (location == "local"){
     generate_alignment_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, 
