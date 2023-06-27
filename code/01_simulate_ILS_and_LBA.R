@@ -150,54 +150,41 @@ if ( (file.exists(output_files[["simulations"]]) == T) | (control_parameters[["c
 
 #### 5. Generate simulated alignments ####
 if (generate.alignments == TRUE){
-  # # To generate one simulated alignment
-  # generate.one.alignment(sim_row = sim_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
   # To generate all simulated alignments
   if (location == "local"){
-    output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, 
-                          partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE)
+    generate_alignment_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, 
+                                      renamed_taxa = simulation_taxa_names,rerun = FALSE)
   } else {
-    output_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, 
-                            partition_path = partition_path, gene_models = alisim_gene_models, rerun = FALSE, mc.cores = num_parallel_cores)
+    generate_alignment_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, 
+                                        renamed_taxa = simulation_taxa_names, rerun = FALSE, 
+                                        mc.cores = num_parallel_threads)
   }
-  output_df <- as.data.frame(do.call(rbind, output_list))
+  generate_alignment_df <- as.data.frame(do.call(rbind, generate_alignment_list))
   # Save output dataframe
-  write.csv(output_df, file = op_df_op_file, row.names = FALSE)
+  write.csv(generate_alignment_df, file = output_files[["alignments"]], row.names = FALSE)
 }
 
 
 
 #### 6. Estimate trees ####
 if (estimate.trees == TRUE){
-  # Read in the output_df from the previous step
-  output_df <- read.csv(op_df_op_file)
-  # Iterate through each of the provided models for the ML tree estimation
-  for (m in ML_tree_estimation_models){
-    # Create a code to identify each combination of model and ID
-    model_code <- gsub("\\+", "_", gsub("'", "", m))
-    # # To estimate one tree with a set model for a single simulated alignment
-    # estimate.one.tree(alignment_path, unique.output.path = TRUE, iqtree2_path, iqtree2_num_threads = "AUTO", iqtree2_num_ufb = 1000,
-    #                           iqtree2_model = NA, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE, run.iqtree2 = FALSE)
-    # To estimate all trees with a set model for all single simulated alignments
-    if (location == "local"){
-      tree_list <- lapply(output_df$output_alignment_file, estimate.one.tree, unique.output.path = TRUE,
-                          iqtree2_path = iqtree2, iqtree2_num_threads = iqtree2_num_threads, iqtree2_num_ufb = iqtree2_num_ufb,
-                          iqtree2_model = m, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE,
-                          run.iqtree2 = TRUE) 
-    } else {
-      tree_list <- mclapply(output_df$output_alignment_file, estimate.one.tree, unique.output.path = TRUE,
-                            iqtree2_path = iqtree2, iqtree2_num_threads = iqtree2_num_threads, iqtree2_num_ufb = iqtree2_num_ufb,
-                            iqtree2_model = m, use.partitions = FALSE, partition_file = NA, use.model.finder = FALSE,
-                            run.iqtree2 = TRUE, 
-                            mc.cores = round(num_parallel_cores/iqtree2_num_threads)) 
-    }
-    tree_df <- as.data.frame(do.call(rbind, tree_list))
-    # Combine completed rows of the output dataframe with the tree dataframe
-    tree_combined_df <- cbind(output_df[which(output_df$output_alignment_file == tree_df$alignment_path),], tree_df[which(tree_df$alignment_path == output_df$output_alignment_file),])
-    # Save combined output dataframe
-    tree_df_op_file <- paste0(tree_df_op_formula, model_code, ".csv")
-    write.csv(tree_combined_df, file = tree_df_op_file, row.names = FALSE)
+  # Read in the dataframe from the previous step
+  generate_alignment_df <- read.csv(output_files[["alignments"]])
+  # To estimate all trees with a set model for all single simulated alignments
+  if (location == "local"){
+    tree_list <- lapply(1:nrow(generate_alignment_df), estimate.trees, 
+                        df = generate_alignment_df, call.executable.programs = TRUE)
+  } else {
+    tree_list <- mclapply(1:nrow(generate_alignment_df), estimate.trees, 
+                          df = generate_alignment_df, call.executable.programs = TRUE,
+                          mc.cores = floor(num_parallel_threads/iqtree2_num_threads) )
   }
+  tree_df <- as.data.frame(do.call(rbind, tree_list))
+  # Combine completed rows of the output dataframe with the tree dataframe
+  tree_combined_df <- cbind(generate_alignment_df[which(generate_alignment_df$output_alignment_file == tree_df$alignment_path),], 
+                            tree_df[which(tree_df$alignment_path == generate_alignment_df$output_alignment_file),])
+  # Save combined output dataframe
+  write.csv(tree_combined_df, file = output_files[["trees"]], row.names = FALSE)
 }
 
 
@@ -226,27 +213,6 @@ if (estimate.gCF == TRUE){
     gcf_df_op_file <- paste0(gcf_df_op_formula, model_code, ".csv")
     write.csv(gcf_combined_df, file = gcf_df_op_file, row.names = FALSE)
   }
-}
-
-
-
-#### 8. Estimate distance from hypothesis tree 1, hypothesis tree 2 and hypothesis tree 3 ####
-if (calculate.tree.distances == TRUE){
-  # Read in the output from the previous step
-  tree_df <- read.csv(tree_df_op_file)
-  if (location == "local"){
-    rf_list<- lapply(tree_df$ML_tree_treefile, calculate.distance.between.trees, hypothesis_tree_dir = hypothesis_tree_dir,
-                     rename.hypothesis.tree.tips = TRUE, renamed_taxa = simulation_taxa_names)
-  } else {
-    rf_list <- mclapply(tree_df$ML_tree_treefile, calculate.distance.between.trees, hypothesis_tree_dir = hypothesis_tree_dir,
-                        rename.hypothesis.tree.tips = TRUE, renamed_taxa = simulation_taxa_names,
-                        mc.cores = num_parallel_cores)
-  }
-  rf_df <- as.data.frame(do.call(rbind, rf_list))
-  # Combine completed rows of the output dataframe with the tree dataframe
-  rf_combined_df <- cbind(rf_df[which(rf_df$tree_path == tree_df$ML_tree_treefile),], tree_df[which(tree_df$ML_tree_treefile == rf_df$tree_path),])
-  # Save combined output dataframe
-  write.csv(rf_combined_df, file = rf_df_op_file, row.names = FALSE)
 }
 
 
