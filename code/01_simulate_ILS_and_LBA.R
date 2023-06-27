@@ -55,9 +55,9 @@ iqtree2_num_ufb             <- 1000
 ## Control parameters
 control_parameters <- c("create.simulation.parameters" = TRUE,
                         "generate.alignments" = TRUE,
-                        "estimate.trees" = TRUE,
-                        "conduct.analysis" = TRUE,
-                        "copy.completed.files" = TRUE)
+                        "estimate.trees" = FALSE,
+                        "conduct.analysis" = FALSE,
+                        "copy.completed.files" = FALSE)
 
 
 
