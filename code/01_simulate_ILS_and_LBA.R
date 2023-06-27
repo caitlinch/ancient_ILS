@@ -29,7 +29,7 @@ if (location == "local"){
   ## File paths and computational parameters
   repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   hypothesis_tree_dir         <- paste0(repo_dir, "hypothesis_trees/")
-  output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/00_determine_branch_lengths/"
+  output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/"
   iqtree2                     <- "iqtree2"
   astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
   ms                          <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
@@ -53,9 +53,8 @@ ML_tree_estimation_models   <- "LG"
 iqtree2_num_ufb             <- 1000
 
 ## Control parameters
-extract.length.ratio        <- FALSE
-copy.completed.files        <- FALSE
-plot.test.results           <- TRUE
+control_parameters <- c("create.simulation.parameters" = TRUE,
+                        "copy.completed.files" = TRUE)
 
 
 
@@ -70,148 +69,86 @@ source(paste0(repo_dir, "code/func_analysis.R"))
 library(parallel)
 
 # Create output file paths
-sim_op_file             <- paste0(output_dir, "ancientILS_simulation_parameters.csv")         # simulation parameters
-al_op_file              <- paste0(output_dir, "ancientILS_output_generate_alignments.csv")    # output from alignment generation
-tree_op_file            <- paste0(output_dir, "ancientILS_output_generate_trees.")            # output from tree estimation
-analysis_op_file        <- paste0(output_dir, "ancientILS_output_gCF.")                       # output from analysis
+output_files <- paste0(output_dir, c("ancientILS_simulation_parameters.csv", "ancientILS_output_generate_alignments.csv",
+                                     "ancientILS_output_generate_trees.csv", "ancientILS_output_gCF.csv"))
+names(output_files) <- c("simulations", "alignments", "trees", "analysis")
 
 
 
 #### 3. Create new shorter tip names ####
-original_taxa <- c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex",
-                   "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
-                   "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
-                   "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla", "Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum",
-                   "Oscarella_carmela", "Hyalonema_populiferum", "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata",
-                   "Chondrilla_nucula", "Amphimedon_queenslandica", "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides",
-                   "Mycale_phylophylla", "Latrunculia_apicalis", "Crella_elegans", "Kirkpatrickia_variolosa", "Euplokamis_dunlapae", "Vallicula_sp",
-                   "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus", "Pleurobrachia_bachei",
-                   "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
-                   "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
-                   "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
-                   "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
-                   "Ctenophora_sp_Florida_USA","Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
-simulation_taxa_names <- paste0("t", 1:length(original_taxa))
-names(simulation_taxa_names) <- original_taxa
+simulation_taxa_names <- paste0("t", 1:75)
+names(simulation_taxa_names) <- c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex",
+                                  "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
+                                  "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
+                                  "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla", "Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum",
+                                  "Oscarella_carmela", "Hyalonema_populiferum", "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata",
+                                  "Chondrilla_nucula", "Amphimedon_queenslandica", "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides",
+                                  "Mycale_phylophylla", "Latrunculia_apicalis", "Crella_elegans", "Kirkpatrickia_variolosa", "Euplokamis_dunlapae", "Vallicula_sp",
+                                  "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus", "Pleurobrachia_bachei",
+                                  "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
+                                  "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
+                                  "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
+                                  "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
+                                  "Ctenophora_sp_Florida_USA","Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
 
 
 
-#### 4. Create dataframe for ILS simulations ####
-print("#### 4. Determine branch lengths for ILS ####")
-if (file.exists(ils_df_file) == FALSE){
-  ils_df <- as.data.frame(expand.grid(replicates = 1:5, hypothesis_tree = c(1,2),
-                                      branch_a_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10), 
-                                      branch_b_length = 1.647))
-  ils_df$simulation_type = "ILS" # vary branch a
-  ils_df$simulation_number = "sim2"
+#### 4. Create dataframe for simulations ####
+if ( (file.exists(output_files[["simulations"]]) == T) | (control_parameters[["create.simulation.parameters"]] == TRUE) ){
+  # Create dataframe for ILS and LBA simulations
+  sim_df <- rbind(as.data.frame(expand.grid(replicates = 1:10, 
+                                            hypothesis_tree = c(1,2),
+                                            branch_a_length = 0.1729, 
+                                            branch_b_length = c(0.0001, 0.001, 0.01, 0.1, 1, 10),
+                                            simulation_type = "LBA",
+                                            simulation_number = "sim1") ),
+                  as.data.frame(expand.grid(replicates = 1:10, 
+                                            hypothesis_tree = c(1,2),
+                                            branch_a_length = c(0.0001, 0.001, 0.01, 0.1, 1, 10), 
+                                            branch_b_length = 1.647,
+                                            simulation_type = "ILS",
+                                            simulation_number = "sim2") ))
   # Add the other columns for the dataframes
-  ils_df$branch_c_length <- 0.4145
-  ils_df$branch_cnidaria_length <- 0.737
-  ils_df$branch_bilateria_length <- 0.9214
-  ils_df$branch_porifera_length <- 0.0853
-  ils_df$branch_all_animals_length <- 0.6278
-  ils_df$branch_outgroup_length <- 0.6278
-  ils_df$ML_tree_depth <- 1.177
-  ils_df$ASTRAL_tree_depth <- 11.24
-  ils_df$proportion_internal_branches <- 0.25
-  ils_df$minimum_coalescent_time_difference <- 0.001
-  ils_df$num_taxa <- 75
-  ils_df$num_genes <- 200
-  ils_df$gene_length <- 225
-  ils_df$num_sites <- (ils_df$gene_length*ils_df$num_genes)
-  ils_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
-  ils_df$dataset_type <- "Protein"
-  # Add path for executables
-  ils_df$ms <- ms
-  ils_df$ASTRAL <- astral
-  ils_df$iqtree2 <- iqtree2
+  set_params <- c("branch_c_length" = 0.4145, "branch_cnidaria_length" = 0.737, 
+                  "branch_bilateria_length" = 0.9214, "branch_porifera_length" = 0.0853,
+                  "branch_all_animals_length" = 0.6278, "branch_outgroup_length" = 0.6278,
+                  "ML_tree_depth" = 1.177, "ASTRAL_tree_depth" = 11.24,
+                  "proportion_internal_branches" = 0.25, "minimum_coalescent_time_difference" = 0.001,
+                  "num_taxa" = 75, "num_genes" = 200, "gene_length" = 200,
+                  "dataset" = "Whelan2017.Metazoa_Choano_RCFV_strict", "dataset_type" = "Protein",
+                  "ms" = ms, "ASTRAL" = astral, "iqtree2" = iqtree2,
+                  "iqtree2_num_threads" = iqtree2_num_threads, "iqtree2_num_ufb" = iqtree2_num_ufb,
+                  "alisim_gene_models" = alisim_gene_models, "ML_tree_estimation_models" = ML_tree_estimation_models)
+  set_params_df <- as.data.frame(matrix(set_params, nrow = 1, ncol = length(set_params), byrow = T))
+  names(set_params_df) <- names(set_params)
+  # Bind the columns from the set_params_df to the sim_df
+  sim_df <- cbind(sim_df, set_params_df)
+  # Add parameters that are dependent on other parameters
+  sim_df$num_sites <- (as.numeric(sim_df$gene_length)*as.numeric(sim_df$num_genes))
   # Add the hypothesis tree name in a new column
-  ils_df$hypothesis_tree_file <- as.character(ils_df$hypothesis_tree)
-  ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_1_Cten.tre")
-  ils_df$hypothesis_tree_file[which(ils_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_2_Pori.tre")
+  sim_df$hypothesis_tree_file <- as.character(sim_df$hypothesis_tree)
+  sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_1_Cten.tre")
+  sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_2_Pori.tre")
   # Add an ID column
-  ils_df$ID <- paste0(ils_df$simulation_number, "_h", ils_df$hypothesis_tree, "_a", ils_df$branch_a_length, "_b", ils_df$branch_b_length, "_rep", ils_df$replicates)
+  sim_df$ID <- paste0(sim_df$simulation_number, "_h", sim_df$hypothesis_tree, "_a", sim_df$branch_a_length, "_b", sim_df$branch_b_length, "_rep", sim_df$replicates)
   # Add separate output folder for each rep
-  ils_df$output_folder <- paste0(output_dir, ils_df$ID, "/")
-  # Add phylogenetic parameters
-  ils_df$iqtree2_num_threads <- iqtree2_num_threads
-  ils_df$iqtree2_num_ufb <- iqtree2_num_ufb
-  ils_df$alisim_gene_models <- alisim_gene_models
-  ils_df$ML_tree_estimation_models <- ML_tree_estimation_models
+  sim_df$output_folder <- paste0(output_dir, sim_df$ID, "/")
   # Reorder columns
-  ils_df <- ils_df[,c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type", "hypothesis_tree", "hypothesis_tree_file", "replicates",
+  # Note: minimum_coalescent_time_difference column is the time (in coalescent units) to adjust node depth by if multiple nodes with the same taxa have the same coalescence time
+  sim_df <- sim_df[,c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type", "hypothesis_tree", "hypothesis_tree_file", "replicates",
                       "branch_a_length", "branch_b_length", "branch_c_length", "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
                       "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "minimum_coalescent_time_difference", "ASTRAL_tree_depth",
                       "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "ASTRAL", "iqtree2", "alisim_gene_models",
                       "iqtree2_num_threads", "iqtree2_num_ufb", "ML_tree_estimation_models")]
-  # Save the dataframe
-  write.csv(ils_df, file = ils_df_file, row.names = FALSE)
+  # Save the output file
+  write.csv(sim_df, file = output_files[["simulations"]], row.names = FALSE)
+} else {
+  sim_df <- read.csv(output_files[["simulations"]], stringsAsFactors = FALSE)
 }
 
 
 
-#### 5. Determine branch lengths for LBA ####
-print("#### 5. Determine branch lengths for LBA ####")
-if (file.exists(lba_df_file) == FALSE){
-  lba_df <- as.data.frame(expand.grid(replicates = 1:5, hypothesis_tree = c(1,2),
-                                      branch_a_length = 0.1729, branch_b_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10)))
-  lba_df$simulation_type = "LBA" # vary branch b
-  lba_df$simulation_number = "sim1"
-  # Add the other columns for the dataframes
-  lba_df$branch_c_length <- 0.4145
-  lba_df$branch_cnidaria_length <- 0.737
-  lba_df$branch_bilateria_length <- 0.9214
-  lba_df$branch_porifera_length <- 0.0853
-  lba_df$branch_all_animals_length <- 0.6278
-  lba_df$branch_outgroup_length <- 0.6278
-  lba_df$ML_tree_depth <- 1.177
-  lba_df$ASTRAL_tree_depth <- 11.24
-  lba_df$proportion_internal_branches <- 0.25
-  lba_df$minimum_coalescent_time_difference <- 0.001
-  lba_df$num_taxa <- 75
-  lba_df$num_genes <- 200
-  lba_df$gene_length <- 225
-  lba_df$num_sites <- (lba_df$gene_length*lba_df$num_genes)
-  lba_df$dataset <- "Whelan2017.Metazoa_Choano_RCFV_strict"
-  lba_df$dataset_type <- "Protein"
-  # Add path for executables
-  lba_df$ms <- ms
-  lba_df$ASTRAL <- astral
-  lba_df$iqtree2 <- iqtree2
-  # Add the hypothesis tree name in a new column
-  lba_df$hypothesis_tree_file <- as.character(lba_df$hypothesis_tree)
-  lba_df$hypothesis_tree_file[which(lba_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_1_Cten.tre")
-  lba_df$hypothesis_tree_file[which(lba_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_2_Pori.tre")
-  # Add an ID column
-  lba_df$ID <- paste0(lba_df$simulation_number, "_h", lba_df$hypothesis_tree, "_a", lba_df$branch_a_length, "_b", lba_df$branch_b_length, "_rep", lba_df$replicates)
-  # Add separate output folder for each rep
-  lba_df$output_folder <- paste0(output_dir, lba_df$ID, "/")
-  # Add phylogenetic parameters
-  lba_df$iqtree2_num_threads <- iqtree2_num_threads
-  lba_df$iqtree2_num_ufb <- iqtree2_num_ufb
-  lba_df$alisim_gene_models <- alisim_gene_models
-  lba_df$ML_tree_estimation_models <- ML_tree_estimation_models
-  # Reorder columns
-  lba_df <- lba_df[,c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type", "hypothesis_tree", "hypothesis_tree_file", "replicates",
-                      "branch_a_length", "branch_b_length", "branch_c_length", "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
-                      "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "minimum_coalescent_time_difference", "ASTRAL_tree_depth",
-                      "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "ASTRAL", "iqtree2", "alisim_gene_models",
-                      "iqtree2_num_threads", "iqtree2_num_ufb", "ML_tree_estimation_models")]
-  # Save the dataframe
-  write.csv(lba_df, file = lba_df_file, row.names = FALSE)
-}
-
-
-
-
-#### 6. Combine dataframes and add additional parameters ####
-
-
-
-
-
-
-#### 6. Generate simulated alignments ####
+#### 5. Generate simulated alignments ####
 if (generate.alignments == TRUE){
   # # To generate one simulated alignment
   # generate.one.alignment(sim_row = sim_df[1,], renamed_taxa = simulation_taxa_names, partition_path = partition_path, gene_models = alisim_gene_models)
@@ -230,7 +167,7 @@ if (generate.alignments == TRUE){
 
 
 
-#### 7. Estimate trees ####
+#### 6. Estimate trees ####
 if (estimate.trees == TRUE){
   # Read in the output_df from the previous step
   output_df <- read.csv(op_df_op_file)
@@ -265,7 +202,7 @@ if (estimate.trees == TRUE){
 
 
 
-#### 8. Conduct analyses ####
+#### 7. Conduct analyses ####
 if (estimate.gCF == TRUE){
   # Read in the output from the previous step
   tree_df <- read.csv(tree_df_op_file)
@@ -293,7 +230,7 @@ if (estimate.gCF == TRUE){
 
 
 
-#### 9. Estimate distance from hypothesis tree 1, hypothesis tree 2 and hypothesis tree 3 ####
+#### 8. Estimate distance from hypothesis tree 1, hypothesis tree 2 and hypothesis tree 3 ####
 if (calculate.tree.distances == TRUE){
   # Read in the output from the previous step
   tree_df <- read.csv(tree_df_op_file)
