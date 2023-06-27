@@ -54,6 +54,9 @@ iqtree2_num_ufb             <- 1000
 
 ## Control parameters
 control_parameters <- c("create.simulation.parameters" = TRUE,
+                        "generate.alignments" = TRUE,
+                        "estimate.trees" = TRUE,
+                        "conduct.analysis" = TRUE,
                         "copy.completed.files" = TRUE)
 
 
@@ -149,7 +152,7 @@ if ( (file.exists(output_files[["simulations"]]) == T) | (control_parameters[["c
 
 
 #### 5. Generate simulated alignments ####
-if (generate.alignments == TRUE){
+if (control_parameters[["generate.alignments"]] == TRUE){
   # To generate all simulated alignments
   if (location == "local"){
     generate_alignment_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, 
@@ -167,7 +170,7 @@ if (generate.alignments == TRUE){
 
 
 #### 6. Estimate trees ####
-if (estimate.trees == TRUE){
+if (control_parameters[["estimate.trees"]] == TRUE){
   # Read in the dataframe from the previous step
   generate_alignment_df <- read.csv(output_files[["alignments"]])
   # To estimate all trees with a set model for all single simulated alignments
@@ -190,7 +193,7 @@ if (estimate.trees == TRUE){
 
 
 #### 7. Conduct analyses ####
-if (estimate.gCF == TRUE){
+if (control_parameters[["conduct.analysis "]] == TRUE){
   # Read in the output from the previous step
   tree_df <- read.csv(tree_df_op_file)
   # Iterate through each of the provided models for the ML tree estimation
