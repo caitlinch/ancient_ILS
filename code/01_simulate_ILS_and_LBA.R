@@ -24,7 +24,7 @@
 # copy.completed.files      <- flag to run code to determine whether to copy output trees to a new file (to copy: copy.completed.files=TRUE)
 # plot.test.results         <- flag to run code to determine whether to plot preliminary results from these test simulations (to plot: plot.test.results=TRUE)
 
-location = "local"
+location = "dayhoff"
 if (location == "local"){
   ## File paths and computational parameters
   repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
@@ -73,8 +73,9 @@ library(parallel)
 
 # Create output file paths
 output_files <- paste0(output_dir, c("ancientILS_simulation_parameters.csv", "ancientILS_output_generate_alignments.csv",
-                                     "ancientILS_output_generate_trees.csv", "ancientILS_output_gCF.csv"))
-names(output_files) <- c("simulations", "alignments", "trees", "analysis")
+                                     "ancientILS_output_generate_trees_duplicateCols.csv", "ancientILS_output_generate_trees.csv",
+                                     "ancientILS_output_gCF.csv"))
+names(output_files) <- c("simulations", "alignments", "trees_duplicate_columns", "trees", "analysis")
 
 
 
@@ -153,8 +154,6 @@ if ( (file.exists(output_files[["simulations"]]) == FALSE) | (control_parameters
 if ((control_parameters[["generate.alignments"]] == TRUE) & (file.exists(output_files[["alignments"]]) == FALSE) ){
   # Open dataframe of simulation parameters
   sim_df <- read.csv(output_files[["simulations"]], stringsAsFactors = FALSE)
-  # Trim repeats 6-10 (to save time - can run later if desired)
-  sim_df <- sim_df[which(sim_df$replicates <= 5), ]
   # To generate all simulated alignments
   if (location == "local"){
     generate_alignment_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, 
@@ -175,6 +174,8 @@ if ((control_parameters[["generate.alignments"]] == TRUE) & (file.exists(output_
 if ( (control_parameters[["estimate.trees"]] == TRUE) & (file.exists(output_files[["trees"]]) == FALSE) ){
   # Read in the dataframe from the previous step
   generate_alignment_df <- read.csv(output_files[["alignments"]], stringsAsFactors = FALSE)
+  # Trim repeats 6-10 (to save time - can run later if desired)
+  generate_alignment_df <- generate_alignment_df[which(generate_alignment_df$replicates <= 10), ]
   # To estimate all trees with a set model for all single simulated alignments
   if (location == "local"){
     tree_list <- lapply(1:nrow(generate_alignment_df), estimate.trees, 
@@ -189,6 +190,9 @@ if ( (control_parameters[["estimate.trees"]] == TRUE) & (file.exists(output_file
   tree_combined_df <- cbind(generate_alignment_df[which(generate_alignment_df$output_alignment_file == tree_df$alignment_path),], 
                             tree_df[which(tree_df$alignment_path == generate_alignment_df$output_alignment_file),])
   # Save combined output dataframe
+  write.csv(tree_combined_df, file = output_files[["trees_duplicate_columns"]], row.names = FALSE)
+  # Remove duplicate columns
+  tree_combined_df <- df[, grep("\\.1", names(df), value = TRUE, invert = TRUE)]
   write.csv(tree_combined_df, file = output_files[["trees"]], row.names = FALSE)
 }
 
