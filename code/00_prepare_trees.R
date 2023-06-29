@@ -14,7 +14,7 @@
 # astral_constrained                    <- path to constrained version of ASTRAL (https://github.com/maryamrabiee/Constrained-search)
 # estimate.trees                        <- Flag for whether to run IQ-tree and ASTRAL to estimate trees (yes if TRUE, no if FALSE)
 
-location = "dayhoff"
+location = "local"
 if (location == "local"){
   repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   constrained_tree_output_dir <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_hypothesis_trees/"
