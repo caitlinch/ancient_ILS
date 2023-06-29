@@ -42,6 +42,9 @@ if (location == "local"){
 
 
 #### 2. Open packages and functions ####
+## Open packages
+library(ape)
+
 ## Source functions
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
 
@@ -418,6 +421,62 @@ for (file in relabel_tree_files){
   
 } # end for (file in relabel_tree_files){
 
+
+
+#### 15. Determine terminal branch lengths for ASTRAL tree ####
+## Install HeIST as documented
+# HeIST = Hemiplasy Inference Simulation Tool
+# HeIST program: https://github.com/mhibbins/HeIST
+# HeIST publication: Hibbins et al (2020), "Determining the probability of hemiplasy in the presence of incomplete
+#                             lineage sorting and introgression", eLife, https://doi.org/10.7554/eLife.63753
+## Format the starting tree
+# Find the tree with gCF
+h_start_tree <- paste0(tree_output_dir, grep("\\.nex", grep("Whelan2017_gCF.cf.tree", list.files(tree_output_dir), value = T), value = T, invert = T))
+# Open the tree
+h_tree <- read.tree(h_start_tree)
+# Remove bootstraps from node labels
+new_node_labels <- unlist(lapply(1:length(h_tree$node.label), function(i){strsplit(h_tree$node.label, "\\/")[[i]][2]}))
+new_node_labels[which(is.na(new_node_labels))] <- ""
+# Replace node labels with new node labels
+h_tree2 <- h_tree
+h_tree2$node.label <- new_node_labels
+# Root tree at outgroup
+outgroup_taxa = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
+h_tree2 <- root(h_tree2, outgroup = outgroup_taxa, resolve.root = T)
+# Save modified treee
+h_input_tree <- paste0(tree_output_dir, "Whelan2017_gCF.cf.no_bootstraps.tree")
+write.tree(h_tree2, file = h_input_tree)
+
+## Run HeIST and determine terminal branch lengths
+# Find the tree with gCF
+setwd(tree_output_dir)
+h_command <- paste0("subs2coal ", h_input_tree)
+h_output_tree_text <- c(system(h_command), "")
+h_output_tree <- paste0(tree_output_dir, "Whelan2017_gCF.cf.heist_subs2coal.tree")
+write(h_output_tree_text, file = h_output_tree)
+
+## Add terminal branch lengths to ASTRAL tree
+# Open the HeIST tree
+ho_tree <- read.tree(h_output_tree)
+ho_tips <- ho_tree$tip.label
+# Extract terminal branch lengths
+nodes <- sapply(ho_tips, function(x,y) which(y == x), y = ho_tree$tip.label)
+edge.lengths <- setNames(ho_tree$edge.length[sapply(nodes,
+                                                    function(x,y) which(y == x), y = ho_tree$edge[,2])], names(nodes))
+# Change terminal branch lengths on ASTRAL tree
+astral_in_tree_file <- paste0(tree_output_dir, "Whelan2017_ASTRAL_tree.tre")
+# Open ASTRAL tree
+a_tree <- read.tree(astral_in_tree_file)
+a_tips <- a_tree$tip.label
+# Replace branch lengths
+for (i in 1:Ntip(a_tree)){
+  temp_tip <- a_tips[i]
+  branch_id <- which(a_tree$edge[,2] == i)
+  a_tree$edge.length[branch_id] <- edge.lengths[[temp_tip]]
+}
+# Save the output ASTRAL tree
+astral_out_tree_file <- paste0(tree_output_dir, "Whelan2017_ASTRAL_tree_terminalBranchLength_subs2coal.tre")
+write.tree(a_tree, file = astral_out_tree_file)
 
 
 
