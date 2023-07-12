@@ -10,13 +10,18 @@ repo_dir <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 
 
 #### 2. Open packages and prepare variables ####
+# Open packages
 library(ape)
 library(ggtree)
+library(ggplot2)
 library(patchwork)
 
+# Create output directory for plots
+plot_dir <- paste0(repo_dir, "figures/")
 
 
-#### 4. Plot figures for introduction and methods ####
+
+#### 3. Plot figures for introduction and methods ####
 # Identify the ASTRAL tree
 empirical_trees <- list.files(paste0(repo_dir, "empirical_tree"))
 astral_tree <- paste0(repo_dir, "empirical_tree/", grep("Whelan2017_ASTRAL_tree.tre", empirical_trees, value = T))
@@ -28,6 +33,7 @@ a_tree <- root(a_tree, outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "A
 a_tree$edge.length[which(is.na(a_tree$edge.length))] <- 3
 
 
+
 #### 4. Plot phylogenetic hypotheses ####
 # Open the possible phylogenetic topologies
 hyp_trees <- read.tree(file = paste0(repo_dir, "hypothesis_trees/alternative_phylogenetic_hypotheses.nex"))
@@ -35,6 +41,86 @@ c_tree <- hyp_trees[[1]]
 p_tree <- hyp_trees[[2]]
 cp_tree <- hyp_trees[[3]]
 
+# Plot Ctenophora-sister tree
+c_plot <- ggtree(c_tree, size = 2) + 
+  geom_rootedge(0.5, linewidth = 2) +
+  geom_tiplab(size = 10, offset = 0.15) +
+  xlim(-0.5,6.5)
+
+# Plot Porifera-sister tree
+p_plot <- ggtree(p_tree, size = 2) + 
+  geom_rootedge(0.5, linewidth = 2) +
+  geom_tiplab(size = 10, offset = 0.15) +
+  xlim(-0.5,6.5)
+
+# Plot Ctenophora+Porifera-sister tree
+cp_plot <- ggtree(cp_tree, size = 2) + 
+  geom_rootedge(0.5, linewidth = 2) +
+  geom_tiplab(size = 10, offset = 0.15) +
+  xlim(-0.5,5)
+
+# Assemble plots using patchwork
+patch <- c_plot + p_plot + cp_plot + plot_annotation(tag_levels = 'a', tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+
+# Save plot
+patch_path <- paste0(plot_dir, "methods_hypothesis_topologies.png")
+png(file = patch_path, width = 1400, height = 500, units = "px")
+patch
+dev.off()
 
 
+#### 5. Plot simulation hypothesis trees with branch length annotations ####
+# Open the possible phylogenetic topologies
+hyp_trees <- read.tree(file = paste0(repo_dir, "hypothesis_trees/alternative_phylogenetic_hypotheses.nex"))
+c_tree <- hyp_trees[[4]]
+p_tree <- hyp_trees[[5]]
+cp_tree <- hyp_trees[[6]]
+
+# Plot and annotate the Ctenophora-sister tree
+c_plot <- ggtree(c_tree) +
+  geom_rootedge(rootedge = 5) +
+  geom_text2(aes(x = 2, y = 1.2), label = '0.6278', check_overlap = TRUE, color = 'grey50', size = 7) +
+  geom_text2(aes(2.4, 3.2), label = '1.647', check_overlap = TRUE, color = 'grey50', size = 7) +
+  geom_text2(aes(3.0, 5.20), label = '0.0853', check_overlap = TRUE, color = 'grey50', size = 7) +
+  geom_text2(aes(3.5, 7.20), label = '0.737', check_overlap = TRUE, color = 'grey50', size = 7) +
+  geom_text2(aes(3.5, 9.20), label = '0.9214', check_overlap = TRUE, color = 'grey50', size = 7) +
+  geom_text2(aes(2.5, 8.25), label = '0.4145', check_overlap = TRUE, color = 'grey50', size = 7) +
+  geom_text2(aes(1.5, 6.75), label = '0.1729', check_overlap = TRUE, color = 'grey50', size = 7) + 
+  geom_text2(aes(0.5, 4.95), label = '0.6278', check_overlap = TRUE, color = 'grey50', size = 7) +
+  geom_text2(aes(2.5, 3.8), label = 'Branch "b"', check_overlap = TRUE, color = 'darkgreen', size = 7) +
+  geom_text2(aes(1.2, 7.3), label = 'Branch "a"', check_overlap = TRUE, color = 'darkgreen', size = 7) +
+  geom_cladelabel(node = 19, label = "Bilateria", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 18, label = "Cnidaria", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 16, label = "Porifera", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 14, label = "Ctenophora", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 12, label = "Outgroup", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
+  xlim(0,7)
+
+# Plot and annotate the Porifera-first tree
+p_plot <- ggtree(p_tree) + xlim(0,7) +
+  geom_rootedge(rootedge = 5) + 
+  geom_cladelabel(node = 19, label = "Bilateria", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 18, label = "Cnidaria", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 16, label = "Ctenophora", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 14, label = "Porifera", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 12, label = "Outgroup", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_text2(aes(x = 2, y = 1.2), label = '0.6278', check_overlap = TRUE, color = 'grey50', size = 7) +
+  geom_text2(aes(0.5, 4.95), label = '0.6278', check_overlap = TRUE, color = 'grey50', size = 7) +
+  geom_text2(aes(1.5, 6.75), label = '0.1729', check_overlap = TRUE, color = 'grey50', size = 7) +
+  geom_text2(aes(2.5, 8.25), label = '0.4145', check_overlap = TRUE, color = 'grey50', size = 7) +
+  geom_text2(aes(2.4, 3.2), label = '0.0853', check_overlap = TRUE, color = 'grey50', size = 7) +
+  geom_text2(aes(3.0, 5.20), label = '1.647', check_overlap = TRUE, color = 'grey50', size = 7) +
+  geom_text2(aes(3.5, 7.20), label = '0.737', check_overlap = TRUE, color = 'grey50', size = 7) +
+  geom_text2(aes(3.5, 9.20), label = '0.9214', check_overlap = TRUE, color = 'grey50', size = 7) +
+  geom_text2(aes(2.5, 3.8), label = 'Branch "b"', check_overlap = TRUE, color = 'darkgreen', size = 7) +
+  geom_text2(aes(1.2, 7.3), label = 'Branch "a"', check_overlap = TRUE, color = 'darkgreen', size = 7)
+
+# Assemble c and p plots into a single plot
+patch <- c_plot + p_plot + plot_annotation(tag_levels = 'a', tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+
+# Save plot
+patch_path <- paste0(plot_dir, "methods_Simulation_topologies_BranchLengths.png")
+png(file = patch_path, width = 1100, height = 500, units = "px")
+patch
+dev.off()
 
