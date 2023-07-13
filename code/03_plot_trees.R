@@ -131,51 +131,51 @@ cp_tree <- force.ultrametric(cp_tree, method = "extend")
 # Plot and annotate the Ctenophora-sister tree
 c_plot <- ggtree(c_tree, size = 1) +
   geom_rootedge(rootedge = 0.1, linewidth = 1.1) +
-  geom_text2(aes(x = 0.33, y = 1.8), label = '0.6278', check_overlap = TRUE, color = 'grey50', size = 6) +
-  geom_text2(aes(1.5, 3.8), label = '1.647', check_overlap = TRUE, color = 'grey50', size = 6) +
-  geom_text2(aes(1.08, 6.7), label = '0.0853', check_overlap = TRUE, color = 'grey50', size = 6) +
-  geom_text2(aes(1.6, 7.75), label = '0.737', check_overlap = TRUE, color = 'grey50', size = 6) +
-  geom_text2(aes(1.7, 9.75), label = '0.9214', check_overlap = TRUE, color = 'grey50', size = 6) +
-  geom_text2(aes(0.95, 8.75), label = '0.4145', check_overlap = TRUE, color = 'grey50', size = 6) +
-  geom_text2(aes(0.5, 7.3), label = '0.1729', check_overlap = TRUE, color = 'grey50', size = 6) + 
-  geom_text2(aes(0.33, 5.5), label = '0.6278', check_overlap = TRUE, color = 'grey50', size = 6) +
-  geom_text2(aes(1.45, 4.2), label = 'Branch "b"', check_overlap = TRUE, color = 'darkgreen', size = 7) +
-  geom_text2(aes(0.38, 7.7), label = 'Branch "a"', check_overlap = TRUE, color = 'darkgreen', size = 7) +
-  geom_cladelabel(node = 19, label = "Bilateria", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
-  geom_cladelabel(node = 18, label = "Cnidaria", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
-  geom_cladelabel(node = 16, label = "Porifera", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
-  geom_cladelabel(node = 14, label = "Ctenophora", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
-  geom_cladelabel(node = 12, label = "Outgroup", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
-  geom_segment(aes(x = 0.84, y = 6.5, xend = 0.84, yend = 5.6), arrow = arrow(length = unit(0.15, "cm")), color = "grey70") +
-  xlim(-0.1,4.5)
+  geom_text2(aes(x = 0.25, y = 1.2), label = '0.6278', check_overlap = TRUE, color = 'grey50', size = 8) +
+  geom_text2(aes(1.5, 3.8), label = '1.647', check_overlap = TRUE, color = 'grey50', size = 8) +
+  geom_text2(aes(1.14, 6.5), label = '0.0853', check_overlap = TRUE, color = 'grey50', size = 8) +
+  geom_text2(aes(1.58, 7.75), label = '0.7370', check_overlap = TRUE, color = 'grey50', size = 8) +
+  geom_text2(aes(1.7, 9.75), label = '0.9214', check_overlap = TRUE, color = 'grey50', size = 8) +
+  geom_text2(aes(0.86, 8.75), label = '0.4145', check_overlap = TRUE, color = 'grey50', size = 8) +
+  geom_text2(aes(0.44, 7.3), label = '0.1729', check_overlap = TRUE, color = 'grey50', size = 8) + 
+  geom_text2(aes(0.25, 5.55), label = '0.6278', check_overlap = TRUE, color = 'grey50', size = 8) +
+  geom_text2(aes(1.5, 4.25), label = 'Branch "b"', check_overlap = TRUE, color = 'darkgreen', size = 8) +
+  geom_text2(aes(0.3, 7.8), label = 'Branch "a"', check_overlap = TRUE, color = 'darkgreen', size = 8) +
+  geom_cladelabel(node = 19, label = "Bilateria", fontsize = 10, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 18, label = "Cnidaria", fontsize = 10, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 16, label = "Porifera", fontsize = 10, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 14, label = "Ctenophora", fontsize = 10, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 12, label = "Outgroup", fontsize = 10, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_segment(aes(x = 0.84, y = 6.25, xend = 0.84, yend = 5.6), arrow = arrow(length = unit(0.15, "cm")), color = "grey70") +
+  xlim(-0.1,3.9)
 
 # Plot and annotate the Porifera-first tree
 p_plot <- ggtree(p_tree, size = 1.1) +
   geom_rootedge(rootedge = 0.1, linewidth = 1.1) + 
-  geom_cladelabel(node = 19, label = "Bilateria", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
-  geom_cladelabel(node = 18, label = "Cnidaria", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
-  geom_cladelabel(node = 16, label = "Ctenophora", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
-  geom_cladelabel(node = 14, label = "Porifera", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
-  geom_cladelabel(node = 12, label = "Outgroup", fontsize = 9, align = TRUE, geom = "text", color = c("white", "black")) +
-  geom_text2(aes(x = 0.33, y = 1.75), label = '0.6278', check_overlap = TRUE, color = 'grey50', size = 6) +
-  geom_text2(aes(0.33, 5.5), label = '0.6278', check_overlap = TRUE, color = 'grey50', size = 6) +
-  geom_text2(aes(0.5, 7.3), label = '0.1729', check_overlap = TRUE, color = 'grey50', size = 6) +
-  geom_text2(aes(0.90, 8.75), label = '0.4145', check_overlap = TRUE, color = 'grey50', size = 6) +
-  geom_text2(aes(0.943, 4.8), label = '0.0853', check_overlap = TRUE, color = 'grey50', size = 6) +
-  geom_text2(aes(1.65, 5.78), label = '1.647', check_overlap = TRUE, color = 'grey50', size = 6) +
-  geom_text2(aes(1.6, 7.75), label = '0.737', check_overlap = TRUE, color = 'grey50', size = 6) +
-  geom_text2(aes(1.7, 9.75), label = '0.9214', check_overlap = TRUE, color = 'grey50', size = 6) +
-  geom_text2(aes(1.65, 6.2), label = 'Branch "b"', check_overlap = TRUE, color = 'darkgreen', size = 7) +
-  geom_text2(aes(0.35, 7.70), label = 'Branch "a"', check_overlap = TRUE, color = 'darkgreen', size = 7) +
-  geom_segment(aes(x = 0.67, y = 4.6, xend = 0.67, yend = 3.55), arrow = arrow(length = unit(0.15, "cm")), color = "grey70") +
-  xlim(-0.1,4.8)
+  geom_cladelabel(node = 19, label = "Bilateria", fontsize = 10, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 18, label = "Cnidaria", fontsize = 10, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 16, label = "Ctenophora", fontsize = 10, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 14, label = "Porifera", fontsize = 10, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_cladelabel(node = 12, label = "Outgroup", fontsize = 10, align = TRUE, geom = "text", color = c("white", "black")) +
+  geom_text2(aes(x = 0.26, y = 1.2), label = '0.6278', check_overlap = TRUE, color = 'grey50', size = 8) +
+  geom_text2(aes(0.26, 5.5), label = '0.6278', check_overlap = TRUE, color = 'grey50', size = 8) +
+  geom_text2(aes(0.4, 7.3), label = '0.1729', check_overlap = TRUE, color = 'grey50', size = 8) +
+  geom_text2(aes(0.86, 8.75), label = '0.4145', check_overlap = TRUE, color = 'grey50', size = 8) +
+  geom_text2(aes(1, 4.5), label = '0.0853', check_overlap = TRUE, color = 'grey50', size = 8) +
+  geom_text2(aes(1.5, 5.75), label = '1.647', check_overlap = TRUE, color = 'grey50', size = 8) +
+  geom_text2(aes(1.52, 7.25), label = '0.7370', check_overlap = TRUE, color = 'grey50', size = 8) +
+  geom_text2(aes(1.7, 9.75), label = '0.9214', check_overlap = TRUE, color = 'grey50', size = 8) +
+  geom_text2(aes(1.65, 6.3), label = 'Branch "b"', check_overlap = TRUE, color = 'darkgreen', size = 8) +
+  geom_text2(aes(0.24, 7.75), label = 'Branch "a"', check_overlap = TRUE, color = 'darkgreen', size = 8) +
+  geom_segment(aes(x = 0.67, y = 4.2, xend = 0.67, yend = 3.55), arrow = arrow(length = unit(0.15, "cm")), color = "grey70") +
+  xlim(-0.2,4)
 
 # Assemble c and p plots into a single plot
 patch <- c_plot + p_plot + plot_annotation(tag_levels = 'a', tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
 
 # Save plot
 patch_path <- paste0(plot_dir, "methods_Simulation_topologies_BranchLengths_proportional.png")
-png(file = patch_path, width = 1300, height = 500, units = "px")
+png(file = patch_path, width = 1100, height = 600, units = "px")
 patch
 dev.off()
 
