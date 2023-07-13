@@ -40,7 +40,7 @@ new_tips <- gsub(" sp", " sp.", new_tips)
 a_tree$tip.label <- new_tips
 # Plot the ASTRAL tree
 a_plot <- ggtree(a_tree, size = 1.2) +
-  geom_rootedge(rootedge = 0.5, linewidth = 1.2) +
+  geom_rootedge(rootedge = 0.25, linewidth = 1.2) +
   geom_tiplab(size = 8, offset = 0.01) +
   geom_cladelabel(node = 92, label = "Bilateria", fontsize = 12, align = TRUE, geom = "text", color = c("grey70", "grey70"), offset = 0, angle = 90, hjust  = 0.5) +
   geom_cladelabel(node = 82, label = "Cnidaria", fontsize = 12, align = TRUE, geom = "text", color = c("grey70", "grey70"), offset = 0.5, angle = 90, hjust  = 0.5) +
@@ -50,7 +50,7 @@ a_plot <- ggtree(a_tree, size = 1.2) +
 # Save the ASTRAL tree
 # Save plot
 plot_path <- paste0(plot_dir, "methods_empirical_Whelan2017_ASTRAL_tree.png")
-png(file = plot_path, width = 4000, height = 2100, units = "px")
+png(file = plot_path, width = 3500, height = 2100, units = "px")
 a_plot
 dev.off()
 
