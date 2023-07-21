@@ -54,5 +54,20 @@ names(simulation_taxa_names) <- c("Homo_sapiens", "Strongylocentrotus_purpatus",
 # Extract the list of all simulation replicates
 sim_dirs <- list.dirs(output_dir)
 sim_dirs <- sim_dirs[2:length(sim_dirs)]
-# Construct 
+# Check completion of tree estimation runs
+check_list <- lapply(sim_dirs, check.rep)
+check_df <- as.data.frame(do.call(rbind, check_list))  
+# Check completion
+print(paste0("Missing ASTRAL trees: ", length(which(check_df$astral_tree_complete == FALSE))))
+print(paste0("Missing gene trees: ", length(which(check_df$gene_trees_complete == FALSE))))
+print(paste0("Missing ML trees: ", length(which(check_df$ml_tree_complete == FALSE))))
+# Reduce dataframe to only missing trees
+incomplete_ids <- check_df[(check_df$ml_tree_complete == FALSE | check_df$gene_trees_complete == FALSE | check_df$astral_tree_complete == FALSE),]$id
+# Open dataframe of simulation parameters and trim to incomplete trees
+
+  
+  
+  
+  
+  
 
