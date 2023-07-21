@@ -12,41 +12,17 @@ location = "local"
 if (location == "local"){
   ## File paths and computational parameters
   repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-  hypothesis_tree_dir         <- paste0(repo_dir, "hypothesis_trees/")
   output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/01_simulation_output/"
   iqtree2                     <- "iqtree2"
 } else if (location == "dayhoff"){
   ## File paths and computational parameters
   repo_dir                    <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
-  hypothesis_tree_dir         <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/02_empirical_hypothesis_trees/"
   output_dir                  <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/03_simulation_output/"
   iqtree2                     <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree-2.2.0-Linux/bin/iqtree2"
 }
 
-## Phylogenetic parameters
-alisim_gene_models          <- "LG"
-ML_tree_estimation_models   <- "LG"
-iqtree2_num_ufb             <- 1000
-
-## Control parameters
-control_parameters <- c("create.simulation.parameters" = TRUE,
-                        "generate.alignments" = TRUE,
-                        "estimate.trees" = FALSE,
-                        "conduct.analysis" = FALSE,
-                        "copy.completed.files" = FALSE)
-
-
 
 #### 2. Open packages and functions ####
-## Source functions
-source(paste0(repo_dir, "code/func_prepare_trees.R"))
-source(paste0(repo_dir, "code/func_simulations.R"))
-source(paste0(repo_dir, "code/func_tree_estimation.R"))
-source(paste0(repo_dir, "code/func_analysis.R"))
-
-## Open packages
-library(parallel)
-
 # Create output file paths
 output_files <- paste0(output_dir, c("ancientILS_simulation_parameters.csv", "ancientILS_output_generate_alignments.csv",
                                      "ancientILS_output_generate_trees_duplicateCols.csv", "ancientILS_output_generate_trees.csv",
