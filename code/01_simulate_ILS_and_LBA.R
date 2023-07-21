@@ -6,7 +6,7 @@
 ## File paths and computational parameters
 # repo_dir                  <- location of caitlinch/ancient_ILS github repository
 # output_dir                <- output directory to save test runs for determining appropriate branch lengths
-# iqtree2                   <- path to iqtree2 version 2.2.2
+# iqtree2                   <- path to iqtree2 version 2.2.0
 # astral                    <- path to ASTRAL executable version 5.7.8
 # ms                        <- path to ms executable
 # num_parallel_threads      <- Maximum number of parallel threads to allow for 
@@ -29,7 +29,7 @@ if (location == "local"){
   ## File paths and computational parameters
   repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   hypothesis_tree_dir         <- paste0(repo_dir, "hypothesis_trees/")
-  output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/"
+  output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/01_simulation_output/"
   iqtree2                     <- "iqtree2"
   astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
   ms                          <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
