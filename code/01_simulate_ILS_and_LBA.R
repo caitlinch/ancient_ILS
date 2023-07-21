@@ -5,6 +5,7 @@
 #### 1. Input parameters ####
 ## File paths and computational parameters
 # repo_dir                  <- location of caitlinch/ancient_ILS github repository
+# hypothesis_tree_dir       <- location of constrained ML and ASTRAL trees estimated from empirical dataset Whelan et al. (2017)
 # output_dir                <- output directory to save test runs for determining appropriate branch lengths
 # iqtree2                   <- path to iqtree2 version 2.2.0
 # astral                    <- path to ASTRAL executable version 5.7.8
