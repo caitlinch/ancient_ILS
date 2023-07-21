@@ -20,10 +20,12 @@
 # iqtree2_num_ufb           <- number of ultrafast bootstraps for IQ-Tree2 to generate
 
 ## Control parameters
-# extract.length.ratio      <- flag to run code to determine ratio of length of internal branches to sum of all branches in empirical phylogenetic trees 
-#                                     (to run: extract.length.ratio=TRUE)
-# copy.completed.files      <- flag to run code to determine whether to copy output trees to a new file (to copy: copy.completed.files=TRUE)
-# plot.test.results         <- flag to run code to determine whether to plot preliminary results from these test simulations (to plot: plot.test.results=TRUE)
+# create.simulation.parameters  <- flag to run code to generate parameters for simulations i.e., branch lengths, evolutionary hypothesis (to generate parameters, create.simulation.parameters=TRUE)
+# generate.alignments           <- flag to run code to generate aligments from simulation parameters (to generate alignments: generate.alignments=TRUE)
+# estimate.trees                <- flag to run code to estimate trees from simulated alignments (to estimate trees: estimate.trees=TRUE)
+# conduct.analysis              <- flag to run code to to compare trees and calculate concordance factors (to run: conduct.analysis=TRUE)
+# copy.completed.files          <- flag to run code to determine whether to copy output trees to a new file (to copy: copy.completed.files=TRUE)
+
 
 location = "dayhoff"
 if (location == "local"){
