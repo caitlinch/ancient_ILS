@@ -23,6 +23,9 @@ if (location == "local"){
 
 
 #### 2. Open packages and functions ####
+## Source functions
+source(paste0(repo_dir, "code/func_prepare_trees.R"))
+
 # Create output file paths
 output_files <- paste0(output_dir, c("ancientILS_simulation_parameters.csv", "ancientILS_output_generate_alignments.csv",
                                      "ancientILS_output_generate_trees_duplicateCols.csv", "ancientILS_output_generate_trees.csv",
@@ -46,4 +49,10 @@ names(simulation_taxa_names) <- c("Homo_sapiens", "Strongylocentrotus_purpatus",
                                   "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
                                   "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
                                   "Ctenophora_sp_Florida_USA","Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
+
+#### 4.Check which trees are unrun ####
+# Extract the list of all simulation replicates
+sim_dirs <- list.dirs(output_dir)
+sim_dirs <- sim_dirs[2:length(sim_dirs)]
+# Construct 
 
