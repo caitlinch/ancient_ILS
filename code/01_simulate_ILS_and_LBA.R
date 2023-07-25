@@ -106,12 +106,12 @@ if ( (file.exists(output_files[["simulations"]]) == FALSE) | (control_parameters
   sim_df <- rbind(as.data.frame(expand.grid(replicates = 1:5, 
                                             hypothesis_tree = c(1,2),
                                             branch_a_length = 0.1729, 
-                                            branch_b_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10),
+                                            branch_b_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 1, 10),
                                             simulation_type = "LBA",
                                             simulation_number = "sim1") ),
                   as.data.frame(expand.grid(replicates = 1:5, 
                                             hypothesis_tree = c(1,2),
-                                            branch_a_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10), 
+                                            branch_a_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 1, 10), 
                                             branch_b_length = 1.647,
                                             simulation_type = "ILS",
                                             simulation_number = "sim2") ))
@@ -207,13 +207,11 @@ if ( (control_parameters[["conduct.analysis "]] == TRUE) & (file.exists(output_f
   tree_df <- read.csv(output_files[["trees"]], stringsAsFactors = FALSE)
   # Call the function to calculate gCF, qCF and RF distances
     if (location == "local"){
-      analysis_list <- lapply(1:nrow(tree_df), analysis.wrapper, 
-                         hypothesis_tree_dir = hypothesis_tree_dir, test.three.hypothesis.trees = TRUE,
-                         perform.topology.tests = TRUE, renamed_taxa = simulation_taxa_names)
+      analysis_list <- lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df,
+                         hypothesis_tree_dir = hypothesis_tree_dir, renamed_taxa = simulation_taxa_names)
     } else {
-      analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, 
-                           hypothesis_tree_dir = hypothesis_tree_dir, test.three.hypothesis.trees = TRUE,
-                           perform.topology.tests = TRUE, renamed_taxa = simulation_taxa_names,
+      analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df,
+                           hypothesis_tree_dir = hypothesis_tree_dir, renamed_taxa = simulation_taxa_names,
                            mc.cores = round(num_parallel_cores/iqtree2_num_threads))
     }
     analysis_df <- as.data.frame(do.call(rbind, analysis_list))
