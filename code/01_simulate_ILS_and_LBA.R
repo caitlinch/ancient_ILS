@@ -54,6 +54,8 @@ if (location == "local"){
 alisim_gene_models          <- "LG"
 ML_tree_estimation_models   <- "LG"
 iqtree2_num_ufb             <- 1000
+min_branch_length           <- 10/(200*200) # 10/N, where N = total number of sites. Forces 10 substitutions onto each branch - reasonable over large time period/breadth of diversity
+min_coalescent_difference   <- 0.001 # Keep to same magnitude as minimum coalescent interval in the ASTRAL species tree (0.004921)
 
 ## Control parameters
 control_parameters <- c("create.simulation.parameters" = TRUE,
@@ -120,7 +122,7 @@ if ( (file.exists(output_files[["simulations"]]) == FALSE) | (control_parameters
                   "branch_bilateria_length" = 0.9214, "branch_porifera_length" = 0.0853,
                   "branch_all_animals_length" = 0.6278, "branch_outgroup_length" = 0.6278,
                   "ML_tree_depth" = 1.177, "ASTRAL_tree_depth" = 11.24,
-                  "proportion_internal_branches" = 0.25, "minimum_coalescent_time_difference" = 0.001,
+                  "proportion_internal_branches" = 0.25, "minimum_coalescent_time_difference" = min_coalescent_difference,
                   "num_taxa" = 75, "num_genes" = 200, "gene_length" = 200,
                   "dataset" = "Whelan2017.Metazoa_Choano_RCFV_strict", "dataset_type" = "Protein",
                   "ms" = ms, "ASTRAL" = astral, "iqtree2" = iqtree2,
