@@ -6,39 +6,26 @@ library(ape)
 library(phangorn)
 
 #### Analysis wrapper function ####
-analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.hypothesis.trees = TRUE, perform.topology.tests = TRUE, renamed_taxa){
+analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, renamed_taxa){
   # Wrapper function to calculate:
-  #   - [x] actual and estimated gcfs (IQ-Tree)
   #   - [x] actual and estimated qcfs (ASTRAL)
-  #   - [x] hypothesis tree distances for both ML and ASTRAL trees
-  #   - [x] hypothesis tests in IQ-Tree to see if any hypothesis can be ignored for this alignment
+  #   - [x] hypothesis tree distances for ASTRAL tree
+  #   - [x] hypothesis test in IQ-Tree to see if any hypothesis can be ignored for this alignment
   
   ## Open the row of interest
   df_row <- df[row_id, ]
   
   ## Calculate the differences between the three trees
-  iqtree2_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$ML_tree_treefile, hypothesis_tree_dir, tree_type = "ML", 
-                                                               rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
   astral_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$ASTRAL_tree_treefile, hypothesis_tree_dir, tree_type = "ASTRAL", 
                                                               rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
-  
-  ## Calculate the gCFs using IQ-Tree
-  iqtree2_gcfs <- gcf.wrapper(alignment_path = df_row$output_alignment_file, iqtree2_path = df_row$iqtree2, iqtree2_model = df_row$ML_tree_estimation_models,
-                              iqtree2_num_threads = df_row$iqtree2_num_threads, rename.taxa.for.ms = TRUE, renamed_taxa = renamed_taxa)
   
   ## Calculate the qCFs using ASTRAL
   astral_qcfs <- qcf.wrapper(ID = df_row$ID, starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
                              ASTRAL_tree = df_row$ASTRAL_tree_treefile, ML_gene_trees = df_row$iqtree2_gene_tree_treefile, 
                              ASTRAL_path = df_row$ASTRAL, call.astral = TRUE, renamed_taxa)
   
-  ## Get maximum branching time for ASTRAl and IQ-Tree trees
+  ## Get maximum branching time for ASTRAL tree
   # Root all trees at Monosiga ovata (label = "72") - so that if the 5 outgroup species are paraphyletic, the tree depths are still comparable
-  # Extract branching times and tree length for ML tree
-  ml_tree <- read.tree(df_row$ML_tree_treefile)
-  ml_tree <- root(ml_tree, "72")
-  mbt_ML_tree <- max(branching.times(ml_tree))
-  length_ML_tree <- extract.tree.length(ml_tree)
-  names(length_ML_tree) <- paste0("ML_", names(length_ML_tree))
   # Extract branching times and tree length for ASTRAL tree
   astral_tree <- read.tree(df_row$ASTRAL_tree_treefile)
   astral_tree <- root(astral_tree, "72")
@@ -46,44 +33,8 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.hypothe
   length_astral_tree <- extract.tree.length(astral_tree)
   names(length_astral_tree) <- paste0("ASTRAL_", names(length_astral_tree))
   # Compile output
-  length_op <- c(mbt_ML_tree, length_ML_tree, 
-                 mbt_astral_tree, length_astral_tree)
-  names(length_op) <- c("ML_tree_max_branching_time", names(length_ML_tree),
-                        "ASTRAL_tree_max_branching_time", names(length_astral_tree))
-  
-  ## Perform hypothesis tests in IQ-Tree
-  if (perform.topology.tests == TRUE){
-    # Extract all files from folder
-    all_files <- list.files(hypothesis_tree_dir)
-    # Extract hypothesis tree files
-    if (test.three.hypothesis.trees == TRUE){
-      # Test all three hypothesis trees
-      astral_hyp_trees <- paste0(hypothesis_tree_dir, grep("ASTRAL_hypothesis_trees_relabelled_tbl", all_files, value = TRUE))
-      ml_hyp_trees <- paste0(hypothesis_tree_dir, grep("ML_hypothesis_trees_relabelled", all_files, value = TRUE))
-    } else {
-      # Test only two hypothesis trees
-      astral_hyp_trees <- paste0(hypothesis_tree_dir, grep("ASTRAL_hypothesis_trees_2tree_relabelled_tbl", all_files, value = TRUE))
-      ml_hyp_trees <- paste0(hypothesis_tree_dir, grep("ML_hypothesis_trees_2tree_relabelled", all_files, value = TRUE))
-    }
-    astral_hyp_tests <- perform.hypothesis.tests(ID = paste0(df_row$ID, "_ASTRAL_hyps"), alignment_path = df_row$output_alignment_file, hypothesis_tree_file = astral_hyp_trees,
-                                                 iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads, iqtree2_model = df_row$ML_tree_estimation_models)
-    ml_hyp_tests <- perform.hypothesis.tests(ID = paste0(df_row$ID, "_ML_hyps"), alignment_path = df_row$output_alignment_file, hypothesis_tree_file = ml_hyp_trees,
-                                             iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads, iqtree2_model = df_row$ML_tree_estimation_models)
-    hypothesis_tests <- c(astral_hyp_tests[["t1_logL"]], astral_hyp_tests[["t2_logL"]], astral_hyp_tests[["t3_logL"]],
-                          astral_hyp_tests[["t1_deltaL"]], astral_hyp_tests[["t2_deltaL"]], astral_hyp_tests[["t3_deltaL"]],
-                          astral_hyp_tests[["t1_bpRELL"]], astral_hyp_tests[["t2_bpRELL"]], astral_hyp_tests[["t3_bpRELL"]],
-                          astral_hyp_tests[["t1_cELW"]], astral_hyp_tests[["t2_cELW"]], astral_hyp_tests[["t3_cELW"]],
-                          astral_hyp_tests[["t1_pAU"]], astral_hyp_tests[["t2_pAU"]], astral_hyp_tests[["t3_pAU"]],
-                          ml_hyp_tests[["t1_logL"]], ml_hyp_tests[["t2_logL"]], astral_hyp_tests[["t3_logL"]],
-                          ml_hyp_tests[["t1_deltaL"]], ml_hyp_tests[["t2_deltaL"]], ml_hyp_tests[["t3_deltaL"]],
-                          ml_hyp_tests[["t1_bpRELL"]], ml_hyp_tests[["t2_bpRELL"]], ml_hyp_tests[["t3_bpRELL"]],
-                          ml_hyp_tests[["t1_cELW"]], ml_hyp_tests[["t2_cELW"]], ml_hyp_tests[["t3_cELW"]],
-                          ml_hyp_tests[["t1_pAU"]], ml_hyp_tests[["t2_pAU"]], ml_hyp_tests[["t3_pAU"]])
-    trimmed_hypothesis_test_names <- c("t1_logL", "t2_logL", "t3_logL", "t1_deltaL", "t2_deltaL", "t3_deltaL",
-                                       "t1_bpRELL", "t2_bpRELL", "t3_bpRELL", "t1_cELW", "t2_cELW", "t3_cELW",
-                                       "t1_pAU", "t2_pAU", "t3_pAU")
-    names(hypothesis_tests) <- c(paste0("ASTRAL_hyp_", trimmed_hypothesis_test_names), paste0("ML_hyp_", trimmed_hypothesis_test_names))
-  }
+  length_op <- c(mbt_astral_tree, length_astral_tree)
+  names(length_op) <- c("ASTRAL_tree_max_branching_time", names(length_astral_tree))
   
   ## Trim unwanted columns
   trimmed_df_row <- df_row[, c("dataset", "dataset_type", "ID", "output_folder", "simulation_number", "simulation_type",
@@ -93,29 +44,62 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.hypothe
                                "branch_outgroup_length", "branch_porifera_length", "total_tree_length",
                                "sum_internal_branch_lengths", "percentage_internal_branch_lengths")]
   ## Assemble output vector
-  if (perform.topology.tests == TRUE){
-    analysis_output         <- c(as.character(trimmed_df_row), length_op,
-                                 iqtree2_tree_diffs, astral_tree_diffs,
-                                 iqtree2_gcfs, astral_qcfs, 
-                                 hypothesis_tests)
-    names(analysis_output)  <- c(names(trimmed_df_row), names(length_op),
-                                 names(iqtree2_tree_diffs), names(astral_tree_diffs),
-                                 names(iqtree2_gcfs), names(astral_qcfs), 
-                                 names(hypothesis_tests))
-  } else if (perform.topology.tests == FALSE){
-    analysis_output         <- c(as.character(trimmed_df_row), length_op,
-                                 iqtree2_tree_diffs, astral_tree_diffs,
-                                 iqtree2_gcfs, astral_qcfs)
-    names(analysis_output)  <- c(names(trimmed_df_row), names(length_op),
-                                 names(iqtree2_tree_diffs), names(astral_tree_diffs),
-                                 names(iqtree2_gcfs), names(astral_qcfs))
-  }
+  analysis_output         <- c(as.character(trimmed_df_row), length_op,
+                               astral_tree_diffs, astral_qcfs)
+  names(analysis_output)  <- c(names(trimmed_df_row), names(length_op),
+                               names(astral_tree_diffs), names(astral_qcfs))
   
   ## Return the output
   return(analysis_output)
 }
 
 
+
+topology.tests.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.hypothesis.trees = TRUE){
+  # Wrapper function to calculate:
+  #   - [x] topology tests in IQ-Tree
+  
+  ## Open the row of interest
+  df_row <- df[row_id, ]
+  
+  # Extract all files from folder
+  all_files <- list.files(hypothesis_tree_dir)
+  # Extract hypothesis tree files
+  if (test.three.hypothesis.trees == TRUE){
+    # Test all three hypothesis trees
+    astral_hyp_trees <- paste0(hypothesis_tree_dir, grep("ASTRAL_hypothesis_trees_relabelled_tbl", all_files, value = TRUE))
+  } else {
+    # Test only two hypothesis trees
+    astral_hyp_trees <- paste0(hypothesis_tree_dir, grep("ASTRAL_hypothesis_trees_2tree_relabelled_tbl", all_files, value = TRUE))
+  }
+  # Perform hypothesis tests
+  astral_hyp_tests <- perform.hypothesis.tests(ID = paste0(df_row$ID, "_ASTRAL_hyps"), alignment_path = df_row$output_alignment_file, hypothesis_tree_file = astral_hyp_trees,
+                                               iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads, iqtree2_model = df_row$ML_tree_estimation_models)
+  # Extract hypothesis test results
+  hypothesis_tests <- c(astral_hyp_tests[["t1_logL"]], astral_hyp_tests[["t2_logL"]], astral_hyp_tests[["t3_logL"]],
+                        astral_hyp_tests[["t1_deltaL"]], astral_hyp_tests[["t2_deltaL"]], astral_hyp_tests[["t3_deltaL"]],
+                        astral_hyp_tests[["t1_bpRELL"]], astral_hyp_tests[["t2_bpRELL"]], astral_hyp_tests[["t3_bpRELL"]],
+                        astral_hyp_tests[["t1_cELW"]], astral_hyp_tests[["t2_cELW"]], astral_hyp_tests[["t3_cELW"]],
+                        astral_hyp_tests[["t1_pAU"]], astral_hyp_tests[["t2_pAU"]], astral_hyp_tests[["t3_pAU"]])
+  trimmed_hypothesis_test_names <- c("t1_logL", "t2_logL", "t3_logL", "t1_deltaL", "t2_deltaL", "t3_deltaL",
+                                     "t1_bpRELL", "t2_bpRELL", "t3_bpRELL", "t1_cELW", "t2_cELW", "t3_cELW",
+                                     "t1_pAU", "t2_pAU", "t3_pAU")
+  names(hypothesis_tests) <- c(paste0("ASTRAL_hyp_", trimmed_hypothesis_test_names))
+  
+  ## Trim unwanted columns
+  trimmed_df_row <- df_row[, c("dataset", "dataset_type", "ID", "output_folder", "simulation_number", "simulation_type",
+                               "hypothesis_tree", "replicates", "num_taxa", "num_genes", "gene_length", "num_sites",
+                               "ML_tree_estimation_models", "branch_a_length", "branch_b_length", "branch_c_length",
+                               "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
+                               "branch_outgroup_length", "branch_porifera_length", "total_tree_length",
+                               "sum_internal_branch_lengths", "percentage_internal_branch_lengths")]
+  ## Assemble output vector
+  analysis_output         <- c(as.character(trimmed_df_row), hypothesis_tests)
+  names(analysis_output)  <- c(names(trimmed_df_row), names(hypothesis_tests))
+  
+  ## Return the output
+  return(analysis_output)
+}
 
 
 
