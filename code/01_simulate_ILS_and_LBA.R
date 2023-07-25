@@ -58,11 +58,11 @@ min_branch_length           <- 10/(200*200) # 10/N, where N = total number of si
 min_coalescent_difference   <- 0.001 # Keep to same magnitude as minimum coalescent interval in the ASTRAL species tree (0.004921)
 
 ## Control parameters
-control_parameters <- c("create.simulation.parameters" = TRUE,
-                        "generate.alignments" = TRUE,
+control_parameters <- c("create.simulation.parameters" = FALSE,
+                        "generate.alignments" = FALSE,
                         "estimate.trees" = FALSE,
-                        "conduct.analysis" = FALSE,
-                        "copy.completed.files" = FALSE)
+                        "conduct.analysis" = TRUE,
+                        "copy.completed.files" = TRUE)
 
 
 
@@ -78,9 +78,8 @@ library(parallel)
 
 # Create output file paths
 output_files <- paste0(output_dir, c("ancientILS_simulation_parameters.csv", "ancientILS_output_generate_alignments.csv",
-                                     "ancientILS_output_generate_trees_duplicateCols.csv", "ancientILS_output_generate_trees.csv",
-                                     "ancientILS_output_gCF.csv"))
-names(output_files) <- c("simulations", "alignments", "trees_duplicate_columns", "trees", "analysis")
+                                     "ancientILS_output_generate_trees.csv", "ancientILS_output_analysis.csv"))
+names(output_files) <- c("simulations", "alignments", "trees", "analysis")
 
 
 
@@ -179,26 +178,18 @@ if ((control_parameters[["generate.alignments"]] == TRUE) & (file.exists(output_
 if ( (control_parameters[["estimate.trees"]] == TRUE) & (file.exists(output_files[["trees"]]) == FALSE) ){
   # Read in the dataframe from the previous step
   generate_alignment_df <- read.csv(output_files[["alignments"]], stringsAsFactors = FALSE)
-  # Trim repeats 6-10 (to save time - can run later if desired)
-  generate_alignment_df <- generate_alignment_df[which(generate_alignment_df$replicates <= 10), ]
   # To estimate all trees with a set model for all single simulated alignments
   if (location == "local"){
     tree_list <- lapply(1:nrow(generate_alignment_df), estimate.trees, 
                         df = generate_alignment_df, call.executable.programs = TRUE)
   } else {
     tree_list <- mclapply(1:nrow(generate_alignment_df), estimate.trees, 
-                          df = generate_alignment_df, call.executable.programs = TRUE,
+                          df = generate_alignment_df, call.executable.programs = FALSE,
                           mc.cores = floor(num_parallel_threads/iqtree2_num_threads) )
   }
   tree_df <- as.data.frame(do.call(rbind, tree_list))
-  # Combine completed rows of the output dataframe with the tree dataframe
-  tree_combined_df <- cbind(generate_alignment_df[which(generate_alignment_df$output_alignment_file == tree_df$alignment_path),], 
-                            tree_df[which(tree_df$alignment_path == generate_alignment_df$output_alignment_file),])
-  # Save combined output dataframe
-  write.csv(tree_combined_df, file = output_files[["trees_duplicate_columns"]], row.names = FALSE)
-  # Remove duplicate columns
-  tree_combined_df <- df[, grep("\\.1", names(df), value = TRUE, invert = TRUE)]
-  write.csv(tree_combined_df, file = output_files[["trees"]], row.names = FALSE)
+  # Save the dataframe of tree estimation calls
+  write.csv(tree_df, file = output_files[["trees"]], row.names = FALSE)
 }
 
 
