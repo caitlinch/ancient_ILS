@@ -8,14 +8,6 @@ estimate.trees <- function(row_id, df, call.executable.programs = FALSE){
   
   # Extract a single row
   df_row <- df[row_id, ]
-  
-  # Call IQ-Tree to estimate an ML tree
-  # Set iqtree2_model = NA - gene models included in partition file
-  iqtree2_ML_output <- run.iqtree2(alignment_path = df_row$output_alignment_file, unique_id = df_row$ID, unique.output.path = FALSE,
-                                   iqtree2_path = df_row$iqtree2, iqtree2_num_threads = df_row$iqtree2_num_threads, 
-                                   iqtree2_num_ufb = df_row$iqtree2_num_ufb, iqtree2_model = NA, 
-                                   use.partition.models = TRUE, partition_file = df_row$output_partition_file, use.model.finder = FALSE, 
-                                   call.iqtree2 = call.executable.programs)
   # Call IQ-Tree to estimate gene trees
   # Set iqtree2_model = NA - gene models included in partition file
   iqtree2_gt_output <- estimate.gene.trees(alignment_path = df_row$output_alignment_file, partition_path = df_row$output_partition_file, 
@@ -28,8 +20,8 @@ estimate.trees <- function(row_id, df, call.executable.programs = FALSE){
                               output_directory = df_row$output_folder, astral_path = df_row$ASTRAL,
                               call.ASTRAL = call.executable.programs)
   # Assemble all output - ML tree estimation from IQ-Tree2 and summary coalescent tree estimation from ASTRAL
-  output_row <- c(as.character(df_row), iqtree2_ML_output, iqtree2_gt_output, astral_output)
-  names(output_row) <- c(names(df_row), names(iqtree2_ML_output), names(iqtree2_gt_output), names(astral_output))
+  output_row <- c(as.character(df_row), iqtree2_gt_output, astral_output)
+  names(output_row) <- c(names(df_row), names(iqtree2_gt_output), names(astral_output))
   return(output_row)
 }
 
