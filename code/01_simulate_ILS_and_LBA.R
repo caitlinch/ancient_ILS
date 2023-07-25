@@ -103,15 +103,15 @@ names(simulation_taxa_names) <- c("Homo_sapiens", "Strongylocentrotus_purpatus",
 #### 4. Create dataframe for simulations ####
 if ( (file.exists(output_files[["simulations"]]) == FALSE) | (control_parameters[["create.simulation.parameters"]] == TRUE) ){
   # Create dataframe for ILS and LBA simulations
-  sim_df <- rbind(as.data.frame(expand.grid(replicates = 1:10, 
+  sim_df <- rbind(as.data.frame(expand.grid(replicates = 1:5, 
                                             hypothesis_tree = c(1,2),
                                             branch_a_length = 0.1729, 
-                                            branch_b_length = c(0.0001, 0.001, 0.01, 0.1, 1, 10),
+                                            branch_b_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10),
                                             simulation_type = "LBA",
                                             simulation_number = "sim1") ),
-                  as.data.frame(expand.grid(replicates = 1:10, 
+                  as.data.frame(expand.grid(replicates = 1:5, 
                                             hypothesis_tree = c(1,2),
-                                            branch_a_length = c(0.0001, 0.001, 0.01, 0.1, 1, 10), 
+                                            branch_a_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 0.5, 1, 2, 5, 10), 
                                             branch_b_length = 1.647,
                                             simulation_type = "ILS",
                                             simulation_number = "sim2") ))
