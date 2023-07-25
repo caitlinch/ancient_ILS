@@ -30,8 +30,8 @@ tree_df <- read.csv(paste0(output_dir, grep("generate_trees", list.files(output_
 
 #### 3. Generate slurm files to run tree estimation ####
 # Remove any double spaces in command lines
-tree_df$iqtree2_gene_tree_command <- gsub("   ", "", tree_df$iqtree2_gene_tree_command)
-tree_df$iqtree2_gene_tree_command <- gsub("  ", "", tree_df$iqtree2_gene_tree_command)
+tree_df$iqtree2_gene_tree_command <- gsub("   ", " ", tree_df$iqtree2_gene_tree_command)
+tree_df$iqtree2_gene_tree_command <- gsub("  ", " ", tree_df$iqtree2_gene_tree_command)
 # Create template for slurm files
 slurm_header <- c("#!/bin/bash", 
                   "#") 
