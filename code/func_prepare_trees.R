@@ -140,16 +140,14 @@ check.rep <- function(dir_name){
   id <- basename(dir_name)
   astral_tree_path <- paste0(id, "_ASTRAL_tree.tre")
   gene_iqtree_path <- paste0(id, "_gene_trees.iqtree")
-  ml_iqtree_path <- paste0(id, "_ML_tree.iqtree")
   # List files in directory
   dir_files <- list.files(dir_name)
   # Check for file presence
   a_tree_exists <- TRUE %in% grepl(astral_tree_path, dir_files)
   g_tree_exists <- TRUE %in% grepl(gene_iqtree_path, dir_files)
-  ml_tree_exists <- TRUE %in% grepl(ml_iqtree_path, dir_files)
   # Assemble output row
-  op <- c(id, a_tree_exists, g_tree_exists, ml_tree_exists, dir_name)
-  names(op) <- c("id", "astral_tree_complete", "gene_trees_complete", "ml_tree_complete", "directory_path")
+  op <- c(id, a_tree_exists, g_tree_exists, dir_name)
+  names(op) <- c("id", "astral_tree_complete", "gene_trees_complete", "directory_path")
   # Return output vector
   return(op)
 }

@@ -23,6 +23,9 @@ if (location == "local"){
 
 
 #### 2. Open packages and functions ####
+## Source functions
+source(paste0(repo_dir, "code/func_prepare_trees.R"))
+
 # Open the csv with tree estimation command lines
 tree_df <- read.csv(paste0(output_dir, grep("generate_trees", list.files(output_dir), value = T)))
 
@@ -79,7 +82,6 @@ check_df <- as.data.frame(do.call(rbind, check_list))
 # Check completion
 print(paste0("Missing ASTRAL trees: ", length(which(check_df$astral_tree_complete == FALSE))))
 print(paste0("Missing gene trees: ", length(which(check_df$gene_trees_complete == FALSE))))
-print(paste0("Missing ML trees: ", length(which(check_df$ml_tree_complete == FALSE))))
 # Reduce dataframe to only missing trees
 incomplete_ids <- check_df[(check_df$ml_tree_complete == FALSE | check_df$gene_trees_complete == FALSE | check_df$astral_tree_complete == FALSE),]$id
 # Open dataframe of simulation parameters and trim to incomplete trees
