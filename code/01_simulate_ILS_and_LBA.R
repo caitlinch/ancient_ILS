@@ -253,3 +253,4 @@ CtenPori_hyp_tree_path <- paste0(hypothesis_tree_dir,
 CtenPori_hypothesis_tree_path <- paste0(hypothesis_tree_dir, 
                                         grep("\\.tre", grep("ASTRAL", grep("hypothesis_tree_3", list.files(hypothesis_tree_dir), value = T), value = T), value = T))
 gene_tree_path <- df_row$output_gene_tree_file
+output_id <- paste0("ms_hyp3")
