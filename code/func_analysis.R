@@ -26,22 +26,24 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
   
   ## Calculate qcf for branch leading to Ctenophora+Porifera clade for both ms and iqtree gene trees
   # Identify correct file path for hypothesis tree
-  CtenPori_hyp_tree_path <- paste0(hypothesis_tree_dir, 
-                                   grep("\\.tre", grep("ASTRAL", grep("hypothesis_tree_3", list.files(hypothesis_tree_dir), value = T), value = T), value = T))
+  all_CtenPori_hyp_tree_paths <- paste0(hypothesis_tree_dir, 
+                                        grep("\\.tre", grep("ASTRAL", grep("hypothesis_tree_3", list.files(hypothesis_tree_dir), value = T), value = T), value = T))
+  CtenPori_hyp_tree_path <- grep("CtenPori.tre", CtenPori_hyp_tree_path, value = T)
+  CtenPori_hyp_tree_path <- grep("relabelled", grep("numeric", all_CtenPori_hyp_tree_paths, value = T, invert = T), value = T, invert = T)
   # Calculate for actual (i.e. ms) gene trees
-  check.qcf.CtenPori(output_id = paste0("actual_testHyp3_CtenPori"), 
-                     gene_trees_path = df_row$output_gene_tree_file, 
-                     CtenPori_hypothesis_tree_path = CtenPori_hyp_tree_path, 
-                     ASTRAL_path = ASTRAL_path, 
-                     call.astral = TRUE, 
-                     renamed_taxa = renamed_taxa)
+  actual_hyp3_qcf <- check.qcf.CtenPori(output_id = paste0("actual_testHyp3_CtenPori"), 
+                                        gene_trees_path = df_row$output_gene_tree_file, 
+                                        CtenPori_hypothesis_tree_path = CtenPori_hyp_tree_path, 
+                                        ASTRAL_path = ASTRAL_path, 
+                                        call.astral = TRUE, 
+                                        renamed_taxa = renamed_taxa)
   # Calculate for expected (i.e. iqtree2) gene trees
-  check.qcf.CtenPori(output_id = paste0("expected_testHyp3_CtenPori"), 
-                     gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
-                     CtenPori_hypothesis_tree_path = CtenPori_hyp_tree_path, 
-                     ASTRAL_path = ASTRAL_path, 
-                     call.astral = TRUE, 
-                     renamed_taxa = renamed_taxa)
+  estimated_hyp3_qcf <- check.qcf.CtenPori(output_id = paste0("expected_testHyp3_CtenPori"), 
+                                           gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
+                                           CtenPori_hypothesis_tree_path = CtenPori_hyp_tree_path, 
+                                           ASTRAL_path = ASTRAL_path, 
+                                           call.astral = TRUE, 
+                                           renamed_taxa = renamed_taxa)
   
   ## Get maximum branching time for ASTRAL tree
   # Root all trees at Monosiga ovata (label = "72") - so that if the 5 outgroup species are paraphyletic, the tree depths are still comparable
@@ -372,10 +374,10 @@ check.qcf.CtenPori <- function(output_id, gene_trees_path, CtenPori_hypothesis_t
   CtenPori_branch_end <- getMRCA(qcf_tree, CtenPori_tips)
   CtenPori_branch_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == CtenPori_branch_end), 1]
   # Extract qcf from the branch leading to CtenPori clade
-  qcf_extracted_value <- node_labs[ ( CtenPori_branch_end - Ntip(qcf_tree) ) ]
+  qcf_extracted_value <- qcf_tree$node.label[ ( CtenPori_branch_end - Ntip(qcf_tree) ) ]
   # Assemble the output
   qcf_CtenPori <- c(qcf_extracted_value)
-  names(qcf_CtenPori) <- paste0(output_ID, "_qcf_value")
+  names(qcf_CtenPori) <- paste0(output_id, "_qcf_value")
   # Return output
   return(qcf_CtenPori)
 }
