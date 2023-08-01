@@ -6,7 +6,7 @@ library(ape)
 library(phangorn)
 
 #### Analysis wrapper function ####
-analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, renamed_taxa){
+analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renamed_taxa){
   # Wrapper function to calculate:
   #   - [x] actual and estimated qcfs (ASTRAL)
   #   - [x] hypothesis tree distances for ASTRAL tree
@@ -22,7 +22,7 @@ analysis.wrapper <- function(row_id, df, hypothesis_tree_dir, renamed_taxa){
   ## Calculate the qCFs using ASTRAL
   astral_qcfs <- qcf.wrapper(ID = df_row$ID, starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
                              ASTRAL_tree = df_row$ASTRAL_tree_treefile, ML_gene_trees = df_row$iqtree2_gene_tree_treefile, 
-                             ASTRAL_path = df_row$ASTRAL, call.astral = TRUE, renamed_taxa)
+                             ASTRAL_path = ASTRAL_path, call.astral = TRUE, renamed_taxa)
   
   ## Get maximum branching time for ASTRAL tree
   # Root all trees at Monosiga ovata (label = "72") - so that if the 5 outgroup species are paraphyletic, the tree depths are still comparable
