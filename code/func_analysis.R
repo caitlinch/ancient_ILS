@@ -511,7 +511,11 @@ qcf.clade.values <- function(qcf_tree, clade_of_interest){
   # Extract the node labels (i.e. qCF values) from the qCF tree
   node_labs <- qcf_tree$node.label
   # Extract information from those two branches
-  qcf_branch_clade <- node_labs[ ( clade_branch_end - Ntip(qcf_tree) ) ]
+  if (clade_branch_mono == TRUE){
+    qcf_branch_clade <- node_labs[ ( clade_branch_end - Ntip(qcf_tree) ) ]
+  } else {
+    qcf_branch_clade = NA
+  }
   # Assemble the output
   qcf_clade <- c(clade_branch_mono, qcf_branch_clade)
   names(qcf_clade) <- paste0(clade_of_interest, c("_clade_monophyletic", "_clade_branch_value"))
