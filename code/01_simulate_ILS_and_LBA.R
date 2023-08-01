@@ -237,5 +237,14 @@ df_row$gene_tree_partition_path <- paste0(df_row$output_folder, basename(df_row$
 ASTRAL_path <- astral
 hypothesis_tree_dir <- hypothesis_tree_dir
 renamed_taxa <- simulation_taxa_names
-
+# Params for qcf wrapper
+ID = df_row$ID
+starting_tree = df_row$output_base_tree_file
+ms_gene_trees = df_row$output_gene_tree_file
+ASTRAL_tree = df_row$ASTRAL_tree_treefile
+ML_gene_trees = df_row$iqtree2_gene_tree_treefile
+call.astral = TRUE
+# Expected qcf value files
+qcf_tree_path = "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_test_branch_length/00_determine_branch_lengths/sim1_h1_a0.1729_b0.1_rep1/sim1_h1_a0.1729_b0.1_rep1_expected_qcfs.tre"
+qcf_log_path = "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_test_branch_length/00_determine_branch_lengths/sim1_h1_a0.1729_b0.1_rep1/sim1_h1_a0.1729_b0.1_rep1_expected_qcfs.log"
 
