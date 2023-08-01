@@ -404,12 +404,16 @@ extract.qcf.values <- function(qcf_tree_path, qcf_log_path){
   qcf_branch_values <- qcf.branch.values(qcf_tree_path)
   
   ## Extract information about the other major clades
+  qcf_clade_values <- unlist(lapply(c("Bilateria", "Cnidaria", "Porifera", "Ctenophora", "Outgroup",
+                                      "BilatCnid", "BilatCnidPori", "BilatCnidCten", "CtenPori"), 
+                                    qcf.clade.values, 
+                                    qcf_tree))
   
   ## Assemble the output
   qcf_extracted <- c(num_quartet_trees, final_quartet_score, normalised_quartet_score,
-                     qcf_summary_stats, qcf_branch_values)
+                     qcf_summary_stats, qcf_branch_values, qcf_clade_values)
   names(qcf_extracted) <- c("num_quartet_trees", "final_quartet_score", "final_normalised_quartet_score",
-                            names(qcf_summary_stats), names(qcf_branch_values))
+                            names(qcf_summary_stats), names(qcf_branch_values), names(qcf_clade_values))
   
   ## Return the qCF values 
   return(qcf_extracted)
@@ -477,39 +481,43 @@ qcf.branch.values <- function(qcf_tree_path){
 
 
 
-qcf.clade.values <- function(qcf_tree, clade_of_interest){
+qcf.clade.values <- function(clade_of_interest, qcf_tree){
   ## Function to test for monophyly of a single clade, extract the values of interest and return some summary statistics
   
   # Update clade of interest to include the "_numbers" suffix
   clade_numbers <- paste0(clade_of_interest, "_numbers")
   # Specify taxa names for each clade (both species names and converted to numbers)
   whelan2017_list <- list("Bilateria" = c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex"),
-                          "Bilateria_numbers" = c("1", "2", "3", "4", "5", "6"),
                           "Cnidaria" = c("Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
                                          "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
                                          "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla"),
-                          "Cnidaria_numbers" = c("7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"),
                           "Porifera" = c("Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum",
                                          "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica",
                                          "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", 
                                          "Crella_elegans", "Kirkpatrickia_variolosa"),
-                          "Porifera_numbers" = c("22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"),
                           "Ctenophora" = c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus",
                                            "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
                                            "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
                                            "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
                                            "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
                                            "Ctenophora_sp_Florida_USA"),
-                          "Ctenophora_numbers" = c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64",
-                                                   "65", "66", "67", "68", "69", "70"),
                           "Outgroup" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
+                          "Bilateria_numbers" = c("1", "2", "3", "4", "5", "6"),
+                          "Cnidaria_numbers" = c("7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"),
+                          "Porifera_numbers" = c("22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"),
+                          "Ctenophora_numbers" = c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+                                                   "60", "61", "62", "63", "64","65", "66", "67", "68", "69", "70"),
                           "Outgroup_numbers" = c("71", "72", "73", "74", "75"),
-                          "Bilateria_Cnidaria_numbers" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"),
-                          "Bilateria_Cnidaria_Porifera_numbers" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21",
-                                                                    "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"),
-                          "Bilateria_Cnidaria_Ctenophora_numbers" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21",
-                                                                      "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64",
-                                                                      "65", "66", "67", "68", "69", "70"),)
+                          "BilatCnid_numbers" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"),
+                          "BilatCnidPori_numbers" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+                                                      "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", 
+                                                      "39", "40"),
+                          "BilatCnidCten_numbers" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+                                                      "21","41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57",
+                                                      "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"),
+                          "CtenPori_numbers" = c("22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+                                                 "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+                                                 "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
   # Identify start and end of branch
   clade_branch_end <- getMRCA( qcf_tree, whelan2017_list[[clade_numbers]] )
   clade_branch_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == clade_branch_end), 1]
@@ -524,7 +532,7 @@ qcf.clade.values <- function(qcf_tree, clade_of_interest){
   }
   # Assemble the output
   qcf_clade <- c(clade_branch_mono, qcf_branch_clade)
-  names(qcf_clade) <- paste0(clade_of_interest, c("_clade_monophyletic", "_clade_branch_value"))
+  names(qcf_clade) <- paste0(clade_of_interest, c("_monophyletic", "_qcf_value"))
   # Return the output
   return(qcf_clade)
 }
