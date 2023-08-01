@@ -395,6 +395,35 @@ extract.qcf.values <- function(qcf_tree_path, qcf_log_path){
   qcf_tree <- read.tree(file = qcf_tree_path)
   # Extract the node labels (i.e. qCF values) from the qCF tree
   node_labs <- qcf_tree$node.label
+  # Extract summary statistics (mean, median, minimum, maximum)
+  qcf_summary_stats <- c(mean(as.numeric(node_labs), na.rm = TRUE), median(as.numeric(node_labs), na.rm = TRUE),
+                         min(as.numeric(node_labs), na.rm = TRUE), max(as.numeric(node_labs), na.rm = TRUE))
+  names(qcf_summary_stats) <- c("qcf_mean", "qcf_median", "qcf_min", "qcf_max")
+  
+  ## Extract the qCF values for branches "a" and "b"
+  qcf_branch_values <- qcf.branch.values(qcf_tree_path)
+  
+  ## Extract information about the other major clades
+  
+  ## Assemble the output
+  qcf_extracted <- c(num_quartet_trees, final_quartet_score, normalised_quartet_score,
+                     qcf_summary_stats, qcf_branch_values)
+  names(qcf_extracted) <- c("num_quartet_trees", "final_quartet_score", "final_normalised_quartet_score",
+                            names(qcf_summary_stats), names(qcf_branch_values))
+  
+  ## Return the qCF values 
+  return(qcf_extracted)
+}
+
+
+
+qcf.branch.values <- function(qcf_tree_path){
+  ## Function to test for monophyly of a single clade, extract the values of interest and return some summary statistics
+  
+  # Read in the qcf output tree
+  qcf_tree <- read.tree(file = qcf_tree_path)
+  # Extract the node labels (i.e. qCF values) from the qCF tree
+  node_labs <- qcf_tree$node.label
   # Find the "a" branch and the "b" branch
   if (grepl("h1", basename(qcf_tree_path)) == TRUE){
     # Extract the nodes by checking for monophyletic clades
@@ -438,22 +467,42 @@ extract.qcf.values <- function(qcf_tree_path, qcf_log_path){
   qcf_branch_a_mono <- branch_a_mono
   qcf_branch_b <- node_labs[ ( b_end-Ntip(qcf_tree) ) ]
   qcf_branch_b_mono <- branch_b_mono
-  qcf_mean <- mean(as.numeric(node_labs), na.rm = TRUE)
-  qcf_median <- median(as.numeric(node_labs), na.rm = TRUE)
-  qcf_min <- min(as.numeric(node_labs), na.rm = TRUE)
-  qcf_max <- max(as.numeric(node_labs), na.rm = TRUE)
   
-  ## Assemble the output
-  qcf_extracted <- c(num_quartet_trees, final_quartet_score, normalised_quartet_score,
-                     qcf_mean, qcf_median, qcf_min, qcf_max, 
-                     qcf_branch_a_mono, qcf_branch_a, qcf_branch_b_mono, qcf_branch_b)
-  names(qcf_extracted) <- c("num_quartet_trees", "final_quartet_score", "final_normalised_quartet_score",
-                            "qcf_mean", "qcf_median", "qcf_min", "qcf_max", 
-                            "qcf_branch_a_monophyletic", "qcf_branch_a_value", "qcf_branch_b_monophyletic", "qcf_branch_b_value")
-  
-  ## Return the qCF values 
-  return(qcf_extracted)
+  # Assemble the output
+  qcf_branches <- c(qcf_branch_a_mono, qcf_branch_a, qcf_branch_b_mono, qcf_branch_b)
+  names(qcf_branches) <- c("qcf_branch_a_monophyletic", "qcf_branch_a_value", "qcf_branch_b_monophyletic", "qcf_branch_b_value")
+  # Return the output
+  return(qcf_branches)
 }
+
+
+
+qcf.clade.values <- function(qcf_tree, clade_of_interest){
+  ## Function to test for monophyly of a single clade, extract the values of interest and return some summary statistics
+  
+  whelan2017_list <- list("Bilateria" = c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex"),
+                          "Bilateria_numbers" = c(),
+                          "Cnidaria" = c("Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
+                                         "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
+                                         "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla"),
+                          "Cnidaria_numbers" = c(),
+                          "Porifera" = c("Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum",
+                                         "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica",
+                                         "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", 
+                                         "Crella_elegans", "Kirkpatrickia_variolosa"),
+                          "Porifera_numbers" = c(),
+                          "Ctenophora" = c("Euplokamis_dunlapae", "Vallicula_sp", "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus",
+                                           "Pleurobrachia_bachei", "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
+                                           "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
+                                           "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
+                                           "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
+                                           "Ctenophora_sp_Florida_USA"),
+                          "Ctenophora_numbers" = c(),
+                          "Outgroup" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
+                          "Outgroup_numbers" = c())
+}
+
+
 
 
 
