@@ -22,16 +22,16 @@ if (location == "local"){
 }
 
 
+
 #### 2. Open packages and functions ####
 ## Source functions
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
 
-# Open the csv with tree estimation command lines
-tree_df <- read.csv(paste0(output_dir, grep("generate_trees", list.files(output_dir), value = T)))
-
 
 
 #### 3. Generate slurm files to run tree estimation ####
+# Open the csv with tree estimation command lines
+tree_df <- read.csv(paste0(output_dir, grep("generate_trees", list.files(output_dir), value = T)))
 # Remove any double spaces in command lines
 tree_df$iqtree2_gene_tree_command <- gsub("   ", " ", tree_df$iqtree2_gene_tree_command)
 tree_df$iqtree2_gene_tree_command <- gsub("  ", " ", tree_df$iqtree2_gene_tree_command)
@@ -85,10 +85,5 @@ print(paste0("Missing gene trees: ", length(which(check_df$gene_trees_complete =
 # Reduce dataframe to only missing trees
 incomplete_ids <- check_df[(check_df$ml_tree_complete == FALSE | check_df$gene_trees_complete == FALSE | check_df$astral_tree_complete == FALSE),]$id
 # Open dataframe of simulation parameters and trim to incomplete trees
-
-
-
-
-
 
 
