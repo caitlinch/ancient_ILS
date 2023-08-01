@@ -277,13 +277,13 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
   
   ## Calculate RF and wRF for the trees
   output_vec <- c(tree_path, 
-                  RF.dist(t, h1_tree), round(wRF.dist(t, h1_tree), digits = 2), 
-                  RF.dist(t, h2_tree), round(wRF.dist(t, h2_tree), digits = 2), 
-                  RF.dist(t, h3_tree), round(wRF.dist(t, h3_tree), digits = 2))
+                  RF.dist(t, h1_tree, normalize = TRUE), round(wRF.dist(t, h1_tree, normalize = TRUE), digits = 2), 
+                  RF.dist(t, h2_tree, normalize = TRUE), round(wRF.dist(t, h2_tree, normalize = TRUE), digits = 2), 
+                  RF.dist(t, h3_tree, normalize = TRUE), round(wRF.dist(t, h3_tree, normalize = TRUE), digits = 2))
   names(output_vec) <- c(paste0(tree_type, "_tree_path"), 
-                         paste0(tree_type, "_h1_RF_dist"), paste0(tree_type, "_h1_wRF_dist"), 
-                         paste0(tree_type, "_h2_RF_dist"), paste0(tree_type, "_h2_wRF_dist"), 
-                         paste0(tree_type, "_h3_RF_dist"), paste0(tree_type, "_h3_wRF_dist") )
+                         paste0(tree_type, "_h1_norm_RF_dist"), paste0(tree_type, "_h1_norm_wRF_dist"), 
+                         paste0(tree_type, "_h2_norm_RF_dist"), paste0(tree_type, "_h2_norm_wRF_dist"), 
+                         paste0(tree_type, "_h3_norm_RF_dist"), paste0(tree_type, "_h3_norm_wRF_dist") )
   
   ## Return the RF/wRF distances
   return(output_vec)
