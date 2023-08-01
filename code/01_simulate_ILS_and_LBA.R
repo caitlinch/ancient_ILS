@@ -199,20 +199,20 @@ if ( (control_parameters[["conduct.analysis "]] == TRUE) & (file.exists(output_f
   # Read in the output from the previous step
   tree_df <- read.csv(output_files[["trees"]], stringsAsFactors = FALSE)
   # Call the function to calculate gCF, qCF and RF distances
-    if (location == "local"){
-      analysis_list <- lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df,
-                         hypothesis_tree_dir = hypothesis_tree_dir, renamed_taxa = simulation_taxa_names)
-    } else {
-      analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df,
-                           hypothesis_tree_dir = hypothesis_tree_dir, renamed_taxa = simulation_taxa_names,
-                           mc.cores = round(num_parallel_cores/iqtree2_num_threads))
-    }
-    analysis_df <- as.data.frame(do.call(rbind, analysis_list))
-    # Combine completed rows of the output dataframe with the tree dataframe
-    analysis_combined_df <- cbind(analysis_df[which(analysis_df$alignment_path == tree_df$alignment_path),], 
-                             tree_df[which(tree_df$alignment_path == analysis_df$alignment_path),])
-    # Save combined output dataframe
-    write.csv(analysis_combined_df, file = output_files[["analysis"]], row.names = FALSE)
+  if (location == "local"){
+    analysis_list <- lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df,
+                            hypothesis_tree_dir = hypothesis_tree_dir, renamed_taxa = simulation_taxa_names)
+  } else {
+    analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df,
+                              hypothesis_tree_dir = hypothesis_tree_dir, renamed_taxa = simulation_taxa_names,
+                              mc.cores = round(num_parallel_cores/iqtree2_num_threads))
+  }
+  analysis_df <- as.data.frame(do.call(rbind, analysis_list))
+  # Combine completed rows of the output dataframe with the tree dataframe
+  analysis_combined_df <- cbind(analysis_df[which(analysis_df$alignment_path == tree_df$alignment_path),], 
+                                tree_df[which(tree_df$alignment_path == analysis_df$alignment_path),])
+  # Save combined output dataframe
+  write.csv(analysis_combined_df, file = output_files[["analysis"]], row.names = FALSE)
 }
 
 ### Testing the analysis code:
@@ -247,4 +247,9 @@ call.astral = TRUE
 # Expected qcf value files
 qcf_tree_path = "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_test_branch_length/00_determine_branch_lengths/sim1_h1_a0.1729_b0.1_rep1/sim1_h1_a0.1729_b0.1_rep1_expected_qcfs.tre"
 qcf_log_path = "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_test_branch_length/00_determine_branch_lengths/sim1_h1_a0.1729_b0.1_rep1/sim1_h1_a0.1729_b0.1_rep1_expected_qcfs.log"
-
+# Test paths for hyp tree 3
+CtenPori_hyp_tree_path <- paste0(hypothesis_tree_dir, 
+                                 grep("\\.tre", grep("ASTRAL", grep("hypothesis_tree_3", list.files(hypothesis_tree_dir), value = T), value = T), value = T))
+CtenPori_hypothesis_tree_path <- paste0(hypothesis_tree_dir, 
+                                        grep("\\.tre", grep("ASTRAL", grep("hypothesis_tree_3", list.files(hypothesis_tree_dir), value = T), value = T), value = T))
+gene_tree_path <- df_row$output_gene_tree_file
