@@ -489,11 +489,6 @@ qcf.clade.values <- function(qcf_tree, clade_of_interest){
                                          "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
                                          "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla"),
                           "Cnidaria_numbers" = c("7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"),
-                          "Bilateria_Cnidaria" = c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex",
-                                                   "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
-                                                   "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
-                                                   "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla"),
-                          "Bilateria_Cnidaria_numbers" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"),
                           "Porifera" = c("Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum",
                                          "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica",
                                          "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides", "Mycale_phylophylla", "Latrunculia_apicalis", 
@@ -508,7 +503,13 @@ qcf.clade.values <- function(qcf_tree, clade_of_interest){
                           "Ctenophora_numbers" = c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64",
                                                    "65", "66", "67", "68", "69", "70"),
                           "Outgroup" = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"),
-                          "Outgroup_numbers" = c("71", "72", "73", "74", "75"))
+                          "Outgroup_numbers" = c("71", "72", "73", "74", "75"),
+                          "Bilateria_Cnidaria_numbers" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"),
+                          "Bilateria_Cnidaria_Porifera_numbers" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21",
+                                                                    "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"),
+                          "Bilateria_Cnidaria_Ctenophora_numbers" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21",
+                                                                      "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64",
+                                                                      "65", "66", "67", "68", "69", "70"),)
   # Identify start and end of branch
   clade_branch_end <- getMRCA( qcf_tree, whelan2017_list[[clade_numbers]] )
   clade_branch_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == clade_branch_end), 1]
