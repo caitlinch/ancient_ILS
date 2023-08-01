@@ -32,7 +32,7 @@ if (location == "local"){
   ## File paths and computational parameters
   repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   hypothesis_tree_dir         <- paste0(repo_dir, "hypothesis_trees/")
-  output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/01_simulation_output/"
+  output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulation_output/"
   iqtree2                     <- "iqtree2"
   astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
   ms                          <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
@@ -215,6 +215,27 @@ if ( (control_parameters[["conduct.analysis "]] == TRUE) & (file.exists(output_f
     write.csv(analysis_combined_df, file = output_files[["analysis"]], row.names = FALSE)
 }
 
-
+### Testing the analysis code:
+# Identify row
+df_row <- tree_df[which(tree_df$ID == "sim1_h1_a0.1729_b0.1_rep1"), ]
+# Update folder for rep
+df_row$output_folder <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_test_branch_length/00_determine_branch_lengths/sim1_h1_a0.1729_b0.1_rep1/"
+# Update all folder paths
+df_row$output_base_tree_file <- paste0(df_row$output_folder, basename(df_row$output_base_tree_file))
+df_row$output_gene_tree_file <- paste0(df_row$output_folder, basename(df_row$output_gene_tree_file))
+df_row$output_partition_file <- paste0(df_row$output_folder, basename(df_row$output_partition_file))
+df_row$output_alignment_file <- paste0(df_row$output_folder, basename(df_row$output_alignment_file))
+df_row$iqtree2_gene_tree_treefile <- paste0(df_row$output_folder, basename(df_row$iqtree2_gene_tree_treefile))
+df_row$iqtree2_gene_tree_iqtree_file <- paste0(df_row$output_folder, basename(df_row$iqtree2_gene_tree_iqtree_file))
+df_row$iqtree2_gene_tree_log_file <- paste0(df_row$output_folder, basename(df_row$iqtree2_gene_tree_log_file))
+df_row$ASTRAL_input_gene_tree_file <- paste0(df_row$output_folder, basename(df_row$ASTRAL_input_gene_tree_file))
+df_row$ASTRAL_tree_treefile <- paste0(df_row$output_folder, basename(df_row$ASTRAL_tree_treefile))
+df_row$ASTRAL_tree_log_file <- paste0(df_row$output_folder, basename(df_row$ASTRAL_tree_log_file))
+df_row$gene_tree_alignment_path <- paste0(df_row$output_folder, basename(df_row$gene_tree_alignment_path))
+df_row$gene_tree_partition_path <- paste0(df_row$output_folder, basename(df_row$gene_tree_partition_path))
+# Set params for analysis function
+ASTRAL_path <- astral
+hypothesis_tree_dir <- hypothesis_tree_dir
+renamed_taxa <- simulation_taxa_names
 
 
