@@ -45,31 +45,37 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
                                            call.astral = TRUE, 
                                            renamed_taxa = renamed_taxa)
   
-  ## Get maximum branching time for ASTRAL tree
+  ## Get lengths and maximum branching time for trees
+  astral_tree <- read.tree(df_row$ASTRAL_tree_treefile)
+  start_tree <- read.tree(df_row$output_base_tree_file)
   # Root all trees at Monosiga ovata (label = "72") - so that if the 5 outgroup species are paraphyletic, the tree depths are still comparable
   # Extract branching times and tree length for ASTRAL tree
-  astral_tree <- read.tree(df_row$ASTRAL_tree_treefile)
-  astral_tree <- root(astral_tree, "72")
-  mbt_astral_tree <- max(branching.times(astral_tree))
-  length_astral_tree <- extract.tree.length(astral_tree)
-  names(length_astral_tree) <- paste0("ASTRAL_", names(length_astral_tree))
-  # Compile output
-  length_op <- c(mbt_astral_tree, length_astral_tree)
-  names(length_op) <- c("ASTRAL_tree_max_branching_time", names(length_astral_tree))
+  astral_tree_lengths <- c(extract.tree.length(astral_tree), extract.tree.depth(astral_tree, "72", root.tree = TRUE))
+  start_tree_lengths <- c(extract.tree.length(start_tree), extract.tree.depth(start_tree, "72", root.tree = TRUE))
   
-  ## Trim unwanted columns
+  ## Output results
+  # Trim unwanted columns
   trimmed_df_row <- df_row[, c("dataset", "dataset_type", "ID", "output_folder", "simulation_number", "simulation_type",
                                "hypothesis_tree", "replicates", "num_taxa", "num_genes", "gene_length", "num_sites",
                                "ML_tree_estimation_models", "branch_a_length", "branch_b_length", "branch_c_length",
                                "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
                                "branch_outgroup_length", "branch_porifera_length", "total_tree_length",
                                "sum_internal_branch_lengths", "percentage_internal_branch_lengths")]
-  ## Assemble output vector
-  analysis_output         <- c(as.character(trimmed_df_row), length_op,
-                               astral_tree_diffs, astral_qcfs)
-  names(analysis_output)  <- c(names(trimmed_df_row), names(length_op),
-                               names(astral_tree_diffs), names(astral_qcfs))
-  
+  # Assemble output vector
+  analysis_output         <- c(as.character(trimmed_df_row),
+                               astral_tree_diffs, 
+                               astral_qcfs,
+                               actual_hyp3_qcf, 
+                               estimated_hyp3_qcf,
+                               start_tree_lengths, 
+                               astral_tree_lengths)
+  names(analysis_output)  <- c(names(trimmed_df_row),
+                               names(astral_tree_diffs), 
+                               names(astral_qcfs),
+                               names(actual_hyp3_qcf), 
+                               names(estimated_hyp3_qcf),
+                               paste0("start_tree_", names(start_tree_lengths)), 
+                               paste0("ASTRAL_tree_", names(astral_tree_lengths)) )
   ## Return the output
   return(analysis_output)
 }
@@ -940,6 +946,8 @@ check.tip.labels <- function(tree_path){
 
 extract.tree.length <- function(tree){
   ## Quick function to calculate the tree length and percentage of internal branches for any tree
+  
+  # Identify terminal branches and internal branches
   terminal_branch_ids <- which(tree$edge[,2] <= Ntip(tree))
   internal_branch_ids <- which(tree$edge[,2] > Ntip(tree))
   # Determine how long the sum of all terminal branches would have to be to match the parameters_row$proportion_internal_branches
@@ -951,6 +959,25 @@ extract.tree.length <- function(tree){
   # Assemble output
   op_vec <- c(current_tree_length, current_internal_length, percentage_internal_length)
   names(op_vec) <- c("total_tree_length", "sum_internal_branch_lengths", "percentage_internal_branch_lengths")
+  # Return output
+  return(op_vec)
+}
+
+
+extract.tree.depth <- function(tree, outgroup, root.tree = TRUE){
+  ## Quick function to calculate the depth of any tree
+  
+  # Check if outgroup is monophyletic
+  check_monophyly <- is.monophyletic(phy = tree, tips = outgroup)
+  # Root tree if requested AND if outgroup is monophyletic
+  if ( (root.tree == TRUE) & (check_monophyly == TRUE) ){
+    rooted_tree <- root(tree, outgroup)
+  }
+  # Find maximum branching time for the tree
+  tree_depth <- max(branching.times(tree))
+  # Assemble output
+  op_vec <- c(as.character(check_monophyly), tree_depth)
+  names(op_vec) <- c("outgroup_monophyletic", "tree_depth")
   # Return output
   return(op_vec)
 }
