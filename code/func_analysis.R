@@ -546,7 +546,7 @@ check.qcf.clades <- function(output_id, gene_trees_path, Cten_hypothesis_tree_pa
                   extract.clade.qcf.value(qcf_tree, Animals_tips))
   
   ## Assemble the output
-  names(qcf_op) <- paste0(output_id, "_", c("BILAT", "CNID", "PORI", "CTEN", "CHOANO", "BILAT_CTEN", "ANIMALS"), "_qcf_value")
+  names(clade_qcfs) <- paste0(output_id, "_", c("BILAT", "CNID", "PORI", "CTEN", "CHOANO", "BILAT_CTEN", "ANIMALS"), "_qcf_value")
   # Return output
   return(clade_qcfs)
 }
