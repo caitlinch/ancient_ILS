@@ -198,12 +198,14 @@ if ( (control_parameters[["estimate.trees"]] == TRUE) & (file.exists(output_file
 if ( (control_parameters[["conduct.analysis "]] == TRUE) & (file.exists(output_files[["analysis"]]) == FALSE) ){
   # Read in the output from the previous step
   tree_df <- read.csv(output_files[["trees"]], stringsAsFactors = FALSE)
-  # Call the function to calculate gCF, qCF and RF distances
+  # Call the function to calculate gCF and RF distances
+  # To run for one row:
+  #       analysis.wrapper(1, df = tree_df, ASTRAL_path = astral, hypothesis_tree_dir = hypothesis_tree_dir, renamed_taxa = simulation_taxa_names)
   if (location == "local"){
-    analysis_list <- lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df,
+    analysis_list <- lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
                             hypothesis_tree_dir = hypothesis_tree_dir, renamed_taxa = simulation_taxa_names)
   } else {
-    analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df,
+    analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
                               hypothesis_tree_dir = hypothesis_tree_dir, renamed_taxa = simulation_taxa_names,
                               mc.cores = round(num_parallel_cores/iqtree2_num_threads))
   }
