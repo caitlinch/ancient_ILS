@@ -443,7 +443,7 @@ check.qcf.Pori <- function(output_id, gene_trees_path, Pori_hypothesis_tree_path
   qcf_dir = paste0(dirname(gene_trees_path), "/")
   # Call ASTRAL with the gene tree file as the gene trees and the CtenPori hypothesis tree as the species tree
   qcf_paths <- qcf.call(output_id = output_id, output_directory = qcf_dir, 
-                        tree_path = relabelled_tree_path, gene_trees_path = gene_trees_path,
+                        tree_path = Pori_hypothesis_tree_path, gene_trees_path = gene_trees_path,
                         ASTRAL_path = ASTRAL_path, call.astral = call.astral, 
                         rename.tree.tips = TRUE, renamed_taxa)
   # Identify and open ASTRAL tree with calculated qcf values
@@ -482,7 +482,7 @@ check.qcf.CtenPori <- function(output_id, gene_trees_path, CtenPori_hypothesis_t
   qcf_dir = paste0(dirname(gene_trees_path), "/")
   # Call ASTRAL with the gene tree file as the gene trees and the CtenPori hypothesis tree as the species tree
   qcf_paths <- qcf.call(output_id = output_id, output_directory = qcf_dir, 
-                        tree_path = relabelled_tree_path, gene_trees_path = gene_trees_path,
+                        tree_path = CtenPori_hypothesis_tree_path, gene_trees_path = gene_trees_path,
                         ASTRAL_path = ASTRAL_path, call.astral = call.astral, 
                         rename.tree.tips = TRUE, renamed_taxa)
   # Identify and open ASTRAL tree with calculated qcf values
@@ -528,7 +528,7 @@ check.qcf.clades <- function(output_id, gene_trees_path, Cten_hypothesis_tree_pa
   qcf_dir = paste0(dirname(gene_trees_path), "/")
   # Call ASTRAL with the gene tree file as the gene trees and the CtenPori hypothesis tree as the species tree
   qcf_paths <- qcf.call(output_id = output_id, output_directory = qcf_dir, 
-                        tree_path = CtenPori_hypothesis_tree_path, gene_trees_path = gene_trees_path,
+                        tree_path = Cten_hypothesis_tree_path, gene_trees_path = gene_trees_path,
                         ASTRAL_path = ASTRAL_path, call.astral = call.astral, 
                         rename.tree.tips = TRUE, renamed_taxa)
   # Identify and open ASTRAL tree with calculated qcf values
