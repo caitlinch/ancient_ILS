@@ -210,11 +210,8 @@ if ( (control_parameters[["conduct.analysis "]] == TRUE) & (file.exists(output_f
                               mc.cores = round(num_parallel_cores/iqtree2_num_threads))
   }
   analysis_df <- as.data.frame(do.call(rbind, analysis_list))
-  # Combine completed rows of the output dataframe with the tree dataframe
-  analysis_combined_df <- cbind(analysis_df[which(analysis_df$alignment_path == tree_df$alignment_path),], 
-                                tree_df[which(tree_df$alignment_path == analysis_df$alignment_path),])
   # Save combined output dataframe
-  write.csv(analysis_combined_df, file = output_files[["analysis"]], row.names = FALSE)
+  write.csv(analysis_df, file = output_files[["analysis"]], row.names = FALSE)
 }
 
 
