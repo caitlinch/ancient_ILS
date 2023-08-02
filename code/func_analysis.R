@@ -48,10 +48,12 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
   ## Get lengths and maximum branching time for trees
   astral_tree <- read.tree(df_row$ASTRAL_tree_treefile)
   start_tree <- read.tree(df_row$output_base_tree_file)
+  # Root trees at Choanoflagellates
+  start_tree_lengths_all <- c(extract.tree.length(start_tree), extract.tree.depth(start_tree, c("71", "72", "73", "74", "75"), root.tree = TRUE))
+  astral_tree_lengths_all <- c(extract.tree.length(astral_tree), extract.tree.depth(astral_tree, c("71", "72", "73", "74", "75"), root.tree = TRUE))
   # Root all trees at Monosiga ovata (label = "72") - so that if the 5 outgroup species are paraphyletic, the tree depths are still comparable
-  # Extract branching times and tree length for ASTRAL tree
-  astral_tree_lengths <- c(extract.tree.length(astral_tree), extract.tree.depth(astral_tree, "72", root.tree = TRUE))
-  start_tree_lengths <- c(extract.tree.length(start_tree), extract.tree.depth(start_tree, "72", root.tree = TRUE))
+  start_tree_lengths_72 <- c(extract.tree.length(start_tree), extract.tree.depth(start_tree, "72", root.tree = TRUE))
+  astral_tree_lengths_72 <- c(extract.tree.length(astral_tree), extract.tree.depth(astral_tree, "72", root.tree = TRUE))
   
   ## Output results
   # Trim unwanted columns
@@ -67,15 +69,19 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
                                astral_qcfs,
                                actual_hyp3_qcf, 
                                estimated_hyp3_qcf,
-                               start_tree_lengths, 
-                               astral_tree_lengths)
+                               start_tree_lengths_all, 
+                               start_tree_lengths_72,
+                               astral_tree_lengths_all,
+                               astral_tree_lengths_72)
   names(analysis_output)  <- c(names(trimmed_df_row),
                                names(astral_tree_diffs), 
                                names(astral_qcfs),
                                names(actual_hyp3_qcf), 
                                names(estimated_hyp3_qcf),
-                               paste0("start_tree_", names(start_tree_lengths)), 
-                               paste0("ASTRAL_tree_", names(astral_tree_lengths)) )
+                               paste0("start_tree_CHOANO_", names(start_tree_lengths_all)), 
+                               paste0("start_tree_MOvata_", names(start_tree_lengths_72)), 
+                               paste0("ASTRAL_tree_CHOANO_", names(astral_tree_lengths_all)),
+                               paste0("ASTRAL_tree_MOvata_", names(astral_tree_lengths_72)))
   ## Return the output
   return(analysis_output)
 }
