@@ -55,26 +55,26 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
                                        ASTRAL_path = ASTRAL_path, 
                                        call.astral = TRUE, 
                                        renamed_taxa = renamed_taxa)
-  # Calculate for expected (i.e. iqtree2) gene trees
-  estimated_hyp1_qcf <- check.qcf.Cten(output_id = "expected_testHyp1_Cten", 
+  # Calculate for estimated (i.e. iqtree2) gene trees
+  estimated_hyp1_qcf <- check.qcf.Cten(output_id = "estimated_testHyp1_Cten", 
                                        gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
                                        Cten_hypothesis_tree_path = Cten_hyp_tree_path, 
                                        ASTRAL_path = ASTRAL_path, 
                                        call.astral = TRUE, 
                                        renamed_taxa = renamed_taxa)
-  estimated_hyp2_qcf <- check.qcf.Pori(output_id = "expected_testHyp2_Pori", 
+  estimated_hyp2_qcf <- check.qcf.Pori(output_id = "estimated_testHyp2_Pori", 
                                        gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
                                        Pori_hypothesis_tree_path = Pori_hyp_tree_path, 
                                        ASTRAL_path = ASTRAL_path, 
                                        call.astral = TRUE, 
                                        renamed_taxa = renamed_taxa)
-  estimated_hyp3_qcf <- check.qcf.CtenPori(output_id = "expected_testHyp3_CtenPori", 
+  estimated_hyp3_qcf <- check.qcf.CtenPori(output_id = "estimated_testHyp3_CtenPori", 
                                            gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
                                            CtenPori_hypothesis_tree_path = CtenPori_hyp_tree_path, 
                                            ASTRAL_path = ASTRAL_path, 
                                            call.astral = TRUE, 
                                            renamed_taxa = renamed_taxa)
-  estimated_clade_qcf <- check.qcf.clades(output_id = "expected_clade",
+  estimated_clade_qcf <- check.qcf.clades(output_id = "estimated_clade",
                                           gene_trees_path = df_row$iqtree2_gene_tree_treefile,
                                           Cten_hypothesis_tree_path = Cten_hyp_tree_path,
                                           ASTRAL_path = ASTRAL_path, 
@@ -161,9 +161,9 @@ topology.tests.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.h
 
 
 
-#### Calculate expected qCF ####
-calculate.expected.qCF <- function(row_id, df, call.ASTRAL = TRUE, renamed_taxa){
-  # Wrapper function to calculate expected qCFS 
+#### Calculate actual qCF ####
+calculate.actual.qCF <- function(row_id, df, call.ASTRAL = TRUE, renamed_taxa){
+  # Wrapper function to calculate actual qCFS 
   
   ## Open the row of interest
   df_row <- df[row_id, ]
@@ -172,16 +172,16 @@ calculate.expected.qCF <- function(row_id, df, call.ASTRAL = TRUE, renamed_taxa)
   ## Identify directory
   qcf_dir <- paste0(dirname(df_row$output_base_tree_file), "/")
   ## Calculate actual quartet concordance factors
-  expected_qcf_paths <- qcf.call(output_id = paste0(df_row$ID, "_expected_qcfs"), output_directory = qcf_dir, 
+  actual_qcf_paths <- qcf.call(output_id = paste0(df_row$ID, "_actual_qcfs"), output_directory = qcf_dir, 
                                  tree_path = df_row$output_base_tree_file, gene_trees_path = df_row$output_gene_tree_file,
                                  ASTRAL_path = df_row$ASTRAL, call.astral = call.ASTRAL, 
                                  rename.tree.tips = TRUE, renamed_taxa)
   ## Extract relevant qCF values
-  expected_qcf_values <-  extract.qcf.values(qcf_tree_path = expected_qcf_paths[["qcf_output_tree"]], 
-                                             qcf_log_path = expected_qcf_paths[["qcf_output_log"]])
+  actual_qcf_values <-  extract.qcf.values(qcf_tree_path = actual_qcf_paths[["qcf_output_tree"]], 
+                                             qcf_log_path = actual_qcf_paths[["qcf_output_log"]])
   ## Assemble output
-  qcf_output <- c(expected_qcf_paths, expected_qcf_values)
-  names(qcf_output) <- c(paste0("actual_", names(expected_qcf_paths)), paste0("actual_", names(expected_qcf_values)))
+  qcf_output <- c(actual_qcf_paths, actual_qcf_values)
+  names(qcf_output) <- c(paste0("actual_", names(actual_qcf_paths)), paste0("actual_", names(actual_qcf_values)))
   
   ## Trim unwanted columns
   trimmed_df_row <- df_row[, c("dataset", "dataset_type", "ID", "output_folder", "simulation_number", "simulation_type",
@@ -356,7 +356,7 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
 
 #### Quartet concordance factors ####
 qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_trees, ASTRAL_path, call.astral = TRUE, renamed_taxa){
-  ## Function to determine expected and estimated qCF in ASTRAL and return summary statistics
+  ## Function to determine actual and estimated qCF in ASTRAL and return summary statistics
   
   ## Identify directory
   qcf_dir <- paste0(dirname(starting_tree), "/")
@@ -785,17 +785,17 @@ qcf.clade.values <- function(clade_of_interest, qcf_tree){
 gcf.wrapper <- function(alignment_path, iqtree2_path, iqtree2_model = NA, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, renamed_taxa){
   # Function to calculate the estimated and empirical gCF and return relevant gCFs
   
-  ## Calculate the exact/input/actual gCFs using IQ-Tree2
-  expected_gcfs <- extract.input.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads, rename.taxa.for.ms = TRUE, renamed_taxa)
+  ## Calculate the actual gCFs using IQ-Tree2
+  actual_gcfs <- extract.input.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads, rename.taxa.for.ms = TRUE, renamed_taxa)
   
-  ## Calculate the expected gCFs using IQ-Tree2
+  ## Calculate the estimated gCFs using IQ-Tree2
   estimated_gcfs <- extract.output.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads, iqtree2_model)
   
   ## Extract information from the actual gCFS
   # Extract the gcf tables
-  a_gcfs <- expected_gcfs$gcf_table 
+  a_gcfs <- actual_gcfs$gcf_table 
   # Read in the branch labelled tree
-  a_tree <- read.tree(file = expected_gcfs$gcf_branch_file)
+  a_tree <- read.tree(file = actual_gcfs$gcf_branch_file)
   # Find the "a" branch and the "b" branch
   if (grepl("h1", alignment_path) == TRUE){
     # Extract the nodes by checking for monophyletic clades
@@ -884,7 +884,7 @@ gcf.wrapper <- function(alignment_path, iqtree2_path, iqtree2_model = NA, iqtree
   collated_output_names <- c("alignment_path", a_gcfs_output_names, e_gcfs_output_names)
   names(collated_output) <- collated_output_names
   
-  # Return collated output (both actual/expected and estimated gCFS)
+  # Return collated output (both actual and estimated gCFS)
   return(collated_output)
 }
 
