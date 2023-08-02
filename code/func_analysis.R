@@ -28,7 +28,7 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
   # Identify correct file path for hypothesis tree
   all_CtenPori_hyp_tree_paths <- paste0(hypothesis_tree_dir, 
                                         grep("\\.tre", grep("ASTRAL", grep("hypothesis_tree_3", list.files(hypothesis_tree_dir), value = T), value = T), value = T))
-  CtenPori_hyp_tree_path <- grep("CtenPori.tre", CtenPori_hyp_tree_path, value = T)
+  CtenPori_hyp_tree_path <- grep("CtenPori.tre", all_CtenPori_hyp_tree_paths, value = T)
   CtenPori_hyp_tree_path <- grep("relabelled", grep("numeric", all_CtenPori_hyp_tree_paths, value = T, invert = T), value = T, invert = T)
   # Calculate for actual (i.e. ms) gene trees
   actual_hyp3_qcf <- check.qcf.CtenPori(output_id = paste0("actual_testHyp3_CtenPori"), 
@@ -46,8 +46,8 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
                                            renamed_taxa = renamed_taxa)
   
   ## Get lengths and maximum branching time for trees
-  astral_tree <- read.tree(df_row$ASTRAL_tree_treefile)
   start_tree <- read.tree(df_row$output_base_tree_file)
+  astral_tree <- read.tree(df_row$ASTRAL_tree_treefile)
   # Root trees at Choanoflagellates
   start_tree_lengths_all <- c(extract.tree.length(start_tree), extract.tree.depth(start_tree, c("71", "72", "73", "74", "75"), root.tree = TRUE))
   astral_tree_lengths_all <- c(extract.tree.length(astral_tree), extract.tree.depth(astral_tree, c("71", "72", "73", "74", "75"), root.tree = TRUE))
@@ -977,12 +977,24 @@ extract.tree.depth <- function(tree, outgroup, root.tree = TRUE){
   
   # Check if outgroup is monophyletic
   check_monophyly <- is.monophyletic(phy = tree, tips = outgroup)
-  # Root tree if requested AND if outgroup is monophyletic
-  if ( (root.tree == TRUE) & (check_monophyly == TRUE) ){
-    rooted_tree <- root(tree, outgroup)
+  # Calculate tree depth
+  if (root.tree == TRUE){
+    # Root tree if requested AND if outgroup is monophyletic
+    # Otherwise return NaN
+    if (check_monophyly == TRUE){
+      # Root tree
+      rooted_tree <- root(tree, outgroup)
+      # Find maximum branching time for the tree
+      tree_depth <- max(branching.times(rooted_tree))
+    } else {
+      # Outgroup is not monophyletic - return NaN
+      tree_depth = NaN
+    }
+  } else {
+    # Find maximum branching time for the tree
+    tree_depth <- max(branching.times(tree))
   }
-  # Find maximum branching time for the tree
-  tree_depth <- max(branching.times(tree))
+  
   # Assemble output
   op_vec <- c(as.character(check_monophyly), tree_depth)
   names(op_vec) <- c("outgroup_monophyletic", "tree_depth")
