@@ -269,6 +269,8 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
   ## Open the hypothesis trees
   # Extract the tree files
   all_hyp_dir_files <- list.files(hypothesis_tree_dir)
+  # Remove relabelled trees
+  all_hyp_dir_files <- grep("numericTipLabels|relabelled", all_hyp_dir_files, value = T, invert = T)
   # Extract only either the ASTRAL or IQ-Tree tree files
   if (tree_type == "ASTRAL" | tree_type == "astral"){
     tree_files <- grep("\\.tre", grep("ASTRAL", all_hyp_dir_files,value = T), value = T)
