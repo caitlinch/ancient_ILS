@@ -49,15 +49,15 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
   start_tree <- read.tree(df_row$output_base_tree_file)
   astral_tree <- read.tree(df_row$ASTRAL_tree_treefile)
   # Root trees at Choanoflagellates
-  start_tree_lengths_all <- c(extract.tree.length(start_tree), extract.tree.depth(start_tree, c("71", "72", "73", "74", "75"), root.tree = TRUE))
+  start_tree_lengths_all <- c(extract.tree.length(start_tree), extract.tree.depth(start_tree,  c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), root.tree = TRUE))
   astral_tree_lengths_all <- c(extract.tree.length(astral_tree), extract.tree.depth(astral_tree, c("71", "72", "73", "74", "75"), root.tree = TRUE))
   # Root all trees at Monosiga ovata (label = "72") - so that if the 5 outgroup species are paraphyletic, the tree depths are still comparable
-  start_tree_lengths_72 <- c(extract.tree.length(start_tree), extract.tree.depth(start_tree, "72", root.tree = TRUE))
+  start_tree_lengths_72 <- c(extract.tree.length(start_tree), extract.tree.depth(start_tree, "Monosiga_ovata", root.tree = TRUE))
   astral_tree_lengths_72 <- c(extract.tree.length(astral_tree), extract.tree.depth(astral_tree, "72", root.tree = TRUE))
   
   ## Output results
   # Trim unwanted columns
-  trimmed_df_row <- df_row[, c("dataset", "dataset_type", "ID", "output_folder", "simulation_number", "simulation_type",
+  trimmed_df_row <- df_row[, c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type",
                                "hypothesis_tree", "replicates", "num_taxa", "num_genes", "gene_length", "num_sites",
                                "ML_tree_estimation_models", "branch_a_length", "branch_b_length", "branch_c_length",
                                "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
@@ -337,7 +337,7 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_t
   qcf_dir <- paste0(dirname(starting_tree), "/")
   
   ## Calculate actual quartet concordance factors
-  expected_qcf_paths <- qcf.call(output_id = paste0(ID, "_actual_qcfs"), output_directory = qcf_dir, 
+  actual_qcf_paths <- qcf.call(output_id = paste0(ID, "_actual_qcfs"), output_directory = qcf_dir, 
                                  tree_path = starting_tree, gene_trees_path = ms_gene_trees,
                                  ASTRAL_path = ASTRAL_path, call.astral, 
                                  rename.tree.tips = TRUE, renamed_taxa)
@@ -349,16 +349,14 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_t
                                   rename.tree.tips = FALSE, renamed_taxa)
   
   ## Extract relevant qCF values
-  expected_qcf_values <-  extract.qcf.values(qcf_tree_path = expected_qcf_paths[["qcf_output_tree"]], 
-                                             qcf_log_path = expected_qcf_paths[["qcf_output_log"]])
+  actual_qcf_values <-  extract.qcf.values(qcf_tree_path = actual_qcf_paths[["qcf_output_tree"]], 
+                                             qcf_log_path = actual_qcf_paths[["qcf_output_log"]])
   estimated_qcf_values <-  extract.qcf.values(qcf_tree_path = estimated_qcf_paths[["qcf_output_tree"]], 
                                               qcf_log_path = estimated_qcf_paths[["qcf_output_log"]])
   
   ## Assemble output
-  qcf_output <- c(expected_qcf_paths, expected_qcf_values,
-                  estimated_qcf_paths, estimated_qcf_values)
-  names(qcf_output) <- c(paste0("actual", names(expected_qcf_paths)), paste0("actual", names(expected_qcf_values)),
-                         paste0("estimated_", names(estimated_qcf_paths)), paste0("estimated_", names(estimated_qcf_values)))
+  qcf_output <- c(actual_qcf_values, estimated_qcf_values)
+  names(qcf_output) <- c(paste0("actual_", names(actual_qcf_values)) , paste0("estimated_", names(estimated_qcf_values)) )
   
   ## Return output
   return(qcf_output)
