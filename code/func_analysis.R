@@ -20,7 +20,7 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
                                                               rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
   
   ## Calculate the qCFs using ASTRAL
-  astral_qcfs <- qcf.summary(ID = df_row$ID, starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
+  astral_qcfs <- qcf.wrapper(ID = df_row$ID, starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
                              ASTRAL_tree = df_row$ASTRAL_tree_treefile, ML_gene_trees = df_row$iqtree2_gene_tree_treefile, 
                              ASTRAL_path = ASTRAL_path, call.astral = TRUE, renamed_taxa)
   
@@ -399,39 +399,6 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_t
 }
 
 
-qcf.summary <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_trees, ASTRAL_path, call.astral = TRUE, renamed_taxa){
-  ## Function to determine expected and estimated qCF in ASTRAL and return summary statistics
-  
-  ## Identify directory
-  qcf_dir <- paste0(dirname(starting_tree), "/")
-  
-  ## Calculate actual quartet concordance factors
-  actual_qcf_paths <- qcf.call(output_id = paste0(ID, "_actual_qcfs"), output_directory = qcf_dir, 
-                               tree_path = starting_tree, gene_trees_path = ms_gene_trees,
-                               ASTRAL_path = ASTRAL_path, call.astral, 
-                               rename.tree.tips = TRUE, renamed_taxa)
-  
-  ## Calculate estimated quartet concordance factors
-  estimated_qcf_paths <- qcf.call(output_id = paste0(ID, "_estimated_qcfs"), output_directory = qcf_dir, 
-                                  tree_path = ASTRAL_tree, gene_trees_path = ML_gene_trees,
-                                  ASTRAL_path = ASTRAL_path, call.astral,
-                                  rename.tree.tips = FALSE, renamed_taxa)
-  
-  ## Extract relevant qCF values
-  actual_qcf_values <-  extract.qcf.values(qcf_tree_path = actual_qcf_paths[["qcf_output_tree"]], 
-                                           qcf_log_path = actual_qcf_paths[["qcf_output_log"]])
-  estimated_qcf_values <-  extract.qcf.values(qcf_tree_path = estimated_qcf_paths[["qcf_output_tree"]], 
-                                              qcf_log_path = estimated_qcf_paths[["qcf_output_log"]])
-  
-  ## Assemble output
-  qcf_output <- c(actual_qcf_values, estimated_qcf_values)
-  names(qcf_output) <- c(paste0("actual_", names(actual_qcf_values)) , paste0("estimated_", names(estimated_qcf_values)) )
-  
-  ## Return output
-  return(qcf_output)
-}
-
-
 
 check.qcf.Cten <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, renamed_taxa){
   # Function to check the qCF for the Ctenophora+Porifera branch by using the Ctenophora+Porifera tree
@@ -442,12 +409,15 @@ check.qcf.Cten <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path
                           "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", 
                           "39", "40")
   
+  ## Format tips for hypothesis tree
+  relabelled_tree_path <- update.tree.tips(tree_path = Cten_hypothesis_tree_path, renamed_taxa = renamed_taxa)
+  
   ## Calculate qCF
   # Set output directory - save in same file as gene_trees_path
   qcf_dir = paste0(dirname(gene_trees_path), "/")
   # Call ASTRAL with the gene tree file as the gene trees and the CtenPori hypothesis tree as the species tree
   qcf_paths <- qcf.call(output_id = output_id, output_directory = qcf_dir, 
-                        tree_path = Cten_hypothesis_tree_path, gene_trees_path = gene_trees_path,
+                        tree_path = relabelled_tree_path, gene_trees_path = gene_trees_path,
                         ASTRAL_path = ASTRAL_path, call.astral = call.astral, 
                         rename.tree.tips = TRUE, renamed_taxa)
   # Identify and open ASTRAL tree with calculated qcf values
@@ -478,12 +448,15 @@ check.qcf.Pori <- function(output_id, gene_trees_path, Pori_hypothesis_tree_path
                           "21","41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57",
                           "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70")
   
+  ## Format tips for hypothesis tree
+  relabelled_tree_path <- update.tree.tips(tree_path = Pori_hypothesis_tree_path, renamed_taxa = renamed_taxa)
+  
   ## Calculate qCF
   # Set output directory - save in same file as gene_trees_path
   qcf_dir = paste0(dirname(gene_trees_path), "/")
   # Call ASTRAL with the gene tree file as the gene trees and the CtenPori hypothesis tree as the species tree
   qcf_paths <- qcf.call(output_id = output_id, output_directory = qcf_dir, 
-                        tree_path = Pori_hypothesis_tree_path, gene_trees_path = gene_trees_path,
+                        tree_path = relabelled_tree_path, gene_trees_path = gene_trees_path,
                         ASTRAL_path = ASTRAL_path, call.astral = call.astral, 
                         rename.tree.tips = TRUE, renamed_taxa)
   # Identify and open ASTRAL tree with calculated qcf values
@@ -514,12 +487,15 @@ check.qcf.CtenPori <- function(output_id, gene_trees_path, CtenPori_hypothesis_t
                     "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
                     "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70")
   
+  ## Format tips for hypothesis tree
+  relabelled_tree_path <- update.tree.tips(tree_path = CtenPori_hypothesis_tree_path, renamed_taxa = renamed_taxa)
+  
   ## Calculate qCF
   # Set output directory - save in same file as gene_trees_path
   qcf_dir = paste0(dirname(gene_trees_path), "/")
   # Call ASTRAL with the gene tree file as the gene trees and the CtenPori hypothesis tree as the species tree
   qcf_paths <- qcf.call(output_id = output_id, output_directory = qcf_dir, 
-                        tree_path = CtenPori_hypothesis_tree_path, gene_trees_path = gene_trees_path,
+                        tree_path = relabelled_tree_path, gene_trees_path = gene_trees_path,
                         ASTRAL_path = ASTRAL_path, call.astral = call.astral, 
                         rename.tree.tips = TRUE, renamed_taxa)
   # Identify and open ASTRAL tree with calculated qcf values
@@ -557,6 +533,9 @@ check.qcf.clades <- function(output_id, gene_trees_path, Cten_hypothesis_tree_pa
                    "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
                    "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
                    "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70")
+  
+  ## Format tips for hypothesis tree
+  relabelled_tree_path <- update.tree.tips(tree_path = Cten_hypothesis_tree_path, renamed_taxa = renamed_taxa)
   
   ## Calculate qCF
   # Set output directory - save in same file as gene_trees_path
@@ -600,29 +579,39 @@ extract.clade.qcf.value <- function(qcf_tree, tips){
 
 
 
+update.tree.tips <- function(tree_path, renamed_taxa){
+  # Open tree
+  og_tree <- read.tree(tree_path)
+  # Update tip labels
+  new_tip_labels <- unlist(lapply(og_tree$tip.label, function(i){renamed_taxa[[i]]}))
+  # Replace og tip labels with new tip labels
+  numericTipLabels_tree <- og_tree
+  numericTipLabels_tree$tip.label <- new_tip_labels
+  # Create file path to save new tree
+  split_path <- unlist(strsplit(basename(tree_path), "\\."))
+  numericTipLabels_tree_path <- paste0(dirname(tree_path), "/",
+                                       paste(head(split_path, (length(split_path) - 1)), collapse = "."), 
+                                       "_numericTipLabels", ".",
+                                       tail(split_path, 1))
+  # Save new tree
+  write.tree(numericTipLabels_tree, numericTipLabels_tree_path)
+  # Update tree path file
+  tree_path <- numericTipLabels_tree_path
+  # Remove any "t" in tip labels
+  input_tree_path <- check.tip.labels(tree_path)
+  # Return new path
+  return(input_tree_path)
+}
+
+
+
 qcf.call <- function(output_id, output_directory, tree_path, gene_trees_path, ASTRAL_path, call.astral = TRUE, rename.tree.tips = TRUE, renamed_taxa, redo = FALSE){
   ## Function to call ASTRAL and calculate quartet concordance factors
   
   ## Check whether the tree tips match
   # Replace tip labels with numeric labels
   if (rename.tree.tips == TRUE){
-    # Open tree
-    og_tree <- read.tree(tree_path)
-    # Update tip labels
-    new_tip_labels <- unlist(lapply(og_tree$tip.label, function(i){renamed_taxa[[i]]}))
-    # Replace og tip labels with new tip labels
-    numericTipLabels_tree <- og_tree
-    numericTipLabels_tree$tip.label <- new_tip_labels
-    # Create file path to save new tree
-    split_path <- unlist(strsplit(basename(tree_path), "\\."))
-    numericTipLabels_tree_path <- paste0(dirname(tree_path), "/",
-                                         paste(head(split_path, (length(split_path) - 1)), collapse = "."), 
-                                         "_numericTipLabels", ".",
-                                         tail(split_path, 1))
-    # Save new tree
-    write.tree(numericTipLabels_tree, numericTipLabels_tree_path)
-    # Update tree path file
-    tree_path <- numericTipLabels_tree_path
+    tree_path <- update.tree.tips(tree_path, renamed_taxa)
   }
   # Remove any "t" in tip labels
   input_tree_path <- check.tip.labels(tree_path)
