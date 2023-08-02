@@ -414,10 +414,10 @@ check.qcf.Cten <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path
   
   ## BRANCH A (ILS - all other metazoans)
   # Identify start and end of branch
-  a_branch_end <- getMRCA(qcf_tree, BilatCnidPori_tips)
-  a_branch_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == a_branch_end), 1]
-  # Extract qcf from the branch leading to BilatCnidPori clade
-  a_qcf_value <- qcf_tree$node.label[ ( a_branch_end - Ntip(qcf_tree) ) ]
+  a_branch_tipwise <- getMRCA(qcf_tree, BilatCnidPori_tips)
+  a_branch_rootwise <- qcf_tree$edge[which(qcf_tree$edge[,2] == a_branch_tipwise), 1]
+  # Extract qcf from the branch leading to BilatCnidCten clade
+  a_qcf_value <- qcf_tree$node.label[ ( a_branch_rootwise - Ntip(qcf_tree) ) ]
   
   ## Assemble the output
   qcf_op <- c(a_qcf_value)
@@ -453,10 +453,10 @@ check.qcf.Pori <- function(output_id, gene_trees_path, Pori_hypothesis_tree_path
   
   ## BRANCH A (ILS - all other metazoans)
   # Identify start and end of branch
-  a_branch_end <- getMRCA(qcf_tree, BilatCnidCten_tips)
-  a_branch_start <- qcf_tree$edge[which(qcf_tree$edge[,2] == a_branch_end), 1]
+  a_branch_tipwise <- getMRCA(qcf_tree, BilatCnidCten_tips)
+  a_branch_rootwise <- qcf_tree$edge[which(qcf_tree$edge[,2] == a_branch_tipwise), 1]
   # Extract qcf from the branch leading to BilatCnidCten clade
-  a_qcf_value <- qcf_tree$node.label[ ( a_branch_end - Ntip(qcf_tree) ) ]
+  a_qcf_value <- qcf_tree$node.label[ ( a_branch_rootwise - Ntip(qcf_tree) ) ]
   
   ## Assemble the output
   qcf_op <- c(a_qcf_value)
