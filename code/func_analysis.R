@@ -81,15 +81,14 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
                                           call.astral = TRUE, 
                                           renamed_taxa = renamed_taxa)
   
-  ## Get lengths and maximum branching time for trees
+  ## Get lengths and maximum branching time for starting tree
+  # Root trees at Choanoflagellates
   start_tree <- read.tree(df_row$output_base_tree_file)
   astral_tree <- read.tree(df_row$ASTRAL_tree_treefile)
-  # Root trees at Choanoflagellates
-  start_tree_lengths_all <- c(extract.tree.length(start_tree), extract.tree.depth(start_tree,  c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), root.tree = TRUE))
-  astral_tree_lengths_all <- c(extract.tree.length(astral_tree), extract.tree.depth(astral_tree, c("71", "72", "73", "74", "75"), root.tree = TRUE))
-  # Root all trees at Monosiga ovata (label = "72") - so that if the 5 outgroup species are paraphyletic, the tree depths are still comparable
-  start_tree_lengths_72 <- c(extract.tree.length(start_tree), extract.tree.depth(start_tree, "Monosiga_ovata", root.tree = TRUE))
-  astral_tree_lengths_72 <- c(extract.tree.length(astral_tree), extract.tree.depth(astral_tree, "72", root.tree = TRUE))
+  tree_length <- c(extract.tree.length(start_tree), 
+                   extract.tree.depth(start_tree,  c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), root.tree = TRUE),
+                   extract.tree.length(astral_tree)[2])
+  names(tree_length) <- c(paste0("actual_", names(tree_length)[1:5]), paste0("estimated_", names(tree_length)[6]))
   
   ## Output results
   # Trim unwanted columns
@@ -100,24 +99,14 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
                                "branch_outgroup_length", "branch_porifera_length", "total_tree_length",
                                "sum_internal_branch_lengths", "percentage_internal_branch_lengths")]
   # Assemble output vector
-  analysis_output         <- c(as.character(trimmed_df_row),
-                               astral_tree_diffs, 
-                               astral_qcfs,
-                               actual_hyp3_qcf, 
-                               estimated_hyp3_qcf,
-                               start_tree_lengths_all, 
-                               start_tree_lengths_72,
-                               astral_tree_lengths_all,
-                               astral_tree_lengths_72)
-  names(analysis_output)  <- c(names(trimmed_df_row),
-                               names(astral_tree_diffs), 
-                               names(astral_qcfs),
-                               names(actual_hyp3_qcf), 
-                               names(estimated_hyp3_qcf),
-                               paste0("start_tree_CHOANO_", names(start_tree_lengths_all)), 
-                               paste0("start_tree_MOvata_", names(start_tree_lengths_72)), 
-                               paste0("ASTRAL_tree_CHOANO_", names(astral_tree_lengths_all)),
-                               paste0("ASTRAL_tree_MOvata_", names(astral_tree_lengths_72)))
+  analysis_output         <- c(as.character(trimmed_df_row), astral_tree_diffs,  astral_qcfs,
+                               actual_hyp1_qcf, actual_hyp2_qcf, actual_hyp3_qcf, actual_clade_qcf,
+                               estimated_hyp1_qcf, estimated_hyp2_qcf, estimated_hyp3_qcf, estimated_clade_qcf,
+                               tree_length)
+  names(analysis_output)  <- c(names(trimmed_df_row), names(astral_tree_diffs),  names(astral_qcfs),
+                               names(actual_hyp1_qcf), names(actual_hyp2_qcf), names(actual_hyp3_qcf), names(actual_clade_qcf),
+                               names(estimated_hyp1_qcf), names(estimated_hyp2_qcf), names(estimated_hyp3_qcf), names(estimated_clade_qcf),
+                               names(tree_length))
   ## Return the output
   return(analysis_output)
 }
@@ -448,7 +437,7 @@ check.qcf.Pori <- function(output_id, gene_trees_path, Pori_hypothesis_tree_path
                           "21","41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57",
                           "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70")
   Outgroup_tips = c("71", "72", "73", "74", "75")
-
+  
   ## Calculate qCF
   # Set output directory - save in same file as gene_trees_path
   qcf_dir = paste0(dirname(gene_trees_path), "/")
@@ -487,7 +476,7 @@ check.qcf.CtenPori <- function(output_id, gene_trees_path, CtenPori_hypothesis_t
                     "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
                     "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70")
   Outgroup_tips = c("71", "72", "73", "74", "75")
-
+  
   ## Calculate qCF
   # Set output directory - save in same file as gene_trees_path
   qcf_dir = paste0(dirname(gene_trees_path), "/")
@@ -533,7 +522,7 @@ check.qcf.clades <- function(output_id, gene_trees_path, Cten_hypothesis_tree_pa
                    "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
                    "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
                    "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70")
-
+  
   ## Calculate qCF
   # Set output directory - save in same file as gene_trees_path
   qcf_dir = paste0(dirname(gene_trees_path), "/")
