@@ -160,10 +160,10 @@ if ((control_parameters[["generate.alignments"]] == TRUE) & (file.exists(output_
   # To generate all simulated alignments
   if (location == "local"){
     generate_alignment_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, 
-                                      renamed_taxa = simulation_taxa_names,rerun = FALSE)
+                                      converted_taxa_names = simulation_taxa_names,rerun = FALSE)
   } else {
     generate_alignment_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, 
-                                        renamed_taxa = simulation_taxa_names, rerun = FALSE, 
+                                        converted_taxa_names = simulation_taxa_names, rerun = FALSE, 
                                         mc.cores = num_parallel_threads)
   }
   generate_alignment_df <- as.data.frame(do.call(rbind, generate_alignment_list))
@@ -199,13 +199,13 @@ if ( (control_parameters[["conduct.analysis"]] == TRUE) & (file.exists(output_fi
   tree_df <- read.csv(output_files[["trees"]], stringsAsFactors = FALSE)
   # Call the function to calculate gCF and RF distances
   # To run for one row:
-  #       analysis.wrapper(1, df = tree_df, ASTRAL_path = astral, hypothesis_tree_dir = hypothesis_tree_dir, renamed_taxa = simulation_taxa_names)
+  #       analysis.wrapper(1, df = tree_df, ASTRAL_path = astral, hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names)
   if (location == "local"){
     analysis_list <- lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
-                            hypothesis_tree_dir = hypothesis_tree_dir, renamed_taxa = simulation_taxa_names)
+                            hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names)
   } else {
     analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
-                              hypothesis_tree_dir = hypothesis_tree_dir, renamed_taxa = simulation_taxa_names,
+                              hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names,
                               mc.cores = num_parallel_threads)
   }
   analysis_df <- as.data.frame(do.call(rbind, analysis_list))

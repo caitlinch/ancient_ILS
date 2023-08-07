@@ -6,7 +6,7 @@ library(ape)
 library(phangorn)
 
 #### Analysis wrapper function ####
-analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renamed_taxa){
+analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, converted_taxa_names){
   # Wrapper function to calculate:
   #   - [x] actual and estimated qcfs (ASTRAL)
   #   - [x] hypothesis tree distances for ASTRAL tree
@@ -17,14 +17,14 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
   
   ## Calculate the differences between the three trees
   actual_astral_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$output_base_tree_file, hypothesis_tree_dir, tree_type = "ASTRAL", 
-                                                                     rename.tree.tips = TRUE, renamed_taxa = renamed_taxa)
+                                                                     rename.tree.tips = TRUE, converted_taxa_names = converted_taxa_names)
   estimated_astral_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$ASTRAL_tree_treefile, hypothesis_tree_dir, tree_type = "ASTRAL", 
-                                                                        rename.tree.tips = TRUE, renamed_taxa = renamed_taxa)
+                                                                        rename.tree.tips = TRUE, converted_taxa_names = converted_taxa_names)
   
   ## Calculate the qCFs using ASTRAL
   astral_qcfs <- qcf.wrapper(ID = df_row$ID, starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
                              ASTRAL_tree = df_row$ASTRAL_tree_treefile, ML_gene_trees = df_row$iqtree2_gene_tree_treefile, 
-                             ASTRAL_path = ASTRAL_path, call.astral = TRUE, renamed_taxa)
+                             ASTRAL_path = ASTRAL_path, call.astral = TRUE, converted_taxa_names)
   
   ## Calculate qcf for branch leading to Ctenophora+Porifera clade for both ms and iqtree gene trees
   # Identify correct file path for hypothesis tree
@@ -38,26 +38,26 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
                                     Cten_hypothesis_tree_path = Cten_hyp_tree_path, 
                                     ASTRAL_path = ASTRAL_path, 
                                     call.astral = TRUE, 
-                                    renamed_taxa = renamed_taxa)
+                                    converted_taxa_names = converted_taxa_names)
   actual_hyp2_qcf <- check.qcf.Pori(output_id = "actual_testHyp2_Pori", 
                                     gene_trees_path = df_row$output_gene_tree_file,
                                     Pori_hypothesis_tree_path = Pori_hyp_tree_path, 
                                     ASTRAL_path = ASTRAL_path, 
                                     call.astral = TRUE, 
-                                    renamed_taxa = renamed_taxa)
+                                    converted_taxa_names = converted_taxa_names)
   actual_hyp3_qcf <- check.qcf.CtenPori(output_id = "actual_testHyp3_CtenPori", 
                                         gene_trees_path = df_row$output_gene_tree_file, 
                                         CtenPori_hypothesis_tree_path = CtenPori_hyp_tree_path, 
                                         ASTRAL_path = ASTRAL_path, 
                                         call.astral = TRUE, 
-                                        renamed_taxa = renamed_taxa)
+                                        converted_taxa_names = converted_taxa_names)
   actual_clade_qcf <- check.qcf.clades(output_id = "actual_clade",
                                        gene_trees_path = df_row$output_gene_tree_file,
                                        Cten_hypothesis_tree_path = Cten_hyp_tree_path,
                                        ASTRAL_path = ASTRAL_path, 
                                        call.astral = TRUE, 
-                                       renamed_taxa = renamed_taxa)
-  actual_clade_monophyly <- check.clade.monophyly(tree_path = df_row$output_base_tree_file, renamed_taxa)
+                                       converted_taxa_names = converted_taxa_names)
+  actual_clade_monophyly <- check.clade.monophyly(tree_path = df_row$output_base_tree_file, converted_taxa_names)
   names(actual_clade_monophyly) <- paste0("actual_", names(actual_clade_monophyly))
   # Calculate for estimated (i.e. iqtree2) gene trees
   estimated_hyp1_qcf <- check.qcf.Cten(output_id = "estimated_testHyp1_Cten", 
@@ -65,26 +65,26 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
                                        Cten_hypothesis_tree_path = Cten_hyp_tree_path, 
                                        ASTRAL_path = ASTRAL_path, 
                                        call.astral = TRUE, 
-                                       renamed_taxa = renamed_taxa)
+                                       converted_taxa_names = converted_taxa_names)
   estimated_hyp2_qcf <- check.qcf.Pori(output_id = "estimated_testHyp2_Pori", 
                                        gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
                                        Pori_hypothesis_tree_path = Pori_hyp_tree_path, 
                                        ASTRAL_path = ASTRAL_path, 
                                        call.astral = TRUE, 
-                                       renamed_taxa = renamed_taxa)
+                                       converted_taxa_names = converted_taxa_names)
   estimated_hyp3_qcf <- check.qcf.CtenPori(output_id = "estimated_testHyp3_CtenPori", 
                                            gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
                                            CtenPori_hypothesis_tree_path = CtenPori_hyp_tree_path, 
                                            ASTRAL_path = ASTRAL_path, 
                                            call.astral = TRUE, 
-                                           renamed_taxa = renamed_taxa)
+                                           converted_taxa_names = converted_taxa_names)
   estimated_clade_qcf <- check.qcf.clades(output_id = "estimated_clade",
                                           gene_trees_path = df_row$iqtree2_gene_tree_treefile,
                                           Cten_hypothesis_tree_path = Cten_hyp_tree_path,
                                           ASTRAL_path = ASTRAL_path, 
                                           call.astral = TRUE, 
-                                          renamed_taxa = renamed_taxa)
-  estimated_clade_monophyly <- check.clade.monophyly(tree_path = df_row$ASTRAL_tree_treefile, renamed_taxa)
+                                          converted_taxa_names = converted_taxa_names)
+  estimated_clade_monophyly <- check.clade.monophyly(tree_path = df_row$ASTRAL_tree_treefile, converted_taxa_names)
   names(estimated_clade_monophyly) <- paste0("estimated_", names(estimated_clade_monophyly))
   
   ## Get lengths and maximum branching time for starting tree
@@ -176,7 +176,7 @@ topology.tests.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.h
 
 
 #### Calculate actual qCF ####
-calculate.actual.qCF <- function(row_id, df, call.ASTRAL = TRUE, renamed_taxa){
+calculate.actual.qCF <- function(row_id, df, call.ASTRAL = TRUE, converted_taxa_names){
   # Wrapper function to calculate actual qCFS 
   
   ## Open the row of interest
@@ -189,7 +189,7 @@ calculate.actual.qCF <- function(row_id, df, call.ASTRAL = TRUE, renamed_taxa){
   actual_qcf_paths <- qcf.call(output_id = paste0(df_row$ID, "_actual_qcfs"), output_directory = qcf_dir, 
                                tree_path = df_row$output_base_tree_file, gene_trees_path = df_row$output_gene_tree_file,
                                ASTRAL_path = df_row$ASTRAL, call.astral = call.ASTRAL, 
-                               rename.tree.tips = TRUE, renamed_taxa)
+                               rename.tree.tips = TRUE, converted_taxa_names)
   ## Extract relevant qCF values
   actual_qcf_values <-  extract.qcf.values(qcf_tree_path = actual_qcf_paths[["qcf_output_tree"]], 
                                            qcf_log_path = actual_qcf_paths[["qcf_output_log"]])
@@ -301,7 +301,7 @@ perform.hypothesis.tests <- function(ID, alignment_path, hypothesis_tree_file, i
 
 
 #### Calculate distance between trees ####
-calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_dir, tree_type, rename.tree.tips = FALSE, renamed_taxa){
+calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_dir, tree_type, rename.tree.tips = FALSE, converted_taxa_names){
   # Function to calculate the distance between a tree and three hypothesis trees
   # tree_type = "ASTRAL" | tree_type = "IQ-Tree2"
   
@@ -332,19 +332,19 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
   # Rename tree tips
   if (rename.tree.tips == TRUE){
     # Rename hypothesis tree taxa to short versions (numbers only)
-    h1_tree$tip.label <- unlist(lapply(h1_tree$tip.label, function(x){renamed_taxa[[x]]}))
+    h1_tree$tip.label <- unlist(lapply(h1_tree$tip.label, function(x){converted_taxa_names[[x]]}))
     h1_tree$tip.label <- gsub("t", "", h1_tree$tip.label)
-    h2_tree$tip.label <- unlist(lapply(h2_tree$tip.label, function(x){renamed_taxa[[x]]}))
+    h2_tree$tip.label <- unlist(lapply(h2_tree$tip.label, function(x){converted_taxa_names[[x]]}))
     h2_tree$tip.label <- gsub("t", "", h2_tree$tip.label)
-    h3_tree$tip.label <- unlist(lapply(h3_tree$tip.label, function(x){renamed_taxa[[x]]}))
+    h3_tree$tip.label <- unlist(lapply(h3_tree$tip.label, function(x){converted_taxa_names[[x]]}))
     h3_tree$tip.label <- gsub("t", "", h3_tree$tip.label)
     # Rename tree taxa to short versions (numbers only)
     if (TRUE %in% grepl("Monosiga_ovata", t$tip.label)){
-      t$tip.label <- unlist(lapply(t$tip.label, function(x){renamed_taxa[[x]]}))
+      t$tip.label <- unlist(lapply(t$tip.label, function(x){converted_taxa_names[[x]]}))
       t$tip.label <- gsub("t", "", t$tip.label)
     }
     # Set outgroup taxa
-    outgroup_taxa <- gsub("t", "", renamed_taxa["Monosiga_ovata"])
+    outgroup_taxa <- gsub("t", "", converted_taxa_names["Monosiga_ovata"])
   } else {
     # Set outgroup taxa
     outgroup_taxa <- "Monosiga_ovata"
@@ -375,7 +375,7 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
 
 
 #### Quartet concordance factors ####
-qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_trees, ASTRAL_path, call.astral = TRUE, renamed_taxa){
+qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_trees, ASTRAL_path, call.astral = TRUE, converted_taxa_names){
   ## Function to determine actual and estimated qCF in ASTRAL and return summary statistics
   
   ## Identify directory
@@ -385,13 +385,13 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_t
   actual_qcf_paths <- qcf.call(output_id = paste0(ID, "_actual_qcfs"), output_directory = qcf_dir, 
                                tree_path = starting_tree, gene_trees_path = ms_gene_trees,
                                ASTRAL_path = ASTRAL_path, call.astral, 
-                               rename.tree.tips = TRUE, renamed_taxa)
+                               rename.tree.tips = TRUE, converted_taxa_names)
   
   ## Calculate estimated quartet concordance factors
   estimated_qcf_paths <- qcf.call(output_id = paste0(ID, "_estimated_qcfs"), output_directory = qcf_dir, 
                                   tree_path = ASTRAL_tree, gene_trees_path = ML_gene_trees,
                                   ASTRAL_path = ASTRAL_path, call.astral,
-                                  rename.tree.tips = FALSE, renamed_taxa)
+                                  rename.tree.tips = FALSE, converted_taxa_names)
   
   ## Extract relevant qCF values
   actual_qcf_values <-  extract.qcf.values(qcf_tree_path = actual_qcf_paths[["qcf_output_tree"]], 
@@ -409,7 +409,7 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_t
 
 
 
-check.qcf.Cten <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, renamed_taxa){
+check.qcf.Cten <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, converted_taxa_names){
   # Function to check the qCF for the Ctenophora+Porifera branch by using the Ctenophora+Porifera tree
   
   ## Prepare tips for hypothesis
@@ -426,7 +426,7 @@ check.qcf.Cten <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path
   qcf_paths <- qcf.call(output_id = output_id, output_directory = qcf_dir, 
                         tree_path = Cten_hypothesis_tree_path, gene_trees_path = gene_trees_path,
                         ASTRAL_path = ASTRAL_path, call.astral = call.astral, 
-                        rename.tree.tips = TRUE, renamed_taxa)
+                        rename.tree.tips = TRUE, converted_taxa_names)
   # Identify and open ASTRAL tree with calculated qcf values
   qcf_tree <- read.tree(qcf_paths[["qcf_output_tree"]])
   # Root tree at outgroup
@@ -448,7 +448,7 @@ check.qcf.Cten <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path
 
 
 
-check.qcf.Pori <- function(output_id, gene_trees_path, Pori_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, renamed_taxa){
+check.qcf.Pori <- function(output_id, gene_trees_path, Pori_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, converted_taxa_names){
   # Function to check the qCF for the Ctenophora+Porifera branch by using the Ctenophora+Porifera tree
   
   ## Prepare tips for hypothesis
@@ -465,7 +465,7 @@ check.qcf.Pori <- function(output_id, gene_trees_path, Pori_hypothesis_tree_path
   qcf_paths <- qcf.call(output_id = output_id, output_directory = qcf_dir, 
                         tree_path = Pori_hypothesis_tree_path, gene_trees_path = gene_trees_path,
                         ASTRAL_path = ASTRAL_path, call.astral = call.astral, 
-                        rename.tree.tips = TRUE, renamed_taxa)
+                        rename.tree.tips = TRUE, converted_taxa_names)
   # Identify and open ASTRAL tree with calculated qcf values
   qcf_tree <- read.tree(qcf_paths[["qcf_output_tree"]])
   # Root tree at outgroup
@@ -487,7 +487,7 @@ check.qcf.Pori <- function(output_id, gene_trees_path, Pori_hypothesis_tree_path
 
 
 
-check.qcf.CtenPori <- function(output_id, gene_trees_path, CtenPori_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, renamed_taxa){
+check.qcf.CtenPori <- function(output_id, gene_trees_path, CtenPori_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, converted_taxa_names){
   # Function to check the qCF for the Ctenophora+Porifera branch by using the Ctenophora+Porifera tree
   
   ## Prepare tips for hypothesis
@@ -504,7 +504,7 @@ check.qcf.CtenPori <- function(output_id, gene_trees_path, CtenPori_hypothesis_t
   qcf_paths <- qcf.call(output_id = output_id, output_directory = qcf_dir, 
                         tree_path = CtenPori_hypothesis_tree_path, gene_trees_path = gene_trees_path,
                         ASTRAL_path = ASTRAL_path, call.astral = call.astral, 
-                        rename.tree.tips = TRUE, renamed_taxa)
+                        rename.tree.tips = TRUE, converted_taxa_names)
   # Identify and open ASTRAL tree with calculated qcf values
   qcf_tree <- read.tree(qcf_paths[["qcf_output_tree"]])
   # Root tree at outgroup
@@ -526,7 +526,7 @@ check.qcf.CtenPori <- function(output_id, gene_trees_path, CtenPori_hypothesis_t
 
 
 
-check.qcf.clades <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, renamed_taxa){
+check.qcf.clades <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, converted_taxa_names){
   # Function to check the qCF for the Ctenophora+Porifera branch by using the Ctenophora+Porifera tree
   
   ## Prepare tips for hypothesis
@@ -550,7 +550,7 @@ check.qcf.clades <- function(output_id, gene_trees_path, Cten_hypothesis_tree_pa
   qcf_paths <- qcf.call(output_id = output_id, output_directory = qcf_dir, 
                         tree_path = Cten_hypothesis_tree_path, gene_trees_path = gene_trees_path,
                         ASTRAL_path = ASTRAL_path, call.astral = call.astral, 
-                        rename.tree.tips = TRUE, renamed_taxa)
+                        rename.tree.tips = TRUE, converted_taxa_names)
   # Identify and open ASTRAL tree with calculated qcf values
   qcf_tree <- read.tree(qcf_paths[["qcf_output_tree"]])
   # Root tree at outgroup
@@ -587,11 +587,11 @@ extract.clade.qcf.value <- function(qcf_tree, tips){
 
 
 
-update.tree.tips <- function(tree_path, renamed_taxa){
+update.tree.tips <- function(tree_path, converted_taxa_names){
   # Open tree
   og_tree <- read.tree(tree_path)
   # Update tip labels
-  new_tip_labels <- unlist(lapply(og_tree$tip.label, function(i){renamed_taxa[[i]]}))
+  new_tip_labels <- unlist(lapply(og_tree$tip.label, function(i){converted_taxa_names[[i]]}))
   # Replace og tip labels with new tip labels
   numericTipLabels_tree <- og_tree
   numericTipLabels_tree$tip.label <- new_tip_labels
@@ -613,13 +613,13 @@ update.tree.tips <- function(tree_path, renamed_taxa){
 
 
 
-qcf.call <- function(output_id, output_directory, tree_path, gene_trees_path, ASTRAL_path, call.astral = TRUE, rename.tree.tips = TRUE, renamed_taxa, redo = FALSE){
+qcf.call <- function(output_id, output_directory, tree_path, gene_trees_path, ASTRAL_path, call.astral = TRUE, rename.tree.tips = TRUE, converted_taxa_names, redo = FALSE){
   ## Function to call ASTRAL and calculate quartet concordance factors
   
   ## Check whether the tree tips match
   # Replace tip labels with numeric labels
   if (rename.tree.tips == TRUE){
-    tree_path <- update.tree.tips(tree_path, renamed_taxa)
+    tree_path <- update.tree.tips(tree_path, converted_taxa_names)
   }
   # Remove any "t" in tip labels
   input_tree_path <- check.tip.labels(tree_path)
@@ -802,11 +802,11 @@ qcf.clade.values <- function(clade_of_interest, qcf_tree){
 
 
 #### Gene concordance factors wrapper ####
-gcf.wrapper <- function(alignment_path, iqtree2_path, iqtree2_model = NA, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, renamed_taxa){
+gcf.wrapper <- function(alignment_path, iqtree2_path, iqtree2_model = NA, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, converted_taxa_names){
   # Function to calculate the estimated and empirical gCF and return relevant gCFs
   
   ## Calculate the actual gCFs using IQ-Tree2
-  actual_gcfs <- extract.input.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads, rename.taxa.for.ms = TRUE, renamed_taxa)
+  actual_gcfs <- extract.input.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads, rename.taxa.for.ms = TRUE, converted_taxa_names)
   
   ## Calculate the estimated gCFs using IQ-Tree2
   estimated_gcfs <- extract.output.concordance.factors(alignment_path, iqtree2_path, iqtree2_num_threads, iqtree2_model)
@@ -914,7 +914,7 @@ gcf.wrapper <- function(alignment_path, iqtree2_path, iqtree2_model = NA, iqtree
 
 
 #### Calculate gene concordance factors ####
-extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, renamed_taxa){
+extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtree2_num_threads = "AUTO", rename.taxa.for.ms = TRUE, converted_taxa_names){
   # Function to return concordance factors (calculated in iqtree), for a simulated tree
   #     gCFs estimated from the base tree supplied to ms and from the set of gene trees estimated in AliSim
   
@@ -940,11 +940,11 @@ extract.input.concordance.factors <- function(alignment_path, iqtree2_path, iqtr
     
     ## Rename taxa (if necessary)
     # If taxa names are provided and rename.taxa.for.ms == TRUE, rename the taxa from the tree_file
-    if (rename.taxa.for.ms == TRUE & length(renamed_taxa) > 0){
+    if (rename.taxa.for.ms == TRUE & length(converted_taxa_names) > 0){
       # Open the tree
       t <- read.tree(tree_file)
       # Relabel the tips to have the right number
-      t$tip.label <- unlist(lapply(t$tip.label, function(x){renamed_taxa[[x]]}))
+      t$tip.label <- unlist(lapply(t$tip.label, function(x){converted_taxa_names[[x]]}))
       # Remove the "t" from the taxa label - ms labels by number only
       t$tip.label <- gsub("t","",t$tip.label)
       # Save the tree
@@ -1189,7 +1189,7 @@ extract.tree.depth <- function(tree, outgroup, root.tree = TRUE){
 }
 
 
-check.clade.monophyly <- function(tree_path, renamed_taxa){
+check.clade.monophyly <- function(tree_path, converted_taxa_names){
   # Function to check monophyly of each clade in a Metazoan tree
   
   # Set the tips for each clade
@@ -1218,7 +1218,7 @@ check.clade.monophyly <- function(tree_path, renamed_taxa){
   # Check tip labels
   if (TRUE %in% grepl("Monosiga_ovata", tree$tip.label)){
     # Convert tip labels to numeric
-    tree$tip.label <- unlist(lapply(tree$tip.label, function(x){renamed_taxa[[x]]}))
+    tree$tip.label <- unlist(lapply(tree$tip.label, function(x){converted_taxa_names[[x]]}))
   }
   if (TRUE %in% grepl("t", tree$tip.label)){
     # Remove "t" character from tip labels

@@ -279,10 +279,10 @@ if (file.exists(genAl_df_file) == FALSE){
   sim_df <- sim_df[remaining_runs, ]
   # To generate all simulated alignments
   if (num_parallel_threads > 1){
-    output_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, rerun = FALSE,
+    output_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, converted_taxa_names = simulation_taxa_names, rerun = FALSE,
                             mc.cores = (num_parallel_threads/iqtree2_num_threads))
   } else {
-    output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, renamed_taxa = simulation_taxa_names, rerun = FALSE)
+    output_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, converted_taxa_names = simulation_taxa_names, rerun = FALSE)
   }
   output_df <- as.data.frame(do.call(rbind, output_list))
   # Save output dataframe
@@ -298,7 +298,7 @@ if (file.exists(analysis_df_file) == FALSE){
   # Open tree_df
   output_df <- read.csv(genAl_df_file, stringsAsFactors = FALSE)
   # Calculate expected qCF
-  analysis_list <- lapply(1:nrow(output_df), calculate.expected.qCF, df = output_df, call.ASTRAL = TRUE, renamed_taxa = simulation_taxa_names)
+  analysis_list <- lapply(1:nrow(output_df), calculate.expected.qCF, df = output_df, call.ASTRAL = TRUE, converted_taxa_names = simulation_taxa_names)
   analysis_df <- as.data.frame(do.call(rbind, analysis_list))
   # Save output dataframe
   write.csv(analysis_df, file = analysis_df_file, row.names = FALSE)

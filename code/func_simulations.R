@@ -8,19 +8,19 @@ library(phytools)
 
 
 #### Functions to run the simulation pipeline ####
-generate.one.alignment.wrapper <- function(row_id, sim_df, renamed_taxa, rerun = FALSE){
+generate.one.alignment.wrapper <- function(row_id, sim_df, converted_taxa_names, rerun = FALSE){
   ## Wrapper to easily run generate.one.alignment via dataframe rows
   
   # Apply generate.one.alignment to a single row
   id_row <- sim_df[row_id,]
-  output <- generate.one.alignment(sim_row = id_row, renamed_taxa = renamed_taxa, rerun = rerun)
+  output <- generate.one.alignment(sim_row = id_row, converted_taxa_names = converted_taxa_names, rerun = rerun)
   # Return output
   return(output)
 }
 
 
 
-generate.one.alignment <- function(sim_row, renamed_taxa, rerun = FALSE){
+generate.one.alignment <- function(sim_row, converted_taxa_names, rerun = FALSE){
   ## Function to take one row from the simulation parameters dataframe and run start to finish
   
   ## Create the folder for this replicate
@@ -54,7 +54,7 @@ generate.one.alignment <- function(sim_row, renamed_taxa, rerun = FALSE){
     ## Write the tree in ms command line format and generate gene trees in ms
     ms_files <- ms.generate.trees(unique_id = sim_row$ID, base_tree = rooted_tree, ntaxa = sim_row$num_taxa, 
                                   ntrees = sim_row$num_genes, output_directory = sim_row$output_folder, 
-                                  ms_path = sim_row$ms, rename.taxa = TRUE, renamed_taxa = renamed_taxa,
+                                  ms_path = sim_row$ms, rename.taxa = TRUE, converted_taxa_names = converted_taxa_names,
                                   preferred_time_difference = sim_row$minimum_coalescent_time_difference)
     # Extract gene tree file
     sim_row_gene_tree_file <- ms_files[["ms_gene_tree_file"]]
@@ -293,7 +293,7 @@ manipulate.branch.lengths <- function(starting_tree, parameters_row, change.inte
 
 #### Functions for ms ####
 ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_directory, ms_path = "ms", 
-                              rename.taxa = FALSE, renamed_taxa, preferred_time_difference = 0.001){
+                              rename.taxa = FALSE, converted_taxa_names, preferred_time_difference = 0.001){
   ## Take a given tree; format into an ms command and run ms; generate and save the resulting gene trees
   # Works for random coalescent trees and trees generated from Metazoan datasets (although needs occasional 
   #     manual tweaking within the function when simultaneous coalescent events involving the same taxa occur)
@@ -305,7 +305,7 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
   
   ## Rename taxa to short versions
   if (rename.taxa == TRUE){
-    base_tree$tip.label <- unlist(lapply(base_tree$tip.label, function(x){renamed_taxa[[x]]}))
+    base_tree$tip.label <- unlist(lapply(base_tree$tip.label, function(x){converted_taxa_names[[x]]}))
   }
   
   ## Save the input tree
