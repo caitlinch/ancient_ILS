@@ -91,10 +91,11 @@ generate.one.alignment <- function(sim_row, renamed_taxa, rerun = FALSE){
   
   # Construct output
   sim_row_output_vector <- c(as.character(sim_row), as.character(round(tree_length_params, digits = 5)), 
-                             sim_row_rooted_tree_file, check_ms_gene_tree_file, sim_row_partition_file, 
-                             paste0(sim_row_output_alignment_file, ".fa"))
-  names(sim_row_output_vector) <- c(names(sim_row), names(tree_length_params), "output_base_tree_file",
-                                    "output_gene_tree_file", "output_partition_file", "output_alignment_file")
+                             sim_row_rooted_tree_file, check_ms_gene_tree_file, 
+                             sim_row_partition_file, paste0(sim_row_output_alignment_file, ".fa"))
+  names(sim_row_output_vector) <- c(names(sim_row), names(tree_length_params), 
+                                    "output_base_tree_file",  "output_gene_tree_file", 
+                                    "output_partition_file", "output_alignment_file")
 
   # Return the updated simulation row
   return(sim_row_output_vector)
