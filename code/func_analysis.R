@@ -55,6 +55,8 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
                                        ASTRAL_path = ASTRAL_path, 
                                        call.astral = TRUE, 
                                        renamed_taxa = renamed_taxa)
+  actual_clade_monophyly <- check.clade.monophyly(tree_path = df_row$output_base_tree_file, renamed_taxa)
+  names(actual_clade_monophyly) <- paste0("actual_", names(actual_clade_monophyly))
   # Calculate for estimated (i.e. iqtree2) gene trees
   estimated_hyp1_qcf <- check.qcf.Cten(output_id = "estimated_testHyp1_Cten", 
                                        gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
@@ -80,14 +82,16 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
                                           ASTRAL_path = ASTRAL_path, 
                                           call.astral = TRUE, 
                                           renamed_taxa = renamed_taxa)
+  estimated_clade_monophyly <- check.clade.monophyly(tree_path = df_row$ASTRAL_tree_treefile, renamed_taxa)
+  names(estimated_clade_monophyly) <- paste0("estimated_", names(estimated_clade_monophyly))
   
   ## Get lengths and maximum branching time for starting tree
-  # Root trees at Choanoflagellates
-  start_tree <- read.tree(df_row$output_base_tree_file)
-  astral_tree <- read.tree(df_row$ASTRAL_tree_treefile)
-  tree_length <- c(extract.tree.length(start_tree), 
-                   extract.tree.depth(start_tree,  c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), root.tree = TRUE),
-                   extract.tree.length(astral_tree)[2])
+  #     start_tree is df_row$output_base_tree_file
+  #     astral_tree is df_row$ASTRAL_tree_treefile
+  # Root starting tree at Choanoflagellates
+  tree_length <- c(extract.tree.length(read.tree(df_row$output_base_tree_file)), 
+                   extract.tree.depth(read.tree(df_row$output_base_tree_file),  c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), root.tree = TRUE),
+                   extract.tree.length(read.tree(df_row$ASTRAL_tree_treefile))[2])
   names(tree_length) <- c(paste0("actual_", names(tree_length)[1:5]), paste0("estimated_", names(tree_length)[6]))
   
   ## Output results
@@ -173,12 +177,12 @@ calculate.actual.qCF <- function(row_id, df, call.ASTRAL = TRUE, renamed_taxa){
   qcf_dir <- paste0(dirname(df_row$output_base_tree_file), "/")
   ## Calculate actual quartet concordance factors
   actual_qcf_paths <- qcf.call(output_id = paste0(df_row$ID, "_actual_qcfs"), output_directory = qcf_dir, 
-                                 tree_path = df_row$output_base_tree_file, gene_trees_path = df_row$output_gene_tree_file,
-                                 ASTRAL_path = df_row$ASTRAL, call.astral = call.ASTRAL, 
-                                 rename.tree.tips = TRUE, renamed_taxa)
+                               tree_path = df_row$output_base_tree_file, gene_trees_path = df_row$output_gene_tree_file,
+                               ASTRAL_path = df_row$ASTRAL, call.astral = call.ASTRAL, 
+                               rename.tree.tips = TRUE, renamed_taxa)
   ## Extract relevant qCF values
   actual_qcf_values <-  extract.qcf.values(qcf_tree_path = actual_qcf_paths[["qcf_output_tree"]], 
-                                             qcf_log_path = actual_qcf_paths[["qcf_output_log"]])
+                                           qcf_log_path = actual_qcf_paths[["qcf_output_log"]])
   ## Assemble output
   qcf_output <- c(actual_qcf_paths, actual_qcf_values)
   names(qcf_output) <- c(paste0("actual_", names(actual_qcf_paths)), paste0("actual_", names(actual_qcf_values)))
@@ -1168,3 +1172,56 @@ extract.tree.depth <- function(tree, outgroup, root.tree = TRUE){
   return(op_vec)
 }
 
+
+check.clade.monophyly <- function(tree_path, renamed_taxa){
+  # Function to check monophyly of each clade in a Metazoan tree
+  
+  # Set the tips for each clade
+  tree_tips <- list("Bilateria" = c("1", "2", "3", "4", "5", "6"),
+                     "Cnidaria" = c("7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"),
+                     "Porifera" = c("22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"),
+                     "Ctenophora" = c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+                                      "60", "61", "62", "63", "64","65", "66", "67", "68", "69", "70"),
+                     "Outgroup" = c("71", "72", "73", "74", "75"),
+                     "BilatCnid" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"),
+                     "BilatCnidPori" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+                                         "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", 
+                                         "39", "40"),
+                     "BilatCnidCten" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+                                         "21","41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57",
+                                         "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"),
+                     "CtenPori" = c("22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+                                    "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+                                    "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"),
+                     "Animals" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21",
+                                   "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+                                   "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+                                   "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
+  # Read in the tree and check the tips
+  tree <- read.tree(tree_path)
+  # Check tip labels
+  if (TRUE %in% grepl("Monosiga_ovata", tree$tip.label)){
+    # Convert tip labels to numeric
+    tree$tip.label <- unlist(lapply(tree$tip.label, function(x){simulation_taxa_names[[x]]}))
+  }
+  if (TRUE %in% grepl("t", tree$tip.label)){
+    # Remove "t" character from tip labels
+    tree$tip.label <- gsub("t", "", tree$tip.label)
+  }
+  # Check monophyly of each clade
+  check_output <- unlist(lapply(names(tree_tips), is.single.clade.monophyletic, tree, tree_tips))
+  # Return output
+  return(check_output)
+}
+
+is.single.clade.monophyletic <- function(clade, tree, tree_tips){
+  ## Check monophyly of a single clade
+  # Extract tips in clade
+  clade_tips <- tree_tips[[clade]]
+  # Check monophyly
+  clade_monophyletic <- is.monophyletic(tree, clade_tips)
+  # Label output
+  names(clade_monophyletic) <- paste0(clade, "_monophyletic")
+  # Return output
+  return(clade_monophyletic)
+}
