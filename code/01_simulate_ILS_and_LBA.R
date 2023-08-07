@@ -76,8 +76,7 @@ source(paste0(repo_dir, "code/func_analysis.R"))
 library(parallel)
 
 # Create output file paths
-output_files <- paste0(output_dir, c("ancientILS_simulation_parameters.csv", "ancientILS_output_generate_alignments.csv",
-                                     "ancientILS_output_generate_trees.csv", "ancientILS_output_analysis.csv"))
+output_files <- paste0(output_dir, "ancientILS_", c("simulation_parameters.csv", "output_generate_alignments.csv","output_generate_trees.csv", "output_analysis.csv"))
 names(output_files) <- c("simulations", "alignments", "trees", "analysis")
 
 
