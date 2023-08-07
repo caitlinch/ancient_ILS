@@ -117,7 +117,7 @@ manipulate.branch.lengths <- function(starting_tree, parameters_row, change.inte
   # Make all terminal branch lengths equal to 0.01
   rooted_tree$edge.length[which(is.nan(rooted_tree$edge.length))] <- 0.01
   ## Scale rooted tree to be tree age
-  rooted_tree$edge.length <- rooted_tree$edge.length * (parameters_row$ASTRAL_tree_depth / max(branching.times(rooted_tree)))
+  rooted_tree$edge.length <- rooted_tree$edge.length * (as.numeric(parameters_row$ASTRAL_tree_depth) / max(branching.times(rooted_tree)))
   # Make a copy of the tree for modifying the branch lengths
   bl_tree <- rooted_tree
   
