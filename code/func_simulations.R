@@ -398,9 +398,11 @@ check.duplicated.coalescent.times <- function(node_df, preferred_time_difference
       u_df$max_taxa <- unlist(lapply(1:length(dupes_ms_input), function(x){max(as.numeric(strsplit(dupes_ms_input, " ")[[x]]))}))
       # Order rows from biggest to smallest taxa numbers (backwards in terms of coalescent timings)
       u_df <- u_df[order(u_df$min_taxa, u_df$max_taxa, decreasing = TRUE), ]
-      # Generate times between the duplicated times and the next coalescent time. Do NOT include the next coalescent time
+      # Set current (duplicated) coalescent time
       max_time <- unique(u_df$coalescence_time)
-      min_time <- node_df$coalescence_time[max(u_dupes)+1] # time at next coalescent event
+      # Find minimum time limit - maximum of time at (next coalescent event) OR (current coalescent event minus preferred time diff.)
+      min_time <- max(c(node_df$coalescence_time[max(u_dupes)+1], (max_time - preferred_time_difference)) )
+      # Generate times between the duplicated times and the next coalescent time. Do NOT include the next coalescent time
       time_sequence <- seq(from = max_time, to = min_time, length = (length(rows_to_update) + 2))
       time_adjustments <- time_sequence[2:(length(time_sequence)-1)] # Remove first and last value from the time sequence
       # Find any rows that include the same taxa and the same time
