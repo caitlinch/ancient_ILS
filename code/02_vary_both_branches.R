@@ -17,7 +17,7 @@
 #                                 Should be either one model (e.g. "LG") or a vector the same length as the number of genes (e.g. 117 models long)
 # ML_tree_estimation_models <- models to use when estimating the ML trees from simulated alignments in IQ-Tree 2
 # iqtree2_num_threads       <- number of threads for IQ-Tree2 to use
-# iqtree2_num_ufb           <- number of ultrafast bootstraps for IQ-Tree2 to generate
+# num_genes                 <- number of genes to simulate
 
 ## Control parameters
 # create.simulation.parameters  <- flag to run code to generate parameters for simulations i.e., branch lengths, evolutionary hypothesis (to generate parameters, create.simulation.parameters=TRUE)
@@ -53,7 +53,7 @@ if (location == "local"){
 ## Phylogenetic parameters
 alisim_gene_models          <- "LG"
 ML_tree_estimation_models   <- "LG"
-iqtree2_num_ufb             <- 1000
+num_genes <- 100
 min_branch_length           <- 10/(200*200) # 10/N, where N = total number of sites. Forces 10 substitutions onto each branch - reasonable over large time period/breadth of diversity
 min_coalescent_difference   <- 0.001 # Keep to same magnitude as minimum coalescent interval in the ASTRAL species tree (0.004921)
 
@@ -76,8 +76,7 @@ source(paste0(repo_dir, "code/func_analysis.R"))
 library(parallel)
 
 # Create output file paths
-output_files <- paste0(output_dir, c("ancientILS_simulation_parameters.csv", "ancientILS_output_generate_alignments.csv",
-                                     "ancientILS_output_generate_trees.csv", "ancientILS_output_analysis.csv"))
+output_files <- paste0(output_dir, "bothBranchesVary_", c("simulation_parameters.csv", "output_generate_alignments.csv","output_generate_trees.csv", "output_analysis.csv"))
 names(output_files) <- c("simulations", "alignments", "trees", "analysis")
 
 
@@ -103,25 +102,19 @@ names(simulation_taxa_names) <- c("Homo_sapiens", "Strongylocentrotus_purpatus",
 #### 4. Create dataframe for simulations ####
 if ( (file.exists(output_files[["simulations"]]) == FALSE) | (control_parameters[["create.simulation.parameters"]] == TRUE) ){
   # Create dataframe for ILS and LBA simulations
-  sim_df <- rbind(as.data.frame(expand.grid(replicates = 1:5, 
-                                            hypothesis_tree = c(1,2),
-                                            branch_a_length = 0.1729, 
-                                            branch_b_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 1, 10),
-                                            simulation_type = "LBA",
-                                            simulation_number = "sim1") ),
-                  as.data.frame(expand.grid(replicates = 1:5, 
-                                            hypothesis_tree = c(1,2),
-                                            branch_a_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 1, 10), 
-                                            branch_b_length = 1.647,
-                                            simulation_type = "ILS",
-                                            simulation_number = "sim2") ))
+  sim_df <- as.data.frame(expand.grid(replicates = 1:5, 
+                                      hypothesis_tree = c(1,2),
+                                      branch_a_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 1, 10), 
+                                      branch_b_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 1, 10),
+                                      simulation_type = "ILS+LBA",
+                                      simulation_number = "sim3") ) 
   # Add the other columns for the dataframes
   set_params <- c("branch_c_length" = 0.4145, "branch_cnidaria_length" = 0.737, 
                   "branch_bilateria_length" = 0.9214, "branch_porifera_length" = 0.0853,
                   "branch_all_animals_length" = 0.6278, "branch_outgroup_length" = 0.6278,
                   "ML_tree_depth" = 1.177, "ASTRAL_tree_depth" = 11.24,
                   "proportion_internal_branches" = 0.25, "minimum_coalescent_time_difference" = min_coalescent_difference,
-                  "num_taxa" = 75, "num_genes" = 200, "gene_length" = 200,
+                  "num_taxa" = 75, "num_genes" = num_genes, "gene_length" = 200,
                   "dataset" = "Whelan2017.Metazoa_Choano_RCFV_strict", "dataset_type" = "Protein",
                   "ms" = ms, "ASTRAL" = astral, "iqtree2" = iqtree2,
                   "iqtree2_num_threads" = iqtree2_num_threads, "iqtree2_num_ufb" = iqtree2_num_ufb,

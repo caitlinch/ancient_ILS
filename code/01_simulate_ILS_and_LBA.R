@@ -17,7 +17,7 @@
 #                                 Should be either one model (e.g. "LG") or a vector the same length as the number of genes (e.g. 117 models long)
 # ML_tree_estimation_models <- models to use when estimating the ML trees from simulated alignments in IQ-Tree 2
 # iqtree2_num_threads       <- number of threads for IQ-Tree2 to use
-# iqtree2_num_ufb           <- number of ultrafast bootstraps for IQ-Tree2 to generate
+# num_genes                 <- number of genes to simulate
 
 ## Control parameters
 # create.simulation.parameters  <- flag to run code to generate parameters for simulations i.e., branch lengths, evolutionary hypothesis (to generate parameters, create.simulation.parameters=TRUE)
@@ -53,7 +53,7 @@ if (location == "local"){
 ## Phylogenetic parameters
 alisim_gene_models          <- "LG"
 ML_tree_estimation_models   <- "LG"
-iqtree2_num_ufb             <- 1000
+num_genes <- 200
 min_branch_length           <- 10/(200*200) # 10/N, where N = total number of sites. Forces 10 substitutions onto each branch - reasonable over large time period/breadth of diversity
 min_coalescent_difference   <- 0.001 # Keep to same magnitude as minimum coalescent interval in the ASTRAL species tree (0.004921)
 
@@ -121,7 +121,7 @@ if ( (file.exists(output_files[["simulations"]]) == FALSE) | (control_parameters
                   "branch_all_animals_length" = 0.6278, "branch_outgroup_length" = 0.6278,
                   "ML_tree_depth" = 1.177, "ASTRAL_tree_depth" = 11.24,
                   "proportion_internal_branches" = 0.25, "minimum_coalescent_time_difference" = min_coalescent_difference,
-                  "num_taxa" = 75, "num_genes" = 200, "gene_length" = 200,
+                  "num_taxa" = 75, "num_genes" = num_genes, "gene_length" = 200,
                   "dataset" = "Whelan2017.Metazoa_Choano_RCFV_strict", "dataset_type" = "Protein",
                   "ms" = ms, "ASTRAL" = astral, "iqtree2" = iqtree2,
                   "iqtree2_num_threads" = iqtree2_num_threads, "iqtree2_num_ufb" = iqtree2_num_ufb,
