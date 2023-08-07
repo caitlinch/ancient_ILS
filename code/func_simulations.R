@@ -96,7 +96,7 @@ generate.one.alignment <- function(sim_row, converted_taxa_names, rerun = FALSE)
   names(sim_row_output_vector) <- c(names(sim_row), names(tree_length_params), 
                                     "output_base_tree_file",  "output_gene_tree_file", 
                                     "output_partition_file", "output_alignment_file")
-
+  
   # Return the updated simulation row
   return(sim_row_output_vector)
 }
@@ -381,71 +381,75 @@ check.duplicated.coalescent.times <- function(node_df, preferred_time_difference
     diff_times <- all_diff_times[which(all_diff_times != 0)]
     min_diff_time <- min(diff_times, na.rm = TRUE)
     
+    ## Copy the node_df
+    updated_node_df <- node_df
+    
     ## For each of the unduplicated rows, need to update coalescent times so that there is no duplicate
     for (u in unduplicate_rows){
       # Get which rows are identical to this row
       u_dupes <- which(node_df$coalescence_time == node_df$coalescence_time[u])
-      # Check whether those rows have the same taxa as the u row
+      # Copy the dataframe for these rows
+      u_df <- node_df[u_dupes, ]
+      # Separate involved taxa
       dupes_ms_input <- node_df$ms_input[u_dupes]
-      dupe_time_df <- data.frame(row = u_dupes,
-                                 coalescence_time = node_df$coalescence_time[u],
-                                 taxa_1 = unlist(lapply(1:length(dupes_ms_input), function(x){strsplit(dupes_ms_input, " ")[[x]][1]})),
-                                 taxa_2 = unlist(lapply(1:length(dupes_ms_input), function(x){strsplit(dupes_ms_input, " ")[[x]][2]})))
-      # Add min taxa and max taxa
-      dupe_time_df$min_taxa <- lapply(1:length(dupes_ms_input), function(x){min(as.numeric(strsplit(dupes_ms_input, " ")[[x]]))})
-      dupe_time_df$max_taxa <- lapply(1:length(dupes_ms_input), function(x){max(as.numeric(strsplit(dupes_ms_input, " ")[[x]]))})
-      # Find the next time (the constraint for updating the identical coalescent time)
-      next_coalescence_time <- node_df$coalescence_time[max(u_dupes)+1]
-      # Find which rows have the same taxa involved AND the same coalescence time
-      check_dupe_rows_1 <- u_dupes[duplicated(dupe_time_df$taxa_2) | duplicated(dupe_time_df$taxa_2)]
-      check_dupe_rows_2 <- dupe_time_df$row[which(dupe_time_df$min_taxa %in% dupe_time_df$max_taxa)]
-      # If there are any rows with the same taxa and the same coalescent units, process them further: 
-      if ( (identical(check_dupe_rows_1, integer(0)) == FALSE) | (identical(check_dupe_rows_2, integer(0)) == FALSE) ){
-        # Construct the rows to update
-        if (identical(check_dupe_rows_1, integer(0)) == FALSE & identical(check_dupe_rows_2, integer(0)) == TRUE){
-          row_to_update_id <- check_dupe_rows_1
-          dupe_time_update_row_id <- which((duplicated(dupe_time_df$taxa_2) | duplicated(dupe_time_df$taxa_2)))
-        } else if (identical(check_dupe_rows_1, integer(0)) == TRUE & identical(check_dupe_rows_2, integer(0)) == FALSE){
-          row_to_update_id <- check_dupe_rows_2
-          dupe_time_update_row_id <- which(dupe_time_df$row == row_to_update_id)
-        } else if (identical(check_dupe_rows_1, integer(0)) == FALSE & identical(check_dupe_rows_2, integer(0)) == FALSE){
-          row_to_update_id <- unique(c(check_dupe_rows_1, check_dupe_rows_2))
-          dupe_time_update_row_id <- unique(c(which((duplicated(dupe_time_df$taxa_2) | duplicated(dupe_time_df$taxa_2))),
-                                              which(dupe_time_df$row == row_to_update_id) ) )
-        }
-        # Get times to update
-        dupe_coalescent_time <- dupe_time_df$coalescence_time[dupe_time_update_row_id]
-        # Determine how many coalescent times are needed
-        num_coal_times_needed <- length(row_to_update_id)
-        # Check whether the preferred time difference is too big
-        test_times <- unlist(lapply(num_coal_times_needed, function(x){dupe_coalescent_time - (x * preferred_time_difference)}))
-        check_test_times <- identical(which(test_times < next_coalescence_time), integer(0))
-        # If the test times are larger than the next coalescent time, use the test times as the new coalescent times
-        # Otherwise if the coalescent times are very close together, make the new coalescent times equally spoaced between coalescent times
-        if (check_test_times == TRUE){
-          # Make the new coalescent times spaced by the preferred time difference
-          new_coalescent_times <- test_times
-        } else if (check_test_times == FALSE){
-          # Make the new coalescent times equally spaced between the existing coalescent times
-          # Create the required number of new times
-          new_coalescent_times <- seq(from = next_coalescence_time, to = dupe_coalescent_time, by = ((dupe_coalescent_time-next_coalescence_time)/(num_coal_times_needed+1)))
-          # Remove existing coalescent times (remove first and last times, which are the to and from times fed to seq.along)
-          new_coalescent_times <- new_coalescent_times[2:(length(new_coalescent_times)-1)]
-        }
-        # Update any rows with the same taxa involved AND the same coalescence time
-        for (j in 1:length(row_to_update_id)){
-          # Get correct row and new coalescent time
-          n_row_id <- row_to_update_id[j]
-          n_new_coal_time <- new_coalescent_times[j]
-          # Update coalescent time in original node_df
-          node_df$coalescence_time[n_row_id] <- n_new_coal_time
-        } # end for (j in 1:length(row_to_update_id)){ -- update coalescent times for events with duplicate times + taxa
-      } # end if ( (identical(check_dupe_rows_1, integer(0)) == FALSE) | (identical(check_dupe_rows_2, integer(0)) == FALSE) ){ -- check whether any events have duplicate times + taxa 
-    } # end for (u in unduplicate_rows){ -- process rows with duplicate times
-  } # end if (length(unique(node_df$coalescence_time)) != length(node_df$coalescence_time)){ -- check whether any events have duplicate times
+      u_df$taxa_1 <- unlist(lapply(1:length(dupes_ms_input), function(x){strsplit(dupes_ms_input, " ")[[x]][1]}))
+      u_df$taxa_2 <-  unlist(lapply(1:length(dupes_ms_input), function(x){strsplit(dupes_ms_input, " ")[[x]][2]}))
+      u_df$min_taxa <- unlist(lapply(1:length(dupes_ms_input), function(x){min(as.numeric(strsplit(dupes_ms_input, " ")[[x]]))}))
+      u_df$max_taxa <- unlist(lapply(1:length(dupes_ms_input), function(x){max(as.numeric(strsplit(dupes_ms_input, " ")[[x]]))}))
+      # Order rows from biggest to smallest taxa numbers (backwards in terms of coalescent timings)
+      u_df <- u_df[order(u_df$min_taxa, u_df$max_taxa, decreasing = TRUE), ]
+      # Generate times between the duplicated times and the next coalescent time. Do NOT include the next coalescent time
+      max_time <- unique(u_df$coalescence_time)
+      min_time <- node_df$coalescence_time[max(u_dupes)+1] # time at next coalescent event
+      time_sequence <- seq(from = max_time, to = min_time, length = (length(rows_to_update) + 2))
+      time_adjustments <- time_sequence[2:(length(time_sequence)-1)] # Remove first and last value from the time sequence
+      # Find any rows that include the same taxa and the same time
+      double_dupes_check <- c( which(duplicated(u_df$min_taxa)), which(duplicated(u_df$max_taxa)), which(u_df$min_taxa %in% u_df$max_taxa) )
+      double_dupes_rows <- unique(c(which(u_df$min_taxa %in% u_df$min_taxa[double_dupes_check]), 
+                                    which(u_df$max_taxa %in% u_df$max_taxa[double_dupes_check]), 
+                                    which(u_df$min_taxa %in% u_df$max_taxa[double_dupes_check]), 
+                                    which(u_df$max_taxa %in% u_df$min_taxa[double_dupes_check])))
+      # Create table of duplicate taxa
+      duplicate_table <- table(c(u_df$min_taxa[double_dupes_rows], u_df$max_taxa[double_dupes_rows]))
+      # Identify the tips involved in the event
+      identical_tip <- names(duplicate_table)[which(duplicate_table > 1)]
+      different_tips <- names(duplicate_table)[which(duplicate_table == 1)]
+      smallest_tip <- min(as.numeric(different_tips))
+      smallest_row_tips <- as.numeric(c(smallest_tip, identical_tip))
+      # Remove the row with the SMALLEST event
+      smallest_tip_row <- which(u_df$min_taxa == min(smallest_row_tips) & u_df$max_taxa == max(smallest_row_tips))
+      rows_to_update <- setdiff(double_dupes_rows, smallest_tip_row)
+      # For each of the rows to update, change the time
+      for (i in 1:length(rows_to_update)){
+        # Find the relevant row
+        r <- rows_to_update[i]
+        # Find the new time
+        r_new_time <- time_adjustments[i]
+        # Replace the new time in the u_df
+        u_df$coalescence_time[r] <- r_new_time
+      }
+      # Order rows from smallest to biggest taxa numbers (forwards in terms of coalescent timings)
+      u_df <- u_df[order(u_df$min_taxa, u_df$max_taxa, decreasing = FALSE), ]
+      # Reorder rows by coalescence time
+      u_df <- u_df[order(u_df$coalescence_time, decreasing = TRUE), ]
+      # Attach the new times onto the updated_node_df
+      u_df <- u_df[, names(node_df)]
+      updated_node_df[u_dupes, ] <- u_df
+      # Reorder the dataframe by coalescent time value
+      updated_node_df <- updated_node_df[order(updated_node_df$coalescence_time, decreasing = TRUE), ]
+    }
+  } else {
+    # Return the dataframe unchanged
+    updated_node_df <- node_df
+  }
+  
+  # Do one last sort to make sure coalescent times are in order
+  updated_node_df <- updated_node_df[order(updated_node_df$coalescence_time, decreasing = TRUE), ]
+  # Replace the branching times column with the new updated coalescent time column
+  updated_node_df$max_branching_time <- updated_node_df$coalescence_time
   
   # Return the node_df with updated coalescent times
-  return(node_df)
+  return(updated_node_df)
 }
 
 
