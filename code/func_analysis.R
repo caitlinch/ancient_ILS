@@ -16,8 +16,10 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
   df_row <- df[row_id, ]
   
   ## Calculate the differences between the three trees
-  astral_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$ASTRAL_tree_treefile, hypothesis_tree_dir, tree_type = "ASTRAL", 
-                                                              rename.hypothesis.tree.tips = TRUE, renamed_taxa = renamed_taxa)
+  actual_astral_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$output_base_tree_file, hypothesis_tree_dir, tree_type = "ASTRAL", 
+                                                                     rename.tree.tips = TRUE, renamed_taxa = renamed_taxa)
+  estimated_astral_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$ASTRAL_tree_treefile, hypothesis_tree_dir, tree_type = "ASTRAL", 
+                                                                        rename.tree.tips = TRUE, renamed_taxa = renamed_taxa)
   
   ## Calculate the qCFs using ASTRAL
   astral_qcfs <- qcf.wrapper(ID = df_row$ID, starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
@@ -90,7 +92,9 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
   #     astral_tree is df_row$ASTRAL_tree_treefile
   # Root starting tree at Choanoflagellates
   tree_length <- c(extract.tree.length(read.tree(df_row$output_base_tree_file)), 
-                   extract.tree.depth(read.tree(df_row$output_base_tree_file),  c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), root.tree = TRUE),
+                   extract.tree.depth(read.tree(df_row$output_base_tree_file),  
+                                      c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
+                                      root.tree = TRUE),
                    extract.tree.length(read.tree(df_row$ASTRAL_tree_treefile))[2])
   names(tree_length) <- c(paste0("actual_", names(tree_length)[1:5]), paste0("estimated_", names(tree_length)[6]))
   
@@ -103,13 +107,19 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, renam
                                "branch_outgroup_length", "branch_porifera_length", "total_tree_length",
                                "sum_internal_branch_lengths", "percentage_internal_branch_lengths")]
   # Assemble output vector
-  analysis_output         <- c(as.character(trimmed_df_row), astral_tree_diffs,  astral_qcfs,
-                               actual_hyp1_qcf, actual_hyp2_qcf, actual_hyp3_qcf, actual_clade_qcf,
-                               estimated_hyp1_qcf, estimated_hyp2_qcf, estimated_hyp3_qcf, estimated_clade_qcf,
+  analysis_output         <- c(as.character(trimmed_df_row), actual_astral_tree_diffs, 
+                               estimated_astral_tree_diffs, astral_qcfs,
+                               actual_hyp1_qcf, actual_hyp2_qcf, actual_hyp3_qcf, 
+                               actual_clade_qcf, actual_clade_monophyly, 
+                               estimated_hyp1_qcf, estimated_hyp2_qcf, estimated_hyp3_qcf, 
+                               estimated_clade_qcf, estimated_clade_monophyly,
                                tree_length)
-  names(analysis_output)  <- c(names(trimmed_df_row), names(astral_tree_diffs),  names(astral_qcfs),
-                               names(actual_hyp1_qcf), names(actual_hyp2_qcf), names(actual_hyp3_qcf), names(actual_clade_qcf),
-                               names(estimated_hyp1_qcf), names(estimated_hyp2_qcf), names(estimated_hyp3_qcf), names(estimated_clade_qcf),
+  names(analysis_output)  <- c(names(trimmed_df_row), paste0("actual", names(actual_astral_tree_diffs)), 
+                               paste0("estimated_", names(estimated_astral_tree_diffs)), names(astral_qcfs),
+                               names(actual_hyp1_qcf), names(actual_hyp2_qcf), names(actual_hyp3_qcf), 
+                               names(actual_clade_qcf), names(actual_clade_monophyly),
+                               names(estimated_hyp1_qcf), names(estimated_hyp2_qcf), names(estimated_hyp3_qcf), 
+                               names(estimated_clade_qcf), names(estimated_clade_monophyly), 
                                names(tree_length))
   ## Return the output
   return(analysis_output)
@@ -291,7 +301,7 @@ perform.hypothesis.tests <- function(ID, alignment_path, hypothesis_tree_file, i
 
 
 #### Calculate distance between trees ####
-calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_dir, tree_type, rename.hypothesis.tree.tips = FALSE, renamed_taxa){
+calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_dir, tree_type, rename.tree.tips = FALSE, renamed_taxa){
   # Function to calculate the distance between a tree and three hypothesis trees
   # tree_type = "ASTRAL" | tree_type = "IQ-Tree2"
   
@@ -315,39 +325,45 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
   h2_tree <- read.tree(file = h2_path)
   h3_tree <- read.tree(file = h3_path)
   
+  ## Open the tree of interest
+  t <- read.tree(file = tree_path)
+  
   ## Prepare the hypothesis trees for comparison with the test tree
-  # Reroot the trees (only at one outgroup taxon, in case outgroup is paraphyletic)
-  h1_tree <- root(h1_tree, outgroup = c("Monosiga_ovata"),
-                  resolve.root = TRUE)
-  h2_tree <- root(h2_tree, outgroup = c("Monosiga_ovata"),
-                  resolve.root = TRUE)
-  h3_tree <- root(h3_tree, outgroup = c("Monosiga_ovata"),
-                  resolve.root = TRUE)
-  if (rename.hypothesis.tree.tips == TRUE){
-    # Rename taxa to short versions (numbers only)
+  # Rename tree tips
+  if (rename.tree.tips == TRUE){
+    # Rename hypothesis tree taxa to short versions (numbers only)
     h1_tree$tip.label <- unlist(lapply(h1_tree$tip.label, function(x){renamed_taxa[[x]]}))
     h1_tree$tip.label <- gsub("t", "", h1_tree$tip.label)
     h2_tree$tip.label <- unlist(lapply(h2_tree$tip.label, function(x){renamed_taxa[[x]]}))
     h2_tree$tip.label <- gsub("t", "", h2_tree$tip.label)
     h3_tree$tip.label <- unlist(lapply(h3_tree$tip.label, function(x){renamed_taxa[[x]]}))
     h3_tree$tip.label <- gsub("t", "", h3_tree$tip.label)
+    # Rename tree taxa to short versions (numbers only)
+    if (TRUE %in% grepl("Monosiga_ovata", t$tip.label)){
+      t$tip.label <- unlist(lapply(t$tip.label, function(x){renamed_taxa[[x]]}))
+      t$tip.label <- gsub("t", "", t$tip.label)
+    }
+    # Set outgroup taxa
+    outgroup_taxa <- gsub("t", "", renamed_taxa["Monosiga_ovata"])
+  } else {
+    # Set outgroup taxa
+    outgroup_taxa <- "Monosiga_ovata"
   }
+  # Reroot the trees (only at one outgroup taxon, in case outgroup is paraphyletic)
+  h1_tree <- root(h1_tree, outgroup = outgroup_taxa, resolve.root = TRUE)
+  h2_tree <- root(h2_tree, outgroup = outgroup_taxa, resolve.root = TRUE)
+  h3_tree <- root(h3_tree, outgroup = outgroup_taxa, resolve.root = TRUE)
+  t       <- root(t,       outgroup = outgroup_taxa, resolve.root = TRUE)
   
-  ## Open the tree of interest
-  t <- read.tree(file = tree_path)
-  # Root at Monosiga ovata
-  t <- root(t, outgroup = gsub("t", "", renamed_taxa["Monosiga_ovata"]),
-            resolve.root = TRUE)
-  
-  ## Calculate RF and wRF for the trees
-  output_vec <- c(tree_path, 
-                  RF.dist(t, h1_tree, normalize = TRUE), round(wRF.dist(t, h1_tree, normalize = TRUE), digits = 2), 
-                  RF.dist(t, h2_tree, normalize = TRUE), round(wRF.dist(t, h2_tree, normalize = TRUE), digits = 2), 
-                  RF.dist(t, h3_tree, normalize = TRUE), round(wRF.dist(t, h3_tree, normalize = TRUE), digits = 2))
-  names(output_vec) <- c(paste0(tree_type, "_tree_path"), 
-                         paste0(tree_type, "_h1_norm_RF_dist"), paste0(tree_type, "_h1_norm_wRF_dist"), 
-                         paste0(tree_type, "_h2_norm_RF_dist"), paste0(tree_type, "_h2_norm_wRF_dist"), 
-                         paste0(tree_type, "_h3_norm_RF_dist"), paste0(tree_type, "_h3_norm_wRF_dist") )
+  ## Calculate RF distance between each hypothesis tree and the and test tree
+  output_vec <- c(RF.dist(t, h1_tree), RF.dist(t, h1_tree, normalize = TRUE), 
+                  RF.dist(t, h2_tree), RF.dist(t, h2_tree, normalize = TRUE), 
+                  RF.dist(t, h3_tree), RF.dist(t, h3_tree, normalize = TRUE) )
+  names(output_vec) <- paste0(tree_type, c("_h1_RF_dist", "_h1_norm_RF_dist", 
+                                           "_h2_RF_dist", "_h2_norm_RF_dist", 
+                                           "_h3_RF_dist", "_h3_norm_RF_dist") )
+  # Round output
+  output_vec <- round(output_vec, digits = 6)
   
   ## Return the RF/wRF distances
   return(output_vec)
@@ -1178,31 +1194,31 @@ check.clade.monophyly <- function(tree_path, renamed_taxa){
   
   # Set the tips for each clade
   tree_tips <- list("Bilateria" = c("1", "2", "3", "4", "5", "6"),
-                     "Cnidaria" = c("7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"),
-                     "Porifera" = c("22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"),
-                     "Ctenophora" = c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
-                                      "60", "61", "62", "63", "64","65", "66", "67", "68", "69", "70"),
-                     "Outgroup" = c("71", "72", "73", "74", "75"),
-                     "BilatCnid" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"),
-                     "BilatCnidPori" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
-                                         "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", 
-                                         "39", "40"),
-                     "BilatCnidCten" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
-                                         "21","41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57",
-                                         "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"),
-                     "CtenPori" = c("22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
-                                    "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
-                                    "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"),
-                     "Animals" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21",
-                                   "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+                    "Cnidaria" = c("7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"),
+                    "Porifera" = c("22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"),
+                    "Ctenophora" = c("41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+                                     "60", "61", "62", "63", "64","65", "66", "67", "68", "69", "70"),
+                    "Outgroup" = c("71", "72", "73", "74", "75"),
+                    "BilatCnid" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"),
+                    "BilatCnidPori" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+                                        "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", 
+                                        "39", "40"),
+                    "BilatCnidCten" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+                                        "21","41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57",
+                                        "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"),
+                    "CtenPori" = c("22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
                                    "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
-                                   "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
+                                   "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"),
+                    "Animals" = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21",
+                                  "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+                                  "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+                                  "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70"))
   # Read in the tree and check the tips
   tree <- read.tree(tree_path)
   # Check tip labels
   if (TRUE %in% grepl("Monosiga_ovata", tree$tip.label)){
     # Convert tip labels to numeric
-    tree$tip.label <- unlist(lapply(tree$tip.label, function(x){simulation_taxa_names[[x]]}))
+    tree$tip.label <- unlist(lapply(tree$tip.label, function(x){renamed_taxa[[x]]}))
   }
   if (TRUE %in% grepl("t", tree$tip.label)){
     # Remove "t" character from tip labels
