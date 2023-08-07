@@ -398,13 +398,6 @@ check.duplicated.coalescent.times <- function(node_df, preferred_time_difference
       u_df$max_taxa <- unlist(lapply(1:length(dupes_ms_input), function(x){max(as.numeric(strsplit(dupes_ms_input, " ")[[x]]))}))
       # Order rows from biggest to smallest taxa numbers (backwards in terms of coalescent timings)
       u_df <- u_df[order(u_df$min_taxa, u_df$max_taxa, decreasing = TRUE), ]
-      # Set current (duplicated) coalescent time
-      max_time <- unique(u_df$coalescence_time)
-      # Find minimum time limit - maximum of time at (next coalescent event) OR (current coalescent event minus preferred time diff.)
-      min_time <- max(c(node_df$coalescence_time[max(u_dupes)+1], (max_time - preferred_time_difference)) )
-      # Generate times between the duplicated times and the next coalescent time. Do NOT include the next coalescent time
-      time_sequence <- seq(from = max_time, to = min_time, length = (length(rows_to_update) + 2))
-      time_adjustments <- time_sequence[2:(length(time_sequence)-1)] # Remove first and last value from the time sequence
       # Find any rows that include the same taxa and the same time
       double_dupes_check <- c( which(duplicated(u_df$min_taxa)), which(duplicated(u_df$max_taxa)), which(u_df$min_taxa %in% u_df$max_taxa) )
       double_dupes_rows <- unique(c(which(u_df$min_taxa %in% u_df$min_taxa[double_dupes_check]), 
@@ -421,6 +414,13 @@ check.duplicated.coalescent.times <- function(node_df, preferred_time_difference
       # Remove the row with the SMALLEST event
       smallest_tip_row <- which(u_df$min_taxa == min(smallest_row_tips) & u_df$max_taxa == max(smallest_row_tips))
       rows_to_update <- setdiff(double_dupes_rows, smallest_tip_row)
+      # Set current (duplicated) coalescent time
+      max_time <- unique(u_df$coalescence_time)
+      # Find minimum time limit - maximum of time at (next coalescent event) OR (current coalescent event minus preferred time diff.)
+      min_time <- max(c(node_df$coalescence_time[max(u_dupes)+1], (max_time - preferred_time_difference)) )
+      # Generate times between the duplicated times and the next coalescent time. Do NOT include the next coalescent time
+      time_sequence <- seq(from = max_time, to = min_time, length = (length(rows_to_update) + 2))
+      time_adjustments <- time_sequence[2:(length(time_sequence)-1)] # Remove first and last value from the time sequence
       # For each of the rows to update, change the time
       for (i in 1:length(rows_to_update)){
         # Find the relevant row
