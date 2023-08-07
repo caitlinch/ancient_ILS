@@ -61,8 +61,7 @@ min_coalescent_difference   <- 0.001 # Keep to same magnitude as minimum coalesc
 control_parameters <- c("create.simulation.parameters" = FALSE,
                         "generate.alignments" = FALSE,
                         "estimate.trees" = FALSE,
-                        "conduct.analysis" = TRUE,
-                        "copy.completed.files" = TRUE)
+                        "conduct.analysis" = TRUE)
 
 
 
