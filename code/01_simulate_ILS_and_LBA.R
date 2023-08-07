@@ -194,7 +194,7 @@ if ( (control_parameters[["estimate.trees"]] == TRUE) & (file.exists(output_file
 
 
 #### 7. Conduct analyses ####
-if ( (control_parameters[["conduct.analysis "]] == TRUE) & (file.exists(output_files[["analysis"]]) == FALSE) ){
+if ( (control_parameters[["conduct.analysis"]] == TRUE) & (file.exists(output_files[["analysis"]]) == FALSE) ){
   # Read in the output from the previous step
   tree_df <- read.csv(output_files[["trees"]], stringsAsFactors = FALSE)
   # Call the function to calculate gCF and RF distances
@@ -206,7 +206,7 @@ if ( (control_parameters[["conduct.analysis "]] == TRUE) & (file.exists(output_f
   } else {
     analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
                               hypothesis_tree_dir = hypothesis_tree_dir, renamed_taxa = simulation_taxa_names,
-                              mc.cores = round(num_parallel_cores/iqtree2_num_threads))
+                              mc.cores = num_parallel_threads)
   }
   analysis_df <- as.data.frame(do.call(rbind, analysis_list))
   # Save combined output dataframe
