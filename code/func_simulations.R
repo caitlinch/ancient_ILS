@@ -177,13 +177,13 @@ manipulate.branch.lengths <- function(starting_tree, parameters_row, change.inte
   # Identify branch a
   branch_a <- which(bl_tree$edge[,1] == a_start & bl_tree$edge[,2] == a_end)
   # ILS simulation - vary branch a (branch that allows more time for the two species to differentiate)
-  bl_tree$edge.length[branch_a] <- parameters_row$branch_a_length
+  bl_tree$edge.length[branch_a] <- as.numeric(parameters_row$branch_a_length)
   
   ## Modify branch b length
   # Identify branch b
   branch_b <- which(bl_tree$edge[,1] == b_start & bl_tree$edge[,2] == b_end)
   # LBA simulation - vary branch b (branch that leads to Ctenophore clade)
-  bl_tree$edge.length[branch_b] <- parameters_row$branch_b_length
+  bl_tree$edge.length[branch_b] <- as.numeric(parameters_row$branch_b_length)
   
   ## Modify the other branch lengths
   # Branch c - branch leading to Bilateria/Cnidaria
@@ -193,19 +193,19 @@ manipulate.branch.lengths <- function(starting_tree, parameters_row, change.inte
                               "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla"))
   c_start <- bl_tree$edge[which(bl_tree$edge[,2] == c_end),1]
   branch_c <- which(bl_tree$edge[,1] == c_start & bl_tree$edge[,2] == c_end)
-  bl_tree$edge.length[branch_c] <- parameters_row$branch_c_length
+  bl_tree$edge.length[branch_c] <- as.numeric(parameters_row$branch_c_length)
   # Branch leading to Cnidaria
   cnidaria_end <- getMRCA(bl_tree, c("Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
                                      "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
                                      "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla"))
   cnidaria_start <- bl_tree$edge[which(bl_tree$edge[,2] == cnidaria_end),1]
   branch_cnidaria <- which(bl_tree$edge[,1] == cnidaria_start & bl_tree$edge[,2] == cnidaria_end)
-  bl_tree$edge.length[branch_cnidaria] <- parameters_row$branch_cnidaria_length 
+  bl_tree$edge.length[branch_cnidaria] <- as.numeric(parameters_row$branch_cnidaria_length)
   # Branch leading to Bilateria
   bilateria_end <- getMRCA(bl_tree, c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex"))
   bilateria_start <- bl_tree$edge[which(bl_tree$edge[,2] == bilateria_end),1]
   branch_bilateria <- which(bl_tree$edge[,1] == bilateria_start & bl_tree$edge[,2] == bilateria_end)
-  bl_tree$edge.length[branch_bilateria] <- parameters_row$branch_bilateria_length
+  bl_tree$edge.length[branch_bilateria] <- as.numeric(parameters_row$branch_bilateria_length)
   # Branch leading to Porifera
   porifera_end <- getMRCA(bl_tree, c("Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum", "Oscarella_carmela", "Hyalonema_populiferum",
                                      "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata", "Chondrilla_nucula", "Amphimedon_queenslandica",
@@ -213,7 +213,7 @@ manipulate.branch.lengths <- function(starting_tree, parameters_row, change.inte
                                      "Crella_elegans", "Kirkpatrickia_variolosa"))
   porifera_start <- bl_tree$edge[which(bl_tree$edge[,2] == porifera_end),1]
   branch_porifera <- which(bl_tree$edge[,1] == porifera_start & bl_tree$edge[,2] == porifera_end)
-  bl_tree$edge.length[branch_porifera] <- parameters_row$branch_porifera_length
+  bl_tree$edge.length[branch_porifera] <- as.numeric(parameters_row$branch_porifera_length)
   # Branch leading to all animals
   all_end <- getMRCA(bl_tree, c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex",
                                 "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
@@ -231,12 +231,12 @@ manipulate.branch.lengths <- function(starting_tree, parameters_row, change.inte
                                 "Ctenophora_sp_Florida_USA"))
   all_start <- bl_tree$edge[which(bl_tree$edge[,2] == all_end),1]
   branch_all <- which(bl_tree$edge[,1] == all_start & bl_tree$edge[,2] == all_end)
-  bl_tree$edge.length[branch_all] <- parameters_row$branch_all_animals_length
+  bl_tree$edge.length[branch_all] <- as.numeric(parameters_row$branch_all_animals_length)
   # Branch leading to outgroup
   outgroup_end <- getMRCA(bl_tree, c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"))
   outgroup_start <- bl_tree$edge[which(bl_tree$edge[,2] == outgroup_end),1]
   branch_outgroup <- which(bl_tree$edge[,1] == outgroup_start & bl_tree$edge[,2] == outgroup_end)
-  bl_tree$edge.length[branch_outgroup] <- parameters_row$branch_outgroup_length
+  bl_tree$edge.length[branch_outgroup] <- as.numeric(parameters_row$branch_outgroup_length)
   
   ## Force the tree to be ultrametric
   # Copy the tree across
