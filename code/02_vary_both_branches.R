@@ -102,12 +102,18 @@ names(simulation_taxa_names) <- c("Homo_sapiens", "Strongylocentrotus_purpatus",
 #### 4. Create dataframe for simulations ####
 if ( (file.exists(output_files[["simulations"]]) == FALSE) | (control_parameters[["create.simulation.parameters"]] == TRUE) ){
   # Create dataframe for ILS and LBA simulations
-  sim_df <- as.data.frame(expand.grid(replicates = 1:5, 
-                                      hypothesis_tree = c(1,2),
-                                      branch_a_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 1, 10), 
-                                      branch_b_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 1, 10),
-                                      simulation_type = "ILS+LBA",
-                                      simulation_number = "sim3") ) 
+  sim_df <- rbind(as.data.frame(expand.grid(replicates = 1:5, 
+                                            hypothesis_tree = c(1,2),
+                                            branch_a_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 1, 10), 
+                                            branch_b_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 1, 10),
+                                            simulation_type = "ILS+LBA",
+                                            simulation_number = "sim3") ),
+                  as.data.frame(expand.grid(replicates = 1:5, 
+                                            hypothesis_tree = c(1,2),
+                                            branch_a_length = 0.1729, 
+                                            branch_b_length = 1.647,
+                                            simulation_type = "Empirical_BL",
+                                            simulation_number = "sim4") ) )
   # Add the other columns for the dataframes
   set_params <- c("branch_c_length" = 0.4145, "branch_cnidaria_length" = 0.737, 
                   "branch_bilateria_length" = 0.9214, "branch_porifera_length" = 0.0853,
@@ -116,8 +122,7 @@ if ( (file.exists(output_files[["simulations"]]) == FALSE) | (control_parameters
                   "proportion_internal_branches" = 0.25, "minimum_coalescent_time_difference" = min_coalescent_difference,
                   "num_taxa" = 75, "num_genes" = num_genes, "gene_length" = 200,
                   "dataset" = "Whelan2017.Metazoa_Choano_RCFV_strict", "dataset_type" = "Protein",
-                  "ms" = ms, "ASTRAL" = astral, "iqtree2" = iqtree2,
-                  "iqtree2_num_threads" = iqtree2_num_threads, "iqtree2_num_ufb" = iqtree2_num_ufb,
+                  "ms" = ms, "ASTRAL" = astral, "iqtree2" = iqtree2, "iqtree2_num_threads" = iqtree2_num_threads,
                   "alisim_gene_models" = alisim_gene_models, "ML_tree_estimation_models" = ML_tree_estimation_models)
   set_params_df <- as.data.frame(matrix(set_params, nrow = 1, ncol = length(set_params), byrow = T))
   names(set_params_df) <- names(set_params)
@@ -139,7 +144,7 @@ if ( (file.exists(output_files[["simulations"]]) == FALSE) | (control_parameters
                       "branch_a_length", "branch_b_length", "branch_c_length", "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
                       "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "minimum_coalescent_time_difference", "ASTRAL_tree_depth",
                       "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "ASTRAL", "iqtree2", "alisim_gene_models",
-                      "iqtree2_num_threads", "iqtree2_num_ufb", "ML_tree_estimation_models")]
+                      "iqtree2_num_threads", "ML_tree_estimation_models")]
   # Save the output file
   write.csv(sim_df, file = output_files[["simulations"]], row.names = FALSE)
 }
@@ -153,7 +158,7 @@ if ((control_parameters[["generate.alignments"]] == TRUE) & (file.exists(output_
   # To generate all simulated alignments
   if (location == "local"){
     generate_alignment_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, 
-                                      converted_taxa_names = simulation_taxa_names,rerun = FALSE)
+                                      converted_taxa_names = simulation_taxa_names, rerun = FALSE)
   } else {
     generate_alignment_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, 
                                         converted_taxa_names = simulation_taxa_names, rerun = FALSE, 
