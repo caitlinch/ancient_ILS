@@ -114,7 +114,7 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, conve
                                estimated_hyp1_qcf, estimated_hyp2_qcf, estimated_hyp3_qcf, 
                                estimated_clade_qcf, estimated_clade_monophyly,
                                tree_length)
-  names(analysis_output)  <- c(names(trimmed_df_row), paste0("actual", names(actual_astral_tree_diffs)), 
+  names(analysis_output)  <- c(names(trimmed_df_row), paste0("actual_", names(actual_astral_tree_diffs)), 
                                paste0("estimated_", names(estimated_astral_tree_diffs)), names(astral_qcfs),
                                names(actual_hyp1_qcf), names(actual_hyp2_qcf), names(actual_hyp3_qcf), 
                                names(actual_clade_qcf), names(actual_clade_monophyly),
