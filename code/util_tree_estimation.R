@@ -6,20 +6,20 @@
 ## File paths and computational parameters
 # repo_dir                  <- location of caitlinch/ancient_ILS github repository
 # output_dir                <- output directory to save test runs for determining appropriate branch lengths
-# iqtree2                   <- path to iqtree2 version 2.2.0
 
 location = "local"
 if (location == "local"){
   ## File paths and computational parameters
   repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-  output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulation_output/"
-  iqtree2                     <- "iqtree2"
+  output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulation_output_files/"
 } else if (location == "dayhoff"){
   ## File paths and computational parameters
   repo_dir                    <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
   output_dir                  <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/03_simulation_output/"
-  iqtree2                     <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree-2.2.0-Linux/bin/iqtree2"
 }
+
+# Set simulation id (to identify which set of simulations to process)
+simulation_id <- "bothBranchesVary"
 
 
 
@@ -80,8 +80,11 @@ sim_dirs <- sim_dirs[2:length(sim_dirs)]
 check_list <- lapply(sim_dirs, check.rep)
 check_df <- as.data.frame(do.call(rbind, check_list))  
 # Check completion
+print(paste0("Number of total runs: ", nrow(check_df)))
+print(paste0("Complete runs: ", length(which(check_df$astral_tree_complete == TRUE & check_df$gene_trees_complete == TRUE))))
 print(paste0("Missing ASTRAL trees: ", length(which(check_df$astral_tree_complete == FALSE))))
 print(paste0("Missing gene trees: ", length(which(check_df$gene_trees_complete == FALSE))))
+print(paste0("Remaining: ", round(length(which(check_df$astral_tree_complete == FALSE & check_df$gene_trees_complete == FALSE))/nrow(check_df)*100, digits = 2), " %"))
 # Reduce dataframe to only missing trees
 incomplete_ids <- check_df[(check_df$ml_tree_complete == FALSE | check_df$gene_trees_complete == FALSE | check_df$astral_tree_complete == FALSE),]$id
 # Open dataframe of simulation parameters and trim to incomplete trees
