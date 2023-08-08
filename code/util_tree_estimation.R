@@ -31,7 +31,7 @@ source(paste0(repo_dir, "code/func_prepare_trees.R"))
 
 #### 3. Generate slurm files to run tree estimation ####
 # Open the csv with tree estimation command lines
-tree_df <- read.csv(paste0(output_dir, grep("generate_trees", list.files(output_dir), value = T)))
+tree_df <- read.csv(paste0(output_dir, grep(simulation_id, grep("generate_trees", list.files(output_dir), value = T), value = T)))
 # Remove any double spaces in command lines
 tree_df$iqtree2_gene_tree_command <- gsub("   ", " ", tree_df$iqtree2_gene_tree_command)
 tree_df$iqtree2_gene_tree_command <- gsub("  ", " ", tree_df$iqtree2_gene_tree_command)
@@ -62,11 +62,14 @@ slurm_body <- c("#SBATCH --output=/mnt/data/dayhoff/home/u5348329/ancient_ILS/sl
 slurm_footer <- c("")
 # Assemble code lines
 tree_df$combined_tree_estimation_command <- paste0("cd ", tree_df$output_folder, ";", tree_df$iqtree2_gene_tree_command, ";", tree_df$ASTRAL_command)
+# Determine the number of separate slurm files to generate
+runs_per_file = 50 
+num_files <- nrow(tree_df)/runs_per_file
 # Loop and assemble scripts
-for (i in 1:8){
-  rows <- seq(from = ((i-1)*25)+1, to = (i*25), by = 1)
+for (i in 1:num_files){
+  rows <- seq(from = ((i-1)*runs_per_file)+1, to = (i*runs_per_file), by = 1)
   temp_slurm_file <- c(slurm_header, paste0(slurm_name, "te",i), slurm_body, tree_df$combined_tree_estimation_command[rows], slurm_footer)
-  temp_op_file <- paste0(output_dir, "te", i, ".sh")
+  temp_op_file <- paste0(output_dir, simulation_id, "_te", i, ".sh")
   write(temp_slurm_file, file = temp_op_file)
 }
 
