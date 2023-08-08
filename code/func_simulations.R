@@ -401,7 +401,7 @@ check.duplicated.coalescent.times <- function(node_df, preferred_time_difference
       # Find any rows that include the same taxa and the same time
       double_dupes_check <- c( which(duplicated(u_df$min_taxa)), which(duplicated(u_df$max_taxa)), which(u_df$min_taxa %in% u_df$max_taxa) )
       # If there are rows with duplicate times and overlapping taxa, correct the times
-      if (length(double_dupes_rows) > 0){
+      if (length(double_dupes_check) > 0){
         double_dupes_rows <- unique(c(which(u_df$min_taxa %in% u_df$min_taxa[double_dupes_check]), 
                                       which(u_df$max_taxa %in% u_df$max_taxa[double_dupes_check]), 
                                       which(u_df$min_taxa %in% u_df$max_taxa[double_dupes_check]), 
