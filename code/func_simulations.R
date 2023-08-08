@@ -458,13 +458,6 @@ check.duplicated.coalescent.times <- function(node_df, preferred_time_difference
 }
 
 
-get.conflicting.coalescent.event <- function(row_number, node_df){
-  ## Identify coalescent events occuring at same time with same taxa
-  
-  
-}
-
-
 
 extract.clade.from.node <- function(node, tree){
   ## Small function to take a node, extract the clade from that node, and return the number and names of taxa in that node
