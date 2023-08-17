@@ -12,7 +12,7 @@ location = "local"
 if (location == "local"){
   ## File paths
   repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-  input_dir                   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/"
+  input_dir                   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulation_output_files/"
   output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/04_figures/"
 }
 
@@ -20,49 +20,67 @@ if (location == "local"){
 
 ###### 2. Open packages and functions ######
 ## Source functions
-
+source(paste0(repo_dir, "code/func_plotting.R"))
 
 ## Open packages
 library(reshape2)
 library(ggplot2)
-
-# Create output file paths
-
 
 
 
 ###### 3. Prepare csvs for plotting  ######
 # Identify output csv files
 all_csvs <- grep("csv", list.files(input_dir), value = T)
-# Open simulation results
-qcf_df_file <- paste0(input_dir, grep("output_analysis", all_csvs, value = T))
-qcf_df <- read.csv(qcf_df_file)
-# Add some columns to the dataframe
-#     Denote estimated or actual qcf
-qcf_df$qcf_type <- as.character(qcf_df$variable)
-qcf_df$qcf_type[grep("estimated", as.character(qcf_df$variable))] <- "estimated"
-qcf_df$qcf_type[grep("actual", as.character(qcf_df$variable))] <- "actual"
-qcf_df$hypothesis_test <- as.character(qcf_df$variable)
-#     Denote tree used to calculate qCFs
-qcf_df$hypothesis_test[grep("testHyp1_Cten", as.character(qcf_df$hypothesis_test))] <- "Hyp1"
-qcf_df$hypothesis_test[grep("testHyp2_Pori", as.character(qcf_df$hypothesis_test))] <- "Hyp2"
-qcf_df$hypothesis_test[grep("testHyp3_CtenPori", as.character(qcf_df$hypothesis_test))] <- "Hyp3"
 # Identify id.variable columns
-id.var_cols <- c("ID", "simulation_type", "hypothesis_tree", "branch_a_length", "branch_b_length", "branch_c_length", "qcf_type", "hypothesis_test")
+id.var_cols <- c("ID", "simulation_type", "hypothesis_tree", "branch_a_length", "branch_b_length", "branch_c_length")
 
 
 
-###### 4. Plot qCF results  ######
+###### 4. Plot qCF results from "ancientILS" simulations ######
+# Open simulation results
+qcf_df_file <- paste0(input_dir, grep("ancientILS", grep("output_analysis", all_csvs, value = T), value = T))
+qcf_df <- read.csv(qcf_df_file)
+qcf_df$hypothesis_tree <- as.factor(qcf_df$hypothesis_tree)
+
 #### Plot 1: Branch length vs summary qCF. ####
+# Create df
 plot1_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
-                 measure.vars = c("actual_num_quartet_trees", "actual_final_quartet_score", "actual_final_normalised_quartet_score",
-                                  "actual_qcf_mean", "actual_qcf_median", "actual_qcf_min", "actual_qcf_max", "estimated_num_quartet_trees",
-                                  "estimated_final_quartet_score", "estimated_final_normalised_quartet_score", "estimated_qcf_mean",
-                                  "estimated_qcf_median", "estimated_qcf_min","estimated_qcf_max"))
-plot1a_df <- plot1_df[(plot1_df$variable == "actual_final_normalised_quartet_score" | plot1_df$variable == "estimated_final_normalised_quartet_score"), ]
+                 measure.vars = c("actual_final_normalised_quartet_score", "estimated_final_normalised_quartet_score") )
+# Create labs
+facet_labs <- c("Ctenophora-sister", "Porifera-sister")
+names(facet_labs) = c("1", "2")
+# Plots
+ggplot(plot1_df, aes(x = branch_a_length, y = value, color = variable)) + 
+  facet_grid(hypothesis_tree~., labeller = labeller(hypothesis_tree = facet_labs)) +
+  geom_point() +
+  geom_vline(xintercept = 0.1729) +
+  annotate("text", x = 0.19, y = 0.06, label = "Empirical\nASTRAL\nvalue", color = "Black",
+           hjust = 0, vjust = 0.5, size = 4) +
+  scale_x_continuous(name = "\nLength of branch a (in coalescent units)", trans='log10') +
+  scale_y_continuous(name = "Normalised Final qCF Score\n", limits = c(0,1), breaks = seq(0,1.1,0.1)) +
+  scale_color_manual(values = c("#5ab4ac", "#d8b365"),
+                     labels = c("Actual", "Estimated"),
+                     na.value = "grey50") +
+  guides(color = guide_legend(title="qCF score")) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 15))
 
-ggplot(plot1a_df, aes(x = hypothesis_tree, x = value)) + geom_boxplot() + geom_jitter()
+ggplot(plot1_df, aes(x = branch_b_length, y = value, color = variable)) + 
+  facet_grid(hypothesis_tree~., labeller = labeller(hypothesis_tree = facet_labs)) +
+  geom_point() +
+  geom_vline(xintercept = 1.6470) +
+  annotate("text", x = 1.8, y = 0.06, label = "Empirical\nASTRAL\nvalue", color = "Black",
+           hjust = 0, vjust = 0.5, size = 4) +
+  scale_x_continuous(name = "\nLength of branch b (in coalescent units)", trans='log10') +
+  scale_y_continuous(name = "Normalised Final qCF Score\n", limits = c(0,1), breaks = seq(0,1.1,0.1)) +
+  theme_bw() +
+  scale_color_manual(values = c("#5ab4ac", "#d8b365"),
+                     labels = c("Actual", "Estimated"),
+                     na.value = "grey50") +
+  guides(color = guide_legend(title="qCF score")) +
+  theme(strip.text = element_text(size = 15))
+
 
 #### Plot 2: Branch length vs branch "a" qCF. ####
 plot2_df <- melt(data = qcf_df,
@@ -100,5 +118,8 @@ plot4_df <- melt(data = qcf_df,
 
 
 
-
+###### 4. Plot qCF results from "bothBranchesVary" simulations ######
+# Open simulation results
+qcf_df_file <- paste0(input_dir, grep("bothBranchesVary", grep("output_analysis", all_csvs, value = T), value = T))
+qcf_df <- read.csv(qcf_df_file)
 
