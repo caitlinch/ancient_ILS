@@ -41,18 +41,18 @@ id.var_cols <- c("ID", "simulation_type", "hypothesis_tree", "branch_a_length", 
 qcf_df_file <- paste0(input_dir, grep("ancientILS", grep("output_analysis", all_csvs, value = T), value = T))
 qcf_df <- read.csv(qcf_df_file)
 qcf_df$hypothesis_tree <- as.factor(qcf_df$hypothesis_tree)
+# Create labs
+tree_labs <- c("Ctenophora-sister", "Porifera-sister")
+names(tree_labs) = c("1", "2")
 
 #### Plot 1: Branch length vs summary qCF. ####
 # Create df
 plot1_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
                  measure.vars = c("actual_final_normalised_quartet_score", "estimated_final_normalised_quartet_score") )
-# Create labs
-facet_labs <- c("Ctenophora-sister", "Porifera-sister")
-names(facet_labs) = c("1", "2")
 # Plots
 ggplot(plot1_df, aes(x = branch_a_length, y = value, color = variable)) + 
-  facet_grid(hypothesis_tree~., labeller = labeller(hypothesis_tree = facet_labs)) +
+  facet_grid(hypothesis_tree~., labeller = labeller(hypothesis_tree = tree_labs)) +
   geom_point() +
   geom_vline(xintercept = 0.1729) +
   annotate("text", x = 0.19, y = 0.06, label = "Empirical\nASTRAL\nvalue", color = "Black",
@@ -67,7 +67,7 @@ ggplot(plot1_df, aes(x = branch_a_length, y = value, color = variable)) +
   theme(strip.text = element_text(size = 15))
 
 ggplot(plot1_df, aes(x = branch_b_length, y = value, color = variable)) + 
-  facet_grid(hypothesis_tree~., labeller = labeller(hypothesis_tree = facet_labs)) +
+  facet_grid(hypothesis_tree~., labeller = labeller(hypothesis_tree = tree_labs)) +
   geom_point() +
   geom_vline(xintercept = 1.6470) +
   annotate("text", x = 1.8, y = 0.06, label = "Empirical\nASTRAL\nvalue", color = "Black",
@@ -86,24 +86,42 @@ ggplot(plot1_df, aes(x = branch_b_length, y = value, color = variable)) +
 plot2_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
                  measure.vars = c("actual_testHyp1_Cten_branch_a_qcf_value", "actual_testHyp2_Pori_branch_a_qcf_value", "actual_testHyp3_CtenPori_qcf_value",
-                                  "expected_testHyp1_Cten_branch_a_qcf_value", "expected_testHyp2_Pori_branch_a_qcf_value", "expected_testHyp3_CtenPori_qcf_value"))
+                                  "estimated_testHyp1_Cten_branch_a_qcf_value", "estimated_testHyp2_Pori_branch_a_qcf_value", "estimated_testHyp3_CtenPori_qcf_value"))
 plot2_df$qcf_type <- as.character(plot2_df$variable)
-plot2_df$qcf_type[grep("expected", as.character(plot2_df$variable))] <- "estimated"
+plot2_df$qcf_type[grep("estimated", as.character(plot2_df$variable))] <- "estimated"
 plot2_df$qcf_type[grep("actual", as.character(plot2_df$variable))] <- "actual"
 plot2_df$hypothesis_test <- as.character(plot2_df$variable)
 plot2_df$hypothesis_test[grep("testHyp1_Cten", as.character(plot2_df$hypothesis_test))] <- "Hyp1"
 plot2_df$hypothesis_test[grep("testHyp2_Pori", as.character(plot2_df$hypothesis_test))] <- "Hyp2"
 plot2_df$hypothesis_test[grep("testHyp3_CtenPori", as.character(plot2_df$hypothesis_test))] <- "Hyp3"
 
-ggplot(plot2_df, aes(x = branch_a_length, y = value, group = hypothesis_tree)) + 
+ggplot(plot2_df, aes(x = branch_a_length, y = value, color = hypothesis_tree)) + 
   facet_grid(hypothesis_test~qcf_type) +
-  geom_boxplot() 
+  geom_smooth() +
+  scale_x_continuous(name = "\nLength of branch a (in coalescent units)", trans='log10') +
+  scale_y_continuous(name = "qCF Score\n", limits = c(0,1), breaks = seq(0,1.1,0.2)) +
+  theme_bw()
 
 
 #### Plot 3: Branch length vs branch "b" qCF. ####
 plot3_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
-                 measure.vars = c("actual_clade_CTEN_qcf_value", "expected_clade_CTEN_qcf_value"))
+                 measure.vars = c("actual_testHyp1_Cten_branch_a_qcf_value", "actual_testHyp2_Pori_branch_a_qcf_value", "actual_testHyp3_CtenPori_qcf_value",
+                                  "estimated_testHyp1_Cten_branch_a_qcf_value", "estimated_testHyp2_Pori_branch_a_qcf_value", "estimated_testHyp3_CtenPori_qcf_value"))
+plot3_df$qcf_type <- as.character(plot3_df$variable)
+plot3_df$qcf_type[grep("estimated", as.character(plot3_df$variable))] <- "estimated"
+plot3_df$qcf_type[grep("actual", as.character(plot3_df$variable))] <- "actual"
+plot3_df$hypothesis_test <- as.character(plot3_df$variable)
+plot3_df$hypothesis_test[grep("testHyp1_Cten", as.character(plot3_df$hypothesis_test))] <- "Hyp1"
+plot3_df$hypothesis_test[grep("testHyp2_Pori", as.character(plot3_df$hypothesis_test))] <- "Hyp2"
+plot3_df$hypothesis_test[grep("testHyp3_CtenPori", as.character(plot3_df$hypothesis_test))] <- "Hyp3"
+
+ggplot(plot3_df, aes(x = branch_b_length, y = value, color = hypothesis_tree)) + 
+  facet_grid(hypothesis_test~qcf_type) +
+  geom_smooth() +
+  scale_x_continuous(name = "\nLength of branch b (in coalescent units)", trans='log10') +
+  scale_y_continuous(name = "qCF Score\n", limits = c(0,1), breaks = seq(0,1.1,0.2)) +
+  theme_bw()
 
 
 #### Plot 4: Branch length vs clade qCF. ####
@@ -111,10 +129,34 @@ plot4_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
                  measure.vars = c("actual_clade_BILAT_qcf_value", "actual_clade_CNID_qcf_value", "actual_clade_PORI_qcf_value",
                                   "actual_clade_CTEN_qcf_value", "actual_clade_CHOANO_qcf_value", "actual_clade_BILAT_CTEN_qcf_value",
-                                  "actual_clade_ANIMALS_qcf_value", "expected_clade_BILAT_qcf_value", "expected_clade_CNID_qcf_value",
-                                  "expected_clade_PORI_qcf_value", "expected_clade_CTEN_qcf_value", "expected_clade_CHOANO_qcf_value",
-                                  "expected_clade_BILAT_CTEN_qcf_value", "expected_clade_ANIMALS_qcf_value"))
+                                  "actual_clade_ANIMALS_qcf_value", "estimated_clade_BILAT_qcf_value", "estimated_clade_CNID_qcf_value",
+                                  "estimated_clade_PORI_qcf_value", "estimated_clade_CTEN_qcf_value", "estimated_clade_CHOANO_qcf_value",
+                                  "estimated_clade_BILAT_CTEN_qcf_value", "estimated_clade_ANIMALS_qcf_value"))
+plot4_df$clade <- as.character(plot4_df$variable)
+plot4_df$clade[grep("e_BILAT_q", as.character(plot4_df$variable))] <- "Bilateria"
+plot4_df$clade[grep("e_CTEN_q", as.character(plot4_df$variable))] <- "Ctenophora"
+plot4_df$clade[grep("e_PORI_q", as.character(plot4_df$variable))] <- "Porifera"
+plot4_df$clade[grep("e_CNID_q", as.character(plot4_df$variable))] <- "Cnidaria"
+plot4_df$clade[grep("e_CHOANO_q", as.character(plot4_df$variable))] <- "Choanoflagellates"
+plot4_df$clade[grep("e_ANIMALS_q", as.character(plot4_df$variable))] <- "All Animals"
+plot4_df$clade[grep("e_BILAT_CTEN_q", as.character(plot4_df$variable))] <- "Bilateria+Cnidaria"
+plot4_df$qcf_type <- as.character(plot4_df$variable)
+plot4_df$qcf_type[grep("actual", as.character(plot4_df$variable))] <- "Actual"
+plot4_df$qcf_type[grep("estimated", as.character(plot4_df$variable))] <- "Estimated"
 
+ggplot(plot4_df, aes(x = branch_a_length, y = value, color = qcf_type)) + 
+  facet_grid(clade~.) +
+  geom_point() +
+  scale_x_continuous(name = "\nLength of branch a (in coalescent units)", trans='log10') +
+  scale_y_continuous(name = "qCF Score\n", limits = c(0,1.2), breaks = seq(0,1.6,0.2)) +
+  theme_bw()
+
+ggplot(plot4_df, aes(x = branch_b_length, y = value, color = qcf_type)) + 
+  facet_grid(clade~hypothesis_tree) +
+  geom_point() +
+  scale_x_continuous(name = "\nLength of branch b (in coalescent units)", trans='log10') +
+  scale_y_continuous(name = "qCF Score\n", limits = c(0,1.2), breaks = seq(0,1.6,0.2)) +
+  theme_bw()
 
 
 
