@@ -7,7 +7,7 @@
 # repo_dir                  <- location of caitlinch/ancient_ILS github repository
 # output_dir                <- output directory to save test runs for determining appropriate branch lengths
 
-location = "local"
+location = "dayhoff"
 if (location == "local"){
   ## File paths and computational parameters
   repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
