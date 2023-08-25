@@ -33,8 +33,14 @@ library(ggplot2)
 all_csvs <- grep("csv", list.files(input_dir), value = T)
 # Identify id.variable columns
 id.var_cols <- c("ID", "simulation_type", "hypothesis_tree", "branch_a_length", "branch_b_length", "branch_c_length")
+
+# Set color palettes
+qcf_type_palette <- c("#5ab4ac", "#d8b365")
+names(qcf_type_palette) = c("Actual", "Estimated")
+
 # Set empirical branch lengths for branches 
 emp_bl <- c("a" = 0.1729, "b" = 1.6470)
+
 
 
 
@@ -54,6 +60,11 @@ names(hyp_labs) <- c("Hyp1", "Hyp2", "Hyp3")
 plot1_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
                  measure.vars = c("actual_final_normalised_quartet_score", "estimated_final_normalised_quartet_score") )
+# Replace variable for plotting 
+plot1_df$variable <- as.character(plot1_df$variable)
+plot1_df$variable[grep("actual", plot1_df$variable)] <- "Actual"
+plot1_df$variable[grep("estimated", plot1_df$variable)] <- "Estimated"
+plot1_df$variable <- as.factor(plot1_df$variable)
 # Add new column for plotting
 plot1_df$branch_to_vary <- plot1_df$ID
 plot1_df$branch_to_vary[which(plot1_df$branch_a_length == emp_bl["a"])] <- "Branch b"
@@ -70,9 +81,7 @@ p <- ggplot(plot1_df, aes(x = varied_branch_length, y = value, color = variable)
   geom_boxplot() +
   scale_x_discrete(name = "\nLength of branch (in coalescent units)") +
   scale_y_continuous(name = "Normalised Final qCF Score\n", limits = c(0,1), breaks = seq(0,1.1,0.1)) +
-  scale_color_manual(values = c("#5ab4ac", "#d8b365"),
-                     labels = c("Actual", "Estimated"),
-                     na.value = "grey50") +
+  scale_color_manual(values = qcf_type_palette, na.value = "grey50") +
   guides(color = guide_legend(title="qCF score")) +
   theme_bw() +
   theme(strip.text = element_text(size = 20),
@@ -108,6 +117,7 @@ p <- ggplot(plot2_df, aes(x = branch_a_length, y = value, color = qcf_type)) +
   geom_vline(xintercept = emp_bl[["a"]], linetype = 2, color = "darkgrey") +
   scale_x_continuous(name = "\nLength of branch a (in coalescent units)", trans = "log10") +
   scale_y_continuous(name = "qCF Score\n", limits = c(0,1.05), breaks = seq(0,1.1,0.2)) +
+  scale_color_manual(values = qcf_type_palette, na.value = "grey50") +
   guides(color = guide_legend(title="qCF type")) +
   theme_bw() +
   theme(strip.text = element_text(size = 15),
@@ -142,6 +152,7 @@ p <- ggplot(plot3_df, aes(x = branch_b_length, y = value, color = qcf_type)) +
   scale_x_continuous(name = "\nLength of branch b (in coalescent units)", trans='log10') +
   scale_y_continuous(name = "qCF Score\n", limits = c(0,1.05), breaks = seq(0,1.1,0.2)) +
   guides(color = guide_legend(title="qCF type")) +
+  scale_color_manual(values = qcf_type_palette, na.value = "grey50") +
   theme_bw() +
   theme(strip.text = element_text(size = 15),
         axis.text = element_text(size = 15),
