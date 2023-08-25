@@ -44,6 +44,8 @@ qcf_df$hypothesis_tree <- as.factor(qcf_df$hypothesis_tree)
 # Create labs
 tree_labs <- c("Ctenophora-sister", "Porifera-sister")
 names(tree_labs) = c("1", "2")
+hyp_labs <- c("Branch to\nBILAT+CNID+PORI", "Branch to\nBILAT+CNID+CTEN", "Branch to\nCTEN+PORI")
+names(hyp_labs) <- c("Hyp1", "Hyp2", "Hyp3")
 
 #### Plot 1: Branch length vs summary qCF. ####
 # Create df
@@ -51,12 +53,12 @@ plot1_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
                  measure.vars = c("actual_final_normalised_quartet_score", "estimated_final_normalised_quartet_score") )
 # Plots
-ggplot(plot1_df, aes(x = branch_a_length, y = value, color = variable)) + 
+p <- ggplot(plot1_df, aes(x = branch_a_length, y = value, color = variable)) + 
   facet_grid(hypothesis_tree~., labeller = labeller(hypothesis_tree = tree_labs)) +
-  geom_point() +
-  geom_vline(xintercept = 0.1729) +
-  annotate("text", x = 0.19, y = 0.06, label = "Empirical\nASTRAL\nvalue", color = "Black",
-           hjust = 0, vjust = 0.5, size = 4) +
+  geom_smooth() +
+  geom_vline(xintercept = 0.1729, linetype = 2, color = "grey40") +
+  annotate("text", x = 0.19, y = 0.06, label = "Empirical\nbranch\nlength", color = "grey40",
+           hjust = 0, vjust = 0.5, size = 5.5) +
   scale_x_continuous(name = "\nLength of branch a (in coalescent units)", trans='log10') +
   scale_y_continuous(name = "Normalised Final qCF Score\n", limits = c(0,1), breaks = seq(0,1.1,0.1)) +
   scale_color_manual(values = c("#5ab4ac", "#d8b365"),
@@ -64,14 +66,20 @@ ggplot(plot1_df, aes(x = branch_a_length, y = value, color = variable)) +
                      na.value = "grey50") +
   guides(color = guide_legend(title="qCF score")) +
   theme_bw() +
-  theme(strip.text = element_text(size = 15))
+  theme(strip.text = element_text(size = 25),
+        axis.text = element_text(size = 25),
+        axis.title = element_text(size = 35),
+        legend.title = element_text(size = 35),
+        legend.text = element_text(size = 28))
+p_file <- paste0(output_dir, "exploratory_normalised-qcf_branch-a-length.png")
+ggsave(filename = p_file, plot = p, device = "png")
 
-ggplot(plot1_df, aes(x = branch_b_length, y = value, color = variable)) + 
+p <- ggplot(plot1_df, aes(x = branch_b_length, y = value, color = variable)) + 
   facet_grid(hypothesis_tree~., labeller = labeller(hypothesis_tree = tree_labs)) +
-  geom_point() +
-  geom_vline(xintercept = 1.6470) +
-  annotate("text", x = 1.8, y = 0.06, label = "Empirical\nASTRAL\nvalue", color = "Black",
-           hjust = 0, vjust = 0.5, size = 4) +
+  geom_smooth() +
+  geom_vline(xintercept = 1.6470, linetype = 2, color = "grey40") +
+  annotate("text", x = 1.8, y = 0.06, label = "Empirical\nbranch\nlength", color = "grey40",
+           hjust = 0, vjust = 0.5, size = 5.5) +
   scale_x_continuous(name = "\nLength of branch b (in coalescent units)", trans='log10') +
   scale_y_continuous(name = "Normalised Final qCF Score\n", limits = c(0,1), breaks = seq(0,1.1,0.1)) +
   theme_bw() +
@@ -79,7 +87,14 @@ ggplot(plot1_df, aes(x = branch_b_length, y = value, color = variable)) +
                      labels = c("Actual", "Estimated"),
                      na.value = "grey50") +
   guides(color = guide_legend(title="qCF score")) +
-  theme(strip.text = element_text(size = 15))
+  theme(strip.text = element_text(size = 25),
+        axis.text = element_text(size = 25),
+        axis.title = element_text(size = 35),
+        legend.title = element_text(size = 35),
+        legend.text = element_text(size = 28))
+p_file <- paste0(output_dir, "exploratory_normalised-qcf_branch-b-length.png")
+ggsave(filename = p_file, plot = p, device = "png")
+
 
 
 #### Plot 2: Branch length vs branch "a" qCF. ####
@@ -88,19 +103,28 @@ plot2_df <- melt(data = qcf_df,
                  measure.vars = c("actual_testHyp1_Cten_branch_a_qcf_value", "actual_testHyp2_Pori_branch_a_qcf_value", "actual_testHyp3_CtenPori_qcf_value",
                                   "estimated_testHyp1_Cten_branch_a_qcf_value", "estimated_testHyp2_Pori_branch_a_qcf_value", "estimated_testHyp3_CtenPori_qcf_value"))
 plot2_df$qcf_type <- as.character(plot2_df$variable)
-plot2_df$qcf_type[grep("estimated", as.character(plot2_df$variable))] <- "estimated"
-plot2_df$qcf_type[grep("actual", as.character(plot2_df$variable))] <- "actual"
+plot2_df$qcf_type[grep("estimated", as.character(plot2_df$variable))] <- "Estimated"
+plot2_df$qcf_type[grep("actual", as.character(plot2_df$variable))] <- "Actual"
 plot2_df$hypothesis_test <- as.character(plot2_df$variable)
 plot2_df$hypothesis_test[grep("testHyp1_Cten", as.character(plot2_df$hypothesis_test))] <- "Hyp1"
 plot2_df$hypothesis_test[grep("testHyp2_Pori", as.character(plot2_df$hypothesis_test))] <- "Hyp2"
 plot2_df$hypothesis_test[grep("testHyp3_CtenPori", as.character(plot2_df$hypothesis_test))] <- "Hyp3"
 
-ggplot(plot2_df, aes(x = branch_a_length, y = value, color = hypothesis_tree)) + 
-  facet_grid(hypothesis_test~qcf_type) +
+p <- ggplot(plot2_df, aes(x = branch_a_length, y = value, color = qcf_type)) + 
+  facet_grid(hypothesis_test~hypothesis_tree, labeller = labeller(hypothesis_tree = tree_labs, hypothesis_test = hyp_labs)) +
   geom_smooth() +
-  scale_x_continuous(name = "\nLength of branch a (in coalescent units)", trans='log10') +
+  geom_vline(xintercept = 0.1729, linetype = 2, color = "darkgrey") +
+  scale_x_continuous(name = "\nLength of branch a (in coalescent units)", trans = "log10") +
   scale_y_continuous(name = "qCF Score\n", limits = c(0,1), breaks = seq(0,1.1,0.2)) +
-  theme_bw()
+  guides(color = guide_legend(title="qCF type")) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 15),
+        axis.text = element_text(size = 15),
+        axis.title = element_text(size = 20),
+        legend.title = element_text(size = 20),
+        legend.text = element_text(size = 15))
+p_file <- paste0(output_dir, "results_qcf-score_branch-a-length.png")
+ggsave(filename = p_file, plot = p, device = "png")
 
 
 #### Plot 3: Branch length vs branch "b" qCF. ####
