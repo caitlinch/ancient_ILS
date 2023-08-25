@@ -33,6 +33,8 @@ library(ggplot2)
 all_csvs <- grep("csv", list.files(input_dir), value = T)
 # Identify id.variable columns
 id.var_cols <- c("ID", "simulation_type", "hypothesis_tree", "branch_a_length", "branch_b_length", "branch_c_length")
+# Set empirical branch lengths for branches 
+emp_bl <- c("a" = 0.1729, "b" = 1.6470)
 
 
 
@@ -53,10 +55,12 @@ plot1_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
                  measure.vars = c("actual_final_normalised_quartet_score", "estimated_final_normalised_quartet_score") )
 # Plots
-p <- ggplot(plot1_df, aes(x = branch_a_length, y = value, color = variable)) + 
+# Remove any rows where plot1_df$branch_a_length != 0.1729 (keep branch b stable for this plot)
+plot1a_df <- plot1_df[(plot1_df$branch_a_length != emp_bl[["a"]]),]
+p <- ggplot(plot1a_df, aes(x = branch_a_length, y = value, color = variable)) + 
   facet_grid(hypothesis_tree~., labeller = labeller(hypothesis_tree = tree_labs)) +
   geom_smooth() +
-  geom_vline(xintercept = 0.1729, linetype = 2, color = "grey40") +
+  geom_vline(xintercept = emp_bl[["a"]], linetype = 2, color = "grey40") +
   annotate("text", x = 0.19, y = 0.06, label = "Empirical\nbranch\nlength", color = "grey40",
            hjust = 0, vjust = 0.5, size = 5.5) +
   scale_x_continuous(name = "\nLength of branch a (in coalescent units)", trans='log10') +
@@ -74,10 +78,12 @@ p <- ggplot(plot1_df, aes(x = branch_a_length, y = value, color = variable)) +
 p_file <- paste0(output_dir, "exploratory_normalised-qcf_branch-a-length.png")
 ggsave(filename = p_file, plot = p, device = "png")
 
-p <- ggplot(plot1_df, aes(x = branch_b_length, y = value, color = variable)) + 
+# Remove any rows where plot1_df$branch_b_length != 1.6470 (keep branch a stable for this plot)
+plot1b_df <- plot1_df[(plot1_df$branch_b_length != emp_bl[["b"]]),]
+p <- ggplot(plot1b_df, aes(x = branch_b_length, y = value, color = variable)) + 
   facet_grid(hypothesis_tree~., labeller = labeller(hypothesis_tree = tree_labs)) +
   geom_smooth() +
-  geom_vline(xintercept = 1.6470, linetype = 2, color = "grey40") +
+  geom_vline(xintercept = emp_bl[["b"]], linetype = 2, color = "grey40") +
   annotate("text", x = 1.8, y = 0.06, label = "Empirical\nbranch\nlength", color = "grey40",
            hjust = 0, vjust = 0.5, size = 5.5) +
   scale_x_continuous(name = "\nLength of branch b (in coalescent units)", trans='log10') +
@@ -102,6 +108,9 @@ plot2_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
                  measure.vars = c("actual_testHyp1_Cten_branch_a_qcf_value", "actual_testHyp2_Pori_branch_a_qcf_value", "actual_testHyp3_CtenPori_qcf_value",
                                   "estimated_testHyp1_Cten_branch_a_qcf_value", "estimated_testHyp2_Pori_branch_a_qcf_value", "estimated_testHyp3_CtenPori_qcf_value"))
+# Remove any rows where plot2_df$branch_b_length != 1.647 (keep branch b stable for this plot)
+plot2_df <- plot2_df[(plot2_df$branch_a_length != emp_bl[["a"]]),]
+# Add extract columns for faceting
 plot2_df$qcf_type <- as.character(plot2_df$variable)
 plot2_df$qcf_type[grep("estimated", as.character(plot2_df$variable))] <- "Estimated"
 plot2_df$qcf_type[grep("actual", as.character(plot2_df$variable))] <- "Actual"
@@ -113,9 +122,9 @@ plot2_df$hypothesis_test[grep("testHyp3_CtenPori", as.character(plot2_df$hypothe
 p <- ggplot(plot2_df, aes(x = branch_a_length, y = value, color = qcf_type)) + 
   facet_grid(hypothesis_test~hypothesis_tree, labeller = labeller(hypothesis_tree = tree_labs, hypothesis_test = hyp_labs)) +
   geom_smooth() +
-  geom_vline(xintercept = 0.1729, linetype = 2, color = "darkgrey") +
+  geom_vline(xintercept = emp_bl[["a"]], linetype = 2, color = "darkgrey") +
   scale_x_continuous(name = "\nLength of branch a (in coalescent units)", trans = "log10") +
-  scale_y_continuous(name = "qCF Score\n", limits = c(0,1), breaks = seq(0,1.1,0.2)) +
+  scale_y_continuous(name = "qCF Score\n", limits = c(0,1.05), breaks = seq(0,1.1,0.2)) +
   guides(color = guide_legend(title="qCF type")) +
   theme_bw() +
   theme(strip.text = element_text(size = 15),
@@ -132,20 +141,32 @@ plot3_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
                  measure.vars = c("actual_testHyp1_Cten_branch_a_qcf_value", "actual_testHyp2_Pori_branch_a_qcf_value", "actual_testHyp3_CtenPori_qcf_value",
                                   "estimated_testHyp1_Cten_branch_a_qcf_value", "estimated_testHyp2_Pori_branch_a_qcf_value", "estimated_testHyp3_CtenPori_qcf_value"))
+# Remove any rows where plot3_df$branch_b_length != 1.647 (keep branch a stable for this plot)
+plot3_df <- plot3_df[(plot3_df$branch_b_length != emp_bl[["b"]]),]
+# Add extract columns for faceting
 plot3_df$qcf_type <- as.character(plot3_df$variable)
-plot3_df$qcf_type[grep("estimated", as.character(plot3_df$variable))] <- "estimated"
-plot3_df$qcf_type[grep("actual", as.character(plot3_df$variable))] <- "actual"
+plot3_df$qcf_type[grep("estimated", as.character(plot3_df$variable))] <- "Estimated"
+plot3_df$qcf_type[grep("actual", as.character(plot3_df$variable))] <- "Actual"
 plot3_df$hypothesis_test <- as.character(plot3_df$variable)
 plot3_df$hypothesis_test[grep("testHyp1_Cten", as.character(plot3_df$hypothesis_test))] <- "Hyp1"
 plot3_df$hypothesis_test[grep("testHyp2_Pori", as.character(plot3_df$hypothesis_test))] <- "Hyp2"
 plot3_df$hypothesis_test[grep("testHyp3_CtenPori", as.character(plot3_df$hypothesis_test))] <- "Hyp3"
 
-ggplot(plot3_df, aes(x = branch_b_length, y = value, color = hypothesis_tree)) + 
-  facet_grid(hypothesis_test~qcf_type) +
+p <- ggplot(plot3_df, aes(x = branch_b_length, y = value, color = qcf_type)) + 
+  facet_grid(hypothesis_test~hypothesis_tree, labeller = labeller(hypothesis_tree = tree_labs, hypothesis_test = hyp_labs)) +
   geom_smooth() +
+  geom_vline(xintercept = emp_bl[["b"]], linetype = 2, color = "darkgrey") +
   scale_x_continuous(name = "\nLength of branch b (in coalescent units)", trans='log10') +
-  scale_y_continuous(name = "qCF Score\n", limits = c(0,1), breaks = seq(0,1.1,0.2)) +
-  theme_bw()
+  scale_y_continuous(name = "qCF Score\n", limits = c(0,1.05), breaks = seq(0,1.1,0.2)) +
+  guides(color = guide_legend(title="qCF type")) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 15),
+        axis.text = element_text(size = 15),
+        axis.title = element_text(size = 20),
+        legend.title = element_text(size = 20),
+        legend.text = element_text(size = 15))
+p_file <- paste0(output_dir, "results_qcf-score_branch-b-length.png")
+ggsave(filename = p_file, plot = p, device = "png")
 
 
 #### Plot 4: Branch length vs clade qCF. ####
