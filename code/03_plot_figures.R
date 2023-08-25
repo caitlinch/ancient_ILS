@@ -54,7 +54,38 @@ names(hyp_labs) <- c("Hyp1", "Hyp2", "Hyp3")
 plot1_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
                  measure.vars = c("actual_final_normalised_quartet_score", "estimated_final_normalised_quartet_score") )
+# Add new column for plotting
+plot1_df$branch_to_vary <- plot1_df$ID
+plot1_df$branch_to_vary[which(plot1_df$branch_a_length == emp_bl["a"])] <- "Branch b"
+plot1_df$branch_to_vary[which(plot1_df$branch_b_length == emp_bl["b"])] <- "Branch a"
+plot1_df$varied_branch_length <- plot1_df$ID
+plot1_df$varied_branch_length[which(plot1_df$branch_a_length == emp_bl["a"])] <- plot1_df$branch_b_length[which(plot1_df$branch_a_length == emp_bl["a"])]
+plot1_df$varied_branch_length[which(plot1_df$branch_b_length == emp_bl["b"])] <- plot1_df$branch_a_length[which(plot1_df$branch_b_length == emp_bl["b"])]
+plot1_df$varied_branch_length <- as.factor(plot1_df$varied_branch_length)
+
+
 # Plots
+p <- ggplot(plot1_df, aes(x = varied_branch_length, y = value, color = variable)) + 
+  facet_grid(hypothesis_tree~branch_to_vary, labeller = labeller(hypothesis_tree = tree_labs)) +
+  geom_boxplot() +
+  scale_x_discrete(name = "\nLength of branch (in coalescent units)") +
+  scale_y_continuous(name = "Normalised Final qCF Score\n", limits = c(0,1), breaks = seq(0,1.1,0.1)) +
+  scale_color_manual(values = c("#5ab4ac", "#d8b365"),
+                     labels = c("Actual", "Estimated"),
+                     na.value = "grey50") +
+  guides(color = guide_legend(title="qCF score")) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        axis.title = element_text(size = 30),
+        legend.title = element_text(size = 30),
+        legend.text = element_text(size = 25))
+p_file <- paste0(output_dir, "exploratory_normalised-qcf_branch-length.png")
+ggsave(filename = p_file, plot = p, device = "png")
+
+
+
 # Remove any rows where plot1_df$branch_a_length != 0.1729 (keep branch b stable for this plot)
 plot1a_df <- plot1_df[(plot1_df$branch_a_length != emp_bl[["a"]]),]
 p <- ggplot(plot1a_df, aes(x = branch_a_length, y = value, color = variable)) + 
