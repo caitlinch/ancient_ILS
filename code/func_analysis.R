@@ -410,7 +410,7 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_t
 
 
 check.qcf.Cten <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, converted_taxa_names){
-  # Function to check the qCF for the Ctenophora+Porifera branch by using the Ctenophora+Porifera tree
+  # Function to check the qCF for the BILAT+CNID+PORI branch by using the Ctenophora-sister tree
   
   ## Prepare tips for hypothesis
   # Identify tip labels for hypothesis branches
@@ -449,7 +449,7 @@ check.qcf.Cten <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path
 
 
 check.qcf.Pori <- function(output_id, gene_trees_path, Pori_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, converted_taxa_names){
-  # Function to check the qCF for the Ctenophora+Porifera branch by using the Ctenophora+Porifera tree
+  # Function to check the qCF for the BILAT+CNID+CTEN branch by using the Porifera-sister tree
   
   ## Prepare tips for hypothesis
   # Identify tip labels for hypothesis branches
