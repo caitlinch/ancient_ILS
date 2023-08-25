@@ -163,6 +163,7 @@ plot2_df$hypothesis_test <- factor(plot2_df$variable,
 p <- ggplot(plot2_df, aes(x = branch_a_length, y = value, color = qcf_type)) + 
   facet_grid(hypothesis_test~hypothesis_tree, labeller = labeller(hypothesis_tree = tree_labs, hypothesis_test = hyp_labs)) +
   geom_smooth() +
+  geom_point(alpha = 0.5) + 
   geom_vline(xintercept = emp_bl[["a"]], linetype = 2, color = "darkgrey") +
   scale_x_continuous(name = "\nLength of branch a (in coalescent units)", trans = "log10") +
   scale_y_continuous(name = "qCF Score\n", limits = c(0,1.05), breaks = seq(0,1.1,0.2)) +
@@ -173,7 +174,7 @@ p <- ggplot(plot2_df, aes(x = branch_a_length, y = value, color = qcf_type)) +
         axis.text = element_text(size = 15),
         axis.title = element_text(size = 20),
         legend.title = element_text(size = 20),
-        legend.text = element_text(size = 15))
+        legend.text = element_text(size = 18))
 p_file <- paste0(output_dir, "ancientILS_results_ILS_hypotheses_branch-a.png")
 ggsave(filename = p_file, plot = p, device = "png")
 
@@ -202,6 +203,7 @@ plot3_df$hypothesis_test <- factor(plot3_df$variable,
 p <- ggplot(plot3_df, aes(x = branch_b_length, y = value, color = qcf_type)) + 
   facet_grid(hypothesis_test~hypothesis_tree, labeller = labeller(hypothesis_tree = tree_labs, hypothesis_test = hyp_labs)) +
   geom_smooth() +
+  geom_point(alpha = 0.5) + 
   geom_vline(xintercept = emp_bl[["b"]], linetype = 2, color = "darkgrey") +
   scale_x_continuous(name = "\nLength of branch b (in coalescent units)", trans='log10') +
   scale_y_continuous(name = "qCF Score\n", limits = c(0,1.05), breaks = seq(0,1.1,0.2)) +
@@ -212,7 +214,7 @@ p <- ggplot(plot3_df, aes(x = branch_b_length, y = value, color = qcf_type)) +
         axis.text = element_text(size = 15),
         axis.title = element_text(size = 20),
         legend.title = element_text(size = 20),
-        legend.text = element_text(size = 15))
+        legend.text = element_text(size = 18))
 p_file <- paste0(output_dir, "ancientILS_results_LBA_hypotheses_branch-b.png")
 ggsave(filename = p_file, plot = p, device = "png")
 
