@@ -114,7 +114,7 @@ p <- ggplot(plot1_df, aes(x = varied_branch_length, y = value, color = qcf_type)
         axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 10)),
         legend.title = element_text(size = 30),
         legend.text = element_text(size = 25))
-p_file <- paste0(output_dir, "exploratory_normalised-qcf_branch-length.png")
+p_file <- paste0(output_dir, "ancientILS_exploratory_normalised-qcf_branch-length.png")
 ggsave(filename = p_file, plot = p, device = "png")
 
 ## Plot a histogram of all values, faceted by actual and estimated
@@ -135,7 +135,7 @@ p <- ggplot(plot1_df, aes(x = value, fill = qcf_type)) +
         axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 10)),
         legend.title = element_text(size = 25),
         legend.text = element_text(size = 20))
-p_file <- paste0(output_dir, "exploratory_normalised-qcf_histogram.png")
+p_file <- paste0(output_dir, "ancientILS_exploratory_normalised-qcf_histogram.png")
 ggsave(filename = p_file, plot = p, device = "png")
 
 
@@ -174,7 +174,7 @@ p <- ggplot(plot2_df, aes(x = branch_a_length, y = value, color = qcf_type)) +
         axis.title = element_text(size = 20),
         legend.title = element_text(size = 20),
         legend.text = element_text(size = 15))
-p_file <- paste0(output_dir, "results_ILS_hypotheses_branch-a.png")
+p_file <- paste0(output_dir, "ancientILS_results_ILS_hypotheses_branch-a.png")
 ggsave(filename = p_file, plot = p, device = "png")
 
 
@@ -213,7 +213,7 @@ p <- ggplot(plot3_df, aes(x = branch_b_length, y = value, color = qcf_type)) +
         axis.title = element_text(size = 20),
         legend.title = element_text(size = 20),
         legend.text = element_text(size = 15))
-p_file <- paste0(output_dir, "results_LBA_hypotheses_branch-b.png")
+p_file <- paste0(output_dir, "ancientILS_results_LBA_hypotheses_branch-b.png")
 ggsave(filename = p_file, plot = p, device = "png")
 
 
@@ -280,7 +280,7 @@ p <- ggplot(plot4_df, aes(x = branch_a_length, y = value, color = qcf_type)) +
         legend.title = element_text(size = 30),
         legend.text = element_text(size = 25),
         plot.title = element_text(size = 40, hjust = 0.5, vjust = 0.5, margin = margin(t = 0, r = 0, b = 15, l = 0)))
-p_file <- paste0(output_dir, "results_ILS_clade_branch-a.png")
+p_file <- paste0(output_dir, "ancientILS_results_ILS_clade_branch-a.png")
 ggsave(filename = p_file, plot = p, device = "png", width = 12.4, height = 15)
 
 
@@ -347,7 +347,7 @@ p <- ggplot(plot5_df, aes(x = branch_b_length, y = value, color = qcf_type)) +
         legend.title = element_text(size = 30),
         legend.text = element_text(size = 25),
         plot.title = element_text(size = 40, hjust = 0.5, vjust = 0.5, margin = margin(t = 0, r = 0, b = 15, l = 0)))
-p_file <- paste0(output_dir, "results_LBA_clade_branch-b.png")
+p_file <- paste0(output_dir, "ancientILS_results_LBA_clade_branch-b.png")
 ggsave(filename = p_file, plot = p, device = "png", width = 12.4, height = 15)
 
 
