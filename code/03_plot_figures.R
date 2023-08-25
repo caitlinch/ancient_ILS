@@ -86,54 +86,6 @@ ggsave(filename = p_file, plot = p, device = "png")
 
 
 
-# Remove any rows where plot1_df$branch_a_length != 0.1729 (keep branch b stable for this plot)
-plot1a_df <- plot1_df[(plot1_df$branch_a_length != emp_bl[["a"]]),]
-p <- ggplot(plot1a_df, aes(x = branch_a_length, y = value, color = variable)) + 
-  facet_grid(hypothesis_tree~., labeller = labeller(hypothesis_tree = tree_labs)) +
-  geom_smooth() +
-  geom_vline(xintercept = emp_bl[["a"]], linetype = 2, color = "grey40") +
-  annotate("text", x = 0.19, y = 0.06, label = "Empirical\nbranch\nlength", color = "grey40",
-           hjust = 0, vjust = 0.5, size = 5.5) +
-  scale_x_continuous(name = "\nLength of branch a (in coalescent units)", trans='log10') +
-  scale_y_continuous(name = "Normalised Final qCF Score\n", limits = c(0,1), breaks = seq(0,1.1,0.1)) +
-  scale_color_manual(values = c("#5ab4ac", "#d8b365"),
-                     labels = c("Actual", "Estimated"),
-                     na.value = "grey50") +
-  guides(color = guide_legend(title="qCF score")) +
-  theme_bw() +
-  theme(strip.text = element_text(size = 25),
-        axis.text = element_text(size = 25),
-        axis.title = element_text(size = 35),
-        legend.title = element_text(size = 35),
-        legend.text = element_text(size = 28))
-p_file <- paste0(output_dir, "exploratory_normalised-qcf_branch-a-length.png")
-ggsave(filename = p_file, plot = p, device = "png")
-
-# Remove any rows where plot1_df$branch_b_length != 1.6470 (keep branch a stable for this plot)
-plot1b_df <- plot1_df[(plot1_df$branch_b_length != emp_bl[["b"]]),]
-p <- ggplot(plot1b_df, aes(x = branch_b_length, y = value, color = variable)) + 
-  facet_grid(hypothesis_tree~., labeller = labeller(hypothesis_tree = tree_labs)) +
-  geom_smooth() +
-  geom_vline(xintercept = emp_bl[["b"]], linetype = 2, color = "grey40") +
-  annotate("text", x = 1.8, y = 0.06, label = "Empirical\nbranch\nlength", color = "grey40",
-           hjust = 0, vjust = 0.5, size = 5.5) +
-  scale_x_continuous(name = "\nLength of branch b (in coalescent units)", trans='log10') +
-  scale_y_continuous(name = "Normalised Final qCF Score\n", limits = c(0,1), breaks = seq(0,1.1,0.1)) +
-  theme_bw() +
-  scale_color_manual(values = c("#5ab4ac", "#d8b365"),
-                     labels = c("Actual", "Estimated"),
-                     na.value = "grey50") +
-  guides(color = guide_legend(title="qCF score")) +
-  theme(strip.text = element_text(size = 25),
-        axis.text = element_text(size = 25),
-        axis.title = element_text(size = 35),
-        legend.title = element_text(size = 35),
-        legend.text = element_text(size = 28))
-p_file <- paste0(output_dir, "exploratory_normalised-qcf_branch-b-length.png")
-ggsave(filename = p_file, plot = p, device = "png")
-
-
-
 #### Plot 2: Branch length vs branch "a" qCF. ####
 plot2_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
