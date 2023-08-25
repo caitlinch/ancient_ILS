@@ -18,6 +18,9 @@ if (location == "local"){
 
 
 
+
+
+
 ###### 2. Open packages and functions ######
 ## Source functions
 source(paste0(repo_dir, "code/func_plotting.R"))
@@ -25,6 +28,9 @@ source(paste0(repo_dir, "code/func_plotting.R"))
 ## Open packages
 library(reshape2)
 library(ggplot2)
+
+
+
 
 
 
@@ -44,6 +50,8 @@ emp_bl <- c("a" = 0.1729, "b" = 1.6470)
 
 
 
+
+
 ###### 4. Plot qCF results from "ancientILS" simulations ######
 # Open simulation results
 qcf_df_file <- paste0(input_dir, grep("ancientILS", grep("output_analysis", all_csvs, value = T), value = T))
@@ -58,6 +66,7 @@ names(hyp_labs) <- c("Hyp1", "Hyp2", "Hyp3")
 
 
 #### Plot 1: Branch length vs summary qCF. ####
+## Plot branch length vs normalised summary qCF.
 # Create df
 plot1_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
@@ -69,6 +78,14 @@ plot1_df$qcf_type <- factor(plot1_df$variable,
 plot1_df$qcf_type <- factor(plot1_df$variable,
                             levels = c("actual_final_normalised_quartet_score", "estimated_final_normalised_quartet_score"), 
                             labels = c("Actual", "Estimated") )
+plot1_df$starting_tree_topology <- factor(plot1_df$hypothesis_tree,
+                                          levels = c("1", "2"),
+                                          labels = c("Ctenophora-sister", "Porifera-sister"),
+                                          ordered = T)
+plot1_df$simulation_type <- factor(plot1_df$simulation_type,
+                                   levels = c("ILS", "LBA"),
+                                   labels = c("ILS Simulations", "LBA Simulations"),
+                                   ordered = T)
 # Add new columns for plotting
 plot1_df$branch_to_vary <- plot1_df$ID
 plot1_df$branch_to_vary[which(plot1_df$branch_a_length == emp_bl["a"])] <- "Branch b"
@@ -80,13 +97,12 @@ plot1_df$varied_branch_length <- factor(plot1_df$varied_branch_length,
                                         levels = c("1e-08", "1e-07", "1e-06", "1e-05", "1e-04", "0.001", "0.01", "0.1", "1", "10"),
                                         labels = c("1e-08", "1e-07", "1e-06", "1e-05", "1e-04", "1e-03", "0.01", "0.1", "1", "10"),
                                         ordered = T)
-
-# Plots
+# Plot
 p <- ggplot(plot1_df, aes(x = varied_branch_length, y = value, color = qcf_type)) + 
   facet_grid(hypothesis_tree~branch_to_vary, labeller = labeller(hypothesis_tree = tree_labs)) +
   geom_boxplot() +
-  scale_x_discrete(name = "\nLength of branch (in coalescent units)") +
-  scale_y_continuous(name = "Normalised Final qCF Score\n", limits = c(0,1), breaks = seq(0,1.1,0.1)) +
+  scale_x_discrete(name = "Length of branch (in coalescent units)") +
+  scale_y_continuous(name = "Normalised Final qCF Score", limits = c(0,1), breaks = seq(0,1.2,0.2), minor_breaks = seq(0,1.2,0.1)) +
   scale_color_manual(values = qcf_type_palette, na.value = "grey50") +
   guides(color = guide_legend(title="qCF type")) +
   theme_bw() +
@@ -94,14 +110,38 @@ p <- ggplot(plot1_df, aes(x = varied_branch_length, y = value, color = qcf_type)
         axis.text = element_text(size = 20),
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
         axis.title = element_text(size = 30),
+        axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 10, l = 0)),
+        axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 10)),
         legend.title = element_text(size = 30),
         legend.text = element_text(size = 25))
 p_file <- paste0(output_dir, "exploratory_normalised-qcf_branch-length.png")
 ggsave(filename = p_file, plot = p, device = "png")
 
+## Plot a histogram of all values, faceted by actual and estimated
+p <- ggplot(plot1_df, aes(x = value, fill = qcf_type)) +
+  geom_histogram(bins = 50) +
+  labs(title = "") +
+  facet_grid(starting_tree_topology~simulation_type) +
+  scale_x_continuous(name = "Final Normalised Quartet Score", limits = c(0,1), breaks = seq(0,1,0.2), labels = seq(0,1,0.2)) +
+  scale_y_continuous(name = "Count") +
+  scale_fill_manual(values = qcf_type_palette, na.value = "grey50") +
+  guides(fill = guide_legend(title="qCF type")) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 20),
+        axis.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        axis.title = element_text(size = 30),
+        axis.title.x = element_text(margin = margin(t = 15, r = 0, b = 10, l = 0)),
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 10)),
+        legend.title = element_text(size = 25),
+        legend.text = element_text(size = 20))
+p_file <- paste0(output_dir, "exploratory_normalised-qcf_histogram.png")
+ggsave(filename = p_file, plot = p, device = "png")
+
 
 
 #### Plot 2: Branch length vs branch "a" qCF. ####
+# Create df
 plot2_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
                  measure.vars = c("actual_testHyp1_Cten_branch_a_qcf_value", "actual_testHyp2_Pori_branch_a_qcf_value", "actual_testHyp3_CtenPori_qcf_value",
@@ -119,7 +159,7 @@ plot2_df$hypothesis_test <- factor(plot2_df$variable,
                                               "actual_testHyp2_Pori_branch_a_qcf_value", "estimated_testHyp2_Pori_branch_a_qcf_value", 
                                               "actual_testHyp3_CtenPori_qcf_value", "estimated_testHyp3_CtenPori_qcf_value"), 
                                    labels = c("Hyp1", "Hyp1", "Hyp2", "Hyp2", "Hyp3", "Hyp3") )
-
+# Plot
 p <- ggplot(plot2_df, aes(x = branch_a_length, y = value, color = qcf_type)) + 
   facet_grid(hypothesis_test~hypothesis_tree, labeller = labeller(hypothesis_tree = tree_labs, hypothesis_test = hyp_labs)) +
   geom_smooth() +
@@ -134,12 +174,13 @@ p <- ggplot(plot2_df, aes(x = branch_a_length, y = value, color = qcf_type)) +
         axis.title = element_text(size = 20),
         legend.title = element_text(size = 20),
         legend.text = element_text(size = 15))
-p_file <- paste0(output_dir, "results_qcf-score_branch-a-length.png")
+p_file <- paste0(output_dir, "results_ILS_hypotheses_branch-a.png")
 ggsave(filename = p_file, plot = p, device = "png")
 
 
 
 #### Plot 3: Branch length vs branch "b" qCF. ####
+# Create df
 plot3_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
                  measure.vars = c("actual_testHyp1_Cten_branch_a_qcf_value", "actual_testHyp2_Pori_branch_a_qcf_value", "actual_testHyp3_CtenPori_qcf_value",
@@ -157,7 +198,7 @@ plot3_df$hypothesis_test <- factor(plot3_df$variable,
                                               "actual_testHyp2_Pori_branch_a_qcf_value", "estimated_testHyp2_Pori_branch_a_qcf_value", 
                                               "actual_testHyp3_CtenPori_qcf_value", "estimated_testHyp3_CtenPori_qcf_value"), 
                                    labels = c("Hyp1", "Hyp1", "Hyp2", "Hyp2", "Hyp3", "Hyp3") )
-
+# Plot
 p <- ggplot(plot3_df, aes(x = branch_b_length, y = value, color = qcf_type)) + 
   facet_grid(hypothesis_test~hypothesis_tree, labeller = labeller(hypothesis_tree = tree_labs, hypothesis_test = hyp_labs)) +
   geom_smooth() +
@@ -172,12 +213,13 @@ p <- ggplot(plot3_df, aes(x = branch_b_length, y = value, color = qcf_type)) +
         axis.title = element_text(size = 20),
         legend.title = element_text(size = 20),
         legend.text = element_text(size = 15))
-p_file <- paste0(output_dir, "results_qcf-score_branch-b-length.png")
+p_file <- paste0(output_dir, "results_LBA_hypotheses_branch-b.png")
 ggsave(filename = p_file, plot = p, device = "png")
 
 
 
 #### Plot 4: Branch a length vs clade qCF. ####
+# Create df
 plot4_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
                  measure.vars = c("actual_clade_BILAT_qcf_value", "actual_clade_CNID_qcf_value", "actual_clade_PORI_qcf_value",
@@ -196,9 +238,9 @@ plot4_df$clade <- factor(plot4_df$variable,
                                         "actual_clade_CNID_qcf_value", "estimated_clade_CNID_qcf_value", 
                                         "actual_clade_PORI_qcf_value", "estimated_clade_PORI_qcf_value", 
                                         "actual_clade_CTEN_qcf_value", "estimated_clade_CTEN_qcf_value")), 
-                         labels = rev(c("Choanoflagellates", "Choanoflagellates", 
+                         labels = rev(c("Outgroup", "Outgroup", 
                                         "All Animals", "All Animals", 
-                                        "Bilateria+Cnidaria", "Bilateria+Cnidaria",
+                                        "Bilateria +\nCnidaria", "Bilateria +\nCnidaria",
                                         "Bilateria", "Bilateria", 
                                         "Cnidaria", "Cnidaria",
                                         "Porifera", "Porifera", 
@@ -216,12 +258,16 @@ plot4_df$branch_a_length <- factor(plot4_df$branch_a_length,
                                    levels = c("1e-08", "1e-07", "1e-06", "1e-05", "1e-04", "0.001", "0.01", "0.1", "1", "10"),
                                    labels = c("1e-08", "1e-07", "1e-06", "1e-05", "1e-04", "1e-03", "0.01", "0.1", "1", "10"),
                                    ordered = T)
-
+plot4_df$starting_tree_topology <- factor(plot4_df$hypothesis_tree,
+                                          levels = c("1", "2"),
+                                          labels = c("Ctenophora-sister", "Porifera-sister"))
+# Plot
 p <- ggplot(plot4_df, aes(x = branch_a_length, y = value, color = qcf_type)) + 
-  facet_wrap("clade") +
+  facet_grid(clade~starting_tree_topology) +
   geom_boxplot() +
+  labs(title = "Simulating ILS") +
   scale_x_discrete(name = "\nLength of branch a (in coalescent units)") +
-  scale_y_continuous(name = "qCF Score\n", limits = c(0,1.2), breaks = seq(0,1.6,0.2)) +
+  scale_y_continuous(name = "qCF Score\n", limits = c(0,1), breaks = seq(0,1.25,0.25)) +
   scale_color_manual(values = qcf_type_palette, na.value = "grey50") +
   guides(color = guide_legend(title="qCF type")) +
   theme_bw() +
@@ -232,13 +278,15 @@ p <- ggplot(plot4_df, aes(x = branch_a_length, y = value, color = qcf_type)) +
         axis.title.x = element_text(margin = margin(t = 0, r = 0, b = 15, l = 0)),
         axis.title.y = element_text(margin = margin(t = 0, r = 0, b = 0, l = 15)),
         legend.title = element_text(size = 30),
-        legend.text = element_text(size = 25))
-p_file <- paste0(output_dir, "results_clade_branch-a-length.png")
-ggsave(filename = p_file, plot = p, device = "png")
+        legend.text = element_text(size = 25),
+        plot.title = element_text(size = 40, hjust = 0.5, vjust = 0.5, margin = margin(t = 0, r = 0, b = 15, l = 0)))
+p_file <- paste0(output_dir, "results_ILS_clade_branch-a.png")
+ggsave(filename = p_file, plot = p, device = "png", width = 12.4, height = 15)
 
 
 
 #### Plot 5: Branch b length vs clade qCF. ####
+# Create df
 plot5_df <- melt(data = qcf_df,
                  id.vars = c(id.var_cols),
                  measure.vars = c("actual_clade_BILAT_qcf_value", "actual_clade_CNID_qcf_value", "actual_clade_PORI_qcf_value",
@@ -257,9 +305,9 @@ plot5_df$clade <- factor(plot5_df$variable,
                                         "actual_clade_CNID_qcf_value", "estimated_clade_CNID_qcf_value", 
                                         "actual_clade_PORI_qcf_value", "estimated_clade_PORI_qcf_value", 
                                         "actual_clade_CTEN_qcf_value", "estimated_clade_CTEN_qcf_value")), 
-                         labels = rev(c("Choanoflagellates", "Choanoflagellates", 
+                         labels = rev(c("Outgroup", "Outgroup", 
                                         "All Animals", "All Animals", 
-                                        "Bilateria+Cnidaria", "Bilateria+Cnidaria",
+                                        "Bilateria +\nCnidaria", "Bilateria +\nCnidaria",
                                         "Bilateria", "Bilateria", 
                                         "Cnidaria", "Cnidaria",
                                         "Porifera", "Porifera", 
@@ -273,16 +321,20 @@ plot5_df$qcf_type <- factor(plot5_df$variable,
                                        "actual_clade_PORI_qcf_value", "estimated_clade_PORI_qcf_value", 
                                        "actual_clade_CTEN_qcf_value", "estimated_clade_CTEN_qcf_value"), 
                             labels = rep(c("Actual", "Estimated"), 7) )
-plot5_df$branch_a_length <- factor(plot5_df$branch_b_length,
+plot5_df$branch_b_length <- factor(plot5_df$branch_b_length,
                                    levels = c("1e-08", "1e-07", "1e-06", "1e-05", "1e-04", "0.001", "0.01", "0.1", "1", "10"),
                                    labels = c("1e-08", "1e-07", "1e-06", "1e-05", "1e-04", "1e-03", "0.01", "0.1", "1", "10"),
                                    ordered = T)
-
+plot5_df$starting_tree_topology <- factor(plot5_df$hypothesis_tree,
+                                          levels = c("1", "2"),
+                                          labels = c("Ctenophora-sister", "Porifera-sister"))
+# Plot
 p <- ggplot(plot5_df, aes(x = branch_b_length, y = value, color = qcf_type)) + 
-  facet_wrap("clade") +
+  facet_grid(clade~starting_tree_topology) +
   geom_boxplot() +
+  labs(title = "Simulating LBA") +
   scale_x_discrete(name = "\nLength of branch b (in coalescent units)") +
-  scale_y_continuous(name = "qCF Score\n", limits = c(0,1.2), breaks = seq(0,1.6,0.2)) +
+  scale_y_continuous(name = "qCF Score\n", limits = c(0,1), breaks = seq(0,1.25,0.25)) +
   scale_color_manual(values = qcf_type_palette, na.value = "grey50") +
   guides(color = guide_legend(title="qCF type")) +
   theme_bw() +
@@ -293,9 +345,10 @@ p <- ggplot(plot5_df, aes(x = branch_b_length, y = value, color = qcf_type)) +
         axis.title.x = element_text(margin = margin(t = 0, r = 0, b = 15, l = 0)),
         axis.title.y = element_text(margin = margin(t = 0, r = 0, b = 0, l = 15)),
         legend.title = element_text(size = 30),
-        legend.text = element_text(size = 25))
-p_file <- paste0(output_dir, "results_clade_branch-b-length.png")
-ggsave(filename = p_file, plot = p, device = "png")
+        legend.text = element_text(size = 25),
+        plot.title = element_text(size = 40, hjust = 0.5, vjust = 0.5, margin = margin(t = 0, r = 0, b = 15, l = 0)))
+p_file <- paste0(output_dir, "results_LBA_clade_branch-b.png")
+ggsave(filename = p_file, plot = p, device = "png", width = 12.4, height = 15)
 
 
 
