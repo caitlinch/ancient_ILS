@@ -207,9 +207,14 @@ if ( (control_parameters[["conduct.analysis"]] == TRUE) & (file.exists(output_fi
                               hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names,
                               mc.cores = num_parallel_threads)
   }
-  analysis_df <- as.data.frame(do.call(rbind, analysis_list))
+  
+  # Collect output csvs
+  completed_csvs <- tree_df$output_csv[which(file.exists(tree_df$output_csv) == TRUE)]
+  completed_csv_list <- lapply(completed_csvs, read.csv)
+  completed_csv_df <- as.data.frame(do.call(rbind, completed_csv_list))
+  
   # Save combined output dataframe
-  write.csv(analysis_df, file = output_files[["analysis"]], row.names = FALSE)
+  write.csv(completed_csv_df, file = output_files[["analysis"]], row.names = FALSE)
 }
 
 
