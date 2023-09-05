@@ -112,7 +112,7 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, conve
                                  "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
                                  "branch_outgroup_length", "branch_porifera_length", "total_tree_length",
                                  "sum_internal_branch_lengths", "percentage_internal_branch_lengths")]
-    # Assemble output vector
+    # Assemble output vector/dataframe
     analysis_output         <- c(as.character(trimmed_df_row), actual_astral_tree_diffs, 
                                  estimated_astral_tree_diffs, astral_qcfs,
                                  actual_hyp1_qcf, actual_hyp2_qcf, actual_hyp3_qcf, 
@@ -120,13 +120,18 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, conve
                                  estimated_hyp1_qcf, estimated_hyp2_qcf, estimated_hyp3_qcf, 
                                  estimated_clade_qcf, estimated_clade_monophyly,
                                  tree_length)
-    names(analysis_output)  <- c(names(trimmed_df_row), paste0("actual_", names(actual_astral_tree_diffs)), 
+    analysis_output_df <- as.data.frame(matrix(analysis_output, nrow = 1, ncol = length(analysis_output), byrow = TRUE))
+    names(analysis_output_df)  <- c(names(trimmed_df_row), paste0("actual_", names(actual_astral_tree_diffs)), 
                                  paste0("estimated_", names(estimated_astral_tree_diffs)), names(astral_qcfs),
                                  names(actual_hyp1_qcf), names(actual_hyp2_qcf), names(actual_hyp3_qcf), 
                                  names(actual_clade_qcf), names(actual_clade_monophyly),
                                  names(estimated_hyp1_qcf), names(estimated_hyp2_qcf), names(estimated_hyp3_qcf), 
                                  names(estimated_clade_qcf), names(estimated_clade_monophyly), 
                                  names(tree_length))
+    # Write the output as a csv file
+    op_file <- paste0(df_row$output_folder, df_row$ID, "_analysis_output.csv")
+    write.csv(analysis_output_df, file = op_file, row.names = FALSE)
+    
     ## Return the output
     return(analysis_output)
   }
