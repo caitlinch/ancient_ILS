@@ -15,114 +15,121 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, conve
   ## Open the row of interest
   df_row <- df[row_id, ]
   
-  ## Calculate the differences between the three trees
-  actual_astral_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$output_base_tree_file, hypothesis_tree_dir, tree_type = "ASTRAL", 
-                                                                     rename.tree.tips = TRUE, converted_taxa_names = converted_taxa_names)
-  estimated_astral_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$ASTRAL_tree_treefile, hypothesis_tree_dir, tree_type = "ASTRAL", 
-                                                                        rename.tree.tips = TRUE, converted_taxa_names = converted_taxa_names)
+  # Check whether the row ran appropriately
+  iqtree_run_file <- df_row$iqtree2_gene_tree_iqtree_file
+  iqtree_check <- file.exists(iqtree_run_file)
   
-  ## Calculate the qCFs using ASTRAL
-  astral_qcfs <- qcf.wrapper(ID = df_row$ID, starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
-                             ASTRAL_tree = df_row$ASTRAL_tree_treefile, ML_gene_trees = df_row$iqtree2_gene_tree_treefile, 
-                             ASTRAL_path = ASTRAL_path, call.astral = TRUE, converted_taxa_names)
-  
-  ## Calculate qcf for branch leading to Ctenophora+Porifera clade for both ms and iqtree gene trees
-  # Identify correct file path for hypothesis tree
-  all_hyp_paths <- paste0(hypothesis_tree_dir, grep("numeric|relabelled", list.files(hypothesis_tree_dir), value = T, invert = T))
-  Cten_hyp_tree_path <- grep("ASTRAL", grep("_Cten.tre", all_hyp_paths, value = T), value = T)
-  Pori_hyp_tree_path <- grep("ASTRAL", grep("_Pori.tre", all_hyp_paths, value = T), value = T)
-  CtenPori_hyp_tree_path <- grep("ASTRAL", grep("_CtenPori.tre", all_hyp_paths, value = T), value = T)
-  # Calculate for actual (i.e. ms) gene trees
-  actual_hyp1_qcf <- check.qcf.Cten(output_id = "actual_testHyp1_Cten", 
-                                    gene_trees_path = df_row$output_gene_tree_file,
-                                    Cten_hypothesis_tree_path = Cten_hyp_tree_path, 
-                                    ASTRAL_path = ASTRAL_path, 
-                                    call.astral = TRUE, 
-                                    converted_taxa_names = converted_taxa_names)
-  actual_hyp2_qcf <- check.qcf.Pori(output_id = "actual_testHyp2_Pori", 
-                                    gene_trees_path = df_row$output_gene_tree_file,
-                                    Pori_hypothesis_tree_path = Pori_hyp_tree_path, 
-                                    ASTRAL_path = ASTRAL_path, 
-                                    call.astral = TRUE, 
-                                    converted_taxa_names = converted_taxa_names)
-  actual_hyp3_qcf <- check.qcf.CtenPori(output_id = "actual_testHyp3_CtenPori", 
-                                        gene_trees_path = df_row$output_gene_tree_file, 
-                                        CtenPori_hypothesis_tree_path = CtenPori_hyp_tree_path, 
-                                        ASTRAL_path = ASTRAL_path, 
-                                        call.astral = TRUE, 
-                                        converted_taxa_names = converted_taxa_names)
-  actual_clade_qcf <- check.qcf.clades(output_id = "actual_clade",
-                                       gene_trees_path = df_row$output_gene_tree_file,
-                                       Cten_hypothesis_tree_path = Cten_hyp_tree_path,
-                                       ASTRAL_path = ASTRAL_path, 
-                                       call.astral = TRUE, 
-                                       converted_taxa_names = converted_taxa_names)
-  actual_clade_monophyly <- check.clade.monophyly(tree_path = df_row$output_base_tree_file, converted_taxa_names)
-  names(actual_clade_monophyly) <- paste0("actual_", names(actual_clade_monophyly))
-  # Calculate for estimated (i.e. iqtree2) gene trees
-  estimated_hyp1_qcf <- check.qcf.Cten(output_id = "estimated_testHyp1_Cten", 
-                                       gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
-                                       Cten_hypothesis_tree_path = Cten_hyp_tree_path, 
-                                       ASTRAL_path = ASTRAL_path, 
-                                       call.astral = TRUE, 
-                                       converted_taxa_names = converted_taxa_names)
-  estimated_hyp2_qcf <- check.qcf.Pori(output_id = "estimated_testHyp2_Pori", 
-                                       gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
-                                       Pori_hypothesis_tree_path = Pori_hyp_tree_path, 
-                                       ASTRAL_path = ASTRAL_path, 
-                                       call.astral = TRUE, 
-                                       converted_taxa_names = converted_taxa_names)
-  estimated_hyp3_qcf <- check.qcf.CtenPori(output_id = "estimated_testHyp3_CtenPori", 
-                                           gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
-                                           CtenPori_hypothesis_tree_path = CtenPori_hyp_tree_path, 
-                                           ASTRAL_path = ASTRAL_path, 
-                                           call.astral = TRUE, 
-                                           converted_taxa_names = converted_taxa_names)
-  estimated_clade_qcf <- check.qcf.clades(output_id = "estimated_clade",
-                                          gene_trees_path = df_row$iqtree2_gene_tree_treefile,
-                                          Cten_hypothesis_tree_path = Cten_hyp_tree_path,
+  # Run the analysis ONLY if the .iqtree run completed successfully
+  if (iqtree_check == TRUE){
+    ## Calculate the differences between the three trees
+    actual_astral_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$output_base_tree_file, hypothesis_tree_dir, tree_type = "ASTRAL", 
+                                                                       rename.tree.tips = TRUE, converted_taxa_names = converted_taxa_names)
+    estimated_astral_tree_diffs <- calculate.distance.between.three.trees(tree_path = df_row$ASTRAL_tree_treefile, hypothesis_tree_dir, tree_type = "ASTRAL", 
+                                                                          rename.tree.tips = TRUE, converted_taxa_names = converted_taxa_names)
+    
+    ## Calculate the qCFs using ASTRAL
+    astral_qcfs <- qcf.wrapper(ID = df_row$ID, starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
+                               ASTRAL_tree = df_row$ASTRAL_tree_treefile, ML_gene_trees = df_row$iqtree2_gene_tree_treefile, 
+                               ASTRAL_path = ASTRAL_path, call.astral = TRUE, converted_taxa_names)
+    
+    ## Calculate qcf for branch leading to Ctenophora+Porifera clade for both ms and iqtree gene trees
+    # Identify correct file path for hypothesis tree
+    all_hyp_paths <- paste0(hypothesis_tree_dir, grep("numeric|relabelled", list.files(hypothesis_tree_dir), value = T, invert = T))
+    Cten_hyp_tree_path <- grep("ASTRAL", grep("_Cten.tre", all_hyp_paths, value = T), value = T)
+    Pori_hyp_tree_path <- grep("ASTRAL", grep("_Pori.tre", all_hyp_paths, value = T), value = T)
+    CtenPori_hyp_tree_path <- grep("ASTRAL", grep("_CtenPori.tre", all_hyp_paths, value = T), value = T)
+    # Calculate for actual (i.e. ms) gene trees
+    actual_hyp1_qcf <- check.qcf.Cten(output_id = "actual_testHyp1_Cten", 
+                                      gene_trees_path = df_row$output_gene_tree_file,
+                                      Cten_hypothesis_tree_path = Cten_hyp_tree_path, 
+                                      ASTRAL_path = ASTRAL_path, 
+                                      call.astral = TRUE, 
+                                      converted_taxa_names = converted_taxa_names)
+    actual_hyp2_qcf <- check.qcf.Pori(output_id = "actual_testHyp2_Pori", 
+                                      gene_trees_path = df_row$output_gene_tree_file,
+                                      Pori_hypothesis_tree_path = Pori_hyp_tree_path, 
+                                      ASTRAL_path = ASTRAL_path, 
+                                      call.astral = TRUE, 
+                                      converted_taxa_names = converted_taxa_names)
+    actual_hyp3_qcf <- check.qcf.CtenPori(output_id = "actual_testHyp3_CtenPori", 
+                                          gene_trees_path = df_row$output_gene_tree_file, 
+                                          CtenPori_hypothesis_tree_path = CtenPori_hyp_tree_path, 
                                           ASTRAL_path = ASTRAL_path, 
                                           call.astral = TRUE, 
                                           converted_taxa_names = converted_taxa_names)
-  estimated_clade_monophyly <- check.clade.monophyly(tree_path = df_row$ASTRAL_tree_treefile, converted_taxa_names)
-  names(estimated_clade_monophyly) <- paste0("estimated_", names(estimated_clade_monophyly))
-  
-  ## Get lengths and maximum branching time for starting tree
-  #     start_tree is df_row$output_base_tree_file
-  #     astral_tree is df_row$ASTRAL_tree_treefile
-  # Root starting tree at Choanoflagellates
-  tree_length <- c(extract.tree.length(read.tree(df_row$output_base_tree_file)), 
-                   extract.tree.depth(read.tree(df_row$output_base_tree_file),  
-                                      c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
-                                      root.tree = TRUE),
-                   extract.tree.length(read.tree(df_row$ASTRAL_tree_treefile))[2])
-  names(tree_length) <- c(paste0("actual_", names(tree_length)[1:5]), paste0("estimated_", names(tree_length)[6]))
-  
-  ## Output results
-  # Trim unwanted columns
-  trimmed_df_row <- df_row[, c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type",
-                               "hypothesis_tree", "replicates", "num_taxa", "num_genes", "gene_length", "num_sites",
-                               "ML_tree_estimation_models", "branch_a_length", "branch_b_length", "branch_c_length",
-                               "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
-                               "branch_outgroup_length", "branch_porifera_length", "total_tree_length",
-                               "sum_internal_branch_lengths", "percentage_internal_branch_lengths")]
-  # Assemble output vector
-  analysis_output         <- c(as.character(trimmed_df_row), actual_astral_tree_diffs, 
-                               estimated_astral_tree_diffs, astral_qcfs,
-                               actual_hyp1_qcf, actual_hyp2_qcf, actual_hyp3_qcf, 
-                               actual_clade_qcf, actual_clade_monophyly, 
-                               estimated_hyp1_qcf, estimated_hyp2_qcf, estimated_hyp3_qcf, 
-                               estimated_clade_qcf, estimated_clade_monophyly,
-                               tree_length)
-  names(analysis_output)  <- c(names(trimmed_df_row), paste0("actual_", names(actual_astral_tree_diffs)), 
-                               paste0("estimated_", names(estimated_astral_tree_diffs)), names(astral_qcfs),
-                               names(actual_hyp1_qcf), names(actual_hyp2_qcf), names(actual_hyp3_qcf), 
-                               names(actual_clade_qcf), names(actual_clade_monophyly),
-                               names(estimated_hyp1_qcf), names(estimated_hyp2_qcf), names(estimated_hyp3_qcf), 
-                               names(estimated_clade_qcf), names(estimated_clade_monophyly), 
-                               names(tree_length))
-  ## Return the output
-  return(analysis_output)
+    actual_clade_qcf <- check.qcf.clades(output_id = "actual_clade",
+                                         gene_trees_path = df_row$output_gene_tree_file,
+                                         Cten_hypothesis_tree_path = Cten_hyp_tree_path,
+                                         ASTRAL_path = ASTRAL_path, 
+                                         call.astral = TRUE, 
+                                         converted_taxa_names = converted_taxa_names)
+    actual_clade_monophyly <- check.clade.monophyly(tree_path = df_row$output_base_tree_file, converted_taxa_names)
+    names(actual_clade_monophyly) <- paste0("actual_", names(actual_clade_monophyly))
+    # Calculate for estimated (i.e. iqtree2) gene trees
+    estimated_hyp1_qcf <- check.qcf.Cten(output_id = "estimated_testHyp1_Cten", 
+                                         gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
+                                         Cten_hypothesis_tree_path = Cten_hyp_tree_path, 
+                                         ASTRAL_path = ASTRAL_path, 
+                                         call.astral = TRUE, 
+                                         converted_taxa_names = converted_taxa_names)
+    estimated_hyp2_qcf <- check.qcf.Pori(output_id = "estimated_testHyp2_Pori", 
+                                         gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
+                                         Pori_hypothesis_tree_path = Pori_hyp_tree_path, 
+                                         ASTRAL_path = ASTRAL_path, 
+                                         call.astral = TRUE, 
+                                         converted_taxa_names = converted_taxa_names)
+    estimated_hyp3_qcf <- check.qcf.CtenPori(output_id = "estimated_testHyp3_CtenPori", 
+                                             gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
+                                             CtenPori_hypothesis_tree_path = CtenPori_hyp_tree_path, 
+                                             ASTRAL_path = ASTRAL_path, 
+                                             call.astral = TRUE, 
+                                             converted_taxa_names = converted_taxa_names)
+    estimated_clade_qcf <- check.qcf.clades(output_id = "estimated_clade",
+                                            gene_trees_path = df_row$iqtree2_gene_tree_treefile,
+                                            Cten_hypothesis_tree_path = Cten_hyp_tree_path,
+                                            ASTRAL_path = ASTRAL_path, 
+                                            call.astral = TRUE, 
+                                            converted_taxa_names = converted_taxa_names)
+    estimated_clade_monophyly <- check.clade.monophyly(tree_path = df_row$ASTRAL_tree_treefile, converted_taxa_names)
+    names(estimated_clade_monophyly) <- paste0("estimated_", names(estimated_clade_monophyly))
+    
+    ## Get lengths and maximum branching time for starting tree
+    #     start_tree is df_row$output_base_tree_file
+    #     astral_tree is df_row$ASTRAL_tree_treefile
+    # Root starting tree at Choanoflagellates
+    tree_length <- c(extract.tree.length(read.tree(df_row$output_base_tree_file)), 
+                     extract.tree.depth(read.tree(df_row$output_base_tree_file),  
+                                        c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis"), 
+                                        root.tree = TRUE),
+                     extract.tree.length(read.tree(df_row$ASTRAL_tree_treefile))[2])
+    names(tree_length) <- c(paste0("actual_", names(tree_length)[1:5]), paste0("estimated_", names(tree_length)[6]))
+    
+    ## Output results
+    # Trim unwanted columns
+    trimmed_df_row <- df_row[, c("dataset", "dataset_type", "ID", "simulation_number", "simulation_type",
+                                 "hypothesis_tree", "replicates", "num_taxa", "num_genes", "gene_length", "num_sites",
+                                 "ML_tree_estimation_models", "branch_a_length", "branch_b_length", "branch_c_length",
+                                 "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
+                                 "branch_outgroup_length", "branch_porifera_length", "total_tree_length",
+                                 "sum_internal_branch_lengths", "percentage_internal_branch_lengths")]
+    # Assemble output vector
+    analysis_output         <- c(as.character(trimmed_df_row), actual_astral_tree_diffs, 
+                                 estimated_astral_tree_diffs, astral_qcfs,
+                                 actual_hyp1_qcf, actual_hyp2_qcf, actual_hyp3_qcf, 
+                                 actual_clade_qcf, actual_clade_monophyly, 
+                                 estimated_hyp1_qcf, estimated_hyp2_qcf, estimated_hyp3_qcf, 
+                                 estimated_clade_qcf, estimated_clade_monophyly,
+                                 tree_length)
+    names(analysis_output)  <- c(names(trimmed_df_row), paste0("actual_", names(actual_astral_tree_diffs)), 
+                                 paste0("estimated_", names(estimated_astral_tree_diffs)), names(astral_qcfs),
+                                 names(actual_hyp1_qcf), names(actual_hyp2_qcf), names(actual_hyp3_qcf), 
+                                 names(actual_clade_qcf), names(actual_clade_monophyly),
+                                 names(estimated_hyp1_qcf), names(estimated_hyp2_qcf), names(estimated_hyp3_qcf), 
+                                 names(estimated_clade_qcf), names(estimated_clade_monophyly), 
+                                 names(tree_length))
+    ## Return the output
+    return(analysis_output)
+  }
 }
 
 
