@@ -131,9 +131,6 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, conve
     # Write the output as a csv file
     op_file <- paste0(df_row$output_folder, df_row$ID, "_analysis_output.csv")
     write.csv(analysis_output_df, file = op_file, row.names = FALSE)
-    
-    ## Return the output
-    return(analysis_output)
   }
 }
 
