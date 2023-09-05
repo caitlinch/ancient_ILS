@@ -195,6 +195,7 @@ if ( (control_parameters[["estimate.trees"]] == TRUE) & (file.exists(output_file
 if ( (control_parameters[["conduct.analysis"]] == TRUE) & (file.exists(output_files[["analysis"]]) == FALSE) ){
   # Read in the output from the previous step
   tree_df <- read.csv(output_files[["trees"]], stringsAsFactors = FALSE)
+  tree_df$output_csv <- paste0(tree_df$output_folder, tree_df$ID, "_analysis_output.csv")
   # Call the function to calculate gCF and RF distances
   # To run for one row:
   #       analysis.wrapper(1, df = tree_df, ASTRAL_path = astral, hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names)
