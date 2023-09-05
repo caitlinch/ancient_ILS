@@ -32,6 +32,13 @@ source(paste0(repo_dir, "code/func_prepare_trees.R"))
 #### 3. Generate slurm files to run tree estimation ####
 # Open the csv with tree estimation command lines
 tree_df <- read.csv(paste0(output_dir, grep(simulation_id, grep("generate_trees", list.files(output_dir), value = T), value = T)))
+# Add columns for commands
+tree_df$iqtree2_gene_tree_command <- paste0(tree_df$iqtree2, " -s ", tree_df$output_alignment_file, 
+                                            " -S ", tree_df$output_partition_file, " -nt ", tree_df$iqtree2_num_threads, 
+                                            " -pre ", gsub("_alignment.fa", "_gene_trees", basename(tree_df$output_alignment_file)), " -rerun -safe")
+tree_df$ASTRAL_command <- paste0("java -jar ", tree_df$ASTRAL, " -i ", gsub("_alignment.fa", "_gene_trees.treefile", tree_df$output_alignment_file), 
+                                 " -o ", gsub("_alignment.fa", "_ASTRAL_tree.tre", tree_df$output_alignment_file), 
+                                 " 2> ", gsub("_alignment.fa", "_ASTRAL_tree.log", tree_df$output_alignment_file))
 # Remove any double spaces in command lines
 tree_df$iqtree2_gene_tree_command <- gsub("   ", " ", tree_df$iqtree2_gene_tree_command)
 tree_df$iqtree2_gene_tree_command <- gsub("  ", " ", tree_df$iqtree2_gene_tree_command)
@@ -61,7 +68,7 @@ slurm_body <- c("#SBATCH --output=/mnt/data/dayhoff/home/u5348329/ancient_ILS/sl
                 "# Estimate trees")
 slurm_footer <- c("")
 # Assemble code lines
-tree_df$combined_tree_estimation_command <- paste0("cd ", tree_df$output_folder, ";", tree_df$iqtree2_gene_tree_command, ";", tree_df$ASTRAL_command)
+tree_df$combined_tree_estimation_command <- paste0("cd ", tree_df$output_folder, "; ", tree_df$iqtree2_gene_tree_command, "; ", tree_df$ASTRAL_command)
 # Determine the number of separate slurm files to generate
 runs_per_file = 50 
 num_files <- nrow(tree_df)/runs_per_file
