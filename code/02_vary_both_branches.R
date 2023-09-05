@@ -178,7 +178,7 @@ if ( (control_parameters[["estimate.trees"]] == TRUE) & (file.exists(output_file
   # To estimate all trees with a set model for all single simulated alignments
   if (location == "local"){
     tree_list <- lapply(1:nrow(generate_alignment_df), estimate.trees, 
-                        df = generate_alignment_df, call.executable.programs = TRUE)
+                        df = generate_alignment_df, call.executable.programs = FALSE)
   } else {
     tree_list <- mclapply(1:nrow(generate_alignment_df), estimate.trees, 
                           df = generate_alignment_df, call.executable.programs = FALSE,
