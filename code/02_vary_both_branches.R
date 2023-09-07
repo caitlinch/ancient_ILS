@@ -76,8 +76,8 @@ source(paste0(repo_dir, "code/func_analysis.R"))
 library(parallel)
 
 # Create output file paths
-output_files <- paste0(output_dir, "bothBranchesVary_", c("simulation_parameters.csv", "output_generate_alignments.csv","output_generate_trees.csv", "output_analysis.csv"))
-names(output_files) <- c("simulations", "alignments", "trees", "analysis")
+output_files <- paste0(output_dir, "bothBranchesVary_", c("simulation_parameters.csv", "output_generate_alignments.csv","output_generate_trees.csv", "output_analysis.csv", "missingReps.csv"))
+names(output_files) <- c("simulations", "alignments", "trees", "analysis", "missing")
 
 
 
@@ -185,6 +185,8 @@ if ( (control_parameters[["estimate.trees"]] == TRUE) & (file.exists(output_file
                           mc.cores = floor(num_parallel_threads/iqtree2_num_threads) )
   }
   tree_df <- as.data.frame(do.call(rbind, tree_list))
+  # Add column of output file paths for the analysis csvs (i.e. the quartet concordance factors calculated for the different hypothesis trees)
+  tree_df$output_csv <- paste0(tree_df$output_folder, tree_df$ID, "_analysis_output.csv")
   # Save the dataframe of tree estimation calls
   write.csv(tree_df, file = output_files[["trees"]], row.names = FALSE)
 }
@@ -195,7 +197,6 @@ if ( (control_parameters[["estimate.trees"]] == TRUE) & (file.exists(output_file
 if ( (control_parameters[["conduct.analysis"]] == TRUE) & (file.exists(output_files[["analysis"]]) == FALSE) ){
   # Read in the output from the previous step
   tree_df <- read.csv(output_files[["trees"]], stringsAsFactors = FALSE)
-  tree_df$output_csv <- paste0(tree_df$output_folder, tree_df$ID, "_analysis_output.csv")
   # Call the function to calculate gCF and RF distances
   # To run for one row:
   #       analysis.wrapper(1, df = tree_df, ASTRAL_path = astral, hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names)
@@ -208,13 +209,15 @@ if ( (control_parameters[["conduct.analysis"]] == TRUE) & (file.exists(output_fi
                               mc.cores = num_parallel_threads)
   }
   
-  # Collect output csvs
+  # Collect and save completed output csvs
   completed_csvs <- tree_df$output_csv[which(file.exists(tree_df$output_csv) == TRUE)]
   completed_csv_list <- lapply(completed_csvs, read.csv)
   completed_csv_df <- as.data.frame(do.call(rbind, completed_csv_list))
-  
-  # Save combined output dataframe
   write.csv(completed_csv_df, file = output_files[["analysis"]], row.names = FALSE)
+  
+  # Collect and save missing output csvs
+  missing_csvs_df <- tree_df[which(file.exists(tree_df$output_csv) == FALSE), ]
+  write.csv(missing_csvs_df, file = output_files[["missing"]], row.names = FALSE)
 }
 
 
