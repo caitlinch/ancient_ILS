@@ -201,10 +201,10 @@ if ( (control_parameters[["conduct.analysis"]] == TRUE) & (file.exists(output_fi
   #       analysis.wrapper(1, df = tree_df, ASTRAL_path = astral, hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names)
   if (location == "local"){
     analysis_list <- lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
-                            hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names)
+                            hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names, rerun.ASTRAL = TRUE)
   } else {
     analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
-                              hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names,
+                              hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names, rerun.ASTRAL = TRUE,
                               mc.cores = num_parallel_threads)
   }
   analysis_df <- as.data.frame(do.call(rbind, analysis_list))
