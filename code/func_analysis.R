@@ -29,8 +29,7 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, conve
     
     ## Calculate the qCFs using ASTRAL
     astral_qcfs <- qcf.wrapper(ID = df_row$ID, starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
-                               ASTRAL_tree = df_row$ASTRAL_tree_treefile, ML_gene_trees = df_row$iqtree2_gene_tree_treefile, 
-                               ASTRAL_path = ASTRAL_path, call.astral = TRUE, converted_taxa_names)
+                               ML_gene_trees = df_row$iqtree2_gene_tree_treefile, ASTRAL_path = ASTRAL_path, call.astral = TRUE, converted_taxa_names)
     
     ## Calculate qcf for branch leading to Ctenophora+Porifera clade for both ms and iqtree gene trees
     # Identify correct file path for hypothesis tree
@@ -384,21 +383,21 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
 
 
 #### Quartet concordance factors ####
-qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ASTRAL_tree, ML_gene_trees, ASTRAL_path, call.astral = TRUE, converted_taxa_names){
+qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ML_gene_trees, ASTRAL_path, call.astral = TRUE, converted_taxa_names){
   ## Function to determine actual and estimated qCF in ASTRAL and return summary statistics
   
   ## Identify directory
   qcf_dir <- paste0(dirname(starting_tree), "/")
   
-  ## Calculate actual quartet concordance factors
+  ## Calculate actual quartet concordance factors on the starting tree (i.e. the hypothesis tree)
   actual_qcf_paths <- qcf.call(output_id = paste0(ID, "_actual_qcfs"), output_directory = qcf_dir, 
                                tree_path = starting_tree, gene_trees_path = ms_gene_trees,
                                ASTRAL_path = ASTRAL_path, call.astral, 
                                rename.tree.tips = TRUE, converted_taxa_names)
   
-  ## Calculate estimated quartet concordance factors
+  ## Calculate estimated quartet concordance factors on the starting tree (i.e. the hypothesis tree)
   estimated_qcf_paths <- qcf.call(output_id = paste0(ID, "_estimated_qcfs"), output_directory = qcf_dir, 
-                                  tree_path = ASTRAL_tree, gene_trees_path = ML_gene_trees,
+                                  tree_path = starting_tree, gene_trees_path = ML_gene_trees,
                                   ASTRAL_path = ASTRAL_path, call.astral,
                                   rename.tree.tips = FALSE, converted_taxa_names)
   
