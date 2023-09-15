@@ -6,7 +6,7 @@ library(ape)
 library(phangorn)
 
 #### Analysis wrapper function ####
-analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, converted_taxa_names, rerun.ASTRAL = FALSE){
+analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, converted_taxa_names, rerun.ASTRAL = TRUE){
   # Wrapper function to calculate:
   #   - [x] actual and estimated qcfs (ASTRAL)
   #   - [x] hypothesis tree distances for ASTRAL tree
@@ -133,12 +133,12 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, conve
                                  tree_length, actual_qcf_branch_output_csv, estimated_qcf_branch_output_csv)
     analysis_output_df <- as.data.frame(matrix(analysis_output, nrow = 1, ncol = length(analysis_output), byrow = TRUE))
     names(analysis_output_df)  <- c(names(trimmed_df_row), paste0("actual_", names(actual_astral_tree_diffs)), 
-                                 paste0("estimated_", names(estimated_astral_tree_diffs)), names(astral_qcfs),
-                                 names(actual_hyp1_qcf), names(actual_hyp2_qcf), names(actual_hyp3_qcf), 
-                                 names(actual_clade_qcf), names(actual_clade_monophyly),
-                                 names(estimated_hyp1_qcf), names(estimated_hyp2_qcf), names(estimated_hyp3_qcf), 
-                                 names(estimated_clade_qcf), names(estimated_clade_monophyly), 
-                                 names(tree_length), "actual_qcf_branch_output_csv", "estimated_qcf_branch_output_csv")
+                                    paste0("estimated_", names(estimated_astral_tree_diffs)), names(astral_qcfs),
+                                    names(actual_hyp1_qcf), names(actual_hyp2_qcf), names(actual_hyp3_qcf), 
+                                    names(actual_clade_qcf), names(actual_clade_monophyly),
+                                    names(estimated_hyp1_qcf), names(estimated_hyp2_qcf), names(estimated_hyp3_qcf), 
+                                    names(estimated_clade_qcf), names(estimated_clade_monophyly), 
+                                    names(tree_length), "actual_qcf_branch_output_csv", "estimated_qcf_branch_output_csv")
     # Write the output as a csv file
     op_file <- paste0(df_row$output_folder, df_row$ID, "_analysis_output.csv")
     write.csv(analysis_output_df, file = op_file, row.names = FALSE)
@@ -408,8 +408,11 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ML_gene_trees, ASTRAL_
                                rename.tree.tips = TRUE, converted_taxa_names, redo = redo)
   
   ## Calculate estimated quartet concordance factors on the starting tree (i.e. the hypothesis tree)
+  # Convert tip labels to numbers
+  numericTipLabels_tree_path <- update.tree.tips(tree_path = starting_tree, converted_taxa_names = converted_taxa_names)
+  # Calculate qcfs
   estimated_qcf_paths <- qcf.call(output_id = paste0(ID, "_estimated_qcfs"), output_directory = qcf_dir, 
-                                  tree_path = starting_tree, gene_trees_path = ML_gene_trees,
+                                  tree_path = numericTipLabels_tree_path, gene_trees_path = ML_gene_trees,
                                   ASTRAL_path = ASTRAL_path, call.astral,
                                   rename.tree.tips = FALSE, converted_taxa_names, redo = redo)
   
