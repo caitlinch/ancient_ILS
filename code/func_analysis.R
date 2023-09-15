@@ -6,7 +6,7 @@ library(ape)
 library(phangorn)
 
 #### Analysis wrapper function ####
-analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, converted_taxa_names){
+analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, converted_taxa_names, rerun.ASTRAL = FALSE){
   # Wrapper function to calculate:
   #   - [x] actual and estimated qcfs (ASTRAL)
   #   - [x] hypothesis tree distances for ASTRAL tree
@@ -29,7 +29,7 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, conve
     
     ## Calculate the qCFs using ASTRAL
     astral_qcfs <- qcf.wrapper(ID = df_row$ID, starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
-                               ML_gene_trees = df_row$iqtree2_gene_tree_treefile, ASTRAL_path = ASTRAL_path, call.astral = TRUE, converted_taxa_names)
+                               ML_gene_trees = df_row$iqtree2_gene_tree_treefile, ASTRAL_path = ASTRAL_path, call.astral = TRUE, converted_taxa_names, redo = rerun.ASTRAL)
     
     ## Read in and save the qCF values
     actual_qcf_branch_output_csv <- output.branch.qcf(df_row, qcf_type = "actual")
@@ -47,25 +47,29 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, conve
                                       Cten_hypothesis_tree_path = Cten_hyp_tree_path, 
                                       ASTRAL_path = ASTRAL_path, 
                                       call.astral = TRUE, 
-                                      converted_taxa_names = converted_taxa_names)
+                                      converted_taxa_names = converted_taxa_names,
+                                      redo = rerun.ASTRAL)
     actual_hyp2_qcf <- check.qcf.Pori(output_id = "actual_testHyp2_Pori", 
                                       gene_trees_path = df_row$output_gene_tree_file,
                                       Pori_hypothesis_tree_path = Pori_hyp_tree_path, 
                                       ASTRAL_path = ASTRAL_path, 
                                       call.astral = TRUE, 
-                                      converted_taxa_names = converted_taxa_names)
+                                      converted_taxa_names = converted_taxa_names,
+                                      redo = rerun.ASTRAL)
     actual_hyp3_qcf <- check.qcf.CtenPori(output_id = "actual_testHyp3_CtenPori", 
                                           gene_trees_path = df_row$output_gene_tree_file, 
                                           CtenPori_hypothesis_tree_path = CtenPori_hyp_tree_path, 
                                           ASTRAL_path = ASTRAL_path, 
                                           call.astral = TRUE, 
-                                          converted_taxa_names = converted_taxa_names)
+                                          converted_taxa_names = converted_taxa_names,
+                                          redo = rerun.ASTRAL)
     actual_clade_qcf <- check.qcf.clades(output_id = "actual_clade",
                                          gene_trees_path = df_row$output_gene_tree_file,
                                          Cten_hypothesis_tree_path = Cten_hyp_tree_path,
                                          ASTRAL_path = ASTRAL_path, 
                                          call.astral = TRUE, 
-                                         converted_taxa_names = converted_taxa_names)
+                                         converted_taxa_names = converted_taxa_names,
+                                         redo = rerun.ASTRAL)
     actual_clade_monophyly <- check.clade.monophyly(tree_path = df_row$output_base_tree_file, converted_taxa_names)
     names(actual_clade_monophyly) <- paste0("actual_", names(actual_clade_monophyly))
     # Calculate for estimated (i.e. iqtree2) gene trees
@@ -74,25 +78,29 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, conve
                                          Cten_hypothesis_tree_path = Cten_hyp_tree_path, 
                                          ASTRAL_path = ASTRAL_path, 
                                          call.astral = TRUE, 
-                                         converted_taxa_names = converted_taxa_names)
+                                         converted_taxa_names = converted_taxa_names,
+                                         redo = rerun.ASTRAL)
     estimated_hyp2_qcf <- check.qcf.Pori(output_id = "estimated_testHyp2_Pori", 
                                          gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
                                          Pori_hypothesis_tree_path = Pori_hyp_tree_path, 
                                          ASTRAL_path = ASTRAL_path, 
                                          call.astral = TRUE, 
-                                         converted_taxa_names = converted_taxa_names)
+                                         converted_taxa_names = converted_taxa_names,
+                                         redo = rerun.ASTRAL)
     estimated_hyp3_qcf <- check.qcf.CtenPori(output_id = "estimated_testHyp3_CtenPori", 
                                              gene_trees_path = df_row$iqtree2_gene_tree_treefile, 
                                              CtenPori_hypothesis_tree_path = CtenPori_hyp_tree_path, 
                                              ASTRAL_path = ASTRAL_path, 
                                              call.astral = TRUE, 
-                                             converted_taxa_names = converted_taxa_names)
+                                             converted_taxa_names = converted_taxa_names,
+                                             redo = rerun.ASTRAL)
     estimated_clade_qcf <- check.qcf.clades(output_id = "estimated_clade",
                                             gene_trees_path = df_row$iqtree2_gene_tree_treefile,
                                             Cten_hypothesis_tree_path = Cten_hyp_tree_path,
                                             ASTRAL_path = ASTRAL_path, 
                                             call.astral = TRUE, 
-                                            converted_taxa_names = converted_taxa_names)
+                                            converted_taxa_names = converted_taxa_names,
+                                            redo = rerun.ASTRAL)
     estimated_clade_monophyly <- check.clade.monophyly(tree_path = df_row$ASTRAL_tree_treefile, converted_taxa_names)
     names(estimated_clade_monophyly) <- paste0("estimated_", names(estimated_clade_monophyly))
     
@@ -188,7 +196,7 @@ topology.tests.wrapper <- function(row_id, df, hypothesis_tree_dir, test.three.h
 
 
 #### Calculate actual qCF ####
-calculate.actual.qCF <- function(row_id, df, call.ASTRAL = TRUE, converted_taxa_names){
+calculate.actual.qCF <- function(row_id, df, call.ASTRAL = TRUE, converted_taxa_names, redo = FALSE){
   # Wrapper function to calculate actual qCFS 
   
   ## Open the row of interest
@@ -201,7 +209,7 @@ calculate.actual.qCF <- function(row_id, df, call.ASTRAL = TRUE, converted_taxa_
   actual_qcf_paths <- qcf.call(output_id = paste0(df_row$ID, "_actual_qcfs"), output_directory = qcf_dir, 
                                tree_path = df_row$output_base_tree_file, gene_trees_path = df_row$output_gene_tree_file,
                                ASTRAL_path = df_row$ASTRAL, call.astral = call.ASTRAL, 
-                               rename.tree.tips = TRUE, converted_taxa_names)
+                               rename.tree.tips = TRUE, converted_taxa_names, redo = redo)
   ## Extract relevant qCF values
   actual_qcf_values <-  extract.qcf.values(qcf_tree_path = actual_qcf_paths[["qcf_output_tree"]], 
                                            qcf_log_path = actual_qcf_paths[["qcf_output_log"]])
@@ -387,7 +395,7 @@ calculate.distance.between.three.trees <- function(tree_path, hypothesis_tree_di
 
 
 #### Quartet concordance factors ####
-qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ML_gene_trees, ASTRAL_path, call.astral = TRUE, converted_taxa_names){
+qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ML_gene_trees, ASTRAL_path, call.astral = TRUE, converted_taxa_names, redo = FALSE){
   ## Function to determine actual and estimated qCF in ASTRAL and return summary statistics
   
   ## Identify directory
@@ -397,13 +405,13 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ML_gene_trees, ASTRAL_
   actual_qcf_paths <- qcf.call(output_id = paste0(ID, "_actual_qcfs"), output_directory = qcf_dir, 
                                tree_path = starting_tree, gene_trees_path = ms_gene_trees,
                                ASTRAL_path = ASTRAL_path, call.astral, 
-                               rename.tree.tips = TRUE, converted_taxa_names)
+                               rename.tree.tips = TRUE, converted_taxa_names, redo = redo)
   
   ## Calculate estimated quartet concordance factors on the starting tree (i.e. the hypothesis tree)
   estimated_qcf_paths <- qcf.call(output_id = paste0(ID, "_estimated_qcfs"), output_directory = qcf_dir, 
                                   tree_path = starting_tree, gene_trees_path = ML_gene_trees,
                                   ASTRAL_path = ASTRAL_path, call.astral,
-                                  rename.tree.tips = FALSE, converted_taxa_names)
+                                  rename.tree.tips = FALSE, converted_taxa_names, redo = redo)
   
   ## Extract relevant qCF values
   actual_qcf_values <-  extract.qcf.values(qcf_tree_path = actual_qcf_paths[["qcf_output_tree"]], 
@@ -421,7 +429,7 @@ qcf.wrapper <- function(ID, starting_tree, ms_gene_trees, ML_gene_trees, ASTRAL_
 
 
 
-check.qcf.Cten <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, converted_taxa_names){
+check.qcf.Cten <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, converted_taxa_names, redo = FALSE){
   # Function to check the qCF for the BILAT+CNID+PORI branch by using the Ctenophora-sister tree
   
   ## Prepare tips for hypothesis
@@ -438,7 +446,7 @@ check.qcf.Cten <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path
   qcf_paths <- qcf.call(output_id = output_id, output_directory = qcf_dir, 
                         tree_path = Cten_hypothesis_tree_path, gene_trees_path = gene_trees_path,
                         ASTRAL_path = ASTRAL_path, call.astral = call.astral, 
-                        rename.tree.tips = TRUE, converted_taxa_names)
+                        rename.tree.tips = TRUE, converted_taxa_names, redo = redo)
   # Identify and open ASTRAL tree with calculated qcf values
   qcf_tree <- read.tree(qcf_paths[["qcf_output_tree"]])
   # Root tree at outgroup
@@ -460,7 +468,7 @@ check.qcf.Cten <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path
 
 
 
-check.qcf.Pori <- function(output_id, gene_trees_path, Pori_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, converted_taxa_names){
+check.qcf.Pori <- function(output_id, gene_trees_path, Pori_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, converted_taxa_names, redo = FALSE){
   # Function to check the qCF for the BILAT+CNID+CTEN branch by using the Porifera-sister tree
   
   ## Prepare tips for hypothesis
@@ -477,7 +485,7 @@ check.qcf.Pori <- function(output_id, gene_trees_path, Pori_hypothesis_tree_path
   qcf_paths <- qcf.call(output_id = output_id, output_directory = qcf_dir, 
                         tree_path = Pori_hypothesis_tree_path, gene_trees_path = gene_trees_path,
                         ASTRAL_path = ASTRAL_path, call.astral = call.astral, 
-                        rename.tree.tips = TRUE, converted_taxa_names)
+                        rename.tree.tips = TRUE, converted_taxa_names, redo = redo)
   # Identify and open ASTRAL tree with calculated qcf values
   qcf_tree <- read.tree(qcf_paths[["qcf_output_tree"]])
   # Root tree at outgroup
@@ -499,7 +507,7 @@ check.qcf.Pori <- function(output_id, gene_trees_path, Pori_hypothesis_tree_path
 
 
 
-check.qcf.CtenPori <- function(output_id, gene_trees_path, CtenPori_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, converted_taxa_names){
+check.qcf.CtenPori <- function(output_id, gene_trees_path, CtenPori_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, converted_taxa_names, redo = FALSE){
   # Function to check the qCF for the Ctenophora+Porifera branch by using the Ctenophora+Porifera tree
   
   ## Prepare tips for hypothesis
@@ -516,7 +524,7 @@ check.qcf.CtenPori <- function(output_id, gene_trees_path, CtenPori_hypothesis_t
   qcf_paths <- qcf.call(output_id = output_id, output_directory = qcf_dir, 
                         tree_path = CtenPori_hypothesis_tree_path, gene_trees_path = gene_trees_path,
                         ASTRAL_path = ASTRAL_path, call.astral = call.astral, 
-                        rename.tree.tips = TRUE, converted_taxa_names)
+                        rename.tree.tips = TRUE, converted_taxa_names, redo = redo)
   # Identify and open ASTRAL tree with calculated qcf values
   qcf_tree <- read.tree(qcf_paths[["qcf_output_tree"]])
   # Root tree at outgroup
@@ -538,7 +546,7 @@ check.qcf.CtenPori <- function(output_id, gene_trees_path, CtenPori_hypothesis_t
 
 
 
-check.qcf.clades <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, converted_taxa_names){
+check.qcf.clades <- function(output_id, gene_trees_path, Cten_hypothesis_tree_path, ASTRAL_path, call.astral = TRUE, converted_taxa_names, redo = FALSE){
   # Function to check the qCF for the Ctenophora+Porifera branch by using the Ctenophora+Porifera tree
   
   ## Prepare tips for hypothesis
@@ -562,7 +570,7 @@ check.qcf.clades <- function(output_id, gene_trees_path, Cten_hypothesis_tree_pa
   qcf_paths <- qcf.call(output_id = output_id, output_directory = qcf_dir, 
                         tree_path = Cten_hypothesis_tree_path, gene_trees_path = gene_trees_path,
                         ASTRAL_path = ASTRAL_path, call.astral = call.astral, 
-                        rename.tree.tips = TRUE, converted_taxa_names)
+                        rename.tree.tips = TRUE, converted_taxa_names, redo = redo)
   # Identify and open ASTRAL tree with calculated qcf values
   qcf_tree <- read.tree(qcf_paths[["qcf_output_tree"]])
   # Root tree at outgroup
