@@ -31,6 +31,10 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, conve
     astral_qcfs <- qcf.wrapper(ID = df_row$ID, starting_tree = df_row$output_base_tree_file, ms_gene_trees = df_row$output_gene_tree_file,
                                ML_gene_trees = df_row$iqtree2_gene_tree_treefile, ASTRAL_path = ASTRAL_path, call.astral = TRUE, converted_taxa_names)
     
+    ## Read in and save the qCF values
+    actual_qcf_branch_output_csv <- output.branch.qcf(df_row, qcf_type = "actual")
+    estimated_qcf_branch_output_csv <- output.branch.qcf(df_row, qcf_type = "estimated")
+    
     ## Calculate qcf for branch leading to Ctenophora+Porifera clade for both ms and iqtree gene trees
     # Identify correct file path for hypothesis tree
     all_hyp_paths <- paste0(hypothesis_tree_dir, grep("numeric|relabelled", list.files(hypothesis_tree_dir), value = T, invert = T))
@@ -118,7 +122,7 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, conve
                                  actual_clade_qcf, actual_clade_monophyly, 
                                  estimated_hyp1_qcf, estimated_hyp2_qcf, estimated_hyp3_qcf, 
                                  estimated_clade_qcf, estimated_clade_monophyly,
-                                 tree_length)
+                                 tree_length, actual_qcf_branch_output_csv, estimated_qcf_branch_output_csv)
     analysis_output_df <- as.data.frame(matrix(analysis_output, nrow = 1, ncol = length(analysis_output), byrow = TRUE))
     names(analysis_output_df)  <- c(names(trimmed_df_row), paste0("actual_", names(actual_astral_tree_diffs)), 
                                  paste0("estimated_", names(estimated_astral_tree_diffs)), names(astral_qcfs),
@@ -126,7 +130,7 @@ analysis.wrapper <- function(row_id, df, ASTRAL_path, hypothesis_tree_dir, conve
                                  names(actual_clade_qcf), names(actual_clade_monophyly),
                                  names(estimated_hyp1_qcf), names(estimated_hyp2_qcf), names(estimated_hyp3_qcf), 
                                  names(estimated_clade_qcf), names(estimated_clade_monophyly), 
-                                 names(tree_length))
+                                 names(tree_length), "actual_qcf_branch_output_csv", "estimated_qcf_branch_output_csv")
     # Write the output as a csv file
     op_file <- paste0(df_row$output_folder, df_row$ID, "_analysis_output.csv")
     write.csv(analysis_output_df, file = op_file, row.names = FALSE)
@@ -803,6 +807,34 @@ qcf.clade.values <- function(clade_of_interest, qcf_tree){
   return(qcf_clade)
 }
 
+
+
+output.branch.qcf <- function(df_row, qcf_type){
+  ## Extract and output the qCF for each branch in the tree
+  ##    qcf_type = "actual" OR qcf_type = "estimated"
+  
+  # Identify the file
+  rep_files <- list.files(df_row$output_folder)
+  qcf_tree_file <- grep(qcf_type, grep("_qcfs.tre", grep(df_row$ID, rep_files, value = TRUE), value = TRUE), value = TRUE)
+  # Open the tree
+  qcf_tree <- read.tree(paste0(df_row$output_folder, qcf_tree_file))
+  # Extract qCF values for each branch
+  qcfs <- qcf_tree$node.label
+  # Remove empty strings from the qCF vectors
+  qcfs <- qcfs[qcfs != ""]
+  # Format output
+  qcfs <- c(df_row$ID, df_row$simulation_number, df_row$simulation_type, df_row$hypothesis_tree, df_row$replicates, df_row$branch_a_length, df_row$branch_b_length, qcf_type, qcfs)
+  # Turn into a dataframe
+  qcf_df <- as.data.frame(matrix(data = qcfs, nrow = 1, ncol = length(qcfs), byrow = TRUE))
+  names(qcf_df) <- c("ID", "simulation_number", "simulation_type", "hypothesis_tree", "replicates", "branch_a_length", "branch_b_length", "qcf_type", sprintf("qcf_%03d", 1:(ncol(qcf_df)-8)) )
+  # Output the qCFs as a csv file
+  op_file <- paste0(df_row$output_folder, df_row$ID, "_", qcf_type, "_branch_qcf.csv")
+  write.csv(qcf_df, file = op_file, row.names = FALSE)
+  # Return the csv file
+  return_vec <- op_file
+  names(return_vec) <- paste0(qcf_type, "_branch_qcf_csv_file")
+  return(return_vec)
+}
 
 
 
