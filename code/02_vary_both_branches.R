@@ -76,8 +76,11 @@ source(paste0(repo_dir, "code/func_analysis.R"))
 library(parallel)
 
 # Create output file paths
-output_files <- paste0(output_dir, "bothBranchesVary_", c("simulation_parameters.csv", "output_generate_alignments.csv","output_generate_trees.csv", "output_analysis.csv", "missingReps.csv"))
-names(output_files) <- c("simulations", "alignments", "trees", "analysis", "missing")
+output_files <- paste0(output_dir, "bothBranchesVary_", c("simulation_parameters.csv", "output_generate_alignments.csv", 
+                                                          "output_generate_trees.csv", "output_analysis.csv", 
+                                                          "missingReps.csv", "branch_qcf_actual.csv",
+                                                          "branch_qcf_estimated.csv"))
+names(output_files) <- c("simulations", "alignments", "trees", "analysis", "missing", "actual_qcf", "estimated_qcf")
 
 
 
@@ -218,6 +221,19 @@ if ( (control_parameters[["conduct.analysis"]] == TRUE) & (file.exists(output_fi
   # Collect and save missing output csvs
   missing_csvs_df <- tree_df[which(file.exists(tree_df$output_csv) == FALSE), ]
   write.csv(missing_csvs_df, file = output_files[["missing"]], row.names = FALSE)
+  
+  # Collect and save actual qcfs csv files
+  a_csv_files <- completed_csv_df$actual_qcf_branch_output_csv
+  a_qcf_list <- lapply(a_csv_files, read.csv, stringsAsFactors = FALSE)
+  a_qcf_df <- as.data.frame(do.call(rbind, a_qcf_list))
+  write.csv(a_qcf_df, file = output_files[["actual_qcf"]], row.names = FALSE)
+  
+  # Collect and save estimated qcfs csv files
+  e_csv_files <- completed_csv_df$estimated_qcf_branch_output_csv
+  e_qcf_list <- lapply(e_csv_files, read.csv, stringsAsFactors = FALSE)
+  e_qcf_df <- as.data.frame(do.call(rbind, e_qcf_list))
+  write.csv(e_qcf_df, file = output_files[["estimated_qcf"]], row.names = FALSE)
+  
 }
 
 
