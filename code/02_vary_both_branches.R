@@ -204,12 +204,12 @@ if ( (control_parameters[["conduct.analysis"]] == TRUE) & (file.exists(output_fi
   # To run for one row:
   #       analysis.wrapper(1, df = tree_df, ASTRAL_path = astral, hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names)
   if (location == "local"){
-    analysis_list <- lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
-                            hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names, rerun.ASTRAL = TRUE)
+    lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
+           hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names, rerun.ASTRAL = TRUE)
   } else {
-    analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
-                              hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names, rerun.ASTRAL = TRUE, 
-                              mc.cores = num_parallel_threads)
+    mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
+             hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names, rerun.ASTRAL = TRUE, 
+             mc.cores = num_parallel_threads)
   }
   
   # Collect and save completed output csvs
@@ -233,7 +233,6 @@ if ( (control_parameters[["conduct.analysis"]] == TRUE) & (file.exists(output_fi
   e_qcf_list <- lapply(e_csv_files, read.csv, stringsAsFactors = FALSE)
   e_qcf_df <- as.data.frame(do.call(rbind, e_qcf_list))
   write.csv(e_qcf_df, file = output_files[["estimated_qcf"]], row.names = FALSE)
-  
 }
 
 

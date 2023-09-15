@@ -76,8 +76,9 @@ source(paste0(repo_dir, "code/func_analysis.R"))
 library(parallel)
 
 # Create output file paths
-output_files <- paste0(output_dir, "ancientILS_", c("simulation_parameters.csv", "output_generate_alignments.csv","output_generate_trees.csv", "output_analysis.csv"))
-names(output_files) <- c("simulations", "alignments", "trees", "analysis")
+output_files <- paste0(output_dir, "ancientILS_", c("simulation_parameters.csv", "output_generate_alignments.csv","output_generate_trees.csv", 
+                                                    "output_analysis.csv", "branch_qcf_actual.csv", "branch_qcf_estimated.csv"))
+names(output_files) <- c("simulations", "alignments", "trees", "analysis", "actual_qcf", "estimated_qcf")
 
 
 
@@ -200,16 +201,32 @@ if ( (control_parameters[["conduct.analysis"]] == TRUE) & (file.exists(output_fi
   # To run for one row:
   #       analysis.wrapper(1, df = tree_df, ASTRAL_path = astral, hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names)
   if (location == "local"){
-    analysis_list <- lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
-                            hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names, rerun.ASTRAL = TRUE)
+    lapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
+           hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names, rerun.ASTRAL = TRUE)
   } else {
-    analysis_list <- mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
-                              hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names, rerun.ASTRAL = TRUE,
-                              mc.cores = num_parallel_threads)
+    mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
+             hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names, rerun.ASTRAL = TRUE,
+             mc.cores = num_parallel_threads)
   }
-  analysis_df <- as.data.frame(do.call(rbind, analysis_list))
-  # Save combined output dataframe
-  write.csv(analysis_df, file = output_files[["analysis"]], row.names = FALSE)
+  
+  # Collect and save completed output csvs
+  all_output_csvs <- paste0(tree_df$output_folder, tree_df$ID, "_analysis_output.csv")
+  completed_csvs <- all_output_csvs[which(file.exists(all_output_csvs) == TRUE)]
+  completed_csv_list <- lapply(completed_csvs, read.csv, stringsAsFactors = FALSE)
+  completed_csv_df <- as.data.frame(do.call(rbind, completed_csv_list))
+  write.csv(completed_csv_df, file = output_files[["analysis"]], row.names = FALSE)
+  
+  # Collect and save actual qcfs csv files
+  a_csv_files <- completed_csv_df$actual_qcf_branch_output_csv
+  a_qcf_list <- lapply(a_csv_files, read.csv, stringsAsFactors = FALSE)
+  a_qcf_df <- as.data.frame(do.call(rbind, a_qcf_list))
+  write.csv(a_qcf_df, file = output_files[["actual_qcf"]], row.names = FALSE)
+  
+  # Collect and save estimated qcfs csv files
+  e_csv_files <- completed_csv_df$estimated_qcf_branch_output_csv
+  e_qcf_list <- lapply(e_csv_files, read.csv, stringsAsFactors = FALSE)
+  e_qcf_df <- as.data.frame(do.call(rbind, e_qcf_list))
+  write.csv(e_qcf_df, file = output_files[["estimated_qcf"]], row.names = FALSE)
 }
 
 
