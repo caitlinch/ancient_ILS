@@ -340,3 +340,54 @@ ggsave(filename = p_file, plot = p, device = "png", width = 12.4, height = 15)
 qcf_df_file <- paste0(input_dir, grep("bothBranchesVary", grep("output_analysis", all_csvs, value = T), value = T))
 qcf_df <- read.csv(qcf_df_file)
 
+## Plot 1: branch 'a' qCF values 
+# Melt dataframe and add new columns
+long_df <- melt(qcf_df,
+                id.vars = id.var_cols,
+                measure.vars = c("actual_testHyp1_Cten_branch_a_qcf_value", "actual_testHyp2_Pori_branch_a_qcf_value", "actual_testHyp3_CtenPori_qcf_value",
+                                 "estimated_testHyp1_Cten_branch_a_qcf_value", "estimated_testHyp2_Pori_branch_a_qcf_value", "estimated_testHyp3_CtenPori_qcf_value"))
+long_df$qcf_type <- factor(long_df$variable,
+                           levels = c("actual_testHyp1_Cten_branch_a_qcf_value", "estimated_testHyp1_Cten_branch_a_qcf_value", 
+                                      "actual_testHyp2_Pori_branch_a_qcf_value", "estimated_testHyp2_Pori_branch_a_qcf_value", 
+                                      "actual_testHyp3_CtenPori_qcf_value", "estimated_testHyp3_CtenPori_qcf_value"), 
+                           labels = rep(c("Actual", "Estimated"), 3) )
+long_df$hypothesis_test <- factor(long_df$variable,
+                                  levels = c("actual_testHyp1_Cten_branch_a_qcf_value", "estimated_testHyp1_Cten_branch_a_qcf_value", 
+                                             "actual_testHyp2_Pori_branch_a_qcf_value", "estimated_testHyp2_Pori_branch_a_qcf_value", 
+                                             "actual_testHyp3_CtenPori_qcf_value", "estimated_testHyp3_CtenPori_qcf_value"), 
+                                  labels = c("Hyp1", "Hyp1", "Hyp2", "Hyp2", "Hyp3", "Hyp3") )
+long_df$starting_tree_topology <- factor(long_df$hypothesis_tree,
+                                         levels = c("1", "2"),
+                                         labels = c("Ctenophora-sister", "Porifera-sister"))
+# Create plots
+p <- ggplot(long_df, aes(x = branch_a_length, y = value, color = qcf_type)) +
+  facet_grid(hypothesis_tree~branch_b_length, labeller = labeller(hypothesis_tree = tree_labs)) +
+  geom_point(size = 2, alpha = 0.6) +
+  scale_x_continuous(name = "Length of branch 'a' (in coalescent units)", trans = "log10") +
+  scale_y_continuous(name = "qCF Score", limits = c(0,1), breaks = seq(0,1.2,0.2), minor_breaks = seq(0,1.2,0.1)) +
+  scale_color_manual(values = qcf_type_palette, na.value = "grey50") +
+  guides(color = guide_legend(title="qCF type", override.aes = list(size = 6)) ) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 15),
+        axis.title = element_text(size = 20),
+        axis.text = element_text(size = 15),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 1),
+        legend.title = element_text(size = 20),
+        legend.text = element_text(size = 15) )
+p_file <- paste0(output_dir, "bothBranchesVary_results_qCF_branch-a.png")
+ggsave(filename = p_file, plot = p, device = "png", width = 16, height = 6)
+
+## Plot 2: branch 'a' and branch 'b' qCF histogram 
+p <- ggplot(long_df, aes(x = value, color = qcf_type, fill = qcf_type)) +
+  facet_grid(branch_a_length~branch_b_length) +
+  geom_bar() +
+  labs(title = "qCF histograms for all branch 'a' and branch 'b' values") +
+  scale_x_continuous(name = "qCF Value") +
+  scale_y_continuous(name = "Count", limits = c(0,12), breaks = seq(0,12,3), labels = seq(0,12,3)) +
+  scale_color_manual(name = "qCF type", values = qcf_type_palette) +
+  scale_fill_manual(name = "qCF type", values = qcf_type_palette) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust =1, vjust = 0.5))
+p_file <- paste0(output_dir, "bothBranchesVary_results_qCF_histograms.png")
+ggsave(filename = p_file, plot = p, device = "png")
+
