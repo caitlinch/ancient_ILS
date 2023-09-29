@@ -22,12 +22,15 @@ internal.branch.proportion <- function(tree){
   return(op)
 }
 
-root.to.tip.distances <- function(tree, root.tree = TRUE, outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")){
+root.to.tip.distances <- function(tree, root.tree = TRUE, outgroup = NA){
   ## Function to take a single taxa, root it, and calculate the root to tip distance
   
   # Root the tree at the outgroup (if requested)
   if (root.tree == TRUE & is.character(outgroup) == TRUE){
-    tree <- root(tree, outgroup = outgroup, resolve.root = TRUE)
+    # Check which outgroups are present in the tree
+    present_outgroup <- outgroup[which(outgroup %in% gene_trees[[4]]$tip.label)]
+    # Root tree
+    tree <- root(tree, outgroup = present_outgroup, resolve.root = TRUE)
   }
   # Identify root node
   root_node <- find_root(tree)
