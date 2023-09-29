@@ -2,6 +2,9 @@
 ## This script includes functions for formatting and preparing hypothesis trees
 # Caitlin Cherryh, 2023
 
+library(castor)
+library(ape)
+
 #### Extracting information from phylogenetic trees ####
 internal.branch.proportion <- function(tree){
   ## Small function to take any tree and determine the total sum of branch length, the sum of internal branch length, and the ratio between the two
@@ -17,6 +20,29 @@ internal.branch.proportion <- function(tree){
   # Collate and return output
   op <- c(total_branch_length, sum_internal_branch_lengths, percent_internal_branch_length)
   return(op)
+}
+
+root.to.tip.distances <- function(tree, root.tree = TRUE, outgroup = c("Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")){
+  ## Function to take a single taxa, root it, and calculate the root to tip distance
+  
+  # Root the tree at the outgroup (if requested)
+  if (root.tree == TRUE & is.character(outgroup) == TRUE){
+    tree <- root(tree, outgroup = outgroup, resolve.root = TRUE)
+  }
+  # Identify root node
+  root_node <- find_root(tree)
+  # Calculate the root-to-tip distance for the specified taxa
+  r2t_distances <- get_all_distances_to_root(tree)
+  # Identify terminal branches
+  terminal_branch_edges <- tree$edge[which(tree$edge[ , 2] < (Ntip(tree) + 1) ), ]
+  branch_order <- terminal_branch_edges[ , 2]
+  # Identify root-to-tip distances for terminal branches
+  terminal_r2t_distances <- r2t_distances[branch_order]
+  # Reorder tips to match branch_order
+  terminal_r2t_tips <- tree$tip.label[branch_order]
+  # Return the root-to-tip distance as a named vector
+  names(terminal_r2t_distances) <- terminal_r2t_tips
+  return(terminal_r2t_distances)
 }
 
 
