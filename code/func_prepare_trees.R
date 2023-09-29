@@ -50,6 +50,22 @@ root.to.tip.distances <- function(tree, root.tree = TRUE, outgroup = NA){
 
 
 
+add.missing.distances <- function(r2t_d, tree_tips){
+  ## Function to take the root to tip distances, and add any missing distances
+  
+  # Check which tips are missing
+  missing_tips <- tree_tips[which(! tree_tips %in% names(r2t_d))]
+  # Add all the missing tips as NAs
+  new_dists <- c(as.numeric(r2t_d), rep(NA, length(missing_tips)))
+  names(new_dists) <- c(names(r2t_d), missing_tips)
+  # Sort to match order of the tree tips
+  new_dists <- new_dists[tree_tips]
+  # Return the distances
+  return(new_dists)
+}
+
+
+
 #### Creating constraint trees ####
 format.constraint.tree.clade <- function(clade){
   ## Function to take in a vector of species and return a nicely formatted character object to paste into a constraint tree

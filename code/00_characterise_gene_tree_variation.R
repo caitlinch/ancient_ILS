@@ -45,12 +45,14 @@ whelan2017_clades <- list("Bilateria" = c("Homo_sapiens", "Strongylocentrotus_pu
                         "Sponges_1" = c("Sponges_Calcarea", "Sponges_Homoscleromorpha"),
                         "Sponges_2" = c("Sponges_Hexactinellida", "Sponges_Demospongiae") )
 
-## Open gene trees
+## Open gene trees and ML tree
 all_files <- list.files(gene_tree_dir, recursive = T)
 gene_trees_file <- grep("gene_trees", grep(".treefile", all_files, value = T), value = T)
 gene_trees <- read.tree(paste0(gene_tree_dir, gene_trees_file))
 ml_tree_file <- grep("partitioned_ML", grep(".treefile", all_files, value = T), value = T)
 ml_tree <- read.tree(paste0(gene_tree_dir, ml_tree_file))
+# Extract tips in alphabetical order
+alphabetical_tips <- sort(ml_tree$tip.label)
 
 
 
@@ -71,13 +73,46 @@ dev.off()
 
 
 #### 4. Extract root-to-tip distance for each taxa ####
+# To extract root-to-tip distances, we need a root that 
+# Identify tips that are in every gene tree
+all_gt_tips <- lapply(1:length(gene_trees), function(i){gene_trees[[i]]$tip.label})
+tip_count <- unlist(lapply(alphabetical_tips, function(i){length(which(grepl(i, all_gt_tips) == TRUE))}))
+names(tip_count) <- alphabetical_tips
+tip_count <- sort(tip_count, decreasing = T)
+# There are three tips that occur in every gene tree: Drosophila_melanogaster, Homo_sapiens, Oscarella_carmela
+# Arbitrarily selected root as Drosophila_melanogaster
+outgroup_choice <- "Drosophila_melanogaster"
+# Extract root-to-tip distances for the gene trees
+gt_r2t_ds <- lapply(1:length(gene_trees), function(i){root.to.tip.distances(gene_trees[[i]], root.tree = TRUE, outgroup = outgroup_choice)})
+# Add NA to missing distances
+all_tip_ds <- lapply(1:length(gt_r2t_ds), function(i){add.missing.distances(gt_r2t_ds[[i]], tree_tips = alphabetical_tips)})
 # Extract root-to-tip distances for the ML tree
-ml_r2t_ds <- root.to.tip.distances(ml_tree, root.tree = TRUE, outgroup = whelan2017_clades$Outgroup)
+ml_r2t_ds <- root.to.tip.distances(ml_tree, root.tree = TRUE, outgroup = outgroup_choice)
+ml_r2t_ds <- ml_r2t_ds[alphabetical_tips]
+# Assemble root to tip distances as a dataframe and add row for ML tree
+d_df <- rbind(as.data.frame(do.call(rbind, list(ml_r2t_ds))),
+              as.data.frame(do.call(rbind, all_tip_ds)))
+# Add column for gene number
+d_df$row_description <- "root_to_tip_distance"
+d_df$tree <- c("Partitioned_ML", paste0("gene_tree_", sprintf("%03d", 1:length(gene_trees))))
+d_df$tree_root <- paste(outgroup_choice, collapse = ",")
+d_df$gene <- c(NA, 1:length(gene_trees))
+d_df$num_missing_taxa <- unlist(lapply(1:nrow(d_df), function(i){length(which(is.na(d_df[i, c(1:75)]) == TRUE))}))
+d_df$tree_length <- c(ml_tree_length, gene_tree_length)
+# Reorder columns
+d_df <- d_df[, c(76, 77, 78, 79, 80, 81, 1:75)]
+# Add new row with the number of genes where each tip is missing
+num_missing_taxa <- unlist(lapply(7:81, function(i){length(which(is.na(d_df[, i]) == TRUE))}))
+d_df <- rbind(d_df, c("num_trees_missing_each_taxon", rep(NA, 5), num_missing_taxa))
+# Save dataframe as csv
+d_df_path <- paste0(repo_dir, "output/gene_trees_rootToTip_distances.csv")
+write.csv(d_df, file = d_df_path, row.names = FALSE)
+# Make a histogram of the # of taxa missing in each gene tree
+png(filename = paste0(gene_tree_dir, "plot_hist_numGeneTrees_per_taxon.png"))
+hist(num_missing_taxa,
+     breaks = 16,
+     main = "Missing taxa for Whelan 2017 - Metazoa_Choano_RCFV_strict dataset", 
+     xlab = "Number of gene trees missing a single taxon (for all 75 taxa)")
+dev.off()
 
-
-# castor::get_all_distances_to_root (https://search.r-project.org/CRAN/refmans/castor/html/get_all_distances_to_root.html)
-# A numeric vector of size Ntips+Nnodes, with the i-th element being the distance (cumulative branch length) of the i-th tip or node to the root. 
-#   Tips are indexed 1,..,Ntips and nodes are indexed (Ntips+1),..,(Ntips+Nnodes).
-castor::get_all_distances_to_root(tree, as_edge_count = FALSE)
-test_tip <- ml_tree$tip.label[[1]] # Beroe_sp_Antarctica
 
