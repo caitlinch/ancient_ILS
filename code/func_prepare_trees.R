@@ -4,6 +4,7 @@
 
 library(castor)
 library(ape)
+library(phytools)
 
 #### Extracting information from phylogenetic trees ####
 internal.branch.proportion <- function(tree){
@@ -64,6 +65,47 @@ add.missing.distances <- function(r2t_d, tree_tips){
   return(new_dists)
 }
 
+
+
+extract.clade.length <- function(gene_tree, clade_tips, root_tips = "Drosophila_melanogaster"){
+  ## Extract the length and depth of a specified clade (given the tips in that clade) from a given gene tree
+  ##    This function assumes that each clade is monophyletic
+  ##    This function roots each gene tree so between-gene-tree-comparisons are possible
+  
+  # Root gene tree
+  rooted_gene_tree <- root(gene_tree, outgroup = root_tips)
+  # Remove tips not in this gene tree
+  present_clade_tips <- clade_tips[clade_tips %in% rooted_gene_tree$tip.label]
+  # Extract clade if >1 tip is present
+  if (length(present_clade_tips) > 1){
+    # Extract clade
+    clade_node <- getMRCA(rooted_gene_tree, present_clade_tips)
+    clade <- extract.clade(rooted_gene_tree, clade_node)
+    # Determine length of clade
+    clade_length <- sum(clade$edge.length)
+    # Determine depth of clade (won't be proper because tree is not ultrametric)
+    ult_clade <- force.ultrametric(clade, method = "extend")
+    max_branching_time <- max(branching.times(ult_clade))
+    # Determine length of branch leading to clade
+    edge_rows <- which(rooted_gene_tree$edge[,2] == clade_node)
+    clade_branch_length <- rooted_gene_tree$edge.length[edge_rows]
+    # Assemble output
+    op <- c(Ntip(clade), clade_length, clade_branch_length, max_branching_time)
+    names(op) <- c("num_clade_tips", "clade_length", "branch_length_to_clade", "max_branching_time_for_ultrametric_clade")
+  } else if (length(present_clade_tips) == 1){
+    # Only one tip is present - cannot extract information about a clade
+    # Assemble output
+    op <- c(1, NA, NA, NA)
+    names(op) <- c("num_clade_tips", "clade_length", "branch_length_to_clade", "max_branching_time_for_ultrametric_clade")
+  } else if (length(present_clade_tips) == 0){
+    # Only one tip is present - cannot extract information about a clade
+    # Assemble output
+    op <- c(0, NA, NA, NA)
+    names(op) <- c("num_clade_tips", "clade_length", "branch_length_to_clade", "max_branching_time_for_ultrametric_clade")
+  }
+  # Return results
+  return(op)
+}
 
 
 #### Creating constraint trees ####
