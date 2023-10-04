@@ -336,6 +336,8 @@ ms.generate.trees <- function(unique_id, base_tree, ntaxa, ntrees, output_direct
   
   ## Generate gene trees in ms
   # Sort all rows by coalescence time (put in correct order for ms call)
+  node_df$max_branching_time <- as.numeric(node_df$max_branching_time)
+  node_df$coalescence_time <- as.numeric(node_df$coalescence_time)
   node_df <- node_df[order(node_df$coalescence_time, decreasing = TRUE),]
   # Create a new column containing -ej event for each row
   node_df$ej <- paste0("-ej ", node_df$coalescence_time, " ", node_df$ms_input)
