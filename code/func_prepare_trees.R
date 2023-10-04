@@ -129,9 +129,9 @@ extract.clade.length <- function(gene_tree, clade_tips, root_tips = "Drosophila_
   }
   # Assemble output
   op <- c(num_tips, clade_relationship, clade_length, 
-          clade_branch_length, max_branching_time)
+          clade_branch_length, max_branching_time, paste(root_tips, collapse = ","))
   names(op) <- c("num_clade_tips", "clade_relationship", "clade_length", 
-                 "branch_length_to_clade", "max_branching_time_for_ultrametric_clade")
+                 "branch_length_to_clade", "max_branching_time_for_ultrametric_clade", "outgroup")
   # Return results
   return(op)
 }
