@@ -69,7 +69,8 @@ add.missing.distances <- function(r2t_d, tree_tips){
 
 extract.clade.length <- function(gene_tree, clade_tips, root_tips = "Drosophila_melanogaster"){
   ## Extract the length and depth of a specified clade (given the tips in that clade) from a given gene tree
-  ##    This function assumes that each clade is monophyletic
+  ##    This function assumes that each clade is monophyletic - if the clade is not, it returns NA 
+  ##        and does not calculate length/depth for that clade
   ##    This function roots each gene tree so between-gene-tree-comparisons are possible
   
   # Root gene tree
@@ -78,31 +79,59 @@ extract.clade.length <- function(gene_tree, clade_tips, root_tips = "Drosophila_
   present_clade_tips <- clade_tips[clade_tips %in% rooted_gene_tree$tip.label]
   # Extract clade if >1 tip is present
   if (length(present_clade_tips) > 1){
+    # Identify number of tips present
+    num_tips <- length(present_clade_tips)
     # Extract clade
     clade_node <- getMRCA(rooted_gene_tree, present_clade_tips)
     clade <- extract.clade(rooted_gene_tree, clade_node)
-    # Determine length of clade
-    clade_length <- sum(clade$edge.length)
-    # Determine depth of clade (won't be proper because tree is not ultrametric)
-    ult_clade <- force.ultrametric(clade, method = "extend")
-    max_branching_time <- max(branching.times(ult_clade))
-    # Determine length of branch leading to clade
-    edge_rows <- which(rooted_gene_tree$edge[,2] == clade_node)
-    clade_branch_length <- rooted_gene_tree$edge.length[edge_rows]
-    # Assemble output
-    op <- c(Ntip(clade), clade_length, clade_branch_length, max_branching_time)
-    names(op) <- c("num_clade_tips", "clade_length", "branch_length_to_clade", "max_branching_time_for_ultrametric_clade")
+    if (Ntip(clade) > length(present_clade_tips)){
+      # Tips in clade do not have monophyletic relationship
+      # Cannot extract clade details - return NA
+      clade_relationship = "paraphyletic"
+      clade_length <- NA
+      clade_branch_length <- NA
+      max_branching_time <- NA
+    } else {
+      # Tips in clade have monophyletic relationship
+      # Can extract clade details - calculate distances
+      clade_relationship = "monophyletic"
+      # Determine length of clade
+      clade_length <- sum(clade$edge.length)
+      # Determine depth of clade (won't be proper because tree is not ultrametric)
+      ult_clade <- force.ultrametric(clade, method = "extend")
+      max_branching_time <- max(branching.times(ult_clade))
+      # Determine length of branch leading to clade
+      edge_rows <- which(rooted_gene_tree$edge[,2] == clade_node)
+      clade_branch_length <- rooted_gene_tree$edge.length[edge_rows]
+    }
   } else if (length(present_clade_tips) == 1){
     # Only one tip is present - cannot extract information about a clade
     # Assemble output
-    op <- c(1, NA, NA, NA)
-    names(op) <- c("num_clade_tips", "clade_length", "branch_length_to_clade", "max_branching_time_for_ultrametric_clade")
+    num_tips <- 1
+    clade_relationship <- "1_taxa_present"
+    clade_length <- NA
+    clade_branch_length <- NA
+    max_branching_time <- NA
   } else if (length(present_clade_tips) == 0){
     # Only one tip is present - cannot extract information about a clade
-    # Assemble output
-    op <- c(0, NA, NA, NA)
-    names(op) <- c("num_clade_tips", "clade_length", "branch_length_to_clade", "max_branching_time_for_ultrametric_clade")
+    num_tips <- 0
+    clade_relationship <- "0_taxa_present"
+    clade_length <- NA
+    clade_branch_length <- NA
+    max_branching_time <- NA
+  } else {
+    # Insufficient information
+    num_tips <- NA
+    clade_relationship <- NA
+    clade_length <- NA
+    clade_branch_length <- NA
+    max_branching_time <- NA
   }
+  # Assemble output
+  op <- c(num_tips, clade_relationship, clade_length, 
+          clade_branch_length, max_branching_time)
+  names(op) <- c("num_clade_tips", "clade_relationship", "clade_length", 
+                 "branch_length_to_clade", "max_branching_time_for_ultrametric_clade")
   # Return results
   return(op)
 }
