@@ -23,46 +23,30 @@
 ## Specify control parameters (all take logical values TRUE or FALSE):
 # estimate.ML.trees             <- TRUE to estimate all maximum likelihood trees (each combination of model and alignment). FALSE to skip.
 
-location = "rona"
+location = "local"
 if (location == "local"){
-  alignment_dir <- "/Users/caitlincherryh/Documents/C3_TreeMixtures_Sponges/01_Data_all/"
-  output_dir <- "/Users/caitlincherryh/Documents/C3_TreeMixtures_Sponges/04_output/"
+  alignment_dir <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/"
+  output_dir <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_empirical_tree_estimation/"
   repo_dir <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   
   iqtree2 <- "/Users/caitlincherryh/Documents/C3_TreeMixtures_Sponges/03_Software_IQ-Tree/iqtree-2.2.0-MacOSX/bin/iqtree2"
   
   number_parallel_processes <- 1
   
-} else if (location == "soma"){
-  alignment_dir <- "/data/caitlin/ancient_ILS/data_all/"
-  output_dir <- "/data/caitlin/metazoan-mixtures/output/"
-  repo_dir <- "/data/caitlin/metazoan-mixtures/"
-  
-  iqtree2 <- "/data/caitlin/metazoan-mixtures/iqtree/iqtree-2.2.0-Linux/bin/iqtree2"
-  
-  number_parallel_processes <- 2
-  
-} else if (location == "dayhoff"){
-  alignment_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/data_all/"
-  output_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/output/"
-  repo_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
-  
-  iqtree2 <- "/mnt/data/dayhoff/home/u5348329/metazoan-mixtures/iqtree/iqtree-2.2.0-Linux/bin/iqtree2"
-  
-  number_parallel_processes <- 1
-  
-} else if (location == "rona"){
-  alignment_dir <- "/home/caitlin/ancient_ILS/data_all/"
-  output_dir <- "/home/caitlin/ancient_ILS/output/"
-  repo_dir <- "/home/caitlin/ancient_ILS/"
-  
-  iqtree2 <- "/home/caitlin/metazoan-mixtures/iqtree/iqtree-2.2.0-Linux/bin/iqtree2"
-  
-  number_parallel_processes <- 1
+} else if (location == "dayhoff" | location == "rona" ){
+  if (location == "dayhoff"){
+    repo_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
+    iqtree2 <- "/mnt/data/dayhoff/home/u5348329/metazoan-mixtures/iqtree/iqtree-2.2.0-Linux/bin/iqtree2"
+  } else if (location == "rona"){
+    repo_dir <- "/home/caitlin/ancient_ILS/"
+    iqtree2 <- "/home/caitlin/metazoan-mixtures/iqtree/iqtree-2.2.0-Linux/bin/iqtree2"
+  }
+  alignment_dir <- paste0(repo_dir, "data_all/")
+  output_dir <-  paste0(repo_dir, "output/")
+  number_parallel_processes = 1
 }
 
 # Set parameters that are identical for all run locations
-iqtree_mrate <- "E,I,G,I+G,R,I+R"
 iqtree_num_threads <- 15
 ml_tree_bootstraps <- 1000
 hypothesis_tree_bootstraps <- 1000
@@ -76,6 +60,33 @@ control_parameters <- list(estimate.pmsf.gene.trees = FALSE,
 
 
 
+#### 2. Prepare functions, variables and packages ####
+
+
+
+
+#### 3. Prepare partition files ####
+
+
+
+
+#### 4. Estimate gene trees (ModelFinder and PMSF) ####
+
+
+
+
+#### 5. Estimate partitioned ML and ASTRAL trees (ModelFinder and PMSF) ####
+
+
+
+
+#### 6. Estimate constrained ML trees (ModelFinder and PMSF) ####
+
+
+
+
+
+#####################################################################################
 #### 2. Prepare functions, variables and packages ####
 # Open packages
 library(parallel)
@@ -102,28 +113,6 @@ all_alignments <- grep("\\.alignment\\.", all_files, value = T)
 # Remove Simion and Hejnol alignments - too large to estimate ML trees with all models
 all_alignments <- grep("Hejnol", grep("Simion", all_alignments, value = TRUE, invert = TRUE), value = TRUE, invert = TRUE)
 
-# Sort and categorise models of sequence evolution 
-all_models <- sort(unique(unlist(lapply(all_models, sort.model.chunks)))) 
-# Identify unique matrices within the models
-model_components <- sort(unique(unlist(strsplit(all_models, "\\+"))))
-# Remove components that do not correspond to a matrix or model (e.g. remove "I", "F", "G4")
-model_components <- model_components[!model_components %in% c("F", "FO", "G", "G4", "I", "R", "R4")]
-# Create a vector of models to exclude from analysis
-#   PMSF: PMSF is more complex to run than other models - requires separate function/multiple steps (see separate PMSF file)
-#   CAT: CAT is not a model in IQ-Tree. Use C10:C60 instead.
-#   GTR: GTR is a DNA model
-#   F81: F81 is a DNA model
-exclude_models <- c("PMSF", "CAT", "GTR", "F81", "C10", "C30", "C40", "C50")
-# Remove the models to exclude from the list of models
-model_components <- model_components[which(!model_components %in% exclude_models)]
-# Add the newer models 
-model_components <- c(model_components, "'LG+C20'", "'LG+C60'")
-# Sort the mode components
-model_components <- sort(model_components)
-# Move ModelFinder to the end of the list (will take the longest as has to test all possible models, so run last)
-model_components <- model_components[!model_components == "ModelFinder"]
-model_components <- c(model_components, "ModelFinder")
-# Note: partitioning schemes currently not possible in mixture of trees implementation
 
 # Create output folders
 # Create a folder for the ml trees
