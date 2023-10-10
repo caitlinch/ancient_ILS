@@ -215,10 +215,19 @@ gene.lengths.nexus <- function(partition_file, return.lengths = TRUE){
   lines <- readLines(partition_file)
   # Extract all lines with a charset
   charset_lines <- grep("charset", lines, ignore.case = TRUE, value = TRUE)
-  # Get gene names 
-  gene_names_raw <- unlist(lapply(strsplit(charset_lines, "="), function(x){x[1]}))
-  # Split gene names at the " "
-  gene_names <- unlist(lapply(strsplit(gene_names_raw, " "), function(x){x[[2]]}))
+  if (grepl("Ryan2013", basename(partition_file)) == TRUE){
+    # For Ryan 2013 dataset
+    # Extract gene names from charsets
+    gene_names_raw <- unlist(lapply(strsplit(charset_lines, "="), function(x){x[1]}))
+    # Split gene names at the " " and take the last object 
+    gene_names <- unlist(lapply(strsplit(gene_names_raw, " "), function(x){x[[4]]}))
+  } else {
+    # For all other datasets
+    # Get gene names 
+    gene_names_raw <- unlist(lapply(strsplit(charset_lines, "="), function(x){x[1]}))
+    # Split gene names at the " "
+    gene_names <- unlist(lapply(strsplit(gene_names_raw, " "), function(x){x[[2]]}))
+  }
   # Split the charset lines at the "="
   gene_lines <- unlist(lapply(strsplit(charset_lines, "="), function(x){x[2]}))
   # Split the genes into chunks by breaking at the commas ","
