@@ -1,4 +1,4 @@
-# ancient_ILS/code/02_vary_both_branches.R
+# ancient_ILS/code/01_simulate_ILS_and_LBA.R
 ## This script prepares and runs simulations of the animal tree of life under LBA and ILS
 # Caitlin Cherryh, 2023
 
@@ -53,7 +53,7 @@ if (location == "local"){
 ## Phylogenetic parameters
 alisim_gene_models          <- "LG"
 ML_tree_estimation_models   <- "LG"
-num_genes <- 100
+num_genes <- 200
 min_branch_length           <- 10/(200*200) # 10/N, where N = total number of sites. Forces 10 substitutions onto each branch - reasonable over large time period/breadth of diversity
 min_coalescent_difference   <- 0.001 # Keep to same magnitude as minimum coalescent interval in the ASTRAL species tree (0.004921)
 
@@ -76,11 +76,9 @@ source(paste0(repo_dir, "code/func_analysis.R"))
 library(parallel)
 
 # Create output file paths
-output_files <- paste0(output_dir, "bothBranchesVary_", c("simulation_parameters.csv", "output_generate_alignments.csv", 
-                                                          "output_generate_trees.csv", "output_analysis.csv", 
-                                                          "missingReps.csv", "branch_qcf_actual.csv",
-                                                          "branch_qcf_estimated.csv"))
-names(output_files) <- c("simulations", "alignments", "trees", "analysis", "missing", "actual_qcf", "estimated_qcf")
+output_files <- paste0(output_dir, "ancientILS_", c("simulation_parameters.csv", "output_generate_alignments.csv","output_generate_trees.csv", 
+                                                    "output_analysis.csv", "branch_qcf_actual.csv", "branch_qcf_estimated.csv"))
+names(output_files) <- c("simulations", "alignments", "trees", "analysis", "actual_qcf", "estimated_qcf")
 
 
 
@@ -107,16 +105,16 @@ if ( (file.exists(output_files[["simulations"]]) == FALSE) | (control_parameters
   # Create dataframe for ILS and LBA simulations
   sim_df <- rbind(as.data.frame(expand.grid(replicates = 1:5, 
                                             hypothesis_tree = c(1,2),
-                                            branch_a_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 1, 10), 
+                                            branch_a_length = 0.1729, 
                                             branch_b_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 1, 10),
-                                            simulation_type = "ILS+LBA",
-                                            simulation_number = "sim3") ),
+                                            simulation_type = "LBA",
+                                            simulation_number = "sim1") ),
                   as.data.frame(expand.grid(replicates = 1:5, 
                                             hypothesis_tree = c(1,2),
-                                            branch_a_length = 0.1729, 
+                                            branch_a_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 1, 10), 
                                             branch_b_length = 1.647,
-                                            simulation_type = "Empirical_BL",
-                                            simulation_number = "sim4") ) )
+                                            simulation_type = "ILS",
+                                            simulation_number = "sim2") ))
   # Add the other columns for the dataframes
   set_params <- c("branch_c_length" = 0.4145, "branch_cnidaria_length" = 0.737, 
                   "branch_bilateria_length" = 0.9214, "branch_porifera_length" = 0.0853,
@@ -125,7 +123,8 @@ if ( (file.exists(output_files[["simulations"]]) == FALSE) | (control_parameters
                   "proportion_internal_branches" = 0.25, "minimum_coalescent_time_difference" = min_coalescent_difference,
                   "num_taxa" = 75, "num_genes" = num_genes, "gene_length" = 200,
                   "dataset" = "Whelan2017.Metazoa_Choano_RCFV_strict", "dataset_type" = "Protein",
-                  "ms" = ms, "ASTRAL" = astral, "iqtree2" = iqtree2, "iqtree2_num_threads" = iqtree2_num_threads,
+                  "ms" = ms, "ASTRAL" = astral, "iqtree2" = iqtree2,
+                  "iqtree2_num_threads" = iqtree2_num_threads, "iqtree2_num_ufb" = iqtree2_num_ufb,
                   "alisim_gene_models" = alisim_gene_models, "ML_tree_estimation_models" = ML_tree_estimation_models)
   set_params_df <- as.data.frame(matrix(set_params, nrow = 1, ncol = length(set_params), byrow = T))
   names(set_params_df) <- names(set_params)
@@ -147,7 +146,7 @@ if ( (file.exists(output_files[["simulations"]]) == FALSE) | (control_parameters
                       "branch_a_length", "branch_b_length", "branch_c_length", "branch_all_animals_length", "branch_bilateria_length", "branch_cnidaria_length",
                       "branch_outgroup_length", "branch_porifera_length", "proportion_internal_branches", "minimum_coalescent_time_difference", "ASTRAL_tree_depth",
                       "ML_tree_depth", "num_taxa", "num_genes", "gene_length", "num_sites", "output_folder", "ms", "ASTRAL", "iqtree2", "alisim_gene_models",
-                      "iqtree2_num_threads", "ML_tree_estimation_models")]
+                      "iqtree2_num_threads", "iqtree2_num_ufb", "ML_tree_estimation_models")]
   # Save the output file
   write.csv(sim_df, file = output_files[["simulations"]], row.names = FALSE)
 }
@@ -161,7 +160,7 @@ if ((control_parameters[["generate.alignments"]] == TRUE) & (file.exists(output_
   # To generate all simulated alignments
   if (location == "local"){
     generate_alignment_list <- lapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, 
-                                      converted_taxa_names = simulation_taxa_names, rerun = FALSE)
+                                      converted_taxa_names = simulation_taxa_names,rerun = FALSE)
   } else {
     generate_alignment_list <- mclapply(1:nrow(sim_df), generate.one.alignment.wrapper, sim_df = sim_df, 
                                         converted_taxa_names = simulation_taxa_names, rerun = FALSE, 
@@ -181,15 +180,13 @@ if ( (control_parameters[["estimate.trees"]] == TRUE) & (file.exists(output_file
   # To estimate all trees with a set model for all single simulated alignments
   if (location == "local"){
     tree_list <- lapply(1:nrow(generate_alignment_df), estimate.trees, 
-                        df = generate_alignment_df, call.executable.programs = FALSE)
+                        df = generate_alignment_df, call.executable.programs = TRUE)
   } else {
     tree_list <- mclapply(1:nrow(generate_alignment_df), estimate.trees, 
                           df = generate_alignment_df, call.executable.programs = FALSE,
                           mc.cores = floor(num_parallel_threads/iqtree2_num_threads) )
   }
   tree_df <- as.data.frame(do.call(rbind, tree_list))
-  # Add column of output file paths for the analysis csvs (i.e. the quartet concordance factors calculated for the different hypothesis trees)
-  tree_df$output_csv <- paste0(tree_df$output_folder, tree_df$ID, "_analysis_output.csv")
   # Save the dataframe of tree estimation calls
   write.csv(tree_df, file = output_files[["trees"]], row.names = FALSE)
 }
@@ -208,19 +205,16 @@ if ( (control_parameters[["conduct.analysis"]] == TRUE) & (file.exists(output_fi
            hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names, rerun.ASTRAL = TRUE)
   } else {
     mclapply(1:nrow(tree_df), analysis.wrapper, df = tree_df, ASTRAL_path = astral,
-             hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names, rerun.ASTRAL = TRUE, 
+             hypothesis_tree_dir = hypothesis_tree_dir, converted_taxa_names = simulation_taxa_names, rerun.ASTRAL = TRUE,
              mc.cores = num_parallel_threads)
   }
   
   # Collect and save completed output csvs
-  completed_csvs <- tree_df$output_csv[which(file.exists(tree_df$output_csv) == TRUE)]
-  completed_csv_list <- lapply(completed_csvs, read.csv)
+  all_output_csvs <- paste0(tree_df$output_folder, tree_df$ID, "_analysis_output.csv")
+  completed_csvs <- all_output_csvs[which(file.exists(all_output_csvs) == TRUE)]
+  completed_csv_list <- lapply(completed_csvs, read.csv, stringsAsFactors = FALSE)
   completed_csv_df <- as.data.frame(do.call(rbind, completed_csv_list))
   write.csv(completed_csv_df, file = output_files[["analysis"]], row.names = FALSE)
-  
-  # Collect and save missing output csvs
-  missing_csvs_df <- tree_df[which(file.exists(tree_df$output_csv) == FALSE), ]
-  write.csv(missing_csvs_df, file = output_files[["missing"]], row.names = FALSE)
   
   # Collect and save actual qcfs csv files
   a_csv_files <- completed_csv_df$actual_qcf_branch_output_csv
