@@ -68,12 +68,9 @@ control_parameters <- list(estimate.pmsf.gene.trees = FALSE,
 #### 3. Prepare partition files ####
 # Get all files from the partition folder
 all_files <- list.files(alignment_dir)
-# Break into parts based on file type
-nexus_partitions    <- grep("partitions.nex", all_files, value = TRUE)
-raxml_partitions    <- grep("partitions.txt", all_files, value = TRUE)
-smatrix_partitions  <- grep("smatrix.txt", all_files, value = TRUE)
-txt_files           <- grep("gene_lengths.txt", all_files, value = TRUE)
-# Extract the gene lengths from the partition files
+# Reformat partition files
+reformatted_partition_files <- lapply(paste0(alignment_dir, grep("partitions.nex|partitions.txt|smatrix.txt", all_files, value = TRUE)), create.partition.nexus)
+
 
 
 
