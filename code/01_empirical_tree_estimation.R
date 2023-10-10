@@ -1,4 +1,4 @@
-## caitlinch/metazoan-mixtures/code/01_estimate_all_trees_parallel.R
+## caitlinch/ancient_ILS/code/01_empirical_tree_estimation.R
 # This script estimates maximum likelihood trees under different models of substitution for 14 empirical data sets
 # Caitlin Cherryh 2023
 
@@ -27,14 +27,14 @@ location = "rona"
 if (location == "local"){
   alignment_dir <- "/Users/caitlincherryh/Documents/C3_TreeMixtures_Sponges/01_Data_all/"
   output_dir <- "/Users/caitlincherryh/Documents/C3_TreeMixtures_Sponges/04_output/"
-  repo_dir <- "/Users/caitlincherryh/Documents/Repositories/metazoan-mixtures/"
+  repo_dir <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   
   iqtree2 <- "/Users/caitlincherryh/Documents/C3_TreeMixtures_Sponges/03_Software_IQ-Tree/iqtree-2.2.0-MacOSX/bin/iqtree2"
   
   number_parallel_processes <- 1
   
 } else if (location == "soma"){
-  alignment_dir <- "/data/caitlin/metazoan-mixtures/data_all/"
+  alignment_dir <- "/data/caitlin/ancient_ILS/data_all/"
   output_dir <- "/data/caitlin/metazoan-mixtures/output/"
   repo_dir <- "/data/caitlin/metazoan-mixtures/"
   
@@ -43,26 +43,18 @@ if (location == "local"){
   number_parallel_processes <- 2
   
 } else if (location == "dayhoff"){
-  alignment_dir <- "/mnt/data/dayhoff/home/u5348329/metazoan-mixtures/data_all/"
-  output_dir <- "/mnt/data/dayhoff/home/u5348329/metazoan-mixtures/output/"
-  repo_dir <- "/mnt/data/dayhoff/home/u5348329/metazoan-mixtures/"
+  alignment_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/data_all/"
+  output_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/output/"
+  repo_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
   
   iqtree2 <- "/mnt/data/dayhoff/home/u5348329/metazoan-mixtures/iqtree/iqtree-2.2.0-Linux/bin/iqtree2"
   
   number_parallel_processes <- 1
   
-} else if (location == "laptop"){
-  alignment_dir <- "/Users/caitlin/Documents/PhD/Ch03_sponge_mixtures/01_alignments/"
-  output_dir <- "/Users/caitlin/Documents/PhD/Ch03_sponge_mixtures/02_output/"
-  repo_dir <- "/Users/caitlin/Repositories/metazoan-mixtures/"
-  
-  iqtree2 <- "/Users/caitlin/Documents/PhD/Ch03_sponge_mixtures/iqtree-2.2.0-MacOSX/bin/iqtree2"
-  
-  number_parallel_processes <- 1
 } else if (location == "rona"){
-  alignment_dir <- "/home/caitlin/metazoan-mixtures/data_all/"
-  output_dir <- "/home/caitlin/metazoan-mixtures/output/"
-  repo_dir <- "/home/caitlin/metazoan-mixtures/"
+  alignment_dir <- "/home/caitlin/ancient_ILS/data_all/"
+  output_dir <- "/home/caitlin/ancient_ILS/output/"
+  repo_dir <- "/home/caitlin/ancient_ILS/"
   
   iqtree2 <- "/home/caitlin/metazoan-mixtures/iqtree/iqtree-2.2.0-Linux/bin/iqtree2"
   
@@ -76,7 +68,11 @@ ml_tree_bootstraps <- 1000
 hypothesis_tree_bootstraps <- 1000
 
 # Set control parameters
-estimate.ML.trees <- FALSE
+control_parameters <- list(estimate.pmsf.gene.trees = FALSE,
+                           estimate.ModelFinder.gene.trees = FALSE,
+                           estimate.constrained.pmsf.trees = FALSE,
+                           estimate.constrained.ModelFinder.trees = FALSE,
+                           estimate.partitioned.ML.trees = FALSE)
 
 
 
