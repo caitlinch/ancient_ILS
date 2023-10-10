@@ -70,7 +70,7 @@ control_parameters <- list(estimate.pmsf.gene.trees = FALSE,
 all_files <- list.files(alignment_dir)
 # Reformat partition files
 reformatted_partition_files <- lapply(paste0(alignment_dir, grep("partitions.nex|partitions.txt|smatrix.txt", all_files, value = TRUE)), create.partition.nexus)
-
+# Fix Borowiec 2015, add Simion 2017 and 
 
 
 
