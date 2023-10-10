@@ -190,7 +190,7 @@ create.partition.nexus <- function(partition_file){
     gene_df <- gene.lengths.raxml(partition_file, return.lengths = FALSE)
   } else if (grepl("smatrix.txt|partition_smatrix", basename(partition_file)) == TRUE){
     gene_df <- gene.lengths.smatrix(partition_file, return.lengths = FALSE)
-  }
+  } 
   # Assemble sections for partition file
   new_p_start <- c("#nexus", "begin sets;")
   new_p_end <- c("end;", "")
@@ -202,6 +202,7 @@ create.partition.nexus <- function(partition_file){
   # Split path at "."
   p_path_split <- strsplit(basename(partition_file), "\\.")[[1]]
   new_p_path <- paste0(dirname(partition_file), "/", paste(p_path_split[1:(length(p_path_split) - 1)], collapse = "."), "_formatted.nex")
+  new_p_path <- gsub("_smatrix", "", new_p_path)
   # Write out partitions in nexus format to the directory containing the partition file
   write(p_text, file = new_p_path)
   # Return the new partition file
@@ -302,9 +303,9 @@ gene.lengths.raxml <- function(partition_file, return.lengths = TRUE){
   ## Extract all gene lengths from a RAxML partition file 
   # Open partition file
   lines <- readLines(partition_file)
-  # Extract all lines with an equals sign (these lines will define a gene)
-  eq_lines <- grep("\\=", lines, ignore.case = TRUE, value = TRUE)
   if (grepl("Borowiec2015", basename(partition_file)) == TRUE){
+    # Extract all lines with an equals sign (these lines will define a gene)
+    eq_lines <- grep("\\=", lines, ignore.case = TRUE, value = TRUE)
     # Extract gene names by taking first element before the "="
     gene_names <- unlist(lapply(strsplit(eq_lines, "="), function(x){x[1]}))
     # Split the charset lines at the "="
@@ -317,10 +318,12 @@ gene.lengths.raxml <- function(partition_file, return.lengths = TRUE){
     gene_start <- as.numeric(unlist(lapply(strsplit(gene_chunks_nospace, "-"), function(x){x[1]})))
     gene_end <- as.numeric(unlist(lapply(strsplit(gene_chunks_nospace, "-"), function(x){x[2]})))
   } else if (grepl("Chang2015", basename(partition_file)) == TRUE){
+    # Extract all lines with an equals sign (these lines will define a gene)
+    eq_lines <- grep("\\=", lines, ignore.case = TRUE, value = TRUE)
     # Split the charset lines at the "="
     gene_lines <- unlist(lapply(strsplit(eq_lines, "="), function(x){x[2]}))
     # Split the genes into chunks by breaking at the commas ","
-    gene_chunks <- unlist(strsplit(gene_lines, ","))
+    gene_chunks <-  unlist(lapply(strsplit(gene_lines, ","), function(x){x[2]}))
     # Format the gene chunks nicely
     gene_chunks_nospace <- gsub(" ", "", gene_chunks)
     # Get start and end of each gene
@@ -335,7 +338,19 @@ gene.lengths.raxml <- function(partition_file, return.lengths = TRUE){
     gene_range <- order_df$gene_range
     # Create gene names
     gene_names <- sprintf("gene_%04d", 1:nrow(order_df))
-  } 
+  } else if (grepl("Laumer2018", basename(partition_file)) == TRUE){
+    # Extract all lines with an equals sign (these lines will define a gene)
+    dash_lines <- grep("\\-", lines, ignore.case = TRUE, value = TRUE)
+    # Extract the gene names
+    gene_names <-  gsub(" ", "", unlist(lapply(strsplit(dash_lines, ","), function(x){x[1]})))
+    # Split the genes into chunks by breaking at the commas ","
+    gene_chunks <-  unlist(lapply(strsplit(dash_lines, ","), function(x){x[2]}))
+    # Format the gene chunks nicely
+    gene_range <- gsub(";", "", gsub(" ", "", gene_chunks))
+    # Get start and end of each gene
+    gene_start <- as.numeric(unlist(lapply(strsplit(gene_range, "-"), function(x){x[1]})))
+    gene_end <- as.numeric(unlist(lapply(strsplit(gene_range, "-"), function(x){x[2]})))
+  }
   # Create a nice little dataframe for the genes
   gene_df <- data.frame(gene_name = gsub(" ", "", gene_names), gene_range = gene_range, gene_start = gene_start, gene_end = gene_end)
   # Calculate the gene length
@@ -379,6 +394,7 @@ gene.lengths.smatrix <- function(partition_file, return.lengths = TRUE){
   # Return the gene length or gene dataframe
   return(output)
 }
+
 
 
 
