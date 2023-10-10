@@ -176,7 +176,9 @@ partition.one.model.line <- function(model_line){
 
 
 #### Reading gene lengths from partition files ####
-gene.lengths.nexus <- function(partition_file){
+create.partition.nexus <- function(partition_file){
+  ## Take gene lengths and use to create a partition file
+  
   ## Extract all gene lengths from a nexus partition file
   # Open partition file
   lines <- readLines(partition_file)
@@ -201,7 +203,38 @@ gene.lengths.nexus <- function(partition_file){
 }
 
 
-gene.lengths.raxml <- function(partition_file){
+gene.lengths.nexus <- function(partition_file, return.lengths = TRUE){
+  ## Extract all gene lengths from a nexus partition file
+  # Open partition file
+  lines <- readLines(partition_file)
+  # Extract all lines with a charset
+  charset_lines <- grep("charset", lines, ignore.case = TRUE, value = TRUE)
+  # Split the charset lines at the "="
+  gene_lines <- unlist(lapply(strsplit(charset_lines, "="), function(x){x[2]}))
+  # Split the genes into chunks by breaking at the commas ","
+  gene_chunks <- unlist(strsplit(gene_lines, ","))
+  # Format the gene chunks nicely
+  gene_chunks_nospace <- gsub(" ", "", gene_chunks)
+  gene_chunks_noend <- gsub(";", "", gene_chunks_nospace)
+  # Get start and end of each gene
+  gene_start <- as.numeric(unlist(lapply(strsplit(gene_chunks_noend, "-"), function(x){x[1]})))
+  gene_end <- as.numeric(unlist(lapply(strsplit(gene_chunks_noend, "-"), function(x){x[2]})))
+  # Create a nice little dataframe for the genes
+  gene_df <- data.frame(gene_range = gene_chunks_noend, gene_start = gene_start, gene_end = gene_end)
+  # Calculate the gene length
+  gene_df$gene_length <- gene_end - (gene_start - 1) # subtract one from gene_start to count the starting site in the gene length
+  # Set output
+  if (return.lengths == TRUE){
+    output <- gene_df$gene_length
+  } else {
+    output <- gene_df
+  }
+  # Return the gene length or gene dataframe
+  return(output)
+}
+
+
+gene.lengths.raxml <- function(partition_file, return.lengths = TRUE){
   ## Extract all gene lengths from a RAxML partition file 
   # Open partition file
   lines <- readLines(partition_file)
@@ -220,12 +253,18 @@ gene.lengths.raxml <- function(partition_file){
   gene_df <- data.frame(gene_range = gene_chunks_nospace, gene_start = gene_start, gene_end = gene_end)
   # Calculate the gene length
   gene_df$gene_length <- gene_end - (gene_start - 1) # subtract one from gene_start to count the starting site in the gene length
-  # Return the gene length
-  return(gene_df$gene_length)
+  # Set output
+  if (return.lengths == TRUE){
+    output <- gene_df$gene_length
+  } else {
+    output <- gene_df
+  }
+  # Return the gene length or gene dataframe
+  return(output)
 }
 
 
-gene.lengths.smatrix <- function(partition_file){
+gene.lengths.smatrix <- function(partition_file, return.lengths = TRUE){
   ## Extract all gene lengths from an smatrix.txt file 
   # Open file
   lines <- readLines(partition_file)
@@ -242,9 +281,16 @@ gene.lengths.smatrix <- function(partition_file){
   gene_df <- data.frame(gene_range = gene_chunks_nospace, gene_start = gene_start, gene_end = gene_end)
   # Calculate the gene length
   gene_df$gene_length <- gene_end - (gene_start - 1) # subtract one from gene_start to count the starting site in the gene length
-  # Return the gene length
-  return(gene_df$gene_length)
+  # Set output
+  if (return.lengths == TRUE){
+    output <- gene_df$gene_length
+  } else {
+    output <- gene_df
+  }
+  # Return the gene length or gene dataframe
+  return(output)
 }
+
 
 
 
