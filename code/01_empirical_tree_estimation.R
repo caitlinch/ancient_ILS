@@ -5,181 +5,219 @@
 
 #### 1. Input parameters ####
 ## Specify parameters:
+# location                    <- Where the script is being run
+# repo_dir                    <- Location of caitlinch/metazoan-mixtures github repository
 # alignment_dir               <- Directory containing alignments for all data sets
 #                                   Alignment naming convention: [manuscript].[matrix_name].[sequence_type].fa
 #                                   E.g. Cherryh2022.alignment1.aa.fa
 # output_dir                  <- Directory for IQ-Tree output (trees and tree mixtures)
-# repo_dir                    <- Location of caitlinch/metazoan-mixtures github repository
 # iqtree2                     <- Location of IQ-Tree2 stable release
+# iqtree_num_bootstraps       <- Number of ultrafast bootstraps (UFB) to perform in IQ-Tree
 # iqtree_num_threads          <- Number of parallel threads for IQ-Tree to use. Can be a set number (e.g. 2) or "AUTO"
-# iqtree_mrate                <- Specify a comma separated list of rate heterogeneity types for model selection in IQ-Tree
-#                                   We set iqtree_mrate = "E,I,G,I+G,R,I+R"
-#                                   See IQ-Tree documentation for more details (http://www.iqtree.org/doc/Command-Reference)
-# ml_tree_bootstraps          <- Number of ultrafast bootstraps (UFB) to perform in IQ-Tree
-# hypothesis_tree_bootstraps  <- Number of ultrafast bootstraps (UFB) to perform in IQ-Tree when estimating constrained maximum likelihood trees
-# number_parallel_processes   <- The number of simultaneous processes to run at once using mclapply(). 
-#                                   If 1, then all processes will run sequentially
+# astral                      <- Location of ASTRAL executable
+# astral_constrained          <- Location of ASTRAL constrained tree version executable
 
 ## Specify control parameters (all take logical values TRUE or FALSE):
-# estimate.ML.trees             <- TRUE to estimate all maximum likelihood trees (each combination of model and alignment). FALSE to skip.
+# prepare.parameters                    <- Create dataframe with parameters for gene tree/ML tree/constrained tree estimation: T/F
 
-location = "local"
+location = "dayhoff"
 if (location == "local"){
-  alignment_dir <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/"
-  output_dir <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_empirical_tree_estimation/"
-  repo_dir <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-  
-  iqtree2 <- "/Users/caitlincherryh/Documents/C3_TreeMixtures_Sponges/03_Software_IQ-Tree/iqtree-2.2.0-MacOSX/bin/iqtree2"
-  
-  number_parallel_processes <- 1
+  alignment_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/"
+  output_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_empirical_tree_estimation/"
+  repo_dir            <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
+  iqtree2             <- "iqtree2"
+  iqtree2_num_threads  <- "AUTO"
+  astral              <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
+  astral_constrained  <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-constrained/astral.5.6.9.jar"
   
 } else if (location == "dayhoff" | location == "rona" ){
   if (location == "dayhoff"){
     repo_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
-    iqtree2 <- "/mnt/data/dayhoff/home/u5348329/metazoan-mixtures/iqtree/iqtree-2.2.0-Linux/bin/iqtree2"
   } else if (location == "rona"){
     repo_dir <- "/home/caitlin/ancient_ILS/"
-    iqtree2 <- "/home/caitlin/metazoan-mixtures/iqtree/iqtree-2.2.0-Linux/bin/iqtree2"
   }
   alignment_dir <- paste0(repo_dir, "data_all/")
   output_dir <-  paste0(repo_dir, "output/")
-  number_parallel_processes = 1
+  iqtree2 <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
+  iqtree2_num_threads <- 20
+  astral <- paste0(repo_dir, "astral/Astral/astral.5.7.8.jar")
+  astral_constrained <- paste0(repo_dir, "astral_constrained/Astral/astral.5.6.9.jar")
 }
 
 # Set parameters that are identical for all run locations
-iqtree_num_threads <- 15
-ml_tree_bootstraps <- 1000
-hypothesis_tree_bootstraps <- 1000
+iqtree_num_bootstraps <- 1000
 
 # Set control parameters
-control_parameters <- list(estimate.pmsf.gene.trees = FALSE,
-                           estimate.ModelFinder.gene.trees = FALSE,
-                           estimate.constrained.pmsf.trees = FALSE,
-                           estimate.constrained.ModelFinder.trees = FALSE,
-                           estimate.partitioned.ML.trees = FALSE)
+control_parameters <- list(prepare.parameters = FALSE)
 
 
 
 #### 2. Prepare functions, variables and packages ####
-
+# Source functions
+source(paste0(repo_dir, "code/func_empirical_tree_estimation.R"))
 
 
 
 #### 3. Prepare partition files ####
-# Get all files from the partition folder
-all_files <- list.files(alignment_dir)
-# Reformat partition files
-reformatted_partition_files <- unlist(lapply(paste0(alignment_dir, grep("partitions.nex|partitions.txt|smatrix.txt|partitions.part", all_files, value = TRUE)), create.partition.nexus))
+dataset_df_file <- paste0(output_dir, "dataset_parameters.csv")
+if (control_parameters$prepare.parameters == TRUE){
+  ## Prepare partition files
+  # Get all files from the partition folder (and remove any files with "00" as the beginning of the file name)
+  all_files <- list.files(alignment_dir)
+  # Reformat partition files
+  reformatted_partition_files <- unlist(lapply(paste0(alignment_dir, grep("partitions.nex|partitions.txt|smatrix.txt|partitions.part", all_files, value = TRUE)), create.partition.nexus))
+  
+  ## Assemble nice dataframe of empirical datasets
+  # Extract all alignments
+  all_als <- grep("\\.nex|\\.phy|\\.phylip|\\.fasta|\\.fa|\\.fas", grep("alignment", all_files, value = T), value = T)
+  # Start dataframe
+  dataset_df <- data.frame(year = as.numeric(str_extract(all_als, "(\\d)+")),
+                           dataset = unlist(lapply(1:length(all_als), function(i){strsplit(all_als, "\\.")[[i]][1]})),
+                           matrix = unlist(lapply(1:length(all_als), function(i){strsplit(all_als, "\\.")[[i]][2]})), 
+                           alignment_file = all_als,
+                           partition_file = basename(reformatted_partition_files) )
+  # Copy dataset_df - need one copy for PMSF and one for ModelFinder gene trees
+  dataset_df <- rbind(dataset_df, dataset_df)
+  # Remove datasets without PMSF best model
+  dataset_df <- dataset_df[dataset_df$dataset != "Hejnol2009"  & dataset_df$dataset != "Laumer2018" & dataset_df$dataset != "Simion2017", ]
+  rownames(dataset_df) <- 1:nrow(dataset_df)
+  # Add model code
+  dataset_df$model_code <- c(rep("PMSF", nrow(dataset_df)/2), rep("ModelFinder", nrow(dataset_df)/2))
+  # Add PMSF site freq files
+  dataset_df$PMSF_sitefreq_file <- grep("PMSF", all_files, value = T)
+  dataset_df$PMSF_sitefreq_file[which(dataset_df$model_code == "ModelFinder")] <- NA
+  # Add best model
+  dataset_df$best_model <- dataset_df$model_code
+  dataset_df$best_model[grep("PMSF_LG_C60", dataset_df$PMSF_sitefreq_file)] <- "LG+C60+F+R4"
+  dataset_df$best_model[grep("PMSF_C60", dataset_df$PMSF_sitefreq_file)] <- "C60+F+R4"
+  dataset_df$best_model[grep("ModelFinder", dataset_df$model_code)] <- "MFP"
+  # Add columns with output prefixes
+  dataset_df$prefix_gene_trees    <- paste0(dataset_df$dataset, ".", dataset_df$matrix, ".", dataset_df$model_code, ".", "gene_trees")
+  dataset_df$prefix_ML_tree       <- paste0(dataset_df$dataset, ".", dataset_df$matrix, ".", dataset_df$model_code, ".", "ML_tree")
+  dataset_df$prefix_ASTRAL_tree   <- paste0(dataset_df$dataset, ".", dataset_df$matrix, ".", dataset_df$model_code, ".", "ASTRAL_tree")
+  dataset_df$prefix_CTEN_ASTRAL_tree     <- paste0(dataset_df$dataset, ".", dataset_df$matrix, ".", dataset_df$model_code, ".", "CTEN_ASTRAL_tree")
+  dataset_df$prefix_PORI_ASTRAL_tree     <- paste0(dataset_df$dataset, ".", dataset_df$matrix, ".", dataset_df$model_code, ".", "PORI_ASTRAL_tree")
+  dataset_df$prefix_CTEN_ML_tree     <- paste0(dataset_df$dataset, ".", dataset_df$matrix, ".", dataset_df$model_code, ".", "CTEN_ML_tree")
+  dataset_df$prefix_PORI_ML_tree     <- paste0(dataset_df$dataset, ".", dataset_df$matrix, ".", dataset_df$model_code, ".", "PORI_ML_tree")
+  # Add files for gene and ML tree estimation
+  dataset_df$gene_tree_treefile     <- paste0(dataset_df$prefix_gene_trees, ".treefile")
+  dataset_df$ML_tree_treefile       <- paste0(dataset_df$prefix_ML_tree, ".treefile")
+  dataset_df$ASTRAL_tree_treefile   <- paste0(dataset_df$prefix_ASTRAL_tree, ".tre")
+  dataset_df$ASTRAL_tree_log        <- paste0(dataset_df$prefix_ASTRAL_tree, ".log")
+  # Add files for constraint trees
+  constraint_tree_dir <- paste0(output_dir, "constraint_trees/")
+  all_constraint_trees <- list.files(constraint_tree_dir)
+  dataset_df$constraint_tree_CTEN <- unlist(lapply(1:nrow(dataset_df), function(i){
+    grep(dataset_df$matrix[[i]], grep(dataset_df$dataset[[i]], grep("constraint_tree_1", all_constraint_trees, value = T), value = T), value = T)}))
+  dataset_df$constraint_tree_PORI <- unlist(lapply(1:nrow(dataset_df), function(i){
+    grep(dataset_df$matrix[[i]], grep(dataset_df$dataset[[i]], grep("constraint_tree_2", all_constraint_trees, value = T), value = T), value = T)}))
+  # Add files for constrained ML and ASTRAL tree estimation
+  dataset_df$CTEN_ML_tree_treefile      <- paste0(dataset_df$prefix_CTEN_ML_tree, ".tre")
+  dataset_df$CTEN_ASTRAL_tree_treefile  <- paste0(dataset_df$prefix_CTEN_ASTRAL_tree, ".tre")
+  dataset_df$CTEN_ASTRAL_tree_log       <- paste0(dataset_df$prefix_CTEN_ASTRAL_tree, ".log")
+  dataset_df$PORI_ML_tree_treefile      <- paste0(dataset_df$prefix_PORI_ML_tree, ".tre")
+  dataset_df$PORI_ASTRAL_tree_treefile  <- paste0(dataset_df$prefix_PORI_ASTRAL_tree, ".tre")
+  dataset_df$PORI_ASTRAL_tree_log       <- paste0(dataset_df$prefix_PORI_ASTRAL_tree, ".log")
+  # Save dataframe
+  write.csv(dataset_df, file = dataset_df_file, row.names = FALSE)
+} else {
+  dataset_df <- read.csv(dataset_df_file, stringsAsFactors = FALSE)
+}
 
+## Prepare directories, if they do not exist
+# Create directory for constraint trees
+if (dir.exists(paste0(output_dir, "constraint_trees/")) == FALSE){dir.create(paste0(output_dir, "constraint_trees/"))}
+# Create directory for tree estimation
+if (dir.exists(paste0(output_dir, "tree_estimation/")) == FALSE){dir.create(paste0(output_dir, "tree_estimation/"))}
+# Create directory for hypothesis trees (constrained tree estimation)
+if (dir.exists(paste0(output_dir, "hypothesis_trees/")) == FALSE){dir.create(paste0(output_dir, "hypothesis_trees/"))}
+
+## Prepare columns for full run by adding full file paths for the run location
+# Full paths for data files
+dataset_df$alignment_file <- paste0(alignment_dir, basename(dataset_df$alignment_file))
+dataset_df$partition_file <- paste0(alignment_dir, basename(dataset_df$partition_file))
+dataset_df$PMSF_sitefreq_file <- paste0(alignment_dir, basename(dataset_df$PMSF_sitefreq_file))
+# Full paths for constraint tree files
+dataset_df$constraint_tree_CTEN <- paste0(output_dir, "constraint_trees/", basename(dataset_df$constraint_tree_CTEN))
+dataset_df$constraint_tree_PORI <- paste0(output_dir, "constraint_trees/", basename(dataset_df$constraint_tree_PORI))
+# Full paths for ML output files
+dataset_df$gene_tree_treefile   <- paste0(output_dir, "tree_estimation/", basename(dataset_df$gene_tree_treefile))
+dataset_df$ML_tree_treefile     <- paste0(output_dir, "tree_estimation/", basename(dataset_df$ML_tree_treefile))
+dataset_df$ASTRAL_tree_treefile <- paste0(output_dir, "tree_estimation/", basename(dataset_df$ASTRAL_tree_treefile))
+dataset_df$ASTRAL_tree_treefile <- paste0(output_dir, "tree_estimation/", basename(dataset_df$ASTRAL_tree_treefile))
+# Full paths for constrained tree estimation output files
+dataset_df$CTEN_ML_tree_treefile      <- paste0(output_dir, "hypothesis_trees/", basename(dataset_df$CTEN_ML_tree_treefile))
+dataset_df$CTEN_ASTRAL_tree_treefile  <- paste0(output_dir, "hypothesis_trees/", basename(dataset_df$CTEN_ASTRAL_tree_treefile))
+dataset_df$CTEN_ASTRAL_tree_log       <- paste0(output_dir, "hypothesis_trees/", basename(dataset_df$CTEN_ASTRAL_tree_log))
+dataset_df$PORI_ML_tree_treefile      <- paste0(output_dir, "hypothesis_trees/", basename(dataset_df$PORI_ML_tree_treefile))
+dataset_df$PORI_ASTRAL_tree_treefile  <- paste0(output_dir, "hypothesis_trees/", basename(dataset_df$PORI_ASTRAL_tree_treefile))
+dataset_df$PORI_ASTRAL_tree_log       <- paste0(output_dir, "hypothesis_trees/", basename(dataset_df$PORI_ASTRAL_tree_log))
+# Save with specific parameters for each dataset
+dataset_server_path_file <- paste0(output_dir, "dataset_parameters_", location, "_paths.csv")
+write.csv(dataset_df, file = dataset_server_path_file, row.names = FALSE)
 
 
 
 #### 4. Estimate gene trees (ModelFinder and PMSF) ####
-
+# Create command lines to estimate gene trees
+dataset_df$gene_tree_command_line <- unlist(lapply(1:nrow(dataset_df), 
+                                                   estimate.empirical.gene.trees.wrapper, 
+                                                   dataframe = dataset_df, 
+                                                   iqtree2_path = iqtree2, 
+                                                   iqtree2_num_threads = iqtree2_num_threads, 
+                                                   estimate.trees = FALSE))
 
 
 
 #### 5. Estimate partitioned ML and ASTRAL trees (ModelFinder and PMSF) ####
-
+# Create command lines to estimate partitioned ML trees
+dataset_df$ML_tree_command_line <- unlist(lapply(1:nrow(dataset_df), 
+                                                 estimate.partitioned.ML.tree.wrapper, 
+                                                 dataframe = dataset_df, 
+                                                 iqtree2_path = iqtree2, 
+                                                 iqtree2_num_threads = iqtree2_num_threads, 
+                                                 estimate.trees = FALSE))
+# Create command lines to estimate ASTRAL trees
+dataset_df$ASTRAL_command_line <- unlist(lapply(1:nrow(dataset_df), 
+                                                   estimate.astral.tree.wrapper, 
+                                                   dataframe = dataset_df, 
+                                                   astral_path = astral,
+                                                   estimate.trees = FALSE))
 
 
 
 #### 6. Estimate constrained ML trees (ModelFinder and PMSF) ####
+# Create command lines for constrained tree estimation in IQ-Tree
+dataset_df$CTEN_ML_command_line <- unlist(lapply(1:nrow(dataset_df), estimate.constrained.partitioned.ML.tree.wrapper, 
+                                                 dataframe = dataset_df, iqtree2_path = iqtree2, constraint_tree_hypothesis = "CTEN", 
+                                                 iqtree2_num_threads = iqtree2_num_threads, estimate.trees = FALSE))
+dataset_df$PORI_ML_command_line <- unlist(lapply(1:nrow(dataset_df), estimate.constrained.partitioned.ML.tree.wrapper, 
+                                                 dataframe = dataset_df, iqtree2_path = iqtree2, constraint_tree_hypothesis = "PORI", 
+                                                 iqtree2_num_threads = iqtree2_num_threads, estimate.trees = FALSE))
+
+# Create command lines for constrained tree estimation in ASTRAL
+dataset_df$CTEN_ASTRAL_command_line <- unlist(lapply(1:nrow(dataset_df), estimate.constrained.astral.tree.wrapper, 
+                                                     dataframe = dataset_df, astral_path = astral_constrained, 
+                                                     constraint_tree_hypothesis = "CTEN", estimate.trees = FALSE))
+dataset_df$PORI_ASTRAL_command_line <- unlist(lapply(1:nrow(dataset_df), estimate.constrained.astral.tree.wrapper, 
+                                                     dataframe = dataset_df, astral_path = astral_constrained, 
+                                                     constraint_tree_hypothesis = "PORI", estimate.trees = FALSE))
+# Save dataframe
+command_line_csv_file <- paste0(output_dir, "dataset_", location, "_command_lines.csv")
+write.csv(dataset_df, file = command_line_csv_file)
 
 
 
-
-
-#####################################################################################
-#### 2. Prepare functions, variables and packages ####
-# Open packages
-library(parallel)
-library(ape)
-
-# Source functions
-source(paste0(repo_dir, "code/func_estimate_trees.R"))
-source(paste0(repo_dir, "code/func_data_processing.R"))
-
-# Source information about datasets
-source(paste0(repo_dir, "code/data_dataset_info.R"))
-
-# Remove the individual dataset lists (only need collated lists) (yes it is a bit cheeky to hard code the removal)
-rm(borowiec2015_list, chang2015_list, dunn2008_list, hejnol2009_list, laumer2018_list, laumer2019_list, moroz2014_list, nosenko2013_list, philippe2009_list,
-   philippe2011_list, pick2010_list, ryan2013_list, simion2017_list, whelan2015_list, whelan2017_list, models_list, all_taxa)
-
-# Extract the list of all files from the folder containing alignments/models/partition files
-all_files <- list.files(alignment_dir)
-if (length(all_files) > 0){
-  all_files <- paste0(alignment_dir, all_files)
-}
-# Extract the list of alignments (i.e. files that contain the word "alignment")
-all_alignments <- grep("\\.alignment\\.", all_files, value = T)
-# Remove Simion and Hejnol alignments - too large to estimate ML trees with all models
-all_alignments <- grep("Hejnol", grep("Simion", all_alignments, value = TRUE, invert = TRUE), value = TRUE, invert = TRUE)
-
-
-# Create output folders
-# Create a folder for the ml trees
-ml_tree_dir <- paste0(output_dir, "maximum_likelihood_trees/")
-if (file.exists(ml_tree_dir) == FALSE){dir.create(ml_tree_dir)}
-# Create a folder for the constraint trees
-c_tree_dir <- paste0(output_dir, "constraint_trees/")
-if (file.exists(c_tree_dir) == FALSE){dir.create(c_tree_dir)}
-
-# Create file paths for output files
-txt_op_01_01 <- paste0(output_dir, "01_01_maximum_likelihood_iqtree2_calls.txt")
-df_op_01_01 <- paste0(output_dir, "01_01_maximum_likelihood_tree_estimation_parameters.tsv")
-
-
-
-#### 3. Estimate maximum likelihood trees for each combination of model and dataset ####
-# Estimate ML trees (for each combination of alignment and model)
-if (estimate.ML.trees == TRUE){
-  # Move to the folder for the maximum likelihood trees
-  setwd(ml_tree_dir)
-  
-  # Create a dataframe of combinations of alignments and models
-  ml_tree_df <- expand.grid(dataset = unlist(lapply(strsplit(basename(all_alignments), "\\."), "[[", 1)),
-                            model_code = model_components,
-                            stringsAsFactors = FALSE)
-  
-  # Copy the models across to input into IQ-Tree
-  ml_tree_df$model_mset <- ml_tree_df$model_code
-  
-  # Tidy up the model codes for the models with multiple input parameters (e.g. C20+LG)
-  ml_tree_df$model_code <- gsub("\\+", "_", gsub("'", "", ml_tree_df$model_code))
-  
-  # Add other columns
-  ml_tree_df$model_m <- NA
-  ml_tree_df$model_mrate <- iqtree_mrate
-  ml_tree_df$sequence_format = unlist(lapply(strsplit(basename(all_alignments), "\\."), "[[", 3))
-  ml_tree_df$matrix_name <- unlist(lapply(strsplit(basename(all_alignments), "\\."), "[[", 2))
-  ml_tree_df$prefix <- paste0(ml_tree_df$dataset, ".", ml_tree_df$matrix_name, ".", ml_tree_df$model_code)
-  ml_tree_df$iqtree_num_threads <- iqtree_num_threads
-  ml_tree_df$iqtree_num_bootstraps <- ml_tree_bootstraps
-  ml_tree_df$alignment_file <- all_alignments
-  ml_tree_df$iqtree_file <- paste0(ml_tree_df$prefix, ".iqtree")
-  ml_tree_df$ml_tree_file <- paste0(ml_tree_df$prefix, ".treefile")
-  
-  
-  # Fix model specification for rows with ModelFinder
-  ml_tree_df[ml_tree_df$model_mset == "ModelFinder",]$model_m <- "MFP"
-  ml_tree_df$model_mset[which(ml_tree_df$model_code == "ModelFinder")] <- NA
-  
-  # Sort matrix by dataset and matrix
-  ml_tree_df <- ml_tree_df[order(ml_tree_df$dataset, ml_tree_df$matrix_name),]
-  
-  # Create IQ-Tree2 commands
-  ml_tree_df$iqtree2_call <- unlist(lapply(1:nrow(ml_tree_df), ml.iqtree.wrapper, iqtree_path = iqtree2, df = ml_tree_df))
-  
-  # Save dataframe
-  write.table(ml_tree_df, file = df_op_01_01, row.names = FALSE, sep = "\t")
-  
-  # Save list of iqtree2 commands as text file
-  write(ml_tree_df$iqtree2_call, file = txt_op_01_01)
-  
-  # Run IQ-Tree commands to estimate ML trees for each model/matrix combination
-  mclapply(ml_tree_df$iqtree2_call, system, mc.cores = number_parallel_processes)
-}
+#### 7. Output text files for each type of command ####
+# Gene trees
+write(dataset_df$gene_tree_command_line, file = paste0(output_dir, "empirical_commandLines_gene_trees.txt"))
+# ML trees
+write(dataset_df$ML_tree_command_line, file = paste0(output_dir, "empirical_commandLines_ML_trees.txt"))
+# ASTRAL trees
+write(dataset_df$ASTRAL_command_line, file = paste0(output_dir, "empirical_commandLines_ASTRAL_trees.txt"))
+# ML constrained trees
+write(c(dataset_df$CTEN_ML_command_line, dataset_df$PORI_ML_command_line), file = paste0(output_dir, "empirical_commandLines_constrained_ML.txt"))
+# ASTRAL constrained trees
+write(c(dataset_df$CTEN_ASTRAL_command_line, dataset_df$PORI_ASTRAL_command_line), file = paste0(output_dir, "empirical_commandLines_constrained_ASTRAL.txt"))
 
 
