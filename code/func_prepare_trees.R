@@ -176,7 +176,7 @@ partition.one.model.line <- function(model_line){
 
 
 #### Reading gene lengths from partition files ####
-create.partition.nexus <- function(partition_file){
+create.partition.nexus <- function(partition_file, return.charpartition = FALSE){
   ## Take partition format and reformat into a nice nexus partition file
   
   # Check file type and extract gene ranges
@@ -195,9 +195,17 @@ create.partition.nexus <- function(partition_file){
   new_p_start <- c("#nexus", "begin sets;")
   new_p_end <- c("end;", "")
   new_p_charsets <- paste0("\tcharset ", gene_df$gene_name, " = ", gene_df$gene_start, " - ", gene_df$gene_end, ";")
-  new_p_charpartition <- paste0("\tcharpartition all = ", paste(gene_df$gene_name, collapse = ","), ";")
-  # Assemble partition file
-  p_text <- c(new_p_start, new_p_charsets, new_p_charpartition, new_p_end)
+  if (return.charpartition == FALSE){
+    # Return charsets only
+    # Assemble partition file
+    p_text <- c(new_p_start, new_p_charsets, new_p_end)
+  } else if (return.charpartition == TRUE){
+    # Return all charsets with one charpartition "all", which includes all charsets
+    # Create charpartition
+    new_p_charpartition <- paste0("\tcharpartition all = ", paste(gene_df$gene_name, collapse = ","), ";")
+    # Assemble partition file
+    p_text <- c(new_p_start, new_p_charsets, new_p_charpartition, new_p_end)
+  }
   # Create new output path file name
   # Split path at "."
   p_path_split <- strsplit(basename(partition_file), "\\.")[[1]]
