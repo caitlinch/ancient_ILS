@@ -54,6 +54,7 @@ control_parameters <- list(prepare.parameters = FALSE)
 
 #### 2. Prepare functions, variables and packages ####
 # Source functions
+source(paste0(repo_dir, "code/func_prepare_trees.R"))
 source(paste0(repo_dir, "code/func_empirical_tree_estimation.R"))
 
 
