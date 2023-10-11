@@ -186,7 +186,7 @@ create.partition.nexus <- function(partition_file){
     } else {
       gene_df <- gene.lengths.nexus(partition_file, return.lengths = FALSE)
     }
-  } else if (grepl("partitions.txt|partition.txt|partitions.raxml|partition.raxml", basename(partition_file)) == TRUE){
+  } else if (grepl("partitions.txt|partition.txt|partitions.raxml|partition.raxml|partitions.part|partition.part", basename(partition_file)) == TRUE){
     gene_df <- gene.lengths.raxml(partition_file, return.lengths = FALSE)
   } else if (grepl("smatrix.txt|partition_smatrix", basename(partition_file)) == TRUE){
     gene_df <- gene.lengths.smatrix(partition_file, return.lengths = FALSE)
@@ -303,11 +303,21 @@ gene.lengths.raxml <- function(partition_file, return.lengths = TRUE){
   ## Extract all gene lengths from a RAxML partition file 
   # Open partition file
   lines <- readLines(partition_file)
-  if (grepl("Borowiec2015", basename(partition_file)) == TRUE){
+  if (grepl("Borowiec2015|Simion2017", basename(partition_file)) == TRUE){
     # Extract all lines with an equals sign (these lines will define a gene)
     eq_lines <- grep("\\=", lines, ignore.case = TRUE, value = TRUE)
-    # Extract gene names by taking first element before the "="
-    gene_names <- unlist(lapply(strsplit(eq_lines, "="), function(x){x[1]}))
+    # Extract gene names (depending on format of partition file)
+    if (grepl("Borowiec2015", basename(partition_file)) == TRUE){
+      # Extract gene names by taking first element before the "="
+      gene_names <- unlist(lapply(strsplit(eq_lines, "="), function(x){x[1]}))
+    } else if (grepl("Simion2017", basename(partition_file)) == TRUE){
+      # Extract gene names by taking first element before the "="
+      start_chunks <- unlist(lapply(strsplit(eq_lines, "="), function(x){x[1]}))
+      # Split up first part of each line and extract the gene name
+      name_chunks <- unlist(lapply(strsplit(start_chunks, ","), function(x){x[2]}))
+      # Format gene names nicely by removing unnecessary spaces
+      gene_names <- gsub(" ", "", name_chunks)
+    }
     # Split the charset lines at the "="
     gene_lines <- unlist(lapply(strsplit(eq_lines, "="), function(x){x[2]}))
     # Split the genes into chunks by breaking at the commas ","
