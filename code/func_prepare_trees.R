@@ -315,8 +315,8 @@ gene.lengths.raxml <- function(partition_file, return.lengths = TRUE){
     # Format the gene chunks nicely
     gene_range <- gsub(" ", "", gene_chunks)
     # Get start and end of each gene
-    gene_start <- as.numeric(unlist(lapply(strsplit(gene_chunks_nospace, "-"), function(x){x[1]})))
-    gene_end <- as.numeric(unlist(lapply(strsplit(gene_chunks_nospace, "-"), function(x){x[2]})))
+    gene_start <- as.numeric(unlist(lapply(strsplit(gene_range, "-"), function(x){x[1]})))
+    gene_end <- as.numeric(unlist(lapply(strsplit(gene_range, "-"), function(x){x[2]})))
   } else if (grepl("Chang2015", basename(partition_file)) == TRUE){
     # Extract all lines with an equals sign (these lines will define a gene)
     eq_lines <- grep("\\=", lines, ignore.case = TRUE, value = TRUE)
