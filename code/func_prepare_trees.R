@@ -23,6 +23,7 @@ internal.branch.proportion <- function(tree){
   return(op)
 }
 
+
 root.to.tip.distances <- function(tree, root.tree = TRUE, outgroup = NA){
   ## Function to take a single taxa, root it, and calculate the root to tip distance
   
@@ -50,7 +51,6 @@ root.to.tip.distances <- function(tree, root.tree = TRUE, outgroup = NA){
 }
 
 
-
 add.missing.distances <- function(r2t_d, tree_tips){
   ## Function to take the root to tip distances, and add any missing distances
   
@@ -64,7 +64,6 @@ add.missing.distances <- function(r2t_d, tree_tips){
   # Return the distances
   return(new_dists)
 }
-
 
 
 extract.clade.length <- function(gene_tree, clade_tips, root_tips = "Drosophila_melanogaster"){
@@ -137,6 +136,8 @@ extract.clade.length <- function(gene_tree, clade_tips, root_tips = "Drosophila_
 }
 
 
+
+
 #### Creating constraint trees ####
 format.constraint.tree.clade <- function(clade){
   ## Function to take in a vector of species and return a nicely formatted character object to paste into a constraint tree
@@ -155,6 +156,7 @@ format.constraint.tree.clade <- function(clade){
   # Return the nicely formatted clade
   return(clade_formatted)
 }
+
 
 
 
@@ -224,21 +226,6 @@ gene.lengths.nexus <- function(partition_file, return.lengths = TRUE){
   lines <- readLines(partition_file)
   # Extract all lines with a charset
   charset_lines <- grep("charset", lines, ignore.case = TRUE, value = TRUE)
-  # if (grepl("Ryan2013", basename(partition_file)) == TRUE |
-  #     grepl("Whelan2015", basename(partition_file)) == TRUE |
-  #     grepl("Whelan2017", basename(partition_file)) == TRUE){
-  #   # For Ryan 2013 dataset
-  #   # Extract gene names from charsets
-  #   gene_names_raw <- unlist(lapply(strsplit(charset_lines, "="), function(x){x[1]}))
-  #   # Split gene names at the " " and take the last object 
-  #   gene_names <- unlist(lapply(strsplit(gene_names_raw, " "), function(x){x[[4]]}))
-  # } else {
-  #   # For all other datasets
-  #   # Get gene names 
-  #   gene_names_raw <- unlist(lapply(strsplit(charset_lines, "="), function(x){x[1]}))
-  #   # Split gene names at the " "
-  #   gene_names <- unlist(lapply(strsplit(gene_names_raw, " "), function(x){x[[2]]}))
-  # }
   # Split the charset lines at the "="
   gene_lines <- unlist(lapply(strsplit(charset_lines, "="), function(x){x[2]}))
   # Split the genes into chunks by breaking at the commas ","
@@ -250,7 +237,7 @@ gene.lengths.nexus <- function(partition_file, return.lengths = TRUE){
   gene_start <- as.numeric(unlist(lapply(strsplit(gene_chunks_noend, "-"), function(x){x[1]})))
   gene_end <- as.numeric(unlist(lapply(strsplit(gene_chunks_noend, "-"), function(x){x[2]})))
   # Create the gene names
-  gene_names <- sprintf("gene_%04d", 1:length(gene_range))
+  gene_names <- sprintf("gene_%04d", 1:length(gene_start))
   # Create a nice little dataframe for the genes
   gene_df <- data.frame(gene_name = gene_names, gene_range = gene_chunks_noend, gene_start = gene_start, gene_end = gene_end)
   # Calculate the gene length
@@ -279,7 +266,6 @@ gene.lengths.nexus.philippe <- function(partition_file, return.lengths = TRUE){
     gene_range <- gsub(" ", "", strsplit(gene_line_split, ",")[[1]])
     gene_start <- as.numeric(unlist(lapply(strsplit(gene_range, "-"), function(x){x[1]})))
     gene_end <- as.numeric(unlist(lapply(strsplit(gene_range, "-"), function(x){x[2]})))
-    # gene_names <- sprintf("gene_%04d", 1:length(gene_range))
   } else if (grepl("Philippe2011", partition_file) == TRUE){
     # Extract gene start, end, and range
     gene_lines <- grep("partition part", lines, value = T)
@@ -288,14 +274,9 @@ gene.lengths.nexus.philippe <- function(partition_file, return.lengths = TRUE){
     gene_range <- gsub(" ", "", strsplit(gene_line_split, ",")[[1]])
     gene_start <- as.numeric(unlist(lapply(strsplit(gene_range, "-"), function(x){x[1]})))
     gene_end <- as.numeric(unlist(lapply(strsplit(gene_range, "-"), function(x){x[2]})))
-    # # Extract gene name
-    # gene_name_lines <- grep("genes", lines, value = T)
-    # gene_name_lines <- gsub("\\[", "", gsub("\\]", "", gene_name_lines))
-    # gene_name_split <-  strsplit(gene_name_lines, ":")[[1]][2]
-    # gene_names <- strsplit(gene_name_split, ",")[[1]]
   }
   # Create the gene names
-  gene_names <- sprintf("gene_%04d", 1:length(gene_range))
+  gene_names <- sprintf("gene_%04d", 1:length(gene_start))
   # Create a nice little dataframe for the genes
   gene_df <- data.frame(gene_name = gene_names, gene_range = gene_range, gene_start = gene_start, gene_end = gene_end)
   # Calculate the gene length
@@ -319,18 +300,6 @@ gene.lengths.raxml <- function(partition_file, return.lengths = TRUE){
   if (grepl("Borowiec2015|Simion2017", basename(partition_file)) == TRUE){
     # Extract all lines with an equals sign (these lines will define a gene)
     eq_lines <- grep("\\=", lines, ignore.case = TRUE, value = TRUE)
-    # Extract gene names (depending on format of partition file)
-    if (grepl("Borowiec2015", basename(partition_file)) == TRUE){
-      # Extract gene names by taking first element before the "="
-      gene_names <- unlist(lapply(strsplit(eq_lines, "="), function(x){x[1]}))
-    } else if (grepl("Simion2017", basename(partition_file)) == TRUE){
-      # Extract gene names by taking first element before the "="
-      start_chunks <- unlist(lapply(strsplit(eq_lines, "="), function(x){x[1]}))
-      # Split up first part of each line and extract the gene name
-      name_chunks <- unlist(lapply(strsplit(start_chunks, ","), function(x){x[2]}))
-      # Format gene names nicely by removing unnecessary spaces
-      gene_names <- gsub(" ", "", name_chunks)
-    }
     # Split the charset lines at the "="
     gene_lines <- unlist(lapply(strsplit(eq_lines, "="), function(x){x[2]}))
     # Split the genes into chunks by breaking at the commas ","
@@ -358,14 +327,10 @@ gene.lengths.raxml <- function(partition_file, return.lengths = TRUE){
     # Extract gene start, end and range
     gene_start <- order_df$gene_start
     gene_end <- order_df$gene_end
-    # gene_range <- order_df$gene_range
-    # # Create gene names
-    # gene_names <- sprintf("gene_%04d", 1:nrow(order_df))
+    gene_range <- order_df$gene_range
   } else if (grepl("Laumer2018", basename(partition_file)) == TRUE){
     # Extract all lines with an equals sign (these lines will define a gene)
     dash_lines <- grep("\\-", lines, ignore.case = TRUE, value = TRUE)
-    # # Extract the gene names
-    # gene_names <-  gsub(" ", "", unlist(lapply(strsplit(dash_lines, ","), function(x){x[1]})))
     # Split the genes into chunks by breaking at the commas ","
     gene_chunks <-  unlist(lapply(strsplit(dash_lines, ","), function(x){x[2]}))
     # Format the gene chunks nicely
@@ -375,7 +340,7 @@ gene.lengths.raxml <- function(partition_file, return.lengths = TRUE){
     gene_end <- as.numeric(unlist(lapply(strsplit(gene_range, "-"), function(x){x[2]})))
   }
   # Create the gene names
-  gene_names <- sprintf("gene_%04d", 1:length(gene_range))
+  gene_names <- sprintf("gene_%04d", 1:length(gene_start))
   # Create a nice little dataframe for the genes
   gene_df <- data.frame(gene_name = gene_names, gene_range = gene_range, gene_start = gene_start, gene_end = gene_end)
   # Calculate the gene length
@@ -397,8 +362,6 @@ gene.lengths.smatrix <- function(partition_file, return.lengths = TRUE){
   lines <- readLines(partition_file)
   # Extract all lines with arrow "=>" (these lines will define a gene)
   arrow_lines <- grep("\\=>", lines, value = TRUE)
-  # # Extract gene names by spliting the charset lines at the tab "\t" and taking last element
-  # gene_names <- unlist(lapply(strsplit(arrow_lines, "\t"), function(x){x[2]}))
   # Split the charset lines at the tab "\t"
   gene_chunks <- unlist(lapply(strsplit(arrow_lines, "\t"), function(x){x[1]}))
   # Format the gene chunks nicely
@@ -407,7 +370,7 @@ gene.lengths.smatrix <- function(partition_file, return.lengths = TRUE){
   gene_start <- as.numeric(unlist(lapply(strsplit(gene_chunks_nospace, "\\=>"), function(x){x[1]})))
   gene_end <- as.numeric(unlist(lapply(strsplit(gene_chunks_nospace, "\\=>"), function(x){x[2]})))
   # Create the gene names
-  gene_names <- sprintf("gene_%04d", 1:length(gene_range))
+  gene_names <- sprintf("gene_%04d", 1:length(gene_start))
   # Create a nice little dataframe for the genes
   gene_df <- data.frame(gene_name = gsub(" ", "", gene_names), gene_range = gene_chunks_nospace, gene_start = gene_start, gene_end = gene_end)
   # Calculate the gene length
@@ -422,6 +385,45 @@ gene.lengths.smatrix <- function(partition_file, return.lengths = TRUE){
   return(output)
 }
 
+
+redo.gene.names <- function(partition_file){
+  ## Function to take a partition file, update all the names, and return it
+  
+  ## Open partition file
+  lines <- readLines(partition_file)
+  
+  ## Create new charsets charsets
+  # Extract all lines with a charset
+  charset_lines <- grep("charset", lines, ignore.case = TRUE, value = TRUE)
+  # Split the charset lines at the "="
+  gene_lines <- unlist(lapply(strsplit(charset_lines, "="), function(x){x[2]}))
+  # Create the gene names
+  new_gene_names <- sprintf("gene_%04d", 1:length(gene_lines))
+  # Identify old gene names
+  old_gene_name_chunks <- unlist(lapply(strsplit(charset_lines, "="), function(x){x[1]}))
+  old_gene_name_raw <- unlist(lapply(strsplit(old_gene_name_chunks, "charset"), function(x){x[2]}))
+  old_gene_names <- gsub(" ", "", old_gene_name_raw)
+  # Create new charsets
+  new_charsets <- paste0('\tcharset ', new_gene_names, " =", gene_lines)
+  
+  ## Create new charpartition
+  # Extract models
+  charpartition_lines <- grep(":", lines, value = T)
+  model_chunk_raw <- unlist(lapply(strsplit(charpartition_lines,":"), function(x){x[1]}))
+  models <- gsub(" ", "", model_chunk_raw)
+  # New charpartition sections
+  cpart_lines <- paste0("\t", models, ": ", new_gene_names)
+  # New charpartition
+  new_charpartition <- paste0("charpartition mymodels =\n", paste(cpart_lines, collapse = ",\n"), ";")
+  
+  ## Complete partition file 
+  # Create whole partition file
+  new_p_file <- c("#nexus", "begin sets;", new_charsets, new_charpartition, "end;", "")
+  # Write out updated partition file to the input partition file path
+  write(new_p_file, file = partition_file)
+  # Return the partition file
+  return(partition_file)
+}
 
 
 
