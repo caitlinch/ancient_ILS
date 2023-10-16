@@ -20,7 +20,7 @@
 ## Specify control parameters (all take logical values TRUE or FALSE):
 # prepare.parameters                    <- Create dataframe with parameters for gene tree/ML tree/constrained tree estimation: T/F
 
-location = "dayhoff"
+location = "local"
 if (location == "local"){
   alignment_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/"
   output_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_empirical_tree_estimation/"
@@ -53,9 +53,17 @@ control_parameters <- list(prepare.parameters = FALSE)
 
 
 #### 2. Prepare functions, variables and packages ####
-# Source functions
+# Source functions and dataset information
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
 source(paste0(repo_dir, "code/func_empirical_tree_estimation.R"))
+source(paste0(repo_dir, "code/data_dataset_info.R"))
+
+# Remove the individual dataset lists (only need collated lists) (yes it is a bit cheeky to hard code the removal)
+rm(borowiec2015_list, chang2015_list, dunn2008_list, hejnol2009_list, laumer2018_list, laumer2019_list, moroz2014_list, nosenko2013_list, philippe2009_list,
+   philippe2011_list, pick2010_list, ryan2013_list, simion2017_list, whelan2015_list, whelan2017_list, models_list, all_taxa, all_models)
+
+# Read in the .tsv file that contains a column for each dataset, with one row per taxa included in that dataset
+alignment_taxa_df <- read.table(paste0(repo_dir, "output/dataset_included_taxa.tsv"), header = T)
 
 
 
@@ -159,7 +167,18 @@ write.csv(dataset_df, file = dataset_server_path_file, row.names = FALSE)
 
 
 
-#### 4. Estimate gene trees (ModelFinder and PMSF) ####
+#### 4. Generate constraint trees ####
+# Create the directory for the constraint trees
+constraint_dir <- paste0(output_dir, "constraint_trees/")
+# Generate constraint tree files
+constraint.tree.wrapper(i, output_directory = constraint_dir, 
+                        dataset_info = all_datasets, matrix_taxa_info = matrix_taxa, 
+                        constraint_tree_df = dataset_df, alignment_taxa_df = alignment_taxa_df, 
+                        force.update.constraint.trees = TRUE)
+
+
+
+#### 5. Estimate gene trees (ModelFinder and PMSF) ####
 # Create command lines to estimate gene trees
 dataset_df$gene_tree_command_line <- unlist(lapply(1:nrow(dataset_df), 
                                                    estimate.empirical.gene.trees.wrapper, 
@@ -180,10 +199,10 @@ dataset_df$ML_tree_command_line <- unlist(lapply(1:nrow(dataset_df),
                                                  estimate.trees = FALSE))
 # Create command lines to estimate ASTRAL trees
 dataset_df$ASTRAL_command_line <- unlist(lapply(1:nrow(dataset_df), 
-                                                   estimate.astral.tree.wrapper, 
-                                                   dataframe = dataset_df, 
-                                                   astral_path = astral,
-                                                   estimate.trees = FALSE))
+                                                estimate.astral.tree.wrapper, 
+                                                dataframe = dataset_df, 
+                                                astral_path = astral,
+                                                estimate.trees = FALSE))
 
 
 
