@@ -15,7 +15,7 @@ constraint.tree.wrapper <- function(i, output_directory, dataset_info, matrix_ta
   ## Extract the relevant list of taxa for this dataframe
   # First, check whether this matrix is included in the keys of the matrix_taxa list
   row_dataset <- row$dataset
-  row_key <- paste0(row$dataset, ".", row$matrix_name, ".", row$sequence_format)
+  row_key <- paste0(row$dataset, ".", row$matrix, ".", "aa")
   list_keys <- names(matrix_taxa_info)
   # Check if row_key in list_key
   if ((row_key %in% list_keys) == FALSE){
