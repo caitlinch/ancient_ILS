@@ -53,6 +53,11 @@ control_parameters <- list(prepare.parameters = FALSE)
 
 
 #### 2. Prepare functions, variables and packages ####
+# Prepare directories, if they do not exist
+if (dir.exists(paste0(output_dir, "constraint_trees/")) == FALSE){dir.create(paste0(output_dir, "constraint_trees/"))}
+if (dir.exists(paste0(output_dir, "tree_estimation/")) == FALSE){dir.create(paste0(output_dir, "tree_estimation/"))}
+if (dir.exists(paste0(output_dir, "hypothesis_trees/")) == FALSE){dir.create(paste0(output_dir, "hypothesis_trees/"))}
+
 # Source functions and dataset information
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
 source(paste0(repo_dir, "code/func_empirical_tree_estimation.R"))
@@ -113,13 +118,6 @@ if (control_parameters$prepare.parameters == TRUE){
   dataset_df$ML_tree_treefile       <- paste0(dataset_df$prefix_ML_tree, ".treefile")
   dataset_df$ASTRAL_tree_treefile   <- paste0(dataset_df$prefix_ASTRAL_tree, ".tre")
   dataset_df$ASTRAL_tree_log        <- paste0(dataset_df$prefix_ASTRAL_tree, ".log")
-  # Add files for constraint trees
-  constraint_tree_dir <- paste0(output_dir, "constraint_trees/")
-  all_constraint_trees <- list.files(constraint_tree_dir)
-  dataset_df$constraint_tree_CTEN <- unlist(lapply(1:nrow(dataset_df), function(i){
-    grep(dataset_df$matrix[[i]], grep(dataset_df$dataset[[i]], grep("constraint_tree_1", all_constraint_trees, value = T), value = T), value = T)}))
-  dataset_df$constraint_tree_PORI <- unlist(lapply(1:nrow(dataset_df), function(i){
-    grep(dataset_df$matrix[[i]], grep(dataset_df$dataset[[i]], grep("constraint_tree_2", all_constraint_trees, value = T), value = T), value = T)}))
   # Add files for constrained ML and ASTRAL tree estimation
   dataset_df$CTEN_ML_tree_treefile      <- paste0(dataset_df$prefix_CTEN_ML_tree, ".tre")
   dataset_df$CTEN_ASTRAL_tree_treefile  <- paste0(dataset_df$prefix_CTEN_ASTRAL_tree, ".tre")
@@ -133,27 +131,39 @@ if (control_parameters$prepare.parameters == TRUE){
   dataset_df <- read.csv(dataset_df_file, stringsAsFactors = FALSE)
 }
 
-## Prepare directories, if they do not exist
-# Create directory for constraint trees
-if (dir.exists(paste0(output_dir, "constraint_trees/")) == FALSE){dir.create(paste0(output_dir, "constraint_trees/"))}
-# Create directory for tree estimation
-if (dir.exists(paste0(output_dir, "tree_estimation/")) == FALSE){dir.create(paste0(output_dir, "tree_estimation/"))}
-# Create directory for hypothesis trees (constrained tree estimation)
-if (dir.exists(paste0(output_dir, "hypothesis_trees/")) == FALSE){dir.create(paste0(output_dir, "hypothesis_trees/"))}
 
+
+#### 4. Generate constraint trees ####
+# Create the directory for the constraint trees
+constraint_dir <- paste0(output_dir, "constraint_trees/")
+# Generate new dataframe to create one set of partition trees per dataset (as the dataset_df has duplicates - one for MFP and one for PMSF)
+constraint_tree_df <- dataset_df[1:(nrow(dataset_df)/2), ]
+# Generate constraint tree files
+all_constraint_tree_files <- lapply(1:nrow(constraint_tree_df), constraint.tree.wrapper, 
+                                    output_directory = constraint_dir,  dataset_info = all_datasets, 
+                                    matrix_taxa_info = matrix_taxa, constraint_tree_df = constraint_tree_df, 
+                                    alignment_taxa_df = alignment_taxa_df, force.update.constraint.trees = TRUE)
+dataset_df$constraint_tree_CTEN <- basename(unlist(lapply(all_constraint_tree_files, function(x){x[[1]]})))
+dataset_df$constraint_tree_PORI <- basename(unlist(lapply(all_constraint_tree_files, function(x){x[[2]]})))
+dataset_df$constraint_tree_CTEN.PORI <- basename(unlist(lapply(all_constraint_tree_files, function(x){x[[3]]})))
+
+
+
+#### 5. Prepare file paths for server runs ####
 ## Prepare columns for full run by adding full file paths for the run location
 # Full paths for data files
 dataset_df$alignment_file <- paste0(alignment_dir, basename(dataset_df$alignment_file))
 dataset_df$partition_file <- paste0(alignment_dir, basename(dataset_df$partition_file))
 dataset_df$PMSF_sitefreq_file <- paste0(alignment_dir, basename(dataset_df$PMSF_sitefreq_file))
-# Full paths for constraint tree files
-dataset_df$constraint_tree_CTEN <- paste0(output_dir, "constraint_trees/", basename(dataset_df$constraint_tree_CTEN))
-dataset_df$constraint_tree_PORI <- paste0(output_dir, "constraint_trees/", basename(dataset_df$constraint_tree_PORI))
 # Full paths for ML output files
 dataset_df$gene_tree_treefile   <- paste0(output_dir, "tree_estimation/", basename(dataset_df$gene_tree_treefile))
 dataset_df$ML_tree_treefile     <- paste0(output_dir, "tree_estimation/", basename(dataset_df$ML_tree_treefile))
 dataset_df$ASTRAL_tree_treefile <- paste0(output_dir, "tree_estimation/", basename(dataset_df$ASTRAL_tree_treefile))
 dataset_df$ASTRAL_tree_treefile <- paste0(output_dir, "tree_estimation/", basename(dataset_df$ASTRAL_tree_treefile))
+# Full paths for constraint tree files
+dataset_df$constraint_tree_CTEN <- paste0(output_dir, "constraint_trees/", basename(dataset_df$constraint_tree_CTEN))
+dataset_df$constraint_tree_PORI <- paste0(output_dir, "constraint_trees/", basename(dataset_df$constraint_tree_PORI))
+dataset_df$constraint_tree_CTEN.PORI <- paste0(output_dir, "constraint_trees/", basename(dataset_df$constraint_tree_CTEN.PORI))
 # Full paths for constrained tree estimation output files
 dataset_df$CTEN_ML_tree_treefile      <- paste0(output_dir, "hypothesis_trees/", basename(dataset_df$CTEN_ML_tree_treefile))
 dataset_df$CTEN_ASTRAL_tree_treefile  <- paste0(output_dir, "hypothesis_trees/", basename(dataset_df$CTEN_ASTRAL_tree_treefile))
@@ -164,19 +174,6 @@ dataset_df$PORI_ASTRAL_tree_log       <- paste0(output_dir, "hypothesis_trees/",
 # Save with specific parameters for each dataset
 dataset_server_path_file <- paste0(output_dir, "dataset_parameters_", location, "_paths.csv")
 write.csv(dataset_df, file = dataset_server_path_file, row.names = FALSE)
-
-
-
-#### 4. Generate constraint trees ####
-# Create the directory for the constraint trees
-constraint_dir <- paste0(output_dir, "constraint_trees/")
-# Generate new dataframe to create one set of partition trees per dataset (as the dataset_df has duplicates - one for MFP and one for PMSF)
-constraint_tree_df <- dataset_df[1:(nrow(dataset_df)/2), ]
-# Generate constraint tree files
-constraint.tree.wrapper(i, output_directory = constraint_dir, 
-                        dataset_info = all_datasets, matrix_taxa_info = matrix_taxa, 
-                        constraint_tree_df = dataset_df, alignment_taxa_df = alignment_taxa_df, 
-                        force.update.constraint.trees = TRUE)
 
 
 

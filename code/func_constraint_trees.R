@@ -46,7 +46,8 @@ constraint.tree.wrapper <- function(i, output_directory, dataset_info, matrix_ta
   
   ## Remove any taxa from the constraint_clades that are not included in the ML tree for the alignment
   # Extract the column of tip labels from the relevant unique_id column of the alignment_taxa_df
-  tree_tips_raw <- alignment_taxa_df[[c(unique_id)]]
+  al_col_key <- paste0(row$dataset, ".", row$matrix)
+  tree_tips_raw <- alignment_taxa_df[[c(al_col_key)]]
   tree_tips_cleaned <- na.omit(tree_tips_raw)
   tree_tips <- as.character(tree_tips_cleaned)
   # Check each of the clades and remove any tips not in the list of tree tips
@@ -62,13 +63,13 @@ constraint.tree.wrapper <- function(i, output_directory, dataset_info, matrix_ta
   constraint_clades$Sponges_Demospongiae <- constraint_clades$Sponges_Demospongiae[(constraint_clades$Sponges_Demospongiae %in% tree_tips)]
   
   ## Create the constraint tree dataframe by calling the create.constraint.trees function
-  create.constraint.trees(dataset = row$dataset, 
-                          matrix_name = row$matrix_name,
-                          dataset_constraint_tree_dir = output_directory,
-                          constraint_clades = constraint_clades,
-                          force.update.constraint.trees = TRUE)
-  ## Return the constraint tree dataframe
-  return(constraint_df)
+  constraint_files <- create.constraint.trees(dataset = row$dataset, 
+                                              matrix_name = row$matrix,
+                                              dataset_constraint_tree_dir = output_directory,
+                                              constraint_clades = constraint_clades,
+                                              force.update.constraint.trees = TRUE)
+  ## Return the output files
+  return(constraint_files)
 } # end function
 
 
@@ -141,5 +142,25 @@ create.constraint.trees <- function(dataset, matrix_name, dataset_constraint_tre
   return(cf_files)
 } # end function
 
+
+
+format.constraint.tree.clade <- function(clade){
+  # Function to take in a vector of species and return a nicely formatted character object to paste into a constraint tree
+  
+  # Check how many taxa are in the clade
+  clade_size <- length(clade)
+  
+  # Format the clade
+  if (clade_size == 1){
+    clade_formatted = clade
+  } else if (clade_size > 1){
+    clade_formatted = paste0("(", paste(clade, collapse = ", "), ")")
+  } else if (clade_size < 1){
+    clade_formatted <- ""
+  }
+  
+  # Return the nicely formatted clade
+  return(clade_formatted)
+}
 
 
