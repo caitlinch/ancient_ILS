@@ -311,6 +311,7 @@ gene.lengths.raxml <- function(partition_file, return.lengths = TRUE){
   ## Extract all gene lengths from a RAxML partition file 
   # Open partition file
   lines <- readLines(partition_file)
+  # Different processing for different datasets (subtle differences in partition file depending on original dataset)
   if (grepl("Borowiec2015|Simion2017", basename(partition_file)) == TRUE){
     # Extract all lines with an equals sign (these lines will define a gene)
     eq_lines <- grep("\\=", lines, ignore.case = TRUE, value = TRUE)
@@ -341,14 +342,14 @@ gene.lengths.raxml <- function(partition_file, return.lengths = TRUE){
     # Split the charset lines at the "="
     gene_lines <- unlist(lapply(strsplit(eq_lines, "="), function(x){x[2]}))
     # Split the genes into chunks by breaking at the commas ","
-    gene_chunks <-  unlist(lapply(strsplit(gene_lines, ","), function(x){x[2]}))
+    gene_chunks <-  unlist(strsplit(gene_lines, ","))
     # Format the gene chunks nicely
     gene_chunks_nospace <- gsub(" ", "", gene_chunks)
     # Get start and end of each gene
-    gene_start <- as.numeric(unlist(lapply(strsplit(gene_chunks_nospace, "-"), function(x){x[1]})))
-    gene_end <- as.numeric(unlist(lapply(strsplit(gene_chunks_nospace, "-"), function(x){x[2]})))
+    gene_start_unordered <- as.numeric(unlist(lapply(strsplit(gene_chunks_nospace, "-"), function(x){x[1]})))
+    gene_end_unordered <- as.numeric(unlist(lapply(strsplit(gene_chunks_nospace, "-"), function(x){x[2]})))
     # Reorder gene chunks
-    order_df <- data.frame(gene_range = gene_chunks_nospace, gene_start = gene_start, gene_end = gene_end)
+    order_df <- data.frame(gene_range = gene_chunks_nospace, gene_start = gene_start_unordered, gene_end = gene_end_unordered)
     order_df <- order_df[order(order_df$gene_start), ]
     # Extract gene start, end and range
     gene_start <- order_df$gene_start
