@@ -8,12 +8,15 @@ estimate.empirical.gene.trees.wrapper <- function(row_id, dataframe, iqtree2_pat
   temp_row <- dataframe[row_id, ]
   iqtree_call <- estimate.empirical.gene.trees(alignment_file = temp_row$alignment_file, partition_file = temp_row$partition_file, 
                                                output_prefix = temp_row$prefix_gene_trees, iqtree2_path = iqtree2_path,
-                                               iqtree2_num_threads = iqtree2_num_threads, model = temp_row$best_model, 
+                                               iqtree2_num_threads = iqtree2_num_threads, model = temp_row$best_model,
                                                sitefreqs_file = temp_row$PMSF_sitefreq_file, estimate.trees = estimate.trees)
   return(iqtree_call)
 }
 
-estimate.empirical.gene.trees <- function(alignment_file, partition_file, output_prefix, iqtree2_path, iqtree2_num_threads = "AUTO", model = "MFP", sitefreqs_file = NA, estimate.trees = FALSE){
+estimate.empirical.gene.trees <- function(alignment_file, partition_file, 
+                                          output_prefix, iqtree2_path, 
+                                          iqtree2_num_threads = "AUTO", model = "MFP", 
+                                          sitefreqs_file = NA, estimate.trees = FALSE){
   ## Estimate a set of gene trees using a partition file
   ##   Command line: iqtree2 -s ALN_FILE -S PARTITION_FILE --prefix loci -T AUTO
   
@@ -43,17 +46,31 @@ estimate.empirical.gene.trees <- function(alignment_file, partition_file, output
 
 
 ## Estimating partitioned ML tree
-estimate.partitioned.ML.tree.wrapper <- function(row_id, dataframe, iqtree2_path, iqtree2_num_threads = "AUTO", estimate.trees = FALSE){
+estimate.partitioned.ML.tree.wrapper <- function(row_id, dataframe, iqtree2_path, iqtree2_num_threads = "AUTO", 
+                                                 iqtree2_num_bootstraps = 1000, use.gene.tree.partitions = FALSE, estimate.trees = FALSE){
   ## Wrap around estimate.partitioned.ML.tree function
+  # Extract parameters for a single dataset
   temp_row <- dataframe[row_id, ]
-  iqtree_call <- estimate.partitioned.ML.tree (alignment_file = temp_row$alignment_file, partition_file = temp_row$partition_file, 
+  # Select partition file
+  if (use.gene.tree.partitions == FALSE){
+    temp_partition_file <- temp_row$partition_file
+  } else if (use.gene.tree.partitions == TRUE){
+    temp_partition_file = temp_row$gene_tree_partition_scheme
+  }
+  # Construct IQ-Tree call
+  iqtree_call <- estimate.partitioned.ML.tree (alignment_file = temp_row$alignment_file, partition_file = temp_partition_file, 
                                                output_prefix = temp_row$prefix_ML_tree, iqtree2_path = iqtree2_path,
-                                               iqtree2_num_threads = iqtree2_num_threads, model = temp_row$best_model, 
-                                               sitefreqs_file = temp_row$PMSF_sitefreq_file, estimate.trees = estimate.trees)
+                                               iqtree2_num_threads = iqtree2_num_threads, iqtree2_num_bootstraps = iqtree2_num_bootstraps,
+                                               model = temp_row$best_model, sitefreqs_file = temp_row$PMSF_sitefreq_file, 
+                                               estimate.trees = estimate.trees)
   return(iqtree_call)
 }
 
-estimate.partitioned.ML.tree <- function(alignment_file, partition_file, output_prefix, iqtree2_path, iqtree2_num_threads = "AUTO", model = "MFP", sitefreqs_file = NA, estimate.trees = FALSE){
+estimate.partitioned.ML.tree <- function(alignment_file, partition_file, 
+                                         output_prefix, iqtree2_path, 
+                                         iqtree2_num_threads = "AUTO", iqtree2_num_bootstraps = 1000, 
+                                         model = "MFP", sitefreqs_file = NA, 
+                                         estimate.trees = FALSE){
   ## Estimate a partitioned ML tree in IQ-Tree
   
   # Assemble model command
@@ -65,10 +82,12 @@ estimate.partitioned.ML.tree <- function(alignment_file, partition_file, output_
   # Collate arguments into command line
   if (is.na(sitefreqs_file) == TRUE){
     # Standard model - included in IQ-Tree
-    command_line <- paste0(iqtree2_path, " -s ", alignment_file, " -p ", partition_file, model_call, " -pre ", output_prefix, " -nt ", iqtree2_num_threads)
+    command_line <- paste0(iqtree2_path, " -s ", alignment_file, " -p ", partition_file, model_call, 
+                           " -pre ", output_prefix, " -bb ", iqtree2_num_bootstraps, " -nt ", iqtree2_num_threads)
   } else {
     # PMSF model - ssfp file is provided
-    command_line <- paste0(iqtree2_path, " -s ", alignment_file, " -p ", partition_file, model_call, " -fs ", sitefreqs_file, " -pre ", output_prefix, " -nt ", iqtree2_num_threads)
+    command_line <- paste0(iqtree2_path, " -s ", alignment_file, " -p ", partition_file, model_call, " -fs ", sitefreqs_file, 
+                           " -pre ", output_prefix, " -bb ", iqtree2_num_bootstraps, " -nt ", iqtree2_num_threads)
   }
   # Call IQ-Tree if desired
   if (estimate.trees == TRUE){
@@ -82,10 +101,18 @@ estimate.partitioned.ML.tree <- function(alignment_file, partition_file, output_
 
 
 ## Estimating constrained partitioned ML tree
-estimate.constrained.partitioned.ML.tree.wrapper <- function(row_id, dataframe, iqtree2_path, constraint_tree_hypothesis, iqtree2_num_threads = "AUTO", estimate.trees = FALSE){
+estimate.constrained.partitioned.ML.tree.wrapper <- function(row_id, dataframe, iqtree2_path, constraint_tree_hypothesis, 
+                                                             iqtree2_num_threads = "AUTO", iqtree2_num_bootstraps = 1000, 
+                                                             use.gene.tree.partitions = FALSE, estimate.trees = FALSE){
   ## Wrap around estimate.constrained.partitioned.ML.tree function
   # Select dataset to run by row number
   temp_row <- dataframe[row_id, ]
+  # Select partition file
+  if (use.gene.tree.partitions == FALSE){
+    temp_partition_file <- temp_row$partition_file
+  } else if (use.gene.tree.partitions == TRUE){
+    temp_partition_file = temp_row$gene_tree_partition_scheme
+  }
   # Select constraint tree and prefix
   if (constraint_tree_hypothesis == "CTEN"){
     temp_constraint_tree <- temp_row$constraint_tree_CTEN
@@ -95,14 +122,16 @@ estimate.constrained.partitioned.ML.tree.wrapper <- function(row_id, dataframe, 
     temp_prefix <- temp_row$prefix_PORI_ML_tree
   }
   # Create IQ-Tree command line
-  iqtree_call <- estimate.constrained.partitioned.ML.tree (alignment_file = temp_row$alignment_file, partition_file = temp_row$partition_file, 
+  iqtree_call <- estimate.constrained.partitioned.ML.tree (alignment_file = temp_row$alignment_file, partition_file = temp_partition_file, 
                                                            constraint_tree = temp_constraint_tree, output_prefix = temp_prefix, iqtree2_path = iqtree2_path,
-                                                           iqtree2_num_threads = iqtree2_num_threads, model = temp_row$best_model, 
-                                                           sitefreqs_file = temp_row$PMSF_sitefreq_file, estimate.trees = estimate.trees)
+                                                           iqtree2_num_threads = iqtree2_num_threads, iqtree2_num_bootstraps = iqtree2_num_bootstraps, 
+                                                           model = temp_row$best_model, sitefreqs_file = temp_row$PMSF_sitefreq_file, 
+                                                           estimate.trees = estimate.trees)
   return(iqtree_call)
 }
 
-estimate.constrained.partitioned.ML.tree <- function(alignment_file, partition_file, constraint_tree, output_prefix, iqtree2_path, iqtree2_num_threads = "AUTO",
+estimate.constrained.partitioned.ML.tree <- function(alignment_file, partition_file, constraint_tree, output_prefix, iqtree2_path, 
+                                                     iqtree2_num_threads = "AUTO", iqtree2_num_bootstraps = 1000, 
                                                      model = "MFP", sitefreqs_file = NA, estimate.trees = FALSE){
   ## Estimate a constrained partitioned ML tree in IQ-Tree
   
@@ -115,10 +144,12 @@ estimate.constrained.partitioned.ML.tree <- function(alignment_file, partition_f
   # Collate arguments into command line
   if (is.na(sitefreqs_file) == TRUE){
     # Standard model - included in IQ-Tree
-    command_line <- paste0(iqtree2_path, " -s ", alignment_file, " -p ", partition_file, model_call, " -g ", constraint_tree, " -pre ", output_prefix, " -nt ", iqtree2_num_threads)
+    command_line <- paste0(iqtree2_path, " -s ", alignment_file, " -p ", partition_file, model_call, " -g ", constraint_tree, 
+                           " -pre ", output_prefix, " -bb ", iqtree2_num_bootstraps,  " -nt ", iqtree2_num_threads)
   } else {
     # PMSF model - ssfp file is provided
-    command_line <- paste0(iqtree2_path, " -s ", alignment_file, " -p ", partition_file, model_call, " -g ", constraint_tree, " -fs ", sitefreqs_file, " -pre ", output_prefix, " -nt ", iqtree2_num_threads)
+    command_line <- paste0(iqtree2_path, " -s ", alignment_file, " -p ", partition_file, model_call, " -g ", constraint_tree, " -fs ", sitefreqs_file, 
+                           " -pre ", output_prefix, " -bb ", iqtree2_num_bootstraps, " -nt ", iqtree2_num_threads)
   }
   # Call IQ-Tree if desired
   if (estimate.trees == TRUE){
