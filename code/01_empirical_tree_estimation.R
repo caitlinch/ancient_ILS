@@ -12,15 +12,15 @@
 #                                   E.g. Cherryh2022.alignment1.aa.fa
 # output_dir                  <- Directory for IQ-Tree output (trees and tree mixtures)
 # iqtree2                     <- Location of IQ-Tree2 stable release
-# iqtree_num_bootstraps       <- Number of ultrafast bootstraps (UFB) to perform in IQ-Tree
-# iqtree_num_threads          <- Number of parallel threads for IQ-Tree to use. Can be a set number (e.g. 2) or "AUTO"
+# iqtree2_num_bootstraps       <- Number of ultrafast bootstraps (UFB) to perform in IQ-Tree
+# iqtree2_num_threads          <- Number of parallel threads for IQ-Tree to use. Can be a set number (e.g. 2) or "AUTO"
 # astral                      <- Location of ASTRAL executable
 # astral_constrained          <- Location of ASTRAL constrained tree version executable
 
 ## Specify control parameters (all take logical values TRUE or FALSE):
 # prepare.parameters                    <- Create dataframe with parameters for gene tree/ML tree/constrained tree estimation: T/F
 
-location = "local"
+location = "dayhoff"
 if (location == "local"){
   alignment_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/"
   output_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_empirical_tree_estimation/"
@@ -45,7 +45,7 @@ if (location == "local"){
 }
 
 # Set parameters that are identical for all run locations
-iqtree_num_bootstraps <- 1000
+iqtree2_num_bootstraps <- 1000
 
 # Set control parameters
 control_parameters <- list(prepare.parameters = FALSE)
@@ -60,6 +60,7 @@ if (dir.exists(paste0(output_dir, "hypothesis_trees/")) == FALSE){dir.create(pas
 
 # Source functions and dataset information
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
+source(paste0(repo_dir, "code/func_constraint_trees.R"))
 source(paste0(repo_dir, "code/func_empirical_tree_estimation.R"))
 source(paste0(repo_dir, "code/data_dataset_info.R"))
 
@@ -72,7 +73,7 @@ alignment_taxa_df <- read.table(paste0(repo_dir, "output/dataset_included_taxa.t
 
 
 
-#### 3. Prepare partition files ####
+#### 3. Prepare for tree estimation ####
 dataset_df_file <- paste0(output_dir, "dataset_parameters.csv")
 if (control_parameters$prepare.parameters == TRUE){
   ## Prepare partition files
@@ -115,6 +116,7 @@ if (control_parameters$prepare.parameters == TRUE){
   dataset_df$prefix_PORI_ML_tree     <- paste0(dataset_df$dataset, ".", dataset_df$matrix, ".", dataset_df$model_code, ".", "PORI_ML_tree")
   # Add files for gene and ML tree estimation
   dataset_df$gene_tree_treefile     <- paste0(dataset_df$prefix_gene_trees, ".treefile")
+  dataset_df$gene_tree_partition_scheme <- paste0(dataset_df$prefix_gene_trees, ".best_scheme.nex")
   dataset_df$ML_tree_treefile       <- paste0(dataset_df$prefix_ML_tree, ".treefile")
   dataset_df$ASTRAL_tree_treefile   <- paste0(dataset_df$prefix_ASTRAL_tree, ".tre")
   dataset_df$ASTRAL_tree_log        <- paste0(dataset_df$prefix_ASTRAL_tree, ".log")
@@ -125,7 +127,22 @@ if (control_parameters$prepare.parameters == TRUE){
   dataset_df$PORI_ML_tree_treefile      <- paste0(dataset_df$prefix_PORI_ML_tree, ".tre")
   dataset_df$PORI_ASTRAL_tree_treefile  <- paste0(dataset_df$prefix_PORI_ASTRAL_tree, ".tre")
   dataset_df$PORI_ASTRAL_tree_log       <- paste0(dataset_df$prefix_PORI_ASTRAL_tree, ".log")
-  # Save dataframe
+  
+  ## Generate constraint trees
+  # Create the directory for the constraint trees
+  constraint_dir <- paste0(output_dir, "constraint_trees/")
+  # Generate new dataframe to create one set of partition trees per dataset (as the dataset_df has duplicates - one for MFP and one for PMSF)
+  constraint_tree_df <- dataset_df[1:(nrow(dataset_df)/2), ]
+  # Generate constraint tree files
+  all_constraint_tree_files <- lapply(1:nrow(constraint_tree_df), constraint.tree.wrapper, 
+                                      output_directory = constraint_dir,  dataset_info = all_datasets, 
+                                      matrix_taxa_info = matrix_taxa, constraint_tree_df = constraint_tree_df, 
+                                      alignment_taxa_df = alignment_taxa_df, force.update.constraint.trees = TRUE)
+  dataset_df$constraint_tree_CTEN <- rep(basename(unlist(lapply(all_constraint_tree_files, function(x){x[[1]]}))), 2)
+  dataset_df$constraint_tree_PORI <- rep(basename(unlist(lapply(all_constraint_tree_files, function(x){x[[2]]}))), 2)
+  dataset_df$constraint_tree_CTEN.PORI <- rep(basename(unlist(lapply(all_constraint_tree_files, function(x){x[[3]]}))), 2)
+  
+  ## Save dataframe
   write.csv(dataset_df, file = dataset_df_file, row.names = FALSE)
 } else {
   dataset_df <- read.csv(dataset_df_file, stringsAsFactors = FALSE)
@@ -133,30 +150,15 @@ if (control_parameters$prepare.parameters == TRUE){
 
 
 
-#### 4. Generate constraint trees ####
-# Create the directory for the constraint trees
-constraint_dir <- paste0(output_dir, "constraint_trees/")
-# Generate new dataframe to create one set of partition trees per dataset (as the dataset_df has duplicates - one for MFP and one for PMSF)
-constraint_tree_df <- dataset_df[1:(nrow(dataset_df)/2), ]
-# Generate constraint tree files
-all_constraint_tree_files <- lapply(1:nrow(constraint_tree_df), constraint.tree.wrapper, 
-                                    output_directory = constraint_dir,  dataset_info = all_datasets, 
-                                    matrix_taxa_info = matrix_taxa, constraint_tree_df = constraint_tree_df, 
-                                    alignment_taxa_df = alignment_taxa_df, force.update.constraint.trees = TRUE)
-dataset_df$constraint_tree_CTEN <- basename(unlist(lapply(all_constraint_tree_files, function(x){x[[1]]})))
-dataset_df$constraint_tree_PORI <- basename(unlist(lapply(all_constraint_tree_files, function(x){x[[2]]})))
-dataset_df$constraint_tree_CTEN.PORI <- basename(unlist(lapply(all_constraint_tree_files, function(x){x[[3]]})))
-
-
-
-#### 5. Prepare file paths for server runs ####
+#### 4. Prepare file paths for server runs ####
 ## Prepare columns for full run by adding full file paths for the run location
 # Full paths for data files
 dataset_df$alignment_file <- paste0(alignment_dir, basename(dataset_df$alignment_file))
 dataset_df$partition_file <- paste0(alignment_dir, basename(dataset_df$partition_file))
-dataset_df$PMSF_sitefreq_file <- paste0(alignment_dir, basename(dataset_df$PMSF_sitefreq_file))
+dataset_df$PMSF_sitefreq_file[which(is.na(dataset_df$PMSF_sitefreq_file) == FALSE)] <- paste0(alignment_dir, basename(dataset_df$PMSF_sitefreq_file[which(is.na(dataset_df$PMSF_sitefreq_file) == FALSE)]))
 # Full paths for ML output files
 dataset_df$gene_tree_treefile   <- paste0(output_dir, "tree_estimation/", basename(dataset_df$gene_tree_treefile))
+dataset_df$gene_tree_partition_scheme <- gsub("\\.treefile", "\\.best_scheme\\.nex", dataset_df$gene_tree_treefile)
 dataset_df$ML_tree_treefile     <- paste0(output_dir, "tree_estimation/", basename(dataset_df$ML_tree_treefile))
 dataset_df$ASTRAL_tree_treefile <- paste0(output_dir, "tree_estimation/", basename(dataset_df$ASTRAL_tree_treefile))
 dataset_df$ASTRAL_tree_treefile <- paste0(output_dir, "tree_estimation/", basename(dataset_df$ASTRAL_tree_treefile))
@@ -188,13 +190,15 @@ dataset_df$gene_tree_command_line <- unlist(lapply(1:nrow(dataset_df),
 
 
 
-#### 5. Estimate partitioned ML and ASTRAL trees (ModelFinder and PMSF) ####
+#### 6. Estimate partitioned ML and ASTRAL trees (ModelFinder and PMSF) ####
 # Create command lines to estimate partitioned ML trees
 dataset_df$ML_tree_command_line <- unlist(lapply(1:nrow(dataset_df), 
                                                  estimate.partitioned.ML.tree.wrapper, 
                                                  dataframe = dataset_df, 
                                                  iqtree2_path = iqtree2, 
-                                                 iqtree2_num_threads = iqtree2_num_threads, 
+                                                 iqtree2_num_threads = iqtree2_num_threads,
+                                                 iqtree2_num_bootstraps = iqtree2_num_bootstraps,
+                                                 use.gene.tree.partitions = TRUE,
                                                  estimate.trees = FALSE))
 # Create command lines to estimate ASTRAL trees
 dataset_df$ASTRAL_command_line <- unlist(lapply(1:nrow(dataset_df), 
@@ -205,14 +209,16 @@ dataset_df$ASTRAL_command_line <- unlist(lapply(1:nrow(dataset_df),
 
 
 
-#### 6. Estimate constrained ML trees (ModelFinder and PMSF) ####
+#### 7. Estimate constrained ML trees (ModelFinder and PMSF) ####
 # Create command lines for constrained tree estimation in IQ-Tree
 dataset_df$CTEN_ML_command_line <- unlist(lapply(1:nrow(dataset_df), estimate.constrained.partitioned.ML.tree.wrapper, 
                                                  dataframe = dataset_df, iqtree2_path = iqtree2, constraint_tree_hypothesis = "CTEN", 
-                                                 iqtree2_num_threads = iqtree2_num_threads, estimate.trees = FALSE))
+                                                 iqtree2_num_threads = iqtree2_num_threads, iqtree2_num_bootstraps = iqtree2_num_bootstraps,
+                                                 use.gene.tree.partitions = TRUE, estimate.trees = FALSE))
 dataset_df$PORI_ML_command_line <- unlist(lapply(1:nrow(dataset_df), estimate.constrained.partitioned.ML.tree.wrapper, 
                                                  dataframe = dataset_df, iqtree2_path = iqtree2, constraint_tree_hypothesis = "PORI", 
-                                                 iqtree2_num_threads = iqtree2_num_threads, estimate.trees = FALSE))
+                                                 iqtree2_num_threads = iqtree2_num_threads, iqtree2_num_bootstraps = iqtree2_num_bootstraps,
+                                                 use.gene.tree.partitions = TRUE, estimate.trees = FALSE))
 
 # Create command lines for constrained tree estimation in ASTRAL
 dataset_df$CTEN_ASTRAL_command_line <- unlist(lapply(1:nrow(dataset_df), estimate.constrained.astral.tree.wrapper, 
@@ -227,7 +233,7 @@ write.csv(dataset_df, file = command_line_csv_file)
 
 
 
-#### 7. Output text files for each type of command ####
+#### 8. Output text files for each type of command ####
 # Gene trees
 write(dataset_df$gene_tree_command_line, file = paste0(output_dir, "empirical_commandLines_gene_trees.txt"))
 # ML trees
