@@ -170,6 +170,8 @@ write.csv(dataset_df, file = dataset_server_path_file, row.names = FALSE)
 #### 4. Generate constraint trees ####
 # Create the directory for the constraint trees
 constraint_dir <- paste0(output_dir, "constraint_trees/")
+# Generate new dataframe to create one set of partition trees per dataset (as the dataset_df has duplicates - one for MFP and one for PMSF)
+constraint_tree_df <- dataset_df[1:(nrow(dataset_df)/2), ]
 # Generate constraint tree files
 constraint.tree.wrapper(i, output_directory = constraint_dir, 
                         dataset_info = all_datasets, matrix_taxa_info = matrix_taxa, 
