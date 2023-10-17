@@ -500,8 +500,8 @@ whelan2017_list <- list("Bilateria" = c("Homo_sapiens", "Strongylocentrotus_purp
 # Note: unsure assigning taxa PORI_s (not a clear label). I believe it is PORI_Ifas: PORI_Ifas is present in 3/4 Laumer 2018 alignments, while PORI_s is present only
 #       in "Laumer2018.Tplx_BUSCOeuk.aa.alignment.phylip"
 
-laumer2018_list <- list("Bilateria" = c("ECHI_Spur", "CRAN_Mmus", "PRIA_Pcau", "TARD_Rvar", "NEMA_Ppac", "ARTH_Dmel", "PLAT_Sman", "MOLL_Cgig", "BRAC_Lana", "ANNE_Ctel",
-                                        "XENO_XbJC", "XENO_XbXC", "NEMO_Nemw", "ACOE_Isop", "MICR_Limn"),
+laumer2018_list <- list("Bilateria" = c("ACOE_Isop", "ANNE_Ctel", "ARTH_Dmel", "BRAC_Lana", "CRAN_Mmus", "ECHI_Spur", "MICR_Limn", "MOLL_Cgig", "NEMA_Ppac", "NEMO_Nemw", 
+                                        "PLAT_Sman", "PRIA_Pcau", "TARD_Rvar", "XENO_XbJC", "XENO_XbXC"),
                         "Cnidaria" = c("CNID_Aala", "CNID_Adig", "CNID_Aplm", "CNID_Atet", "CNID_Csow", "CNID_Epal", "CNID_Gven", "CNID_Hvul", "CNID_Lcmp", "CNID_Ltet",
                                        "CNID_Nvec", "CNID_Pnct", "CNID_Smel"),
                         "Placozoa" = c("PLAC_Tadh", "PLAC_TH11", "PLAC_TpH4", "PLAC_TpH6"),
