@@ -53,16 +53,19 @@ control_parameters <- list(prepare.parameters = FALSE)
 
 
 #### 2. Prepare functions, variables and packages ####
-# Prepare directories, if they do not exist
-if (dir.exists(paste0(output_dir, "constraint_trees/")) == FALSE){dir.create(paste0(output_dir, "constraint_trees/"))}
-if (dir.exists(paste0(output_dir, "tree_estimation/")) == FALSE){dir.create(paste0(output_dir, "tree_estimation/"))}
-if (dir.exists(paste0(output_dir, "hypothesis_trees/")) == FALSE){dir.create(paste0(output_dir, "hypothesis_trees/"))}
+# Open packages
+library(stringr)
 
 # Source functions and dataset information
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
 source(paste0(repo_dir, "code/func_constraint_trees.R"))
 source(paste0(repo_dir, "code/func_empirical_tree_estimation.R"))
 source(paste0(repo_dir, "code/data_dataset_info.R"))
+
+# Prepare directories, if they do not exist
+if (dir.exists(paste0(output_dir, "constraint_trees/")) == FALSE){dir.create(paste0(output_dir, "constraint_trees/"))}
+if (dir.exists(paste0(output_dir, "tree_estimation/")) == FALSE){dir.create(paste0(output_dir, "tree_estimation/"))}
+if (dir.exists(paste0(output_dir, "hypothesis_trees/")) == FALSE){dir.create(paste0(output_dir, "hypothesis_trees/"))}
 
 # Remove the individual dataset lists (only need collated lists) (yes it is a bit cheeky to hard code the removal)
 rm(borowiec2015_list, chang2015_list, dunn2008_list, hejnol2009_list, laumer2018_list, laumer2019_list, moroz2014_list, nosenko2013_list, philippe2009_list,
@@ -80,11 +83,12 @@ if (control_parameters$prepare.parameters == TRUE){
   # Get all files from the partition folder (and remove any files with "00" as the beginning of the file name)
   all_files <- list.files(alignment_dir)
   # Reformat partition files
-  reformatted_partition_files <- unlist(lapply(paste0(alignment_dir, grep("partitions.nex|partitions.txt|smatrix.txt|partitions.part", all_files, value = TRUE)), create.partition.nexus))
+  partition_files <- grep("ModelFinder|PMSF", grep("partitions.nex|partitions.txt|smatrix.txt|partitions.part", all_files, value = TRUE), value = TRUE, invert = TRUE)
+  reformatted_partition_files <- unlist(lapply(paste0(alignment_dir, partition_files), create.partition.nexus))
   
   ## Assemble nice dataframe of empirical datasets
   # Extract all alignments
-  all_als <- grep("\\.nex|\\.phy|\\.phylip|\\.fasta|\\.fa|\\.fas", grep("alignment", all_files, value = T), value = T)
+  all_als <- grep("ModelFinder|PMSF", grep("\\.nex|\\.phy|\\.phylip|\\.fasta|\\.fa|\\.fas", grep("alignment", all_files, value = T), value = T), value = TRUE, invert = TRUE)
   # Start dataframe
   dataset_df <- data.frame(year = as.numeric(str_extract(all_als, "(\\d)+")),
                            dataset = unlist(lapply(1:length(all_als), function(i){strsplit(all_als, "\\.")[[i]][1]})),
@@ -94,13 +98,16 @@ if (control_parameters$prepare.parameters == TRUE){
   # Copy dataset_df - need one copy for PMSF and one for ModelFinder gene trees
   dataset_df <- rbind(dataset_df, dataset_df)
   # Remove datasets without PMSF best model
-  dataset_df <- dataset_df[dataset_df$dataset != "Hejnol2009"  & dataset_df$dataset != "Laumer2018" & dataset_df$dataset != "Simion2017", ]
+  dataset_df <- dataset_df[dataset_df$dataset != "Hejnol2009"  & dataset_df$dataset != "Laumer2019" & dataset_df$dataset != "Simion2017", ]
   rownames(dataset_df) <- 1:nrow(dataset_df)
   # Add model code
   dataset_df$model_code <- c(rep("PMSF", nrow(dataset_df)/2), rep("ModelFinder", nrow(dataset_df)/2))
   # Add PMSF site freq files
-  dataset_df$PMSF_sitefreq_file <- grep("PMSF", all_files, value = T)
-  dataset_df$PMSF_sitefreq_file[which(dataset_df$model_code == "ModelFinder")] <- NA
+  dataset_df$PMSF_sitefreq_file <- c(grep("PMSF", all_files, value = T)[1:3], NA, grep("PMSF", all_files, value = T)[4:11], rep(NA, 12))
+  ## TODO: REMOVE HARD CODING BY CREATING PMSF RUNS FOR LAUMER 2018 BUSCO ALIGNMENT
+  ##dataset_df$PMSF_sitefreq_file <- grep("PMSF", all_files, value = T)
+  ##dataset_df$PMSF_sitefreq_file[which(dataset_df$model_code == "ModelFinder")] <- NA
+  
   # Add best model
   dataset_df$best_model <- dataset_df$model_code
   dataset_df$best_model[grep("PMSF_LG_C60", dataset_df$PMSF_sitefreq_file)] <- "LG+C60+F+R4"
