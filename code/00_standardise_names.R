@@ -1,4 +1,4 @@
-## caitlinch/metazoan-mixtures/code/00_standardise_names.R
+## caitlinch/ancient_ILS/code/00_standardise_names.R
 # This script standardises the names for all species for all datasets
 # Caitlin Cherryh 2023
 
@@ -20,7 +20,7 @@
 
 location = "local"
 if (location == "local"){
-  repo_dir <- "/Users/caitlincherryh/Documents/Repositories/metazoan-mixtures/"
+  repo_dir <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   taxon_table_path <- "/Users/caitlincherryh/Documents/C3_TreeMixtures_Sponges/00_Li2021_supp/reconciliation_keep/taxonomy_info/taxon_table.tsv"
   manual_taxonomy_path <- "/Users/caitlincherryh/Documents/C3_TreeMixtures_Sponges/00_Li2021_supp/reconciliation_keep/taxonomy_info/manual_taxonomy_map.tsv"
 } 
@@ -36,17 +36,17 @@ source(paste0(repo_dir, "code/data_dataset_info.R"))
 rm(borowiec2015_list, chang2015_list, dunn2008_list, hejnol2009_list, laumer2018_list, laumer2019_list, moroz2014_list, nosenko2013_list, philippe2009_list,
    philippe2011_list, pick2010_list, ryan2013_list, simion2017_list, whelan2015_list, whelan2017_list, all_models, models_list)
 
-# Check whether the data directory at the github repository exists
-data_dir <- paste0(repo_dir, "data/")
-if (dir.exists(data_dir) == FALSE){
-  dir.create(data_dir)
+# Check whether the output directory at the github repository exists
+output_dir <- paste0(repo_dir, "output/")
+if (dir.exists(output_dir) == FALSE){
+  dir.create(output_dir)
 }
 
 
 
 #### 3. Prepare name csv ####
 # Set a file path for the MAST metazoan taxa collation csv
-mastmet_file_path <- paste0(data_dir, "Cherryh_MAST_metazoa_taxa_collation.csv")
+mastmet_file_path <- paste0(output_dir, "Cherryh_MAST_metazoa_taxa_collation.csv")
 if (file.exists(mastmet_file_path) == TRUE){
   mastmet_df <- read.csv(mastmet_file_path, stringsAsFactors = F)
 } else if (file.exists(mastmet_file_path) == FALSE){
@@ -122,45 +122,74 @@ if (file.exists(mastmet_file_path) == TRUE){
 
 
 #### 4. Standardize the names ####
-# Open the tsv files from Li et. al. 2021
-taxon_table_df <- read.delim(taxon_table_path)
-manual_taxonomy_df <- read.delim(manual_taxonomy_path)
-# Update the formatting of the manual_taxonomy_df
-# Remove any strings of underscores from the manual taxonomy map
-manual_taxonomy_df$original_name <- gsub("\\_\\_", "", manual_taxonomy_df$original_name)
-# If there is a single trailing underscore left, remove it
-manual_taxonomy_df$original_name <- gsub("_$","",manual_taxonomy_df$original_name)
-# Correct an entry of the manual_taxonomy_df
-DGLA_ind <- which(manual_taxonomy_df$study == "Moroz2014" & manual_taxonomy_df$new_name == "Dryodora_glandiformis_" & manual_taxonomy_df$original_name == "DGLA")
-manual_taxonomy_df[DGLA_ind,]$new_name <- "Dryodora_glandiformis"
-# Correct an entry of the taxon_table_df
-DGLA_ind <- which(taxon_table_df$relabelled_name == "Dryodora_glandiformis_" & taxon_table_df$matrix_name == "DGLA")
-taxon_table_df[DGLA_ind,]$relabelled_name <- "Dryodora_glandiformis"
-# Save updated taxon_table_df
-tt_file_path <- paste0(dirname(mastmet_file_path), "/", "Li2021_taxon_table_updated.Cherryh.tsv")
-write.table(taxon_table_df,  file = tt_file_path, sep = "\t",row.names = F)
-# Save updated manual_taxonomy_df
-mt_file_path <- paste0(dirname(mastmet_file_path), "/", "Li2021_manual_taxonomy_map_updated.Cherryh.tsv")
-write.table(manual_taxonomy_df,  file = mt_file_path, sep = "\t",row.names = F)
+# Specify path for taxa reconciliation
+mastmet2_file_path <- paste0(output_dir, "Cherryh_MAST_metazoa_taxa_reconciliation.csv")
+# Manually curate taxa names
+if (file.exists(mastmet2_file_path) == FALSE){
+  # Open the tsv files from Li et. al. 2021
+  taxon_table_df <- read.delim(taxon_table_path)
+  manual_taxonomy_df <- read.delim(manual_taxonomy_path)
+  # Update the formatting of the manual_taxonomy_df
+  # Remove any strings of underscores from the manual taxonomy map
+  manual_taxonomy_df$original_name <- gsub("\\_\\_", "", manual_taxonomy_df$original_name)
+  # If there is a single trailing underscore left, remove it
+  manual_taxonomy_df$original_name <- gsub("_$","",manual_taxonomy_df$original_name)
+  # Correct an entry of the manual_taxonomy_df
+  DGLA_ind <- which(manual_taxonomy_df$study == "Moroz2014" & manual_taxonomy_df$new_name == "Dryodora_glandiformis_" & manual_taxonomy_df$original_name == "DGLA")
+  manual_taxonomy_df[DGLA_ind,]$new_name <- "Dryodora_glandiformis"
+  # Correct an entry of the taxon_table_df
+  DGLA_ind <- which(taxon_table_df$relabelled_name == "Dryodora_glandiformis_" & taxon_table_df$matrix_name == "DGLA")
+  taxon_table_df[DGLA_ind,]$relabelled_name <- "Dryodora_glandiformis"
+  # Save updated taxon_table_df
+  tt_file_path <- paste0(dirname(mastmet_file_path), "/", "Li2021_taxon_table_updated.Cherryh.tsv")
+  write.table(taxon_table_df,  file = tt_file_path, sep = "\t",row.names = F)
+  # Save updated manual_taxonomy_df
+  mt_file_path <- paste0(dirname(mastmet_file_path), "/", "Li2021_manual_taxonomy_map_updated.Cherryh.tsv")
+  write.table(manual_taxonomy_df,  file = mt_file_path, sep = "\t",row.names = F)
+  
+  # For each taxa in the mastmet_df, relabel the species name so that each species has an identical name in all datasets
+  # 322 unique species are included in the 16 alignments (1086 tips total), so each species should have an identical label in each alignment it appears in
+  # Either find a consistent taxa name in the Li et. al. (2021) tsv files, or use the hard-coded dictionary to relabel species from datasets not included in Li et. al. (2021)
+  mastmet_df$relabelled_names <- unlist(lapply(1:nrow(mastmet_df), function(i){find.species.name(mastmet_df[i,], taxon_table_df, manual_taxonomy_df)}))
+  # Add row for missing taxa for Simion2017
+  new_row <- data.frame("dataset" = "Simion2017",
+                        "original_name" = "Acanthoeca_sp._10tr",
+                        "clade" = "Outgroup",
+                        "alignment" = "supermatrix_97sp_401632pos_1719genes",
+                        "relabelled_names" = "Acanthoeca_sp")
+  # Combine row for missing taxa with large dataframe
+  mastmet_df <- rbind(mastmet_df, new_row)
+  # Reorder rows - alphabetical within each clade and dataset
+  mastmet_df <- mastmet_df[order(mastmet_df$dataset, mastmet_df$alignment, mastmet_df$clade, mastmet_df$relabelled_names),]
+  # Reset row numbers
+  rownames(mastmet_df) <- 1:nrow(mastmet_df)
+  # Save the dataframe with the relabelled species names
+  write.csv(mastmet_df,  file = mastmet2_file_path, row.names = F)
+} else if (file.exists(mastmet2_file_path) == TRUE){
+  # Open file
+  mastmet_df <- read.csv(mastmet2_file_path, stringsAsFactors = F)
+}
 
-# For each taxa in the mastmet_df, relabel the species name so that each species has an identical name in all datasets
-# 322 unique species are included in the 16 alignments (1086 tips total), so each species should have an identical label in each alignment it appears in
-# Either find a consistent taxa name in the Li et. al. (2021) tsv files, or use the hard-coded dictionary to relabel species from datasets not included in Li et. al. (2021)
-mastmet_df$relabelled_names <- unlist(lapply(1:nrow(mastmet_df), function(i){find.species.name(mastmet_df[i,], taxon_table_df, manual_taxonomy_df)}))
-# Add row for missing taxa for Simion2017
-new_row <- data.frame("dataset" = "Simion2017",
-                      "original_name" = "Acanthoeca_sp._10tr",
-                      "clade" = "Outgroup",
-                      "alignment" = "supermatrix_97sp_401632pos_1719genes",
-                      "relabelled_names" = "Acanthoeca_sp")
-# Combine row for missing taxa with large dataframe
-mastmet_df <- rbind(mastmet_df, new_row)
+
+
+#### 5. Add the taxa conversion for the Laumer 2018 dataset Tplx_BUSCOeuk alignment ####
+# Create new dataframe for Laumer 2018 BUSCO dataset
+laumer2018_busco_df <- mastmet_df[mastmet_df$dataset == "Laumer2018" & mastmet_df$alignment == "Tplx_phylo_d1", ]
+laumer2018_busco_df$alignment <- "Tplx_BUSCOeuk"
+# Extract list of taxa in Laumer 2018 BUSCO dataframe
+laumer2018_busco_tips <- matrix_taxa$Laumer2018.Tplx_BUSCOeuk.aa
+# Remove "PORI_Ifas" from the laumer2018_busco_df
+laumer2018_busco_df <- laumer2018_busco_df[which(laumer2018_busco_df$original_name != "PORI_Ifas"), ]
+# Add "PORI_s" to the laumer2018_busco_df
+laumer2018_busco_df <- rbind(laumer2018_busco_df, c("dataset" = "Laumer2018", "original_name" = "PORI_s", "clade" = "Porifera", "alignment" = "Tplx_BUSCOeuk", "relabelled_names" = "Pseudospongosorites_suberitoides"))
+# Attach Laumer 2018 BUSCO matrix tip names to the larger dataset
+mastmet_df <- rbind(mastmet_df, laumer2018_busco_df)
 # Reorder rows - alphabetical within each clade and dataset
 mastmet_df <- mastmet_df[order(mastmet_df$dataset, mastmet_df$alignment, mastmet_df$clade, mastmet_df$relabelled_names),]
 # Reset row numbers
 rownames(mastmet_df) <- 1:nrow(mastmet_df)
+# Reset PORI_Ocar to "Oscarella pearsi" for Laumer 2018 datasets
+mastmet_df[mastmet_df$dataset == "Laumer2018" & mastmet_df$relabelled_names == "Oscarella_carmela", ]$relabelled_names <- "Oscarella_pearsei"
 # Save the dataframe with the relabelled species names
-mastmet_file_path <- paste0(repo_dir, "Cherryh_MAST_metazoa_taxa_reconciliation.csv")
-write.csv(mastmet_df,  file = mastmet_file_path, row.names = F)
-
+write.csv(mastmet_df,  file = mastmet2_file_path, row.names = F)
 
