@@ -16,9 +16,13 @@
 # astral                      <- Location of ASTRAL executable
 
 ## Specify control parameters (all take logical values TRUE or FALSE):
-# prepare.parameters                    <- Create dataframe with parameters for gene tree/ML tree/constrained tree estimation: T/F
+# create.output.filepaths     <- Open the dataset_df and add output file paths for estimating concordance factors/quartet scores
+# prepare.scf.gcf             <- Create IQ-Tree command lines to estimate sCF and gCF in IQ-Tree2: T/F
+# estimate.scf.gcf            <- Run command lines to estimate sCF and gCF in IQ-Tree2: T/F
+# prepare.qs                  <- Create IQ-Tree command lines to estimate quartet scores in ASTRAL: T/F
+# estimate.qs                 <- Run command lines to estimate quartet scores in ASTRAL: T/F
 
-location = "dayhoff"
+location = "local"
 if (location == "local"){
   repo_dir            <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   alignment_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/"
@@ -41,5 +45,46 @@ if (location == "local"){
 }
 
 # Set control parameters
-control_parameters <- list(prepare.parameters = FALSE)
+control_parameters <- list(create.output.filepaths = FALSE,
+                           prepare.scf.gcf = FALSE,
+                           estimate.scf.gcf = FALSE,
+                           prepare.qs = FALSE,
+                           estimate.qs = FALSE)
+
+
+
+#### 2. Prepare functions, variables and packages ####
+# Source functions and dataset information
+source(paste0(repo_dir, "code/func_empirical_tree_estimation.R"))
+
+# Create a new folder for concordance factor and quartet scores
+cf_dir <- paste0(output_dir, "concordance_factors/")
+if (dir.exists(cf_dir) == FALSE){dir.create(cf_dir)}
+
+
+if (control_parameters$create.output.filepaths == TRUE){
+  # Open the dataframe containing information about each alignment
+  all_files <- list.files(output_dir)
+  dataset_df_file <- paste0(output_dir, grep("dataset", grep("command_lines", all_files, value = T), value = T))
+  dataset_df <- read.csv(dataset_df_file)
+  # Add columns to the dataset_df
+  dataset_df$prefix_gcf.scf <- paste0(dataset_df$dataset, ".", dataset_df$matrix)
+  dataset_df$CTEN_qcf_tree <- paste0(cf_dir, dataset_df$dataset, ".", dataset_df$matrix, ".CTEN.qs.tre")
+  dataset_df$CTEN_qcf_log <- paste0(cf_dir, dataset_df$dataset, ".", dataset_df$matrix, ".CTEN.qs.log")
+  dataset_df$PORI_qcf_tree <- paste0(cf_dir, dataset_df$dataset, ".", dataset_df$matrix, ".PORI.qs.tre")
+  dataset_df$PORI_qcf_log <- paste0(cf_dir, dataset_df$dataset, ".", dataset_df$matrix, "PORI.qs.log")
+  # Output dataset
+  precf_dataset_df_file <- paste0(output_dir, "dataset_preparation_concordance_factors.csv")
+  write.csv(dataset_df, file = precf_dataset_df_file, row.names = F)
+}
+
+
+#### 3. Calculate site and gene concordance factors ####
+
+
+
+
+
+#### 4. Calculate quartet scores ####
+
 
