@@ -238,7 +238,7 @@ dataset_df$PORI_ASTRAL_command_line <- unlist(lapply(1:nrow(dataset_df), estimat
                                                      constraint_tree_hypothesis = "PORI", estimate.trees = FALSE))
 # Save dataframe
 command_line_csv_file <- paste0(output_dir, "dataset_", location, "_command_lines.csv")
-write.csv(dataset_df, file = command_line_csv_file)
+write.csv(dataset_df, file = command_line_csv_file, row.names = FALSE)
 
 
 
