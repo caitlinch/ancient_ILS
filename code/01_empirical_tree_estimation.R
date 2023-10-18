@@ -108,11 +108,13 @@ if (control_parameters$prepare.parameters == TRUE){
   ##dataset_df$PMSF_sitefreq_file <- grep("PMSF", all_files, value = T)
   ##dataset_df$PMSF_sitefreq_file[which(dataset_df$model_code == "ModelFinder")] <- NA
   
-  # Add best model
+  # Add best model (best models for ModelFinder extracted from ModelFinder runs)
   dataset_df$best_model <- dataset_df$model_code
   dataset_df$best_model[grep("PMSF_LG_C60", dataset_df$PMSF_sitefreq_file)] <- "LG+C60+F+R4"
   dataset_df$best_model[grep("PMSF_C60", dataset_df$PMSF_sitefreq_file)] <- "C60+F+R4"
-  dataset_df$best_model[grep("ModelFinder", dataset_df$model_code)] <- "MFP"
+  dataset_df$best_model[grep("ModelFinder", dataset_df$model_code)] <- c("'Q.insect+R6'", "'Q.insect+R8'", "'LG+R7'", "'LG+F+R7'", 
+                                                                         "'LG+F+I+R5'", "'LG+F+I+R6'", "'Q.insect+R7'", "'Q.insect+I+R6'",
+                                                                         "'Q.insect+R7'", "'Q.insect+R6'", "'LG+F+R8'", "'Q.insect+R8'")
   # Add columns with output prefixes
   dataset_df$prefix_gene_trees    <- paste0(dataset_df$dataset, ".", dataset_df$matrix, ".", dataset_df$model_code, ".", "gene_trees")
   dataset_df$prefix_ML_tree       <- paste0(dataset_df$dataset, ".", dataset_df$matrix, ".", dataset_df$model_code, ".", "ML_tree")
