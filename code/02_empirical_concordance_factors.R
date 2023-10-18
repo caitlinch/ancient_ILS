@@ -17,9 +17,7 @@
 
 ## Specify control parameters (all take logical values TRUE or FALSE):
 # create.output.filepaths     <- Open the dataset_df and add output file paths for estimating concordance factors/quartet scores
-# prepare.scf.gcf             <- Create IQ-Tree command lines to estimate sCF and gCF in IQ-Tree2: T/F
 # estimate.scf.gcf            <- Run command lines to estimate sCF and gCF in IQ-Tree2: T/F
-# prepare.qs                  <- Create IQ-Tree command lines to estimate quartet scores in ASTRAL: T/F
 # estimate.qs                 <- Run command lines to estimate quartet scores in ASTRAL: T/F
 
 location = "local"
@@ -46,9 +44,7 @@ if (location == "local"){
 
 # Set control parameters
 control_parameters <- list(create.output.filepaths = FALSE,
-                           prepare.scf.gcf = FALSE,
                            estimate.scf.gcf = FALSE,
-                           prepare.qs = FALSE,
                            estimate.qs = FALSE)
 
 
@@ -61,8 +57,9 @@ source(paste0(repo_dir, "code/func_empirical_tree_estimation.R"))
 cf_dir <- paste0(output_dir, "concordance_factors/")
 if (dir.exists(cf_dir) == FALSE){dir.create(cf_dir)}
 
-
-if (control_parameters$create.output.filepaths == TRUE){
+# Open the required dataframe with dataset information
+precf_dataset_df_file <- paste0(output_dir, "dataset_preparation_concordance_factors.csv")
+if (control_parameters$create.output.filepaths == TRUE | file.exists(precf_dataset_df_file) == FALSE){
   # Open the dataframe containing information about each alignment
   all_files <- list.files(output_dir)
   dataset_df_file <- paste0(output_dir, grep("dataset", grep("command_lines", all_files, value = T), value = T))
@@ -72,19 +69,56 @@ if (control_parameters$create.output.filepaths == TRUE){
   dataset_df$CTEN_qcf_tree <- paste0(cf_dir, dataset_df$dataset, ".", dataset_df$matrix, ".CTEN.qs.tre")
   dataset_df$CTEN_qcf_log <- paste0(cf_dir, dataset_df$dataset, ".", dataset_df$matrix, ".CTEN.qs.log")
   dataset_df$PORI_qcf_tree <- paste0(cf_dir, dataset_df$dataset, ".", dataset_df$matrix, ".PORI.qs.tre")
-  dataset_df$PORI_qcf_log <- paste0(cf_dir, dataset_df$dataset, ".", dataset_df$matrix, "PORI.qs.log")
+  dataset_df$PORI_qcf_log <- paste0(cf_dir, dataset_df$dataset, ".", dataset_df$matrix, ".PORI.qs.log")
   # Output dataset
-  precf_dataset_df_file <- paste0(output_dir, "dataset_preparation_concordance_factors.csv")
   write.csv(dataset_df, file = precf_dataset_df_file, row.names = F)
+} else {
+  dataset_df <- read.csv(precf_dataset_df_file, stringsAsFactors = FALSE)
 }
 
 
+
 #### 3. Calculate site and gene concordance factors ####
-
-
+estimate.gcf.scf.wrapper(row_id, dataframe, constraint_tree_hypothesis, iqtree2_path, iqtree2_num_threads = "AUTO", estimate.trees = FALSE)
+if (control_parameters$estimate.scf.gcf == TRUE){
+  # For CTEN-sister
+  CTEN_cf_commands <- unlist(lapply(1:nrow(dataset_df), estimate.gcf.scf.wrapper, 
+                                    dataframe = dataset_df, constraint_tree_hypothesis = "CTEN", 
+                                    iqtree2_path = iqtree2, iqtree2_num_threads = 10, 
+                                    estimate.trees = FALSE))
+  # For PORI-sister
+  PORI_cf_commands <- unlist(lapply(1:nrow(dataset_df), estimate.gcf.scf.wrapper, 
+                                    dataframe = dataset_df, constraint_tree_hypothesis = "PORI", 
+                                    iqtree2_path = iqtree2, iqtree2_num_threads = 10, 
+                                    estimate.trees = FALSE))
+  # Add columns to dataset
+  dataset_df$CTEN_gCF_command_line <- CTEN_cf_commands[c(T,F)]
+  dataset_df$CTEN_sCF_command_line <- CTEN_cf_commands[c(F,T)]
+  dataset_df$PORI_gCF_command_line <- PORI_cf_commands[c(T,F)]
+  dataset_df$PORI_sCF_command_line <- PORI_cf_commands[c(F,T)]
+}
 
 
 
 #### 4. Calculate quartet scores ####
+estimate.quartet.scores.wrapper(row_id, dataframe, astral_path, constraint_tree_hypothesis, estimate.trees = FALSE)
+
+if (control_parameters$estimate.qs == TRUE){
+  # For CTEN-sister
+  dataset_df$CTEN_quartet_score_command_line <- unlist(lapply(1:nrow(dataset_df), estimate.quartet.scores.wrapper, 
+                                                              dataframe = dataset_df, constraint_tree_hypothesis = "CTEN",
+                                                              astral_path = astral, estimate.trees = FALSE))
+  # For PORI-sister
+  dataset_df$PORI_quartet_score_command_line <- unlist(lapply(1:nrow(dataset_df), estimate.quartet.scores.wrapper, 
+                                                              dataframe = dataset_df, constraint_tree_hypothesis = "PORI",
+                                                              astral_path = astral, estimate.trees = FALSE))
+}
 
 
+
+#### 5. Save dataframe with new command lines  ####
+cf_dataset_df_file <- paste0(output_dir, "dataset_estimate_concordance_factors.csv")
+write.csv(dataset_df, file = cf_dataset_df_file, row.names = F)
+
+cf_dataset_df_trimmed_file <- paste0(output_dir, "dataset_estimate_concordance_factors_ModelFinder.csv")
+write.csv(dataset_df[13:24,], file = cf_dataset_df_trimmed_file, row.names = F)
