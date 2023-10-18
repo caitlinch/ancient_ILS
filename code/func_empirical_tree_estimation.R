@@ -284,7 +284,7 @@ estimate.gcf.scf <- function(alignment_file, gene_trees_file, test_tree,
 
 
 ## Estimating quartet scores
-estimate.quartet.scores.wrapper <- function(row_id, dataframe, astral_path, constraint_tree_hypothesis, estimate.trees = FALSE){
+estimate.quartet.scores.wrapper <- function(row_id, dataframe, constraint_tree_hypothesis, astral_path, estimate.trees = FALSE){
   ## Wrap around estimate.constrained.astral.tree function
   # Select dataset to run by row number
   temp_row <- dataframe[row_id, ]
@@ -299,9 +299,9 @@ estimate.quartet.scores.wrapper <- function(row_id, dataframe, astral_path, cons
     temp_output_log <- temp_row$PORI_qcf_log
   }
   # Call ASTRAL
-  astral_call <- estimate.constrained.astral.tree(gene_tree_file = temp_row$gene_tree_treefile, input_test_tree = temp_input_tree,
-                                                  output_tree_file = temp_output_file, output_log_file = temp_output_log,
-                                                  astral_path = astral_path, estimate.trees = estimate.trees)
+  astral_call <- estimate.quartet.scores(gene_tree_file = temp_row$gene_tree_treefile, input_test_tree = temp_input_tree,
+                                         output_tree_file = temp_output_file, output_log_file = temp_output_log,
+                                         astral_path = astral_path, estimate.trees = estimate.trees)
   return(astral_call)
 }
 
