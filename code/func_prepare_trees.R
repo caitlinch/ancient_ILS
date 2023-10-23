@@ -136,6 +136,38 @@ extract.clade.length <- function(gene_tree, clade_tips, root_tips = "Drosophila_
 }
 
 
+extract.clade.monophyly <- function(gene_tree, clade_tips, drop_tips, remove.specified.tips = FALSE){
+  ## Determine whether the set of taxa provided is monophyletic
+  
+  # Remove tips not in this gene tree
+  present_clade_tips <- clade_tips[clade_tips %in% gene_tree$tip.label]
+  # If any tips are specified to be removed, remove them
+  if ( ((NA %in% drop_tips) == FALSE) & (remove.specified.tips == TRUE) ){
+    gene_tree <- drop.tip(gene_tree, tip = drop_tips, trim.internal = TRUE)
+  }
+  # Check monophyly of clade if more than one tip is present
+  if (length(present_clade_tips) > 1){
+    # Check relationship between tips
+    check_monophyly <- is.monophyletic(gene_tree, tips = present_clade_tips)
+    if (check_monophyly == TRUE){
+      clade_relationship = "Monophyletic"
+    } else if (check_monophyly == FALSE){
+      clade_relationship = "Paraphyletic"
+    }
+  } else if (length(present_clade_tips) == 1){
+    # Only one taxa - can't be monophyletic/paraphyletic
+    clade_relationship = "One_taxon"
+  }
+  # Specify number of tips in this clade for the given gene tree
+  num_tips = length(present_clade_tips)
+  # Assemble output
+  op <- c(num_tips, clade_relationship)
+  names(op) <- c("num_clade_tips", "clade_relationship")
+  # Return results
+  return(op)
+}
+
+
 
 
 #### Creating constraint trees ####
