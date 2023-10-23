@@ -15,6 +15,10 @@
 # iqtree2_num_threads         <- Number of parallel threads for IQ-Tree to use. Can be a set number (e.g. 2) or "AUTO"
 # astral                      <- Location of ASTRAL executable
 
+## Specify control parameters (all take logical values TRUE or FALSE):
+# relabel.tips               <- Open the Simion 2017 trees and update tip labels: T/F
+
+
 location = "local"
 if (location == "local"){
   repo_dir            <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
@@ -36,6 +40,9 @@ if (location == "local"){
   astral <- paste0(repo_dir, "astral/Astral/astral.5.7.8.jar")
 }
 
+# Set control parameters
+control_parameters <- list(relabel.tips = TRUE)
+
 
 
 #### 2. Prepare functions, variables and packages ####
@@ -44,36 +51,144 @@ library(ape)
 
 ## Source files
 # Open dataset info, move Simion2017 taxa into a separate object and remove unneeded objects
-source(paste0(repo_dir, "code/data_dataset_info.R"))
-simion2017_clades <- simion2017_list
-rm(all_taxa, all_datasets, borowiec2015_list, chang2015_list, dunn2008_list, hejnol2009_list, 
-   laumer2018_list, laumer2019_list, matrix_taxa, models_list, moroz2014_list, nosenko2013_list,
-   philippe2009_list, philippe2011_list, pick2010_list, ryan2013_list, simion2017_list, 
-   whelan2015_list, whelan2017_list)
+simion2017_clades <- list("Bilateria" = c("Tribolium", "Capitella", "Aplysia_ca", "Saccogloss", "Homo_sapie", "Helobdella", "Crassostre", "Ixodes_sca", "Daphnia_pu",
+                                          "Branchiost", "Strongyloc",
+                                          "Aplysia_californica", "Branchiostoma_floridae", "Capitella_teleta", "Crassostrea_gigas", "Daphnia_pulex", "Helobdella_robusta",           
+                                          "Homo_sapiens", "Ixodes_scapularis", "Saccoglossus_kowalevskii", "Strongylocentrotus_purpuratus", "Tribolium_castaneum"),
+                          "Cnidaria" = c("Pennatula", "Stomolophu", "Hydractini", "Bolocera_t", "Nematostel", "Edwardsiel", "Periphylla", "Aiptasia_p", "Hydra_magn",
+                                         "Nanomia_bi", "Porites_au", "Gorgonia_v", "Montastrae", "Craspedacu", "Aurelia_au", "Clytia_hem", "Atolla_van", "Antipathes",
+                                         "Liriope_te", "Plumapathe", "Pelagia_no", "Alatina_al", "Lucernario",
+                                         "Aiptasia_pallida", "Aurelia_aurita", "Clytia_hemisphaerica", "Craspedacusta_sowerbyi", "Edwardsiella_lineata", "Gorgonia_ventalina",
+                                         "Hydra_magnipapillata", "Hydractinia_polyclina", "Montastraea_faveolata", "Nanomia_bijuga", "Nematostella_vectensis",
+                                         "Periphylla_periphylla", "Porites_australiensis", "Stomolophus_meleagris", "Alatina_alata", "Antipathes_caribbeana",
+                                         "Atolla_vanhoeffeni", "Bolocera_tuedia", "Liriope_tetraphylla", "Lucernariopsis_campanulata", "Pelagia_noctiluca", "Pennatula_rubra",
+                                         "Plumapathes_pennacea"),
+                          "Placozoa" = c("Trichoplax",
+                                         "Trichoplax_adhaerens"),
+                          "Porifera" = c("Spongilla", "Hyalonema", "Corticium", "Ephydatia", "Oscarella", "Clathrina", "Amphimedon", "Petrosia_f", "Ircinia_fa",
+                                         "Aphrocalli", "Sycon_coac", "Sycon_cili", "Sympagella", "Mycale_phy", "Oscarell00", "Latrunculi", "Rossella_f",
+                                         "Kirkpatric", "Chondrilla", "Euplectell", "Leucosolen", "Leuconia_n", "Grantia_co", "Plakina_ja", "Pleraplysi",
+                                         "Amphimedon_queenslandica", "Aphrocallistes_vastus", "Chondrilla_nucula", "Corticium_candelabrum", "Ephydatia_muelleri", 
+                                         "Euplectella_aspergillum", "Hyalonema_populiferum", "Ircinia_fasciculata", "Kirkpatrickia_variolosa", "Latrunculia_apicalis",
+                                         "Oscarella_carmela", "Petrosia_ficiformis", "Rossella_fibulata", "Spongilla_lacustris", "Sycon_ciliatum", "Sycon_coactum",
+                                         "Sympagella_nux", "Oscarella_species", "Plakina_jani", "Leucosolenia_complicata", "Leuconia_nivea", "Clathrina_coriacea",
+                                         "Pleraplysilla_spinifera", "Mycale_phyllophila", "Grantia_compressa"),
+                          "Ctenophora" = c("Beroe_sp", "Vallicula", "Bolinopsis", "Beroe_abys", "Pleurobrac", "Mnemiopsis", "Coeloplana", "Euplokamis",
+                                           "Cestum_ven", "Dryodora_g", "Hormiphora", "Lampea_pan",
+                                           "Beroe_abyssicola", "Bolinopsis_infundibulum", "Cestum_veneris", "Dryodora_glandiformis", "Euplokamis_dunlapae", "Mnemiopsis_leidyi",
+                                           "Vallicula_multiformis", "Beroe_sp.", "Coeloplana_species", "Hormiphora_californensis", "Lampea_pancerina", "Pleurobrachia_species"),
+                          "Outgroup" = c("Mylnosiga", "Didymoeca", "Choanoeca", "Monosiga_b", "Salpingoec", "Acanthoeca", "Stephanoec", "Salpingo06",
+                                         "Salpingo02", "Diaphanoec", "Salpingo03", "Codosiga_h", "Salpingo01", "Salpingo00", "Acanthoe00", "Salpingo05",
+                                         "Salpingo04", "Salpingo07",
+                                         "Amoebidium_parasiticum_JAP72", "Capsaspora_owczarzaki_atcc30864", "Ministeria_vibrans", "Monosiga_brevicollis_mx1", "Salpingoeca_rosetta",
+                                         "Acanthoeca_sp_10tr", "Acanthoeca_spectabilis_VA_02", "Salpingoeca_urceolata_04", "Salpingoeca_roanoka_13", "Salpingoeca_qvevrii_09",
+                                         "Salpingoeca_punica_03", "Salpingoeca_dolichothecata_16", "Salpingoeca_helianthica_18", "Salpingoeca_infusionum_12", 
+                                         "Salpingoeca_macrocollata_06", "Stephanoeca_diplocostata_AUFR", "Codosiga_hollandica_17", "Mylnosiga_fluctuans_19",
+                                         "Choanoeca_perplexa_11", "Diaphanoeca_grandis_RI_01", "Didymoeca_costata_10", "Abeoforma_whisleri", "Creolimax_fragrantissima",
+                                         "Pirum_gemmata", "Sphaeroforma_arctica_JP610", "Acanthoeca_sp__10tr"),
+                          "Outgroup_Choanoflagellata" = c("Mylnosiga", "Didymoeca", "Choanoeca", "Monosiga_b", "Salpingoec", "Acanthoeca", "Stephanoec", "Salpingo06",
+                                                          "Salpingo02", "Diaphanoec", "Salpingo03", "Codosiga_h", "Salpingo01", "Salpingo00", "Acanthoe00", "Salpingo05",
+                                                          "Salpingo04", "Salpingo07",
+                                                          "Amoebidium_parasiticum_JAP72", "Capsaspora_owczarzaki_atcc30864", "Ministeria_vibrans", "Monosiga_brevicollis_mx1",
+                                                          "Acanthoeca_sp_10tr", "Acanthoeca_spectabilis_VA_02", "Salpingoeca_urceolata_04", "Salpingoeca_roanoka_13", "Salpingoeca_qvevrii_09",
+                                                          "Salpingoeca_punica_03", "Salpingoeca_dolichothecata_16", "Salpingoeca_helianthica_18", "Salpingoeca_infusionum_12", 
+                                                          "Salpingoeca_macrocollata_06", "Stephanoeca_diplocostata_AUFR", "Codosiga_hollandica_17", "Mylnosiga_fluctuans_19",
+                                                          "Choanoeca_perplexa_11", "Diaphanoeca_grandis_RI_01", "Didymoeca_costata_10",  "Salpingoeca_rosetta", "Acanthoeca_sp__10tr"),
+                          "Outgroup_Opisthokonta" = c("Abeoforma_whisleri", "Creolimax_fragrantissima", "Pirum_gemmata", "Sphaeroforma_arctica_JP610"),
+                          "Sponges_Calcarea" = c("Clathrina", "Sycon_coac", "Sycon_cili", "Leucosolen", "Leuconia_n", "Grantia_co",
+                                                 "Sycon_ciliatum", "Sycon_coactum", "Leucosolenia_complicata", "Leuconia_nivea", "Clathrina_coriacea", "Grantia_compressa"),
+                          "Sponges_Homoscleromorpha" = c("Corticium", "Oscarella", "Oscarell00", "Plakina_ja",
+                                                         "Corticium_candelabrum", "Oscarella_carmela", "Oscarella_species", "Plakina_jani"),
+                          "Sponges_Hexactinellida" = c("Hyalonema", "Aphrocalli", "Sympagella", "Rossella_f", "Euplectell",
+                                                       "Aphrocallistes_vastus", "Euplectella_aspergillum", "Hyalonema_populiferum", "Rossella_fibulata", "Sympagella_nux"),
+                          "Sponges_Demospongiae" = c("Spongilla", "Ephydatia", "Amphimedon", "Petrosia_f", "Ircinia_fa", "Mycale_phy", "Latrunculi", "Kirkpatric",
+                                                     "Chondrilla", "Pleraplysi",
+                                                     "Amphimedon_queenslandica", "Chondrilla_nucula", "Ephydatia_muelleri", "Ircinia_fasciculata", "Kirkpatrickia_variolosa",
+                                                     "Latrunculia_apicalis", "Petrosia_ficiformis", "Spongilla_lacustris", "Pleraplysilla_spinifera", "Mycale_phyllophila"),
+                          "Sponges_1" = c("Sponges_Calcarea", "Sponges_Homoscleromorpha"),
+                          "Sponges_2" = c("Sponges_Hexactinellida", "Sponges_Demospongiae"))
 
 ## Open the Simion 2017 tree files
 # List all files
-simion_files <- grep("Simion2017", list.files(paste0(repo_dir, "empirical_tree/")), value = T)
-# Open gene trees
-gene_trees_path <- paste0(repo_dir, "empirical_tree/", grep("gene_trees.treefile", simion_files, value = T))
-gene_trees <- read.tree(gene_trees_path)
-# Open ASTRAL tree
-astral_tree_path <- paste0(repo_dir, "empirical_tree/", grep("ASTRAL_tree.tre", simion_files, value = T))
-astral_tree <- read.tree(astral_tree_path)
+simion_files <- grep("relabelled", grep("Simion2017", list.files(paste0(repo_dir, "empirical_tree/")), value = T), value = T, invert = T)
 
 
 
-#### 3. Extract clade monophyly and clade depth ####
+### 3. Tip reconciliation
+if (control_parameters$relabel.tips == TRUE){
+  # Identify file paths for gene trees and ASTRAL tree
+  astral_tree_path <- paste0(repo_dir, "empirical_tree/", grep("ASTRAL_tree.tre", simion_files, value = T))
+  gene_trees_path <- paste0(repo_dir, "empirical_tree/", grep("gene_trees.treefile", simion_files, value = T))
+  # Read trees
+  astral_tree <- read.tree(astral_tree_path)
+  gene_trees <- read.tree(gene_trees_path)
+  # Reconcile tips in ASTRAL tree
+  update.tree.taxa(astral_tree_path, naming_reconciliation_df = tip_name_df, 
+                   output.clade.names = TRUE, save.updated.tree = TRUE, 
+                   output.directory = paste0(repo_dir, "empirical_tree/"))
+  # Reconcile tips in gene trees
+  update.gene.trees.taxa(gene_trees_path, naming_reconciliation_df = tip_name_df, 
+                         output.clade.names = TRUE, save.updated.tree = TRUE, 
+                         output.directory = paste0(repo_dir, "empirical_tree/"))
+  # Fix labels in gene trees and astral trees
+  astral_tree$tip.label <- gsub("\\.", "", astral_tree$tip.label)
+  for (i in 1:length(gene_trees)){
+    temp_tree <- gene_trees[[i]]
+    temp_tree$tip.label <- gsub("\\.", "", temp_tree$tip.label)
+    gene_trees[[i]] <- temp_tree
+  }
+}
+
+
+
+#### 4. Determine the number of gene trees with monophyletic outgroups ####
+# Check whether the Choanoflagellates are monophyletic
+gene_tree = gene_trees[[1]]
+clade_tips <- simion2017_clades$Outgroup_Choanoflagellata
+drop_tips <- sort(setdiff(simion2017_clades$Outgroup, simion2017_clades$Outgroup_Choanoflagellata))
+
+
+# Check whether the Opisthokonta are monophyletic
+clade_tips <- simion2017_clades$Outgroup_Opisthokonta
+drop_tips <- sort(setdiff(simion2017_clades$Outgroup, simion2017_clades$Outgroup_Opisthokonta))
+# Check whether the whole outgroup is monophyletic
+clade_tips <- simion2017_clades$Outgroup
+
+
+
+#### 5. Extract clade monophyly and clade depth ####
+# Extract clade depth and length from each gene tree
+cten_list <- lapply(1:length(gene_trees), function(i){extract.clade.length(gene_trees[[i]], clade_tips = simion2017_clades$Ctenophora, root_tips = "Drosophila_melanogaster")})
+pori_list <- lapply(1:length(gene_trees), function(i){extract.clade.length(gene_trees[[i]], clade_tips = simion2017_clades$Porifera, root_tips = "Drosophila_melanogaster")})
+cnid_list <- lapply(1:length(gene_trees), function(i){extract.clade.length(gene_trees[[i]], clade_tips = simion2017_clades$Cnidaria, root_tips = "Drosophila_melanogaster")})
+bilat_list <- lapply(1:length(gene_trees), function(i){extract.clade.length(gene_trees[[i]], clade_tips = simion2017_clades$Bilateria, root_tips = "Oscarella_carmela")})
+outgroup_list <- lapply(1:length(gene_trees), function(i){extract.clade.length(gene_trees[[i]], clade_tips = simion2017_clades$Outgroup, root_tips = "Drosophila_melanogaster")})
+# Combine into a single dataframe
+clade_df <- rbind(as.data.frame(do.call(rbind, cten_list)), as.data.frame(do.call(rbind, pori_list)),
+                  as.data.frame(do.call(rbind, cnid_list)), as.data.frame(do.call(rbind, bilat_list)),
+                  as.data.frame(do.call(rbind, outgroup_list)))
+# Add clade column and gene tree column
+clade_df$clade <- rep(c("Ctenophora", "Porifera", "Cnidaria", "Bilateria", "Outgroup"), each = 117)
+clade_df$gene_tree <- rep(c(1:117), 5)
+# Reorder cols
+clade_df <- clade_df[, c("clade", "gene_tree", "num_clade_tips", "clade_relationship", "clade_length", 
+                         "branch_length_to_clade", "max_branching_time_for_ultrametric_clade", "outgroup")]
+# Save full dataframe as csv
+clade_df_path <- paste0(repo_dir, "output/gene_trees_clade_length_all.csv")
+write.csv(clade_df, file = clade_df_path, row.names = FALSE)
+# Trim to only monophyletic clades and save as csv
+clade_df_trim <- clade_df[which(clade_df$clade_relationship == "monophyletic"), ]
+clade_df_trim_path <- paste0(repo_dir, "output/gene_trees_clade_length_monophyletic.csv")
+write.csv(clade_df_trim, file = clade_df_trim_path, row.names = FALSE)
+
+
+
+#### 6. Extract branch lengths for in and outgroups ####
 
 
 
 
-#### 4. Extract branch lengths for in and outgroups ####
-
-
-
-
-#### 5. Extract branch lengths leading to outgroups ####
+#### 7. Extract branch lengths leading to outgroups ####
 
 
 

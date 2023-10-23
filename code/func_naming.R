@@ -48,6 +48,61 @@ update.tree.taxa <- function(treefile, naming_reconciliation_df, output.clade.na
 }
 
 
+update.gene.trees.taxa <- function(gene_tree_file, naming_reconciliation_df, output.clade.names = FALSE, save.updated.tree = FALSE, output.directory = NA){
+  # Function that takes a gene tree file and a data frame of original and updated taxa names,  
+  #   and updates the original taxa names in the gene trees tree file to the updated taxa names from the data frame
+  
+  # Identify which dataset and alignment this tree matches
+  tree_dataset <- strsplit(basename(gene_tree_file), "\\.")[[1]][1]
+  tree_matrix <- strsplit(basename(gene_tree_file), "\\.")[[1]][2]
+  # Reduce the reconciliation data frame to only species for that dataset and matrix
+  tree_taxa_df <- naming_reconciliation_df[naming_reconciliation_df$dataset == tree_dataset & naming_reconciliation_df$alignment == tree_matrix,]
+  
+  # Open the set of gene trees 
+  gt <- read.tree(gene_tree_file)
+  # Process each gene tree
+  for (i in 1:length(gt)){
+    temp_tree <- relabel.one.gene.tree(gt[[i]], tree_taxa_df = tree_taxa_df, output.clade.names = output.clade.names)
+    gt[[i]] <- temp_tree
+  }
+  
+  # Save the tree (if required)
+  if ( (save.updated.tree == TRUE) & (is.na(output.directory) == FALSE) ){
+    # Create the new file name
+    split_tree_file <- strsplit(basename(gene_tree_file), "\\.")[[1]]
+    new_gene_tree_file <- paste0(output.directory, paste(head(split_tree_file, -1), collapse = "."), ".relabelled.", tail(split_tree_file, 1))
+    # Output the tree to the new file path
+    write.tree(gt, file = new_gene_tree_file)
+  }
+  
+  # Return the set of gene trees tree
+  return(gt)
+}
+
+
+relabel.one.gene.tree <- function(t, tree_taxa_df, output.clade.names = FALSE){
+  ## Take a single gene tree, update the taxa names, and return it
+  
+  # Extract the list of taxa names
+  t_names <- t$tip.label
+  # Remove any of the rows that are not present in the t_names vector
+  keep_rows <- which((tree_taxa_df$original_name %in% t_names) == TRUE)
+  tree_taxa_df <- tree_taxa_df[keep_rows,]
+  # Reorder the tree_taxa_df so it's in the same order as the t_names vector
+  tree_taxa_df <- tree_taxa_df[match(t_names, tree_taxa_df$original_name),]
+  # Update the tree to have the new taxa names
+  if (output.clade.names == FALSE){
+    # Output the complete species names
+    t$tip.label <- tree_taxa_df$relabelled_names
+  } else if (output.clade.names == TRUE){
+    # Output the clade name pasted to the complete species name
+    t$tip.label <- paste0(toupper(tree_taxa_df$clade), "_",tree_taxa_df$relabelled_names)
+  }
+  # Return the tree
+  return(t)
+}
+
+
 
 #### Functions for collecting and summarising information from the dataset taxa lists ### 
 extract.taxa.vector <- function(dataset_list){
@@ -104,6 +159,8 @@ filter.matrix.names <- function(taxa_list, matrix_subset){
 }
 
 
+
+
 #### Functions to reconcile species names across datasets ####
 convert.alignment.name <- function(dataset_name, alignment_name){
   # Small function to take an alignment and dataset and return the corresponding alignment name 
@@ -138,6 +195,7 @@ convert.alignment.name <- function(dataset_name, alignment_name){
   # Return the corresponding alignment name from Li et. al. (2021)
   return(li_name)
 }
+
 
 check.manual.taxonomy.map <- function(species_row, manual_taxonomy_df){
   # Function to take a species name, and check if it's in the manual taxonomy map
@@ -190,7 +248,6 @@ check.tip.manual.taxonomy.map <- function(species_name, manual_taxonomy_df){
   # Return the matched name
   return(matching_name)
 }
-
 
 
 find.species.name <- function(species_row, taxon_table_df, manual_taxonomy_df){
