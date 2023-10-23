@@ -15,16 +15,10 @@
 # iqtree2_num_threads         <- Number of parallel threads for IQ-Tree to use. Can be a set number (e.g. 2) or "AUTO"
 # astral                      <- Location of ASTRAL executable
 
-## Specify control parameters (all take logical values TRUE or FALSE):
-# create.output.filepaths     <- Open the dataset_df and add output file paths for estimating concordance factors/quartet scores
-# estimate.scf.gcf            <- Run command lines to estimate sCF and gCF in IQ-Tree2: T/F
-# estimate.qs                 <- Run command lines to estimate quartet scores in ASTRAL: T/F
-
 location = "local"
 if (location == "local"){
   repo_dir            <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-  alignment_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/"
-  output_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_empirical_tree_estimation/"
+  output_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/04_simulation_parameters/"
   iqtree2             <- "iqtree2"
   iqtree2_num_threads  <- "AUTO"
   astral              <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
@@ -42,15 +36,30 @@ if (location == "local"){
   astral <- paste0(repo_dir, "astral/Astral/astral.5.7.8.jar")
 }
 
-# Set control parameters
-control_parameters <- list(create.output.filepaths = FALSE,
-                           estimate.scf.gcf = FALSE,
-                           estimate.qs = FALSE)
-
 
 
 #### 2. Prepare functions, variables and packages ####
+## Open packages
+library(ape)
 
+## Source files
+# Open dataset info, move Simion2017 taxa into a separate object and remove unneeded objects
+source(paste0(repo_dir, "code/data_dataset_info.R"))
+simion2017_clades <- simion2017_list
+rm(all_taxa, all_datasets, borowiec2015_list, chang2015_list, dunn2008_list, hejnol2009_list, 
+   laumer2018_list, laumer2019_list, matrix_taxa, models_list, moroz2014_list, nosenko2013_list,
+   philippe2009_list, philippe2011_list, pick2010_list, ryan2013_list, simion2017_list, 
+   whelan2015_list, whelan2017_list)
+
+## Open the Simion 2017 tree files
+# List all files
+simion_files <- grep("Simion2017", list.files(paste0(repo_dir, "empirical_tree/")), value = T)
+# Open gene trees
+gene_trees_path <- paste0(repo_dir, "empirical_tree/", grep("gene_trees.treefile", simion_files, value = T))
+gene_trees <- read.tree(gene_trees_path)
+# Open ASTRAL tree
+astral_tree_path <- paste0(repo_dir, "empirical_tree/", grep("ASTRAL_tree.tre", simion_files, value = T))
+astral_tree <- read.tree(astral_tree_path)
 
 
 
