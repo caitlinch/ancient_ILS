@@ -142,17 +142,29 @@ if (control_parameters$relabel.tips == TRUE){
 
 
 #### 4. Determine the number of gene trees with monophyletic outgroups ####
-# Check whether the Choanoflagellates are monophyletic
-gene_tree = gene_trees[[1]]
-clade_tips <- simion2017_clades$Outgroup_Choanoflagellata
-drop_tips <- sort(setdiff(simion2017_clades$Outgroup, simion2017_clades$Outgroup_Choanoflagellata))
+outgroup_csv_path <- paste0(output_dir, "Simion2017_gene_tree_outgroup_monophyly.csv")
+if (file.exists(outgroup_csv_path) == FALSE){
+  # Assemble a dataframe showing the monophyly of the three possible outgroups (Choanoflagellata, Opisthokonta, or both combined) for each gene tree
+  outgroup_df <- data.frame(gene_tree = 1:length(gene_trees),
+                            Choanoflagellata = unlist(lapply(1:length(gene_trees), function(i){extract.clade.monophyly(gene_trees[[i]], 
+                                                                                                                       clade_tips = simion2017_clades$Outgroup_Choanoflagellata, 
+                                                                                                                       drop_tips = sort(setdiff(simion2017_clades$Outgroup, simion2017_clades$Outgroup_Choanoflagellata)), 
+                                                                                                                       remove.specified.tips = TRUE)}))[c(F,T)],
+                            Opisthokonta = unlist(lapply(1:length(gene_trees), function(i){extract.clade.monophyly(gene_trees[[i]], 
+                                                                                                                   clade_tips = simion2017_clades$Outgroup_Opisthokonta, 
+                                                                                                                   drop_tips = sort(setdiff(simion2017_clades$Outgroup, simion2017_clades$Outgroup_Opisthokonta)), 
+                                                                                                                   remove.specified.tips = TRUE)}))[c(F,T)],
+                            Outgroup = unlist(lapply(1:length(gene_trees), function(i){extract.clade.monophyly(gene_trees[[i]], 
+                                                                                                               clade_tips = simion2017_clades$Outgroup, 
+                                                                                                               drop_tips = NA, 
+                                                                                                               remove.specified.tips = FALSE)}))[c(F,T)])
+  # Write dataframe
+  write.csv(outgroup_df, file = outgroup_csv_path, row.names = F)
+} else {
+  outgroup_df <- read.csv(outgroup_csv_path)
+}
 
-
-# Check whether the Opisthokonta are monophyletic
-clade_tips <- simion2017_clades$Outgroup_Opisthokonta
-drop_tips <- sort(setdiff(simion2017_clades$Outgroup, simion2017_clades$Outgroup_Opisthokonta))
-# Check whether the whole outgroup is monophyletic
-clade_tips <- simion2017_clades$Outgroup
+# Summarise number of gene trees with each relationship
 
 
 

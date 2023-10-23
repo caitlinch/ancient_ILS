@@ -157,6 +157,9 @@ extract.clade.monophyly <- function(gene_tree, clade_tips, drop_tips, remove.spe
   } else if (length(present_clade_tips) == 1){
     # Only one taxa - can't be monophyletic/paraphyletic
     clade_relationship = "One_taxon"
+  } else if (length(present_clade_tips) == 0){
+    # No taxa - can't be monophyletic/paraphyletic
+    clade_relationship = "Zero_taxa"
   }
   # Specify number of tips in this clade for the given gene tree
   num_tips = length(present_clade_tips)
