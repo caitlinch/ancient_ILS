@@ -16,9 +16,11 @@
 # astral                      <- Location of ASTRAL executable
 
 ## Specify control parameters (all take logical values TRUE or FALSE):
-# create.output.filepaths     <- Open the dataset_df and add output file paths for estimating concordance factors/quartet scores
+# create.output.filepaths     <- Open the dataset_df and add output file paths for estimating concordance factors/quartet scores: T/F
 # estimate.scf.gcf            <- Run command lines to estimate sCF and gCF in IQ-Tree2: T/F
 # estimate.qs                 <- Run command lines to estimate quartet scores in ASTRAL: T/F
+# output.command.lines        <- Output dataframe with command lines to estimate quartet scores and concordance factors: T/F
+# extract.key.branch.cf       <- Extract the scores for key branches from completed quartet scores and concordance factors: T/F
 
 location = "local"
 if (location == "local"){
@@ -45,13 +47,22 @@ if (location == "local"){
 # Set control parameters
 control_parameters <- list(create.output.filepaths = FALSE,
                            estimate.scf.gcf = FALSE,
-                           estimate.qs = FALSE)
+                           estimate.qs = FALSE,
+                           output.command.lines = FALSE,
+                           extract.key.branch.cf = TRUE)
 
 
 
 #### 2. Prepare functions, variables and packages ####
 # Source functions and dataset information
 source(paste0(repo_dir, "code/func_empirical_tree_estimation.R"))
+source(paste0(repo_dir, "code/data_dataset_info.R"))
+taxa_reconciliation_df <- read.csv(paste0(repo_dir, "output/Cherryh_MAST_metazoa_taxa_reconciliation.csv"), stringsAsFactors = FALSE)
+
+# Remove unneeded objects
+rm(borowiec2015_list, chang2015_list, dunn2008_list, hejnol2009_list, laumer2018_list, laumer2019_list,
+   models_list, moroz2014_list, nosenko2013_list, philippe2009_list, philippe2011_list, pick2010_list,
+   ryan2013_list, simion2017_list, whelan2015_list, whelan2017_list)
 
 # Create a new folder for concordance factor and quartet scores
 cf_dir <- paste0(output_dir, "concordance_factors/")
@@ -101,8 +112,6 @@ if (control_parameters$estimate.scf.gcf == TRUE){
 
 
 #### 4. Calculate quartet scores ####
-estimate.quartet.scores.wrapper(row_id, dataframe, astral_path, constraint_tree_hypothesis, estimate.trees = FALSE)
-
 if (control_parameters$estimate.qs == TRUE){
   # For CTEN-sister
   dataset_df$CTEN_quartet_score_command_line <- unlist(lapply(1:nrow(dataset_df), estimate.quartet.scores.wrapper, 
@@ -117,8 +126,173 @@ if (control_parameters$estimate.qs == TRUE){
 
 
 #### 5. Save dataframe with new command lines  ####
-cf_dataset_df_file <- paste0(output_dir, "dataset_estimate_concordance_factors.csv")
-write.csv(dataset_df, file = cf_dataset_df_file, row.names = F)
-
 cf_dataset_df_trimmed_file <- paste0(output_dir, "dataset_estimate_concordance_factors_ModelFinder.csv")
-write.csv(dataset_df[13:24,], file = cf_dataset_df_trimmed_file, row.names = F)
+cf_dataset_df_file <- paste0(output_dir, "dataset_estimate_concordance_factors.csv")
+# Output command lines
+if (control_parameters$output.command.lines == TRUE){
+  write.csv(dataset_df, file = cf_dataset_df_file, row.names = F)
+  write.csv(dataset_df[13:24,], file = cf_dataset_df_trimmed_file, row.names = F)
+}
+
+
+
+#### 6. Calculate scores for each main branch ####
+if (control_parameters$extract.key.branch.cf == TRUE){
+  # Open the trimmed command line dataframe
+  dataset_df <- read.csv(cf_dataset_df_trimmed_file, stringsAsFactors = FALSE)
+  # List all concordance factor files
+  all_cf_files <- list.files(cf_dir)
+  # Separate out by file type
+  gcf_files <- grep("nex", grep("gCF.cf.tree", all_cf_files, value = T), value = T, invert = T)
+  scf_files <- grep("nex", grep("sCF.cf.tree", all_cf_files, value = T), value = T, invert = T)
+  qs_files <- grep("qs.tre", all_cf_files, value = T)
+}
+
+##### Consider doing this manually?
+
+###############################################################################################
+### Open tree as BEAST file (allows you to have the gCF values as columns)
+gcf_tree_file <- paste0(cf_dir, "Whelan2017.Metazoa_Choano_RCFV_strict.CTEN.gCF.cf.tree.nex")
+gcf_tree_stats <- treeio::read.beast(gcf_tree_file)
+gcf_tree <- read.nexus(gcf_tree_file)
+
+## Prepare tips for analysis
+# Identify dataset 
+split_name <- strsplit(basename(gcf_tree_file), "\\.")[[1]]
+gcf_dataset <- split_name[[1]]
+gcf_matrix <- split_name[[2]]
+# Identify clades for this dataset
+gcf_clades <- all_datasets[[gcf_dataset]]
+# # Remove any tips that are not present within this particular matrix
+check_key <- paste0(gcf_dataset, ".", gcf_matrix, ".aa")
+if (check_key %in% names(matrix_taxa)){
+  # Identify tips in this matrix
+  gcf_tips <- matrix_taxa[[check_key]]
+  # Remove any tips not in this matrix
+  clades_to_update <- setdiff(names(gcf_clades), c("Sponges_1", "Sponges_2", "Models", "Partitioned", "Estimate.Paraphyletic.Sponges"))
+  for (c in clades_to_update){
+    gcf_clades[[c]] <- gcf_clades[[c]][gcf_clades[[c]] %in% gcf_tips]
+  }
+}
+# Root tree at outgroup
+rooted_tree <- root(gcf_tree, outgroup = gcf_clades$Outgroup, resolve.root = TRUE)
+# Check number of tips in each clade
+num_CTEN_tips <- length(gcf_clades$Ctenophora)
+num_PORI_tips <- length(gcf_clades$Porifera)
+
+### For CTEN-sister tree
+## For CTEN clade
+# Identify branch leading to CTEN 
+# Extract the nodes and branch numbers for the CTEN taxon
+if (length(gcf_clades$Ctenophora) == 1){
+  CTEN_tip_number <- which(gcf_tree$tip.label == gcf_clades$Ctenophora)
+  CTEN_branch_number <- which(gcf_tree$edge[, 2] == CTEN_tip_number)
+  CTEN_tipwise_node <- gcf_tree$edge[CTEN_branch_number, 1]
+  CTEN_gcf_branch <- which(gcf_tree$edge[, 2] == CTEN_tipwise_node)
+  CTEN_rootwise_node <- gcf_tree$edge[CTEN_gcf_branch,1]
+} else {
+  CTEN_clade_tip <- getMRCA(gcf_tree, tip = gcf_clades$Ctenophora)
+}
+# Extract qCF, support value and branch length
+CTEN_cf_edge_length <- gcf_tree$edge.length[CTEN_gcf_branch]
+CTEN_node_value <- gcf_tree$node.label[CTEN_tipwise_node - Ntip(gcf_tree)]
+CTEN_cf_gcf <- as.numeric(strsplit(CTEN_node_value, "/")[[1]][2])
+CTEN_cf_branch_support <- as.numeric(strsplit(CTEN_node_value, "/")[[1]][1])
+
+## For PORI clade
+
+
+### For PORI-sister tree
+## For PORI clade
+
+## For CTEN clade
+
+
+#################################################################################
+#### Complete function run for  gcf for CTEN tree, Borowiec (gcf_files[[1]]) ####
+### Prepare tree and other files for analysis
+# Open gcf tree
+gcf_tree_file <- paste0(cf_dir, gcf_files[[1]])
+gcf_tree <- read.tree(gcf_tree_file)
+# Open gcf stats
+gcf_stats_file <- gsub("cf\\.tree", "cf.stat", gcf_tree_file)
+gcf_stats <- read.table(gcf_stats_file, header = T)
+# Identify dataset 
+split_name <- strsplit(basename(gcf_tree_file), "\\.")[[1]]
+gcf_dataset <- split_name[[1]]
+gcf_matrix <- split_name[[2]]
+# Identify clades for this dataset
+gcf_clades <- all_datasets[[gcf_dataset]]
+# # Remove any tips that are not present within this particular matrix
+check_key <- paste0(gcf_dataset, ".", gcf_matrix, ".aa")
+if (check_key %in% names(matrix_taxa)){
+  # Identify tips in this matrix
+  gcf_tips <- matrix_taxa[[check_key]]
+  # Remove any tips not in this matrix
+  clades_to_update <- setdiff(names(gcf_clades), c("Sponges_1", "Sponges_2", "Models", "Partitioned", "Estimate.Paraphyletic.Sponges"))
+  for (c in clades_to_update){
+    gcf_clades[[c]] <- gcf_clades[[c]][gcf_clades[[c]] %in% gcf_tips]
+  }
+}
+# Root tree at outgroup
+rooted_tree <- root(gcf_tree, outgroup = gcf_clades$Outgroup, resolve.root = TRUE)
+# Check number of tips in each clade
+num_CTEN_tips <- length(gcf_clades$Ctenophora)
+num_PORI_tips <- length(gcf_clades$Porifera)
+
+### For CTEN tree
+## Identify gCF for Ctenophora branch
+# Identify branch leading to all Animals
+if (num_CTEN_tips == 1){
+  # Extract the nodes and branch numbers for the CTEN taxon
+  CTEN_tip_number <- which(gcf_tree$tip.label == gcf_clades$Ctenophora)
+  CTEN_branch_number <- which(gcf_tree$edge[, 2] == CTEN_tip_number)
+  CTEN_tipwise_node <- gcf_tree$edge[CTEN_branch_number, 1]
+  CTEN_gcf_branch <- which(gcf_tree$edge[, 2] == CTEN_tipwise_node)
+  CTEN_rootwise_node <- gcf_tree$edge[CTEN_gcf_branch,1]
+  # Extract qCF, support value and branch length
+  CTEN_cf_edge_length <- gcf_tree$edge.length[CTEN_gcf_branch]
+  CTEN_node_value <- gcf_tree$node.label[CTEN_tipwise_node - Ntip(gcf_tree)]
+  CTEN_cf_gcf <- as.numeric(strsplit(CTEN_node_value, "/")[[1]][2])
+  CTEN_cf_branch_support <- as.numeric(strsplit(CTEN_node_value, "/")[[1]][1])
+}
+# Identify row for CTEN branch from gcf_stats
+CTEN_gcf_stat_row_id <- intersect(which(round(gcf_stats$Length, digits = 3) == round(CTEN_cf_edge_length, digits = 3)),
+                                  intersect(which(round(gcf_stats$gCF, digits = 1) == round(CTEN_cf_gcf, digits = 1)), 
+                                            which(round(gcf_stats$Label, digits = 1) == round(CTEN_cf_branch_support, digits = 1)))) #23
+## Identify gCF for branch leading to Porifera/Bilateria/Cnidaria/Placozoa
+if (num_PORI_tips == 1){
+  PORI_tip_number <- which(gcf_tree$tip.label == gcf_clades$Porifera)
+  PORI_branch_number <- which(gcf_tree$edge[, 2] == PORI_tip_number)
+  PORI_tipwise_node <- gcf_tree$edge[PORI_branch_number, 1]
+  PORI_gcf_branch <- which(gcf_tree$edge[, 2] == PORI_tipwise_node)
+  PORI_rootwise_node <- gcf_tree$edge[PORI_gcf_branch,1]
+  # Extract qCF, support value and branch length
+  PORI_cf_edge_length <- gcf_tree$edge.length[PORI_gcf_branch]
+  PORI_node_value <- gcf_tree$node.label[PORI_tipwise_node - Ntip(gcf_tree)]
+  PORI_cf_gcf <- as.numeric(strsplit(PORI_node_value, "/")[[1]][2])
+  PORI_cf_branch_support <- as.numeric(strsplit(PORI_node_value, "/")[[1]][1])
+}
+# Identify row for CTEN branch from gcf_stats
+PORI_gcf_stat_row_id <- intersect(which(round(gcf_stats$Length, digits = 3) == round(PORI_cf_edge_length, digits = 3)),
+                                  intersect(which(round(gcf_stats$gCF, digits = 1) == round(PORI_cf_gcf, digits = 1)), 
+                                            which(round(gcf_stats$Label, digits = 1) == round(PORI_cf_branch_support, digits = 1)))) #22
+# Extract rows
+PORI_row <- gcf_stats[PORI_gcf_stat_row_id, ]
+CTEN_row <- gcf_stats[CTEN_gcf_stat_row_id, ]
+# Assemble output
+output <- c()
+
+
+### For PORI tree
+## Identify gCF for Porifera branch
+# Identify branch leading to Ctenophora
+
+
+## Identify gCF for Ctenophora branch 
+
+## Identify gCF for branch leading to Ctenophora/Cnidaria/Bilateria
+
+
+
+
