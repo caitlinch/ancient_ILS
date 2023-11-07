@@ -28,12 +28,17 @@ library(ggplot2)
 # Identify output csv files
 empirical_cf_path <- paste0(repo_dir, "output/empirical_concordance_factors.csv")
 empirical_df <- read.csv(empirical_cf_path, stringsAsFactors = FALSE)
+# Remove unusual branaches
+empirical_df <- empirical_df[(empirical_df$branch_description == "To_all_animals" | empirical_df$branch_description == "To_all_other_metazoans" |
+                                empirical_df$branch_description == "To_CTEN_clade" | empirical_df$branch_description == "To_PORI_clade"), ]
 # Identify id.variable columns
 id.var_cols <- c("dataset", "matrix", "hypothesis_tree", "branch_description", "branch_note")
 
 # Specify colour palettes used within these plots
 metazoan_clade_palette <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
+tree2_palette <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
 cividis5 <- c("#FDE725FF", "#5DC863FF", "#21908CFF", "#3B528BFF", "#440154FF")
+palette2 <- c("Ctenophora-sister" = "#fdb863", "Porifera-sister" = "#b2abd2")
 
 # Extra colour palettes (unused)
 if (control_parameters$add.extra.color.palettes == TRUE){
@@ -56,7 +61,55 @@ gcf_df <- melt(empirical_df,
 # Extract gCF_N values into long dataframe
 gcf_N_df <- melt(empirical_df,
                  id.vars = id.var_cols,
-                 measure.vars = c("gCF_N", "gDF1_N", "gDF2_N", "gDFP_N"))
+                 measure.vars = c("gCF_N", "gDF1_N", "gDF2_N", "gDFP_N", "gN"))
+# Add labels for x-axis categories
+gcf_df$variable_label <- factor(gcf_df$variable,
+                                levels = c("gCF", "gDF1", "gDF2", "gDFP", "gcf_Label"),
+                                labels = c("gCF: Concordant", "gDF1: NNI-1 branch", "gDF2: NNI-2 branch", "gDFP: Polyphyletic", "Ultra-fast Bootstrap"),
+                                ordered = T)
+gcf_N_df$variable_label <- factor(gcf_N_df$variable,
+                                  levels = c("gCF_N", "gDF1_N", "gDF_N", "gDFP_N"),
+                                  labels = c("Concordant", "NNI-1 branch", "NNI-2 branch", "Polyphyletic"),
+                                  ordered = T) 
+gcf_df$branch_label <- factor(gcf_df$branch_description,
+                              levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade"),
+                              labels = c("All Animals", "Other Metazoans", "Ctenophora", "Porifera"),
+                              ordered = T)
+gcf_N_df$branch_label <- factor(gcf_N_df$branch_description,
+                                levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade"),
+                                labels = c("All Animals", "Other Metazoans", "Ctenophora", "Porifera"),
+                                ordered = T)
+gcf_df$hypothesis_label <- factor(gcf_df$hypothesis_tree,
+                              levels = c("CTEN", "PORI"),
+                              labels = c("Ctenophora-sister", "Porifera-sister"),
+                              ordered = T)
+gcf_N_df$hypothesis_label <- factor(gcf_N_df$hypothesis_tree,
+                                  levels = c("CTEN", "PORI"),
+                                  labels = c("Ctenophora-sister", "Porifera-sister"),
+                                  ordered = T)
+# Plot gCF scores
+ggplot(gcf_df, aes(x = variable_label, y = value, group = variable_label, fill = hypothesis_label)) +
+  geom_boxplot(alpha = 0.6) +
+  facet_grid(branch_label~hypothesis_label) +
+  scale_x_discrete(name = "Gene concordance factor statistics") +
+  scale_y_continuous(name = "Value") +
+  scale_fill_manual(name = "Tree topology", values = palette2) +
+  theme_bw() +
+  theme(axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 10, l = 0, unit = "pt")),
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 10, unit = "pt")),
+        axis.text.x = element_text(angle = 45, vjust = 1.0, hjust = 1.0) )
+
+# Plot gCF_N
+ggplot(gcf_N_df, aes(x = variable_label, y = value, group = variable_label, fill = hypothesis_label)) +
+  geom_boxplot(alpha = 0.6) +
+  facet_grid(branch_label~hypothesis_label) +
+  scale_x_discrete(name = "Clade") +
+  scale_y_continuous(name = "Value") +
+  scale_fill_manual(name = "Tree topology", values = palette2) +
+  theme_bw() +
+  theme(axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 10, l = 0, unit = "pt")),
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 10, unit = "pt")),
+        axis.text.x = element_text(angle = 45, vjust = 1.0, hjust = 1.0) )
 
 
 
@@ -77,5 +130,6 @@ scf_N_df <- melt(empirical_df,
 qs_df <- melt(empirical_df,
               id.vars = id.var_cols,
               measure.vars = c("quartet_score"))
+
 
 
