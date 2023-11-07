@@ -58,35 +58,19 @@ if (control_parameters$add.extra.color.palettes == TRUE){
 gcf_df <- melt(empirical_df,
                id.vars = id.var_cols,
                measure.vars = c("gCF", "gDF1", "gDF2", "gDFP", "gcf_Label"))
-# Extract gCF_N values into long dataframe
-gcf_N_df <- melt(empirical_df,
-                 id.vars = id.var_cols,
-                 measure.vars = c("gCF_N", "gDF1_N", "gDF2_N", "gDFP_N", "gN"))
 # Add labels for x-axis categories
 gcf_df$variable_label <- factor(gcf_df$variable,
                                 levels = c("gCF", "gDF1", "gDF2", "gDFP", "gcf_Label"),
                                 labels = c("gCF: Concordant", "gDF1: NNI-1 branch", "gDF2: NNI-2 branch", "gDFP: Polyphyletic", "Ultra-fast Bootstrap"),
                                 ordered = T)
-gcf_N_df$variable_label <- factor(gcf_N_df$variable,
-                                  levels = c("gCF_N", "gDF1_N", "gDF_N", "gDFP_N"),
-                                  labels = c("Concordant", "NNI-1 branch", "NNI-2 branch", "Polyphyletic"),
-                                  ordered = T) 
 gcf_df$branch_label <- factor(gcf_df$branch_description,
                               levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade"),
                               labels = c("All Animals", "Other Metazoans", "Ctenophora", "Porifera"),
                               ordered = T)
-gcf_N_df$branch_label <- factor(gcf_N_df$branch_description,
-                                levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade"),
-                                labels = c("All Animals", "Other Metazoans", "Ctenophora", "Porifera"),
-                                ordered = T)
 gcf_df$hypothesis_label <- factor(gcf_df$hypothesis_tree,
                               levels = c("CTEN", "PORI"),
                               labels = c("Ctenophora-sister", "Porifera-sister"),
                               ordered = T)
-gcf_N_df$hypothesis_label <- factor(gcf_N_df$hypothesis_tree,
-                                  levels = c("CTEN", "PORI"),
-                                  labels = c("Ctenophora-sister", "Porifera-sister"),
-                                  ordered = T)
 # Plot gCF scores
 ggplot(gcf_df, aes(x = variable_label, y = value, group = variable_label, fill = hypothesis_label)) +
   geom_boxplot(alpha = 0.6) +
@@ -99,17 +83,6 @@ ggplot(gcf_df, aes(x = variable_label, y = value, group = variable_label, fill =
         axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 10, unit = "pt")),
         axis.text.x = element_text(angle = 45, vjust = 1.0, hjust = 1.0) )
 
-# Plot gCF_N
-ggplot(gcf_N_df, aes(x = variable_label, y = value, group = variable_label, fill = hypothesis_label)) +
-  geom_boxplot(alpha = 0.6) +
-  facet_grid(branch_label~hypothesis_label) +
-  scale_x_discrete(name = "Clade") +
-  scale_y_continuous(name = "Value") +
-  scale_fill_manual(name = "Tree topology", values = palette2) +
-  theme_bw() +
-  theme(axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 10, l = 0, unit = "pt")),
-        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 10, unit = "pt")),
-        axis.text.x = element_text(angle = 45, vjust = 1.0, hjust = 1.0) )
 
 
 
@@ -118,10 +91,6 @@ ggplot(gcf_N_df, aes(x = variable_label, y = value, group = variable_label, fill
 scf_df <- melt(empirical_df,
                id.vars = id.var_cols,
                measure.vars = c("sCF", "sDF1", "sDF2", "sCF_Label"))
-# Extract gCF_N values into long dataframe
-scf_N_df <- melt(empirical_df,
-                 id.vars = id.var_cols,
-                 measure.vars = c("sCF_N", "sDF1_N", "sDF2_N", "sN"))
 
 
 
