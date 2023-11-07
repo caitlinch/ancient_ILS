@@ -19,9 +19,6 @@ if (location == "local"){
 
 
 ###### 2. Open packages and functions ######
-## Source functions
-source(paste0(repo_dir, "code/func_plotting.R"))
-
 ## Open packages
 library(reshape2)
 library(ggplot2)
