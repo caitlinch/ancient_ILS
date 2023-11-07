@@ -1,4 +1,4 @@
-# ancient_ILS/code/02_plot_figures.R
+# ancient_ILS/code/05_plot_figures_simulation.R
 ## This script plots result figures from simulation output
 # Caitlin Cherryh, 2023
 
