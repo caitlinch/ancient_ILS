@@ -136,17 +136,4 @@ if (control_parameters$output.command.lines == TRUE){
 
 
 
-#### 6. Calculate scores for each main branch ####
-if (control_parameters$extract.key.branch.cf == TRUE){
-  # Open the trimmed command line dataframe
-  dataset_df <- read.csv(cf_dataset_df_trimmed_file, stringsAsFactors = FALSE)
-  # List all concordance factor files
-  all_cf_files <- list.files(cf_dir)
-  # Separate out by file type
-  gcf_files <- grep("nex", grep("gCF.cf.tree", all_cf_files, value = T), value = T, invert = T)
-  scf_files <- grep("nex", grep("sCF.cf.tree", all_cf_files, value = T), value = T, invert = T)
-  qs_files <- grep("qs.tre", all_cf_files, value = T)
-}
-
-
 
