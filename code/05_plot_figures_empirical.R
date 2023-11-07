@@ -12,7 +12,6 @@ location = "local"
 if (location == "local"){
   ## File paths
   repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-  input_dir                   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulation_output_files/"
   output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/04_figures/"
 }
 
@@ -27,15 +26,56 @@ library(ggplot2)
 
 ###### 3. Prepare csvs for plotting  ######
 # Identify output csv files
-all_csvs <- grep("csv", list.files(input_dir), value = T)
+empirical_cf_path <- paste0(repo_dir, "output/empirical_concordance_factors.csv")
+empirical_df <- read.csv(empirical_cf_path, stringsAsFactors = FALSE)
 # Identify id.variable columns
-id.var_cols <- c("ID", "simulation_type", "hypothesis_tree", "branch_a_length", "branch_b_length", "branch_c_length")
+id.var_cols <- c("dataset", "matrix", "hypothesis_tree", "branch_description", "branch_note")
 
-# Set color palettes
-qcf_type_palette <- c("#5ab4ac", "#d8b365")
-names(qcf_type_palette) = c("Actual", "Estimated")
+# Specify colour palettes used within these plots
+metazoan_clade_palette <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
+cividis5 <- c("#FDE725FF", "#5DC863FF", "#21908CFF", "#3B528BFF", "#440154FF")
 
-# Set empirical branch lengths for branches 
-emp_bl <- c("a" = 0.1729, "b" = 1.6470)
+# Extra colour palettes (unused)
+if (control_parameters$add.extra.color.palettes == TRUE){
+  qcf_type_palette <- c(Actual = "#5ab4ac", Estimated = "#d8b365")
+  cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+  tree2_palette <- c("#F0F921FF", "#0D0887FF")
+  tree5_palette <- c("#e66101", "#fdb863", "#f7f7f7", "#b2abd2", "#5e3c99")
+  tree2_cividis <- c(tree5_cividis[1], tree5_cividis[5])
+  tree2_tonal <- c("#bdd7e7", "#2171b5")
+  model3_tonal <- c("#980043", "#df65b0", "#d4b9da")
+}
+
+
+
+###### 4. Plot gCF  ######
+# Extract gCF scores into long dataframe
+gcf_df <- melt(empirical_df,
+               id.vars = id.var_cols,
+               measure.vars = c("gCF", "gDF1", "gDF2", "gDFP", "gcf_Label"))
+# Extract gCF_N values into long dataframe
+gcf_N_df <- melt(empirical_df,
+                 id.vars = id.var_cols,
+                 measure.vars = c("gCF_N", "gDF1_N", "gDF2_N", "gDFP_N"))
+
+
+
+###### 5. Plot sCF  ######
+# Extract gCF scores into long dataframe
+scf_df <- melt(empirical_df,
+               id.vars = id.var_cols,
+               measure.vars = c("sCF", "sDF1", "sDF2", "sCF_Label"))
+# Extract gCF_N values into long dataframe
+scf_N_df <- melt(empirical_df,
+                 id.vars = id.var_cols,
+                 measure.vars = c("sCF_N", "sDF1_N", "sDF2_N", "sN"))
+
+
+
+###### 6. Plot quartet scores  ######
+# Extract quartet scores into long dataframe
+qs_df <- melt(empirical_df,
+              id.vars = id.var_cols,
+              measure.vars = c("quartet_score"))
 
 
