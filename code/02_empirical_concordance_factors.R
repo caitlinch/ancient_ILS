@@ -20,7 +20,6 @@
 # estimate.scf.gcf            <- Run command lines to estimate sCF and gCF in IQ-Tree2: T/F
 # estimate.qs                 <- Run command lines to estimate quartet scores in ASTRAL: T/F
 # output.command.lines        <- Output dataframe with command lines to estimate quartet scores and concordance factors: T/F
-# extract.key.branch.cf       <- Extract the scores for key branches from completed quartet scores and concordance factors: T/F
 
 location = "local"
 if (location == "local"){
@@ -48,21 +47,13 @@ if (location == "local"){
 control_parameters <- list(create.output.filepaths = FALSE,
                            estimate.scf.gcf = FALSE,
                            estimate.qs = FALSE,
-                           output.command.lines = FALSE,
-                           extract.key.branch.cf = TRUE)
+                           output.command.lines = FALSE)
 
 
 
 #### 2. Prepare functions, variables and packages ####
 # Source functions and dataset information
 source(paste0(repo_dir, "code/func_empirical_tree_estimation.R"))
-source(paste0(repo_dir, "code/data_dataset_info.R"))
-taxa_reconciliation_df <- read.csv(paste0(repo_dir, "output/Cherryh_MAST_metazoa_taxa_reconciliation.csv"), stringsAsFactors = FALSE)
-
-# Remove unneeded objects
-rm(borowiec2015_list, chang2015_list, dunn2008_list, hejnol2009_list, laumer2018_list, laumer2019_list,
-   models_list, moroz2014_list, nosenko2013_list, philippe2009_list, philippe2011_list, pick2010_list,
-   ryan2013_list, simion2017_list, whelan2015_list, whelan2017_list)
 
 # Create a new folder for concordance factor and quartet scores
 cf_dir <- paste0(output_dir, "concordance_factors/")
@@ -133,7 +124,5 @@ if (control_parameters$output.command.lines == TRUE){
   write.csv(dataset_df, file = cf_dataset_df_file, row.names = F)
   write.csv(dataset_df[13:24,], file = cf_dataset_df_trimmed_file, row.names = F)
 }
-
-
 
 
