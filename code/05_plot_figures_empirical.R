@@ -39,6 +39,7 @@ metazoan_clade_palette <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenoph
 tree2_palette <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
 cividis5 <- c("#FDE725FF", "#5DC863FF", "#21908CFF", "#3B528BFF", "#440154FF")
 palette2 <- c("Ctenophora-sister" = "#fdb863", "Porifera-sister" = "#b2abd2")
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # Extra colour palettes (unused)
 if (control_parameters$add.extra.color.palettes == TRUE){
@@ -58,7 +59,7 @@ if (control_parameters$add.extra.color.palettes == TRUE){
 gcf_df <- melt(empirical_df,
                id.vars = id.var_cols,
                measure.vars = c("gCF", "gDF1", "gDF2", "gDFP", "gcf_Label"))
-# Add labels for x-axis categories
+# Add labels for plotting
 gcf_df$variable_label <- factor(gcf_df$variable,
                                 levels = c("gCF", "gDF1", "gDF2", "gDFP", "gcf_Label"),
                                 labels = c("gCF: Concordant", "gDF1: NNI-1 branch", "gDF2: NNI-2 branch", "gDFP: Polyphyletic", "Ultra-fast Bootstrap"),
@@ -68,9 +69,9 @@ gcf_df$branch_label <- factor(gcf_df$branch_description,
                               labels = c("All Animals", "Other Metazoans", "Ctenophora", "Porifera"),
                               ordered = T)
 gcf_df$hypothesis_label <- factor(gcf_df$hypothesis_tree,
-                              levels = c("CTEN", "PORI"),
-                              labels = c("Ctenophora-sister", "Porifera-sister"),
-                              ordered = T)
+                                  levels = c("CTEN", "PORI"),
+                                  labels = c("Ctenophora-sister", "Porifera-sister"),
+                                  ordered = T)
 # Plot gCF scores
 ggplot(gcf_df, aes(x = variable_label, y = value, group = variable_label, fill = hypothesis_label)) +
   geom_boxplot(alpha = 0.6) +
@@ -99,6 +100,30 @@ scf_df <- melt(empirical_df,
 qs_df <- melt(empirical_df,
               id.vars = id.var_cols,
               measure.vars = c("quartet_score"))
-
-
+# Add labels for plotting
+qs_df$branch_label <- factor(qs_df$branch_description,
+                             levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade"),
+                             labels = c("All Animals", "Other Metazoans", "Ctenophora", "Porifera"),
+                             ordered = T)
+qs_df$hypothesis_label <- factor(qs_df$hypothesis_tree,
+                                 levels = c("CTEN", "PORI"),
+                                 labels = c("Ctenophora-sister", "Porifera-sister"),
+                                 ordered = T)
+# Plot quartet scores
+qs_plot <- ggplot(qs_df, aes(x = branch_label, y = value, fill = hypothesis_label)) +
+  geom_boxplot(alpha = 1) +
+  scale_x_discrete(name = "Clade") +
+  scale_y_continuous(name = "Quartet score", breaks = seq(0,1,0.1), labels = seq(0,1,0.1), minor_breaks = seq(0,1,0.05)) +
+  scale_fill_manual(name = "Tree topology", values = c( "#E69F00", "#56B4E9"), labels = c("Ctenophora-sister", "Porifera-sister")) +
+  theme_bw() +
+  theme(axis.title = element_text(size = 18),
+        axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 10, l = 0, unit = "pt")),
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 10, unit = "pt")),
+        axis.text = element_text(size = 14),
+        axis.text.x = element_text(angle = 45, vjust = 1.0, hjust = 1.0),
+        legend.title = element_text(size = 18),
+        legend.text = element_text(size = 14),
+        legend.key.size = unit(30, "pt") )
+qs_plot_name <- paste0(repo_dir, "figures/", "empirical_quartet_scores.pdf")
+ggsave(filename = qs_plot_name, plot = qs_plot, width = 7, height = 8, units = "in")
 
