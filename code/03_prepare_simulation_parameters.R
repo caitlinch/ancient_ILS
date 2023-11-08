@@ -28,9 +28,6 @@ if (location == "local"){
   repo_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
   alignment_dir <- paste0(repo_dir, "data_all/")
   output_dir <-  paste0(repo_dir, "output/")
-  iqtree2 <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
-  iqtree2_num_threads <- 20
-  astral <- paste0(repo_dir, "astral/Astral/astral.5.7.8.jar")
 }
 
 # Set control parameters
