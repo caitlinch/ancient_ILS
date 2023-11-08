@@ -28,7 +28,7 @@ if (location == "local"){
   iqtree2             <- "iqtree2"
   iqtree2_num_threads  <- "AUTO"
   astral              <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
-  astral_constrained  <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-constrained/astral.5.6.9.jar"
+  astral_constrained  <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-Constrained-search-master/Astral2/astral.5.6.9.jar"
   
 } else if (location == "dayhoff" | location == "rona" ){
   if (location == "dayhoff"){
