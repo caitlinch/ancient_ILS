@@ -136,6 +136,16 @@ root_tips <- outgroup
 ingroup_list <- lapply(1:length(mono_gt), function(i){extract.clade.branch.lengths(mono_gt[[i]], clade_tips = ingroup, root_tips = outgroup, return.exponential.model = TRUE)})
 # Extract the exponential models for the ingroup
 outgroup_list <- lapply(1:length(mono_gt), function(i){extract.clade.branch.lengths(mono_gt[[i]], clade_tips = outgroup, root_tips = outgroup, return.exponential.model = TRUE)})
+# Turn lists into data frames
+ingroup_df <- as.data.frame(do.call(rbind, ingroup_list))
+names(ingroup_df) <- paste("ingroup_", names(ingroup_df))
+outgroup_df <- as.data.frame(do.call(rbind, outgroup_list))
+names(outgroup_df) <- paste("outgroup_", names(outgroup_df))
+# Bind into the dataframe of gene trees with monophyletic outgroups
+mono_df <- cbind(mono_df, ingroup_df, outgroup_df)
+# Save the outgroup
+mono_df_file <- paste0(repo_dir, "output/monophyletic_gene_tree_branch_models.csv")
+write.csv(mono_df, file = mono_df_file, row.names = F)
 
 
 
