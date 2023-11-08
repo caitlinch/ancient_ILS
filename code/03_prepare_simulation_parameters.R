@@ -11,28 +11,21 @@
 #                                   Alignment naming convention: [manuscript].[matrix_name].[sequence_type].fa
 #                                   E.g. Cherryh2022.alignment1.aa.fa
 # output_dir                  <- Directory for IQ-Tree output (trees and tree mixtures)
-# iqtree2                     <- Location of IQ-Tree2 executable
-# iqtree2_num_threads         <- Number of parallel threads for IQ-Tree to use. Can be a set number (e.g. 2) or "AUTO"
-# astral                      <- Location of ASTRAL executable
+# tip_name_csv                <- Taxa reconciliation csv file (to make tip names consistent across datasets)
 
 ## Specify control parameters (all take logical values TRUE or FALSE):
 # relabel.tips               <- Open the Simion 2017 trees and update tip labels: T/F
 
 location = "local"
 if (location == "local"){
+  # Local run
   repo_dir            <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   output_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/04_simulation_parameters/"
-  iqtree2             <- "iqtree2"
-  iqtree2_num_threads <- "AUTO"
-  astral              <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
   tip_name_csv        <- paste0(repo_dir, "output/Cherryh_MAST_metazoa_taxa_reconciliation.csv")
   
-} else if (location == "dayhoff" | location == "rona" ){
-  if (location == "dayhoff"){
-    repo_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
-  } else if (location == "rona"){
-    repo_dir <- "/home/caitlin/ancient_ILS/"
-  }
+} else if (location == "dayhoff"){
+  # Remote run
+  repo_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
   alignment_dir <- paste0(repo_dir, "data_all/")
   output_dir <-  paste0(repo_dir, "output/")
   iqtree2 <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")

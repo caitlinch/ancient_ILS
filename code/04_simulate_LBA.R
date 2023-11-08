@@ -1,5 +1,5 @@
-# ancient_ILS/code/01_simulate_ILS_and_LBA.R
-## This script prepares and runs simulations of the animal tree of life under LBA and ILS
+# ancient_ILS/code/01_simulate_LBA.R
+## This script prepares and runs simulations of the animal tree of life under LBA
 # Caitlin Cherryh, 2023
 
 #### 1. Input parameters ####
@@ -8,15 +8,15 @@
 # hypothesis_tree_dir       <- location of constrained ML and ASTRAL trees estimated from empirical dataset Whelan et al. (2017)
 # output_dir                <- output directory to save test runs for determining appropriate branch lengths
 # iqtree2                   <- path to iqtree2 version 2.2.0
+# iqtree2_num_threads       <- Maximum number of parallel threads to allow for IQ-Tree2 runs
 # astral                    <- path to ASTRAL executable version 5.7.8
 # ms                        <- path to ms executable
-# num_parallel_threads      <- Maximum number of parallel threads to allow for 
+# tip_name_csv              <- Taxa reconciliation csv file (to make tip names consistent across datasets)
 
 ## Phylogenetic parameters
 # alisim_gene_models        <- models to use when estimating the alignment using Alisim. 
 #                                 Should be either one model (e.g. "LG") or a vector the same length as the number of genes (e.g. 117 models long)
 # ML_tree_estimation_models <- models to use when estimating the ML trees from simulated alignments in IQ-Tree 2
-# iqtree2_num_threads       <- number of threads for IQ-Tree2 to use
 # num_genes                 <- number of genes to simulate
 
 ## Control parameters
@@ -26,28 +26,27 @@
 # conduct.analysis              <- flag to run code to to compare trees and calculate concordance factors (to run: conduct.analysis=TRUE)
 # copy.completed.files          <- flag to run code to determine whether to copy output trees to a new file (to copy: copy.completed.files=TRUE)
 
-
-location = "dayhoff"
+location = "local"
 if (location == "local"){
-  ## File paths and computational parameters
-  repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-  hypothesis_tree_dir         <- paste0(repo_dir, "hypothesis_trees/")
-  output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/03_simulations/"
-  iqtree2                     <- "iqtree2"
-  astral                      <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
-  ms                          <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
-  num_parallel_threads        <- 1
-  iqtree2_num_threads         <- 3
+  # Local runs
+  repo_dir            <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
+  hypothesis_tree_dir <- paste0(repo_dir, "hypothesis_trees/")
+  output_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_simulations/"
+  iqtree2             <- "iqtree2"
+  iqtree2_num_threads <- 3
+  astral              <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
+  ms                  <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
+  tip_name_csv        <- paste0(repo_dir, "output/Cherryh_MAST_metazoa_taxa_reconciliation.csv")
 } else if (location == "dayhoff"){
-  ## File paths and computational parameters
-  repo_dir                    <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
-  hypothesis_tree_dir         <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/02_empirical_hypothesis_trees/"
-  output_dir                  <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/03_simulation_output/"
-  iqtree2                     <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree-2.2.0-Linux/bin/iqtree2"
-  astral                      <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/Astral/astral.5.7.8.jar"
-  ms                          <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/msdir/ms"
-  num_parallel_threads        <- 50
-  iqtree2_num_threads         <- 10
+  # Remote runs
+  repo_dir            <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
+  hypothesis_tree_dir <- paste0(repo_dir, "hypothesis_trees/")
+  output_dir          <- paste0(repo_dir, "simulation_output/")
+  iqtree2             <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
+  iqtree2_num_threads <- 20
+  astral              <- paste0(repo_dir, "astral/Astral/astral.5.7.8.jar")
+  ms                  <- paste0(repo_dir, "msdir/ms")
+  tip_name_csv        <- paste0(repo_dir, "output/Cherryh_MAST_metazoa_taxa_reconciliation.csv")
 }
 
 ## Phylogenetic parameters
