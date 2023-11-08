@@ -837,7 +837,7 @@ extract.clade.branch.lengths <- function(gene_tree, clade_tips, root_tips, retur
   # Extract all branch lengths as an object
   all_branch_lengths <- clade_tree$edge.length
   # Assemble exponential model, if desired
-  if (return.exponential.model = TRUE){
+  if (return.exponential.model == TRUE){
     # Create the exponential model and return it
     # Sort branch lengths
     y <- sort(all_branch_lengths)

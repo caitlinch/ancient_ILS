@@ -129,8 +129,13 @@ mono_gt <- gene_trees[mono_df$gene_tree]
 ingroup <- tip_name_df[tip_name_df$clade != "Outgroup", ]$relabelled_names
 outgroup <- tip_name_df[tip_name_df$clade == "Outgroup", ]$relabelled_names
 clade_tips <- ingroup
-gene_tree <- mono_gt[[1]]
+mono_gt <- mono_gt[[1]]
+root_tips <- outgroup
 
+# Extract the exponential models for the ingroup
+ingroup_list <- lapply(1:length(mono_gt), function(i){extract.clade.branch.lengths(mono_gt[[i]], clade_tips = ingroup, root_tips = outgroup, return.exponential.model = TRUE)})
+# Extract the exponential models for the ingroup
+outgroup_list <- lapply(1:length(mono_gt), function(i){extract.clade.branch.lengths(mono_gt[[i]], clade_tips = outgroup, root_tips = outgroup, return.exponential.model = TRUE)})
 
 
 
