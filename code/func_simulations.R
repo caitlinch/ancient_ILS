@@ -821,3 +821,50 @@ tree.length.ratio <- function(tree){
 
 
 
+
+##### Extract branch lengths from gene trees ####
+extract.clade.branch.lengths <- function(gene_tree, clade_tips, root_tips, return.exponential.model = FALSE){
+  ## Extract all the branch lengths from a single clade from a single gene tree
+  
+  # Remove any tips not in the gene tree
+  pruned_clade_tips <- clade_tips[clade_tips %in% gene_tree$tip.label]
+  pruned_root_tips <- root_tips[root_tips %in% gene_tree$tip.label]
+  # Root the tree 
+  rooted_gene_tree <- root(gene_tree, outgroup = pruned_root_tips)
+  # Extract the clade containing the relevant tips
+  node <- getMRCA(rooted_gene_tree, tip = pruned_clade_tips)
+  clade_tree <- extract.clade(rooted_gene_tree, node)
+  # Extract all branch lengths as an object
+  all_branch_lengths <- clade_tree$edge.length
+  # Assemble exponential model, if desired
+  if (return.exponential.model = TRUE){
+    # Create the exponential model and return it
+    # Sort branch lengths
+    y <- sort(all_branch_lengths)
+    x <- 1:length(y)
+    # Create exponential model
+    exp_model <- lm(log(y) ~ x)
+    # Summarise the exponential model
+    sum <- summary(exp_model)
+    # Calculate f-statistic p-value
+    fstatistic_p_value <- pf(sum$fstatistic[["value"]], sum$fstatistic[["numdf"]], sum$fstatistic[["dendf"]], lower.tail = FALSE)
+    # Create output of key variables
+    output <- c(sum$coefficients[1,], sum$coefficients[2,],
+                sum$sigma, exp_model$df.residual, sum$r.squared, sum$adj.r.squared,
+                sum$fstatistic[["value"]], fstatistic_p_value)
+    coeff_names <- c("estimate", "std.error", "t.value", "Pr")
+    names(output) <- c(paste0("intercept_", coeff_names), paste0("x_", coeff_names), 
+                       "residual_std_error", "degrees_of_freedom", "multiple_r_squared", "adjusted_r_squared", 
+                       "f.statistic_value", "f.statistic_p.value")
+  } else {
+    # If not creating the exponential model, just return the branch lengths
+    output = list(branch_lengths = all_branch_lengths)
+  }
+  # Return the output
+  return(output)
+}
+
+
+
+
+
