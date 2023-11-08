@@ -89,8 +89,6 @@ create.constraint.trees <- function(dataset, matrix_name, dataset_constraint_tre
   outgroup_taxa = constraint_clades$Outgroup
   ctenophora_taxa = constraint_clades$Ctenophora
   porifera_taxa = constraint_clades$Porifera
-  sponges_1_taxa = as.character(unlist(constraint_clades[c(constraint_clades$Sponges_1)]))
-  sponges_2_taxa = as.character(unlist(constraint_clades[c(constraint_clades$Sponges_2)])) 
   cnidaria_taxa = constraint_clades$Cnidaria
   bilateria_taxa = constraint_clades$Bilateria
   
@@ -99,12 +97,9 @@ create.constraint.trees <- function(dataset, matrix_name, dataset_constraint_tre
   ctenophora_taxa_formatted <- format.constraint.tree.clade(ctenophora_taxa)
   porifera_taxa_formatted <- format.constraint.tree.clade(porifera_taxa)
   ctenophora_porifera_taxa_formatted <- format.constraint.tree.clade(c(ctenophora_taxa, porifera_taxa))
-  sponges_1_taxa_formatted <- format.constraint.tree.clade(sponges_1_taxa)
-  sponges_2_taxa_formatted <- format.constraint.tree.clade(sponges_2_taxa)
   cnidaria_taxa_formatted <- format.constraint.tree.clade(cnidaria_taxa)
   bilateria_taxa_formatted <- format.constraint.tree.clade(bilateria_taxa)
   cnidaria_bilateria_taxa_formatted <- format.constraint.tree.clade(c(cnidaria_taxa, bilateria_taxa))
-  
   
   # Only need to create one set of hypothesis trees per dataset/matrix combination - create constraint tree if it doesn't exist
   ### Hypothesis 1: Ctenophora-sister
