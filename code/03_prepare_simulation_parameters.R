@@ -126,12 +126,6 @@ mono_gt <- gene_trees[mono_df$gene_tree]
 
 
 #### 5. Extract branch lengths for ingroups and outgroups ####
-ingroup <- tip_name_df[tip_name_df$clade != "Outgroup", ]$relabelled_names
-outgroup <- tip_name_df[tip_name_df$clade == "Outgroup", ]$relabelled_names
-clade_tips <- ingroup
-mono_gt <- mono_gt[[1]]
-root_tips <- outgroup
-
 # Extract the exponential models for the ingroup
 ingroup_list <- lapply(1:length(mono_gt), function(i){extract.clade.branch.lengths(mono_gt[[i]], clade_tips = ingroup, root_tips = outgroup, return.exponential.model = TRUE)})
 # Extract the exponential models for the ingroup
@@ -143,14 +137,17 @@ outgroup_df <- as.data.frame(do.call(rbind, outgroup_list))
 names(outgroup_df) <- paste("outgroup_", names(outgroup_df))
 # Bind into the dataframe of gene trees with monophyletic outgroups
 mono_df <- cbind(mono_df, ingroup_df, outgroup_df)
-# Save the outgroup
-mono_df_file <- paste0(repo_dir, "output/monophyletic_gene_tree_branch_models.csv")
-write.csv(mono_df, file = mono_df_file, row.names = F)
 
 
 
 #### 6. Extract branch lengths leading to outgroups ####
 
 
+
+
+#### 7. Save output csv containing branch length models ####
+# Save the mono_df dataframe
+mono_df_file <- paste0(repo_dir, "output/monophyletic_gene_tree_branch_models.csv")
+write.csv(mono_df, file = mono_df_file, row.names = F)
 
 
