@@ -171,39 +171,13 @@ mono_df <- outgroup_df[outgroup_df$Outgroup == "Monophyletic", ]
 mono_gt <- gene_trees[mono_df$gene_tree]
 
 
-#### 5. Extract clade monophyly and clade depth ####
-# Extract clade depth and length from each gene tree
-cten_list <- lapply(1:length(gene_trees), function(i){extract.clade.length(gene_trees[[i]], clade_tips = simion2017_clades$Ctenophora, root_tips = "Drosophila_melanogaster")})
-pori_list <- lapply(1:length(gene_trees), function(i){extract.clade.length(gene_trees[[i]], clade_tips = simion2017_clades$Porifera, root_tips = "Drosophila_melanogaster")})
-cnid_list <- lapply(1:length(gene_trees), function(i){extract.clade.length(gene_trees[[i]], clade_tips = simion2017_clades$Cnidaria, root_tips = "Drosophila_melanogaster")})
-bilat_list <- lapply(1:length(gene_trees), function(i){extract.clade.length(gene_trees[[i]], clade_tips = simion2017_clades$Bilateria, root_tips = "Oscarella_carmela")})
-outgroup_list <- lapply(1:length(gene_trees), function(i){extract.clade.length(gene_trees[[i]], clade_tips = simion2017_clades$Outgroup, root_tips = "Drosophila_melanogaster")})
-# Combine into a single dataframe
-clade_df <- rbind(as.data.frame(do.call(rbind, cten_list)), as.data.frame(do.call(rbind, pori_list)),
-                  as.data.frame(do.call(rbind, cnid_list)), as.data.frame(do.call(rbind, bilat_list)),
-                  as.data.frame(do.call(rbind, outgroup_list)))
-# Add clade column and gene tree column
-clade_df$clade <- rep(c("Ctenophora", "Porifera", "Cnidaria", "Bilateria", "Outgroup"), each = 117)
-clade_df$gene_tree <- rep(c(1:117), 5)
-# Reorder cols
-clade_df <- clade_df[, c("clade", "gene_tree", "num_clade_tips", "clade_relationship", "clade_length", 
-                         "branch_length_to_clade", "max_branching_time_for_ultrametric_clade", "outgroup")]
-# Save full dataframe as csv
-clade_df_path <- paste0(repo_dir, "output/gene_trees_clade_length_all.csv")
-write.csv(clade_df, file = clade_df_path, row.names = FALSE)
-# Trim to only monophyletic clades and save as csv
-clade_df_trim <- clade_df[which(clade_df$clade_relationship == "monophyletic"), ]
-clade_df_trim_path <- paste0(repo_dir, "output/gene_trees_clade_length_monophyletic.csv")
-write.csv(clade_df_trim, file = clade_df_trim_path, row.names = FALSE)
 
-
-
-#### 6. Extract branch lengths for in and outgroups ####
+#### 5. Extract branch lengths for ingroups and outgroups ####
 
 
 
 
-#### 7. Extract branch lengths leading to outgroups ####
+#### 6. Extract branch lengths leading to outgroups ####
 
 
 
