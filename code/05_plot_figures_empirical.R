@@ -37,13 +37,11 @@ id.var_cols <- c("dataset", "matrix", "hypothesis_tree", "branch_description", "
 
 # Specify colour palettes used within these plots
 metazoan_clade_palette <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
-tree2_palette <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
-cividis5 <- c("#FDE725FF", "#5DC863FF", "#21908CFF", "#3B528BFF", "#440154FF")
-palette2 <- c("Ctenophora-sister" = "#fdb863", "Porifera-sister" = "#b2abd2")
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 # Extra colour palettes (unused)
 if (control_parameters$add.extra.color.palettes == TRUE){
+  cividis5 <- c("#FDE725FF", "#5DC863FF", "#21908CFF", "#3B528BFF", "#440154FF")
+  palette2 <- c("Ctenophora-sister" = "#fdb863", "Porifera-sister" = "#b2abd2")
   qcf_type_palette <- c(Actual = "#5ab4ac", Estimated = "#d8b365")
   cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
   tree2_palette <- c("#F0F921FF", "#0D0887FF")
