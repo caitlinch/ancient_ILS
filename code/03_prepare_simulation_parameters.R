@@ -18,7 +18,6 @@
 ## Specify control parameters (all take logical values TRUE or FALSE):
 # relabel.tips               <- Open the Simion 2017 trees and update tip labels: T/F
 
-
 location = "local"
 if (location == "local"){
   repo_dir            <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
@@ -118,17 +117,19 @@ if (file.exists(outgroup_csv_path) == FALSE){
 } else {
   outgroup_df <- read.csv(outgroup_csv_path)
 }
-
 # Extract monophyletic outgroups
 mono_df <- outgroup_df[outgroup_df$Outgroup == "Monophyletic", ]
 mono_gt <- gene_trees[mono_df$gene_tree]
 
 
 
-#### 5. Extract branch lengths for ingroups and outgroups ####
+#### 5. Extract branch lengths for ingroup and outgroup ####
+# Specify which tips are in the ingroup and which are in the outgroup
+ingroup <- tip_name_df[tip_name_df$clade != "Outgroup", ]$relabelled_names
+outgroup <- tip_name_df[tip_name_df$clade == "Outgroup", ]$relabelled_names
 # Extract the exponential models for the ingroup
 ingroup_list <- lapply(1:length(mono_gt), function(i){extract.clade.branch.lengths(mono_gt[[i]], clade_tips = ingroup, root_tips = outgroup, return.exponential.model = TRUE)})
-# Extract the exponential models for the ingroup
+# Extract the exponential models for the outgroup
 outgroup_list <- lapply(1:length(mono_gt), function(i){extract.clade.branch.lengths(mono_gt[[i]], clade_tips = outgroup, root_tips = outgroup, return.exponential.model = TRUE)})
 # Turn lists into data frames
 ingroup_df <- as.data.frame(do.call(rbind, ingroup_list))
@@ -140,8 +141,12 @@ mono_df <- cbind(mono_df, ingroup_df, outgroup_df)
 
 
 
-#### 6. Extract branch lengths leading to outgroups ####
-
+#### 6. Extract branch lengths leading to outgroup ####
+# Specify which tips are in the ingroup and which are in the outgroup
+ingroup <- tip_name_df[tip_name_df$clade != "Outgroup", ]$relabelled_names
+outgroup <- tip_name_df[tip_name_df$clade == "Outgroup", ]$relabelled_names
+# Extract branch length for branch leading to outgroup
+mono_df$branch_length_to_outgroup <- unlist(lapply(1:length(mono_gt), function(i){extract.outgroup.branch.length(mono_gt[[i]], ingroup_tips = ingroup, root_tips = outgroup)}))
 
 
 

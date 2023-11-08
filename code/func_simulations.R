@@ -801,6 +801,7 @@ alisim.topology.unlinked.partition.model <- function(iqtree_path, output_alignme
 
 
 
+
 ##### Calculate tree length ####
 tree.length.ratio <- function(tree){
   ## Quick function to calculate the tree length and percentage of internal branches for any tree
@@ -818,6 +819,8 @@ tree.length.ratio <- function(tree){
   # Return output
   return(op_vec)
 }
+
+
 
 
 
@@ -866,5 +869,22 @@ extract.clade.branch.lengths <- function(gene_tree, clade_tips, root_tips, retur
 
 
 
+extract.outgroup.branch.length <- function(gene_tree, ingroup_tips, root_tips){
+  ## Extract all the branch lengths from a single clade from a single gene tree
+  # Remove any tips not in the gene tree
+  pruned_in_tips <- ingroup_tips[ingroup_tips %in% gene_tree$tip.label]
+  pruned_out_tips <- root_tips[root_tips %in% gene_tree$tip.label]
+  # Root the tree 
+  rooted_gene_tree <- root(gene_tree, outgroup = pruned_out_tips)
+  # Extract the clade containing the relevant tips
+  in_node <- getMRCA(rooted_gene_tree, tip = pruned_in_tips)
+  out_node <- getMRCA(rooted_gene_tree, tip = pruned_out_tips)
+  # Determine which branch is the branch leading to the outgroup
+  branch_num <- intersect( which(rooted_gene_tree$edge[,1] == out_node), which(rooted_gene_tree$edge[,2] == in_node) )
+  # Extract the length of the branch leading to the outgroup
+  outgroup_bl <- rooted_gene_tree$edge.length[branch_num]
+  # Return the output branch length
+  return(outgroup_bl)
+}
 
 
