@@ -21,6 +21,7 @@ if (location == "local"){
 ## Open packages
 library(reshape2)
 library(ggplot2)
+library(ggpubr)
 library(patchwork)
 
 
@@ -32,8 +33,17 @@ empirical_df <- read.csv(empirical_cf_path, stringsAsFactors = FALSE)
 # Remove unusual branaches
 empirical_df <- empirical_df[(empirical_df$branch_description == "To_all_animals" | empirical_df$branch_description == "To_all_other_metazoans" |
                                 empirical_df$branch_description == "To_CTEN_clade" | empirical_df$branch_description == "To_PORI_clade"), ]
+# Add labels for branches and hypothesis trees
+empirical_df$branch_label <- factor(empirical_df$branch_description,
+                                    levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade"),
+                                    labels = c("All Animals", "Other Metazoans", "Ctenophora", "Porifera"),
+                                    ordered = T)
+empirical_df$hypothesis_label <- factor(empirical_df$hypothesis_tree,
+                                        levels = c("CTEN", "PORI"),
+                                        labels = c("Ctenophora-sister", "Porifera-sister"),
+                                        ordered = T)
 # Identify id.variable columns
-id.var_cols <- c("dataset", "matrix", "hypothesis_tree", "branch_description", "branch_note")
+id.var_cols <- c("dataset", "matrix", "hypothesis_tree", "branch_description", "branch_note", "branch_label", "hypothesis_label")
 
 # Specify colour palettes used within these plots
 metazoan_clade_palette <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
@@ -63,14 +73,6 @@ gcf_df$variable_label <- factor(gcf_df$variable,
                                 levels = c("gCF", "gDF1", "gDF2", "gDFP"),
                                 labels = c("gCF", "gDF1", "gDF2", "gDFP"),
                                 ordered = T)
-gcf_df$branch_label <- factor(gcf_df$branch_description,
-                              levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade"),
-                              labels = c("All Animals", "Other Metazoans", "Ctenophora", "Porifera"),
-                              ordered = T)
-gcf_df$hypothesis_label <- factor(gcf_df$hypothesis_tree,
-                                  levels = c("CTEN", "PORI"),
-                                  labels = c("Ctenophora-sister", "Porifera-sister"),
-                                  ordered = T)
 # Plot gCF scores
 gcf_plot <- ggplot(gcf_df, aes(x = variable_label, y = value, group = variable_label, fill = hypothesis_label)) +
   geom_boxplot(alpha = 1) +
@@ -102,14 +104,6 @@ scf_df$variable_label <- factor(scf_df$variable,
                                 levels = c("sCF", "sDF1", "sDF2"),
                                 labels = c("sCF", "sDF1", "sDF2"),
                                 ordered = T)
-scf_df$branch_label <- factor(scf_df$branch_description,
-                              levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade"),
-                              labels = c("All Animals", "Other Metazoans", "Ctenophora", "Porifera"),
-                              ordered = T)
-scf_df$hypothesis_label <- factor(scf_df$hypothesis_tree,
-                                  levels = c("CTEN", "PORI"),
-                                  labels = c("Ctenophora-sister", "Porifera-sister"),
-                                  ordered = T)
 # Plot sCF scores
 scf_plot <- ggplot(scf_df, aes(x = variable_label, y = value, group = variable_label, fill = hypothesis_label)) +
   geom_boxplot(alpha = 1) +
@@ -139,18 +133,10 @@ qs_df <- melt(empirical_df,
 # Scale UFB from 0 - 1
 qs_df[which(qs_df$variable == "gcf_Label"), ]$value <- qs_df[which(qs_df$variable == "gcf_Label"), ]$value/100
 # Add labels for plotting
-qs_df$branch_label <- factor(qs_df$branch_description,
-                             levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade"),
-                             labels = c("All Animals", "Other Metazoans", "Ctenophora", "Porifera"),
-                             ordered = T)
 qs_df$variable_label <- factor(qs_df$variable,
                                levels = c("quartet_score", "gcf_Label"),
                                labels = c("Quartet Score", "Ultra-Fast Bootstrap"),
                                ordered = T)
-qs_df$hypothesis_label <- factor(qs_df$hypothesis_tree,
-                                 levels = c("CTEN", "PORI"),
-                                 labels = c("Ctenophora-sister", "Porifera-sister"),
-                                 ordered = T)
 # Plot quartet scores
 qs_plot <- ggplot(qs_df, aes(x = branch_label, y = value, fill = hypothesis_label)) +
   facet_grid(.~variable_label, scales = "fixed") +
@@ -179,15 +165,6 @@ ggsave(filename = qs_plot_name, plot = qs_plot, width = 10, height = 8, units = 
 bl_df <- melt(empirical_df,
               id.vars = id.var_cols,
               measure.vars = c("gCF_length"))
-# Add labels for plotting
-bl_df$branch_label <- factor(bl_df$branch_description,
-                             levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade"),
-                             labels = c("All Animals", "Other Metazoans", "Ctenophora", "Porifera"),
-                             ordered = T)
-bl_df$hypothesis_label <- factor(bl_df$hypothesis_tree,
-                                 levels = c("CTEN", "PORI"),
-                                 labels = c("Ctenophora-sister", "Porifera-sister"),
-                                 ordered = T)
 # Plot quartet scores
 bl_plot <- ggplot(bl_df, aes(x = branch_label, y = value, fill = hypothesis_label)) +
   geom_boxplot(alpha = 1) +
@@ -248,4 +225,137 @@ quilt <- qs_plot + bl_plot + plot_layout(widths = c(2, 1), ncol = 2) + plot_anno
 # Save quilt
 quilt_name <- paste0(repo_dir, "figures/", "empirical_collated_branch.pdf")
 ggsave(filename = quilt_name, plot = quilt, width = 12, height = 8, units = "in")
+
+
+
+###### 9. Plot branch length against branch support  ######
+## Plot: all clades
+# Extract quartet scores into long dataframe
+bs_df <- melt(empirical_df,
+              id.vars = c(id.var_cols, "gCF_length"),
+              measure.vars = c("gCF", "sCF"))
+# Add labels for plotting
+bs_df$variable_label <- factor(bs_df$variable,
+                               levels = c("gCF", "sCF"),
+                               labels = c("gCF", "sCF"),
+                               ordered = T)
+# Plot gcf and scf
+bs_plot <- ggplot(bs_df, aes(x = gCF_length, y = value, color = hypothesis_label)) +
+  geom_point() +
+  facet_grid(branch_label~variable_label) +
+  scale_x_continuous(name = "Branch length (subs. per site)") +
+  scale_y_continuous(name = "Value") +
+  scale_color_manual(name = "Tree topology", values = c("#d8b365", "#5ab4ac"), labels = c("Ctenophora-sister", "Porifera-sister")) +
+  theme_bw() +
+  theme(axis.title = element_text(size = 16),
+        axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 10, l = 0, unit = "pt")),
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 10, unit = "pt")),
+        axis.text = element_text(size = 14),
+        axis.text.x = element_text(angle = 45, vjust = 1.0, hjust = 1.0),
+        strip.text = element_text(size = 14),
+        legend.title = element_text(size = 16),
+        legend.text = element_text(size = 14))
+# Save plot
+bs_plot_name <- paste0(repo_dir, "figures/", "empirical_points_branchLength_support.pdf")
+ggsave(filename = bs_plot_name, plot = bs_plot, width = 8, height = 8, units = "in")
+
+## Plot: Only All Animals clade
+# Trim dataframe
+bs_df2 <- bs_df[bs_df$branch_description == "To_all_animals", ]
+# Plot gcf and scf, with a linear model
+bs_plot2 <- ggscatter(bs_df2, x = "gCF_length", y = "value", alpha = 0.5) +
+  geom_smooth(method = "lm") +
+  stat_cor(label.y = 100) +
+  facet_grid(hypothesis_label~variable_label) +
+  scale_x_continuous(name = "Branch length (subs. per site)", breaks = seq(0, 0.45, 0.1), labels = seq(0, 0.45,0.1), minor_breaks = seq(0, 0.45, 0.05), limits = c(0, 0.45)) +
+  scale_y_continuous(name = "Value", breaks = seq(0,100,20), labels = seq(0,100,20), minor_breaks = seq(0,100,10), limits = c(0,100)) +
+  labs(title = "Concordance Factors for Animal clade") +
+  theme_bw() +
+  theme(title = element_text(size = 18, vjust = 0.5), 
+        axis.title = element_text(size = 16),
+        axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 10, l = 0, unit = "pt")),
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 10, unit = "pt")),
+        axis.text = element_text(size = 14),
+        axis.text.x = element_text(angle = 45, vjust = 1.0, hjust = 1.0),
+        strip.text = element_text(size = 14),
+        legend.position = "none")
+# Save plot
+bs_plot2_name <- paste0(repo_dir, "figures/", "empirical_points_branchLength_support_AnimalsOnly.pdf")
+ggsave(filename = bs_plot2_name, plot = bs_plot2, width = 8, height = 8, units = "in")
+
+## Plot: Only Other Metazoans clade
+# Trim dataframe
+bs_df3 <- bs_df[bs_df$branch_description == "To_all_other_metazoans", ]
+# Plot gcf and scf, with a linear model
+bs_plot3 <- ggscatter(bs_df3, x = "gCF_length", y = "value", alpha = 0.5) +
+  geom_smooth(method = "lm") +
+  stat_cor(label.y = 100) +
+  facet_grid(variable_label~hypothesis_label) +
+  scale_x_continuous(name = "Branch length (subs. per site)", breaks = seq(0, 0.075, 0.01), labels = seq(0, 0.075,0.01), minor_breaks = seq(0, 0.075, 0.005), limits = c(0, 0.075)) +
+  scale_y_continuous(name = "Value", breaks = seq(0,100,20), labels = seq(0,100,20), minor_breaks = seq(0,100,10), limits = c(0,100)) +
+  scale_color_manual(name = "Tree topology", values = c("#d8b365", "#5ab4ac"), labels = c("Ctenophora-sister", "Porifera-sister")) +
+  labs(title = "Concordance Factors for Other Metazoans clade") +
+  theme_bw() +
+  theme(title = element_text(size = 18, vjust = 0.5), 
+        axis.title = element_text(size = 16),
+        axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 10, l = 0, unit = "pt")),
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 10, unit = "pt")),
+        axis.text = element_text(size = 14),
+        axis.text.x = element_text(angle = 45, vjust = 1.0, hjust = 1.0),
+        strip.text = element_text(size = 14),
+        legend.position = "none")
+# Save plot
+bs_plot3_name <- paste0(repo_dir, "figures/", "empirical_points_branchLength_support_OtherMetazoansOnly.pdf")
+ggsave(filename = bs_plot3_name, plot = bs_plot3, width = 8, height = 8, units = "in")
+
+## Plot: Only Ctenophores clade
+# Trim dataframe
+bs_df4 <- bs_df[bs_df$branch_description == "To_CTEN_clade", ]
+# Plot gcf and scf, with a linear model
+bs_plot4 <- ggscatter(bs_df4, x = "gCF_length", y = "value", alpha = 0.5) +
+  geom_smooth(method = "lm") +
+  stat_cor(label.y = 110) +
+  facet_grid(variable_label~hypothesis_label) +
+  scale_x_continuous(name = "Branch length (subs. per site)", breaks = seq(0, 0.55, 0.1), labels = seq(0, 0.55,0.1), minor_breaks = seq(0, 0.55, 0.05), limits = c(0, 0.55)) +
+  scale_y_continuous(name = "Value", breaks = seq(0,100,20), labels = seq(0,100,20), minor_breaks = seq(0,100,10), limits = c(0,110)) +
+  scale_color_manual(name = "Tree topology", values = c("#d8b365", "#5ab4ac"), labels = c("Ctenophora-sister", "Porifera-sister")) +
+  labs(title = "Concordance Factors for Ctenophore clade") +
+  theme_bw() +
+  theme(title = element_text(size = 18, vjust = 0.5), 
+        axis.title = element_text(size = 16),
+        axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 10, l = 0, unit = "pt")),
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 10, unit = "pt")),
+        axis.text = element_text(size = 14),
+        axis.text.x = element_text(angle = 45, vjust = 1.0, hjust = 1.0),
+        strip.text = element_text(size = 14),
+        legend.position = "none")
+# Save plot
+bs_plot4_name <- paste0(repo_dir, "figures/", "empirical_points_branchLength_support_CtenophoresOnly.pdf")
+ggsave(filename = bs_plot4_name, plot = bs_plot4, width = 8, height = 8, units = "in")
+
+## Plot: Only Porifera clade
+# Trim dataframe
+bs_df5 <- bs_df[bs_df$branch_description == "To_PORI_clade", ]
+# Plot gcf and scf, with a linear model
+bs_plot5 <- ggscatter(bs_df5, x = "gCF_length", y = "value", alpha = 0.5) +
+  geom_smooth(method = "lm") +
+  stat_cor(label.y = 100) +
+  facet_grid(variable_label~hypothesis_label) +
+  scale_x_continuous(name = "Branch length (subs. per site)", breaks = seq(0, 0.06, 0.01), labels = seq(0, 0.06,0.01), minor_breaks = seq(0, 0.06, 0.005), limits = c(0, 0.06)) +
+  scale_y_continuous(name = "Value", breaks = seq(0,100,20), labels = seq(0,100,20), minor_breaks = seq(0,100,10), limits = c(0,100)) +
+  scale_color_manual(name = "Tree topology", values = c("#d8b365", "#5ab4ac"), labels = c("Ctenophora-sister", "Porifera-sister")) +
+  labs(title = "Concordance Factors for Porifera clade") +
+  theme_bw() +
+  theme(title = element_text(size = 18, vjust = 0.5), 
+        axis.title = element_text(size = 16),
+        axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 10, l = 0, unit = "pt")),
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 10, unit = "pt")),
+        axis.text = element_text(size = 14),
+        axis.text.x = element_text(angle = 45, vjust = 1.0, hjust = 1.0),
+        strip.text = element_text(size = 14),
+        legend.position = "none")
+# Save plot
+bs_plot5_name <- paste0(repo_dir, "figures/", "empirical_points_branchLength_support_PoriferaOnly.pdf")
+ggsave(filename = bs_plot5_name, plot = bs_plot5, width = 8, height = 8, units = "in")
+
 
