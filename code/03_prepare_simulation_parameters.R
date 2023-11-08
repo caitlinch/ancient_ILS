@@ -50,7 +50,9 @@ control_parameters <- list(relabel.tips = TRUE)
 library(ape)
 
 ## Source files
-# Open dataset info, move Simion2017 taxa into a separate object and remove unneeded objects
+source(paste0(repo_dir, "code/func_naming.R"))
+
+## Create Simion2017 taxa object
 simion2017_clades <- list("Bilateria" = c("Tribolium", "Capitella", "Aplysia_ca", "Saccogloss", "Homo_sapie", "Helobdella", "Crassostre", "Ixodes_sca", "Daphnia_pu",
                                           "Branchiost", "Strongyloc",
                                           "Aplysia_californica", "Branchiostoma_floridae", "Capitella_teleta", "Crassostrea_gigas", "Daphnia_pulex", "Helobdella_robusta",           
@@ -164,8 +166,9 @@ if (file.exists(outgroup_csv_path) == FALSE){
   outgroup_df <- read.csv(outgroup_csv_path)
 }
 
-# Summarise number of gene trees with each relationship
-
+# Extract monophyletic outgroups
+mono_df <- outgroup_df[outgroup_df$Outgroup == "Monophyletic", ]
+mono_gt <- gene_trees[mono_df$gene_tree]
 
 
 #### 5. Extract clade monophyly and clade depth ####
