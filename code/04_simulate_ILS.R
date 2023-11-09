@@ -122,8 +122,8 @@ if ( (file.exists(output_files[["simulations"]]) == FALSE) | (control_parameters
   sim_df$num_sites <- (as.numeric(sim_df$gene_length)*as.numeric(sim_df$num_genes))
   # Add the hypothesis tree name in a new column
   sim_df$hypothesis_tree_file <- as.character(sim_df$hypothesis_tree)
-  sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_1_Cten.tre")
-  sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Whelan2017_ASTRAL_hypothesis_tree_2_Pori.tre")
+  sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 1)] <- paste0(hypothesis_tree_dir, "Simion2017_ASTRAL_hypothesis_tree_1_CTEN.tre")
+  sim_df$hypothesis_tree_file[which(sim_df$hypothesis_tree == 2)] <- paste0(hypothesis_tree_dir, "Simion2017_ASTRAL_hypothesis_tree_2_PORI.tre")
   # Add an ID column
   sim_df$ID <- paste0(sim_df$simulation_number, "_h", sim_df$hypothesis_tree, "_a", sim_df$branch_a_length, "_b", sim_df$branch_b_length, "_rep", sim_df$replicates)
   # Add separate output folder for each rep
