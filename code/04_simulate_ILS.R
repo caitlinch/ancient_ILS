@@ -14,9 +14,10 @@
 # tip_name_csv              <- Taxa reconciliation csv file (to make tip names consistent across datasets)
 
 ## Phylogenetic parameters
-# alisim_gene_models        <- models to use when estimating the alignment using Alisim. 
-#                                 Should be either one model (e.g. "LG") or a vector the same length as the number of genes (e.g. 117 models long)
-# ML_tree_estimation_models <- models to use when estimating the ML trees from simulated alignments in IQ-Tree 2
+# substitution_model        <- model(s) to use when:
+#                                    - estimating the alignment using Alisim (Alisim is included in IQ-Tree2)
+#                                    - to use when estimating the ML trees from simulated alignments in IQ-Tree 2
+#                                    - Note: Should be either one model (e.g. "LG") or a vector the same length as the number of genes (e.g. 117 models long)
 # num_genes                 <- number of genes to simulate
 
 ## Control parameters
@@ -29,32 +30,36 @@
 location = "local"
 if (location == "local"){
   # Local runs
-  repo_dir            <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-  hypothesis_tree_dir <- paste0(repo_dir, "hypothesis_trees/")
-  output_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_simulations/"
-  iqtree2             <- "iqtree2"
-  iqtree2_num_threads <- 3
-  astral              <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
-  ms                  <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
-  tip_name_csv        <- paste0(repo_dir, "output/Cherryh_MAST_metazoa_taxa_reconciliation.csv")
+  repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
+  hypothesis_tree_dir   <- paste0(repo_dir, "hypothesis_trees/")
+  output_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_simulations/"
+  iqtree2               <- "iqtree2"
+  iqtree2_num_threads   <- 3
+  iqtree2_num_ufb       <- 1000
+  astral                <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
+  ms                    <- "/Users/caitlincherryh/Documents/Executables/ms_exec/ms"
+  tip_name_csv          <- paste0(repo_dir, "output/Cherryh_MAST_metazoa_taxa_reconciliation.csv")
+  simion_parameters_csv <- paste0(repo_dir, "output/monophyletic_gene_tree_branch_models.csv")
 } else if (location == "dayhoff"){
   # Remote runs
-  repo_dir            <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
-  hypothesis_tree_dir <- paste0(repo_dir, "hypothesis_trees/")
-  output_dir          <- paste0(repo_dir, "simulation_output/")
-  iqtree2             <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
-  iqtree2_num_threads <- 20
-  astral              <- paste0(repo_dir, "astral/Astral/astral.5.7.8.jar")
-  ms                  <- paste0(repo_dir, "msdir/ms")
-  tip_name_csv        <- paste0(repo_dir, "output/Cherryh_MAST_metazoa_taxa_reconciliation.csv")
+  repo_dir              <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
+  hypothesis_tree_dir   <- paste0(repo_dir, "hypothesis_trees/")
+  output_dir            <- paste0(repo_dir, "simulation_output/")
+  iqtree2               <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
+  iqtree2_num_threads   <- 20
+  iqtree2_num_ufb       <- 1000
+  astral                <- paste0(repo_dir, "astral/Astral/astral.5.7.8.jar")
+  ms                    <- paste0(repo_dir, "msdir/ms")
+  tip_name_csv          <- paste0(repo_dir, "output/Cherryh_MAST_metazoa_taxa_reconciliation.csv")
+  simion_parameters_csv <- paste0(repo_dir, "output/monophyletic_gene_tree_branch_models.csv")
 }
 
 ## Phylogenetic parameters
-alisim_gene_models          <- "LG"
-ML_tree_estimation_models   <- "LG"
+substitution_model          <- "LG"
+substitution_model   <- "LG"
 num_genes <- 200
 min_branch_length           <- 10/(200*200) # 10/N, where N = total number of sites. Forces 10 substitutions onto each branch - reasonable over large time period/breadth of diversity
-min_coalescent_difference   <- 0.001 # Keep to same magnitude as minimum coalescent interval in the ASTRAL species tree (0.004921)
+min_coalescent_difference   <- 0.001 # Keep to same magnitude as minimum coalescent interval in the ASTRAL species tree (~0.0027)
 
 ## Control parameters
 control_parameters <- c("create.simulation.parameters" = FALSE,
@@ -82,49 +87,33 @@ names(output_files) <- c("simulations", "alignments", "trees", "analysis", "actu
 
 
 #### 3. Create new shorter tip names ####
-simulation_taxa_names <- paste0("t", 1:75)
-names(simulation_taxa_names) <- c("Homo_sapiens", "Strongylocentrotus_purpatus", "Hemithris_psittacea", "Capitella_teleta", "Drosophila_melanogaster","Daphnia_pulex",
-                                  "Hydra_vulgaris", "Bolocera_tuediae", "Aiptasia_pallida", "Hormathia_digitata", "Nematostella_vectensis", "Acropora_digitifera", 
-                                  "Eunicella_verrucosa", "Hydra_viridissima", "Hydra_oligactis", "Physalia_physalia", "Abylopsis_tetragona","Craseo_lathetica",
-                                  "Nanomia_bijuga", "Agalma_elegans", "Periphyla_periphyla", "Cliona_varians", "Sycon_coactum", "Sycon_ciliatum", "Corticium_candelabrum",
-                                  "Oscarella_carmela", "Hyalonema_populiferum", "Aphrocallistes_vastus", "Rossella_fibulata", "Sympagella_nux", "Ircinia_fasciculata",
-                                  "Chondrilla_nucula", "Amphimedon_queenslandica", "Petrosia_ficiformis", "Spongilla_lacustris", "Pseudospongosorites_suberitoides",
-                                  "Mycale_phylophylla", "Latrunculia_apicalis", "Crella_elegans", "Kirkpatrickia_variolosa", "Euplokamis_dunlapae", "Vallicula_sp",
-                                  "Coeloplana_astericola", "Hormiphora_californica", "Hormiphora_palmata", "Pleurobrachia_pileus", "Pleurobrachia_bachei",
-                                  "Pleurobrachia_sp_South_Carolina_USA", "Cydippida_sp_Maryland_USA", "Callianira_Antarctica", "Mertensiidae_sp_Antarctica",
-                                  "Mertensiidae_sp_Washington_USA", "Cydippida_sp", "Dryodora_glandiformis", "Lobatolampea_tetragona", "Beroe_abyssicola", "Beroe_sp_Antarctica",
-                                  "Beroe_ovata", "Beroe_sp_Queensland_Australia", "Beroe_forskalii", "Ocyropsis_sp_Bimini_Bahamas", "Ocyropsis_crystallina", "Ocyropsis_sp_Florida_USA",
-                                  "Bolinopsis_infundibulum", "Mnemiopsis_leidyi", "Bolinopsis_ashleyi", "Lobata_sp_Punta_Arenas_Argentina", "Eurhamphaea_vexilligera", "Cestum_veneris",
-                                  "Ctenophora_sp_Florida_USA","Salpingoeca_pyxidium", "Monosiga_ovata", "Acanthoeca_sp", "Salpingoeca_rosetta", "Monosiga_brevicolis")
-
+tip_name_df <- read.csv(tip_name_csv, stringsAsFactors = FALSE)
+tip_name_df <- tip_name_df[tip_name_df$dataset == "Simion2017", ]
+rownames(tip_name_df) <- 1:nrow(tip_name_df)
+tip_name_df$numbered_name <- 1:nrow(tip_name_df)
 
 
 #### 4. Create dataframe for simulations ####
 if ( (file.exists(output_files[["simulations"]]) == FALSE) | (control_parameters[["create.simulation.parameters"]] == TRUE) ){
-  # Create dataframe for ILS and LBA simulations
+  # Create dataframe for ILS simulations
+  # ILS simulations: vary length of branch a separating SOM and All Other Metazoans (in Simion2017 ASTRAL tree, branch leading to PORI+PLAC+CNID+BILAT)
   sim_df <- rbind(as.data.frame(expand.grid(replicates = 1:5, 
                                             hypothesis_tree = c(1,2),
-                                            branch_a_length = 0.1729, 
-                                            branch_b_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 1, 10),
-                                            simulation_type = "LBA",
-                                            simulation_number = "sim1") ),
-                  as.data.frame(expand.grid(replicates = 1:5, 
-                                            hypothesis_tree = c(1,2),
-                                            branch_a_length = c(1e-08, 1e-07, 1e-06, 1e-05, 0.0001, 0.001, 0.01, 0.1, 1, 10), 
-                                            branch_b_length = 1.647,
+                                            branch_a_empirical_length = 0.1544, 
+                                            branch_b_empirical_length = 4.191,
                                             simulation_type = "ILS",
-                                            simulation_number = "sim2") ))
+                                            simulation_number = "sim1") ) )
   # Add the other columns for the dataframes
-  set_params <- c("branch_c_length" = 0.4145, "branch_cnidaria_length" = 0.737, 
-                  "branch_bilateria_length" = 0.9214, "branch_porifera_length" = 0.0853,
-                  "branch_all_animals_length" = 0.6278, "branch_outgroup_length" = 0.6278,
-                  "ML_tree_depth" = 1.177, "ASTRAL_tree_depth" = 11.24,
-                  "proportion_internal_branches" = 0.25, "minimum_coalescent_time_difference" = min_coalescent_difference,
-                  "num_taxa" = 75, "num_genes" = num_genes, "gene_length" = 200,
-                  "dataset" = "Whelan2017.Metazoa_Choano_RCFV_strict", "dataset_type" = "Protein",
+  set_params <- c("branch_c_length" = 0.2741, "branch_cnidaria_length" = 0.6078, 
+                  "branch_bilateria_length" = 0.7649, "branch_porifera_length" = 0.0864,
+                  "branch_all_animals_length" = 0.3705, "branch_outgroup_length" = 0.3705,
+                  "ML_tree_depth" = NA, "ASTRAL_tree_depth" = 9.089,
+                  "proportion_internal_branches" = NA, "minimum_coalescent_time_difference" = min_coalescent_difference,
+                  "num_taxa" = 97, "num_genes" = num_genes, "gene_length" = 200,
+                  "dataset" = "Simion2017.supermatrix_97sp_401632pos_1719genes", "dataset_type" = "Protein",
                   "ms" = ms, "ASTRAL" = astral, "iqtree2" = iqtree2,
-                  "iqtree2_num_threads" = iqtree2_num_threads, "iqtree2_num_ufb" = iqtree2_num_ufb,
-                  "alisim_gene_models" = alisim_gene_models, "ML_tree_estimation_models" = ML_tree_estimation_models)
+                  "iqtree2_num_threads" = iqtree2_num_threads, "iqtree2_num_ufb" = 0,
+                  "alisim_gene_models" = substitution_model, "ML_tree_estimation_models" = substitution_model)
   set_params_df <- as.data.frame(matrix(set_params, nrow = 1, ncol = length(set_params), byrow = T))
   names(set_params_df) <- names(set_params)
   # Bind the columns from the set_params_df to the sim_df
