@@ -341,6 +341,10 @@ gene.lengths.raxml <- function(partition_file, return.lengths = TRUE){
     gene_chunks <- unlist(strsplit(gene_lines, ","))
     # Format the gene chunks nicely
     gene_range <- gsub(" ", "", gene_chunks)
+    # Remove semicolons for Simion 2017
+    if (grepl("Simion2017", basename(partition_file)) == TRUE){
+      gene_range <- gsub(";", "", gene_range)
+    }
     # Get start and end of each gene
     gene_start <- as.numeric(unlist(lapply(strsplit(gene_range, "-"), function(x){x[1]})))
     gene_end <- as.numeric(unlist(lapply(strsplit(gene_range, "-"), function(x){x[2]})))
