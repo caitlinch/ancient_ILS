@@ -5,6 +5,7 @@
 library(castor)
 library(ape)
 library(phytools)
+library(phangorn) # read.aa
 
 #### Extracting information from phylogenetic trees ####
 internal.branch.proportion <- function(tree){
@@ -462,6 +463,128 @@ redo.gene.names <- function(partition_file){
   write(new_p_file, file = partition_file)
   # Return the partition file
   return(partition_file)
+}
+
+
+
+
+#### Extract genes ####
+extract.all.genes <- function(alignment_file, partition_file, dataset_id, gene_directory){
+  ## Given a partition file and an alignment, extract and output all genes as fasta files in the specified location
+  
+  ## Identify genes
+  # Open partition file
+  partition_lines <- readLines(partition_file)
+  # Extract gene start and end
+  charsets <- grep("charset", partition_lines, ignore.case = TRUE, value = TRUE)
+  charset_split <- strsplit(charsets, "=")
+  gene_locations_chunk <- gsub(";", "", unlist(lapply(charset_split, function(x){x[[2]]})))
+  gene_start <- unlist(lapply(strsplit(gene_locations_chunk, "-"), function(x){x[[1]]}))
+  gene_end <- unlist(lapply(strsplit(gene_locations_chunk, "-"), function(x){x[[2]]}))
+  # Extract gene names
+  gene_name_chunk <- unlist(lapply(charset_split, function(x){x[[1]]}))
+  gene_names_raw <- unlist(lapply(strsplit(gene_name_chunk, " "), function(x){x[[2]]}))
+  gene_names <- gsub(" ", "", gene_names_raw)
+  # Turn gene locations into a table
+  gene_table <- data.frame(name = gene_names, 
+                           start = as.numeric(gsub(" ", "", gene_start)), 
+                           end = as.numeric(gsub(" ", "", gene_end)) )
+  
+  ## Prepare alignment
+  # Identify alignment type
+  suffix <- tail(strsplit(basename(alignment_file), "\\.")[[1]], 1)
+  # Open alignment
+  if (suffix == "phy" | suffix == "phylip"){
+    # Read alignment in as matrix
+    al <- read.aa(alignment_file)
+    # Convert to AAbin object
+    al <- as.AAbin(al)
+  } else if (suffix == "fasta" | suffix == "fa" | suffix == "fas"){
+    # Read alignment in as AAbin list object
+    al <- read.FASTA(file = alignment_file, type = "AA")
+    # Convert AAbin list to AAbin matrix 
+    al <- as.matrix(al)
+  } else if (suffix == "nex" | suffix == "nexus"){
+    # Read alignment in as list 
+    al <- read.nexus.data(alignment_file)
+    # Convert alignment to AAbin matrix
+    al <- as.matrix(as.AAbin(al))
+  }
+  
+  ## Split alignment
+  # Use lapply to call extract.one.gene function for each row in the gene_table
+  lapply(1:nrow(gene_table), function(i){extract.one.gene(gene_details = gene_table[i, ], 
+                                                          al = al, 
+                                                          dataset_id = dataset_id, 
+                                                          gene_directory = gene_directory)})
+  
+}
+
+
+
+extract.one.gene <- function(gene_details, al, dataset_id, gene_directory){
+  # Extract a single gene from a larger alignment
+  # gene_details is a single row from a dataframe with the columns "name, "start" and "stop"
+  # al is an alignment in matrix format
+  
+  ## Extract gene
+  # Filter alignment matrix using gene start and end
+  gene_matrix <- al[ , gene_details$start:gene_details$end ]
+  # Convert gene to AAbin
+  gene_al <- as.list(gene_matrix)
+  
+  ## Check for missing taxa
+  # Identify the number of unique characters in the sequence for each taxa
+  taxa_unique_chars <- unlist(lapply(1:length(gene_al), function(i){length(unique(as.character(gene_al)[[i]]))}))
+  # Identify which taxa have only one unique character
+  check_taxa_1 <- which(taxa_unique_chars == 1)
+  check_taxa_2 <- which(taxa_unique_chars == 2)
+  # Remove any taxa with no sequence for this gene, if required
+  # Check all taxa with one unique character
+  if (length(check_taxa_1) > 0){
+    # Trimming required
+    # Identify the unique character for the taxa with only one character in the gene
+    check_chars_1 <- unlist(lapply(check_taxa_1, function(i){unique(as.character(gene_al)[[i]])}))
+    names(check_chars_1) <- check_taxa_1
+    # Identify tips to remove and tips to keep
+    tips_to_remove <- as.numeric(names(check_chars_1 == "-" | check_chars_1 == "?"))
+    tips_to_keep <- setdiff(1:length(gene_al), tips_to_remove)
+    # Remove empty taxa
+    gene_al_trimmed <- gene_al[tips_to_keep]
+  } else {
+    # No trimming required
+    gene_al_trimmed <- gene_al
+  }
+  # Check all taxa with two unique characters
+  if (length(check_taxa_2) > 0){
+    # Trimming required
+    # Output gene details for manual check
+    print("2 missing chars")
+    print(dataset_id)
+    print(gene_details)
+    # Identify the unique characters for each taxa with 2 characters
+    check_chars_2 <- lapply(check_taxa_2, function(i){unique(as.character(gene_al)[[i]])})
+    # Identify any options that contain both "?" and "-"
+    tips_to_remove <- c()
+    for (i in 1:length(check_chars_2)){
+      if (setequal(check_chars_2[[i]], c("?", "-"))){
+        tips_to_remove <- c(tips_to_remove, i)
+      }
+    }
+    # Identify tips to keep
+    tips_to_keep <- setdiff(1:length(gene_al_trimmed), tips_to_remove)
+    # Remove empty taxa
+    gene_al_complete <- gene_al_trimmed[tips_to_keep]
+  } else {
+    # No trimming required
+    gene_al_complete <- gene_al_trimmed
+  }
+  
+  ## Output gene
+  # Assemble output file
+  gene_output_file <- paste0(gene_directory, dataset_id, ".", gene_details$name, ".fa")
+  # Save gene as a fasta file
+  write.fasta(sequences = gene_al_complete, names = names(gene_al_complete), file.out = gene_output_file)
 }
 
 

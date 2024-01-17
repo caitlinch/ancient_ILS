@@ -14,13 +14,10 @@
 # iqtree2                     <- Location of IQ-Tree2 executable
 # iqtree2_num_bootstraps      <- Number of ultrafast bootstraps (UFB) to perform in IQ-Tree
 # iqtree2_num_threads         <- Number of parallel threads for IQ-Tree to use. Can be a set number (e.g. 2) or "AUTO"
-# astral                      <- Location of ASTRAL executable
-# astral_constrained          <- Location of ASTRAL constrained tree version executable
 
-## Specify control parameters (all take logical values TRUE or FALSE):
-# prepare.parameters                    <- Create dataframe with parameters for gene tree/ML tree/constrained tree estimation: T/F
 
-location = "dayhoff"
+
+location = "local"
 if (location == "local"){
   repo_dir            <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   alignment_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/"
@@ -47,33 +44,22 @@ if (location == "local"){
 # Set parameters that are identical for all run locations
 iqtree2_num_bootstraps <- 1000
 
-# Set control parameters
-control_parameters <- list(prepare.parameters = FALSE)
-
 
 
 #### 2. Prepare functions, variables and packages ####
-# Open packages
-library(stringr)
-
 # Source functions and dataset information
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
-source(paste0(repo_dir, "code/func_constraint_trees.R"))
-source(paste0(repo_dir, "code/func_empirical_tree_estimation.R"))
-source(paste0(repo_dir, "code/data_dataset_info.R"))
-
-# Prepare directories, if they do not exist
-if (dir.exists(paste0(output_dir, "constraint_trees/")) == FALSE){dir.create(paste0(output_dir, "constraint_trees/"))}
-if (dir.exists(paste0(output_dir, "tree_estimation/")) == FALSE){dir.create(paste0(output_dir, "tree_estimation/"))}
-if (dir.exists(paste0(output_dir, "hypothesis_trees/")) == FALSE){dir.create(paste0(output_dir, "hypothesis_trees/"))}
-
-# Remove the individual dataset lists (only need collated lists) (yes it is a bit cheeky to hard code the removal)
-rm(borowiec2015_list, chang2015_list, dunn2008_list, hejnol2009_list, laumer2018_list, laumer2019_list, moroz2014_list, nosenko2013_list, philippe2009_list,
-   philippe2011_list, pick2010_list, ryan2013_list, simion2017_list, whelan2015_list, whelan2017_list, models_list, all_taxa, all_models)
-
-# Read in the .tsv file that contains a column for each dataset, with one row per taxa included in that dataset
-alignment_taxa_df <- read.table(paste0(repo_dir, "output/dataset_included_taxa.tsv"), header = T)
+#source(paste0(repo_dir, "code/func_constraint_trees.R"))
+#source(paste0(repo_dir, "code/func_empirical_tree_estimation.R"))
 
 
 
-#### 3. Prepare for tree estimation ####
+#### 3. Extract genes ####
+alignment_file <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Philippe2009.Philippe_etal_superalignment_FixedNames.aa.alignment.nex"
+partition_file <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Philippe2009_partitions_formatted.nex"
+gene_directory <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/genes/Philippe2009.Philippe_etal_superalignment_FixedNames/"
+dataset_id <- "Philippe2009.Philippe_etal_superalignment_FixedNames"
+
+extract.all.genes(alignment_file, partition_file, dataset_id, gene_directory)
+
+
