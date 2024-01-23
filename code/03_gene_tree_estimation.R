@@ -76,7 +76,7 @@ for (i in 1:nrow(gene_file_df)){
     dir.create(id_directory)
   }
   # Call the function to separate individual genes
-  extract.all.genes(alignment_file = id_alignment, partition_file = id_partition, dataset_id = id, gene_directory = id_directory)
+  id_op <- extract.all.genes(alignment_file = id_alignment, partition_file = id_partition, dataset_id = id, gene_directory = id_directory)
 }
 
 alignment_file <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Philippe2009.Philippe_etal_superalignment_FixedNames.aa.alignment.nex"
