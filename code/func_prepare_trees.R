@@ -6,6 +6,7 @@ library(castor)
 library(ape)
 library(phytools)
 library(phangorn) # read.aa
+library(seqinr) # write.fasta
 
 #### Extracting information from phylogenetic trees ####
 internal.branch.proportion <- function(tree){
