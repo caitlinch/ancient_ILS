@@ -1,6 +1,6 @@
-﻿dataset,matrix_name,dataset_id,alignment_file,partition_file
+dataset,matrix_name,dataset_id,alignment_file,partition_file
 Borowiec2015,Best108,Borowiec2015.Best108,Borowiec2015.Best108.aa.alignment.phy,Borowiec2015_partitions_formatted.nex
-Chang 2015,Chang_AA,Chang 2015.Chang_AA,Chang2015.Chang_AA.aa.alignment.phy,Chang 2015_partitions_formatted.nex
+Chang2015,Chang_AA,Chang2015.Chang_AA,Chang2015.Chang_AA.aa.alignment.phy,Chang2015_partitions_formatted.nex
 Dunn2008,Dunn2008_FixedNames,Dunn2008.Dunn2008_FixedNames,Dunn2008.Dunn2008_FixedNames.aa.alignment.fasta,Dunn2008_partitions_formatted.nex
 Hejnol2009,Hejnol_etal_2009_FixedNames,Hejnol2009.Hejnol_etal_2009_FixedNames,Hejnol2009.Hejnol_etal_2009_FixedNames.aa.alignment.fasta,Hejnol2009_partitions_formatted.nex
 Laumer2018,Tplx_BUSCOeuk,Laumer2018.Tplx_BUSCOeuk,Laumer2018.Tplx_BUSCOeuk.aa.alignment.phyli,Laumer2018_partitions_formatted.nex
