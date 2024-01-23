@@ -20,7 +20,7 @@
 location = "local"
 if (location == "local"){
   repo_dir            <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-  alignment_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/"
+  alignment_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/alignments/"
   output_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_empirical_tree_estimation/"
   iqtree2             <- "iqtree2"
   iqtree2_num_threads  <- "AUTO"
@@ -63,27 +63,55 @@ if (dir.exists(gene_output_directory) == FALSE){
 # Open csv file with alignment information
 gene_file_df <- read.csv(paste0(repo_dir, "output/empirical_gene_files.csv"), stringsAsFactors = F)
 gene_file_df$gene_directory <- paste0(gene_output_directory, gene_file_df$dataset_id, "/")
-# Create a loop to apply to each alignment
-for (i in 1:nrow(gene_file_df)){
-  # Identify id
-  id <- gene_file_df$dataset_id[[i]]
-  # Extract alignment and partition for the id
-  id_alignment <- paste0(alignment_dir, gene_file_df$alignment_file[i])
-  id_partition <- paste0(alignment_dir, gene_file_df$partition_file[i])
-  # Create directory to save genes in
-  id_directory <- gene_file_df$gene_directory[i]
-  if (dir.exists(id_directory) == FALSE){
-    dir.create(id_directory)
-  }
-  # Call the function to separate individual genes
-  id_op <- extract.all.genes(alignment_file = id_alignment, partition_file = id_partition, dataset_id = id, gene_directory = id_directory)
+# Create directory to save all genes in 
+dirs_to_create <- gene_file_df$gene_directory[! dir.exists(gene_file_df$gene_directory)]
+if (length(dirs_to_create) > 0){
+  lapply(1:length(dirs_to_create), function(x){dir.create(dirs_to_create[x])})
 }
 
-alignment_file <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Philippe2009.Philippe_etal_superalignment_FixedNames.aa.alignment.nex"
-partition_file <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/Philippe2009_partitions_formatted.nex"
-gene_directory <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/genes/Philippe2009.Philippe_etal_superalignment_FixedNames/"
-dataset_id <- "Philippe2009.Philippe_etal_superalignment_FixedNames"
+# Separate each alignment into individual genes 
+# Note: set `create.gene.alignments=FALSE` to extract csv with gene details without extracting genes
+id_op <- lapply(1:nrow(gene_file_df), function(i){extract.all.genes(alignment_file = paste0(alignment_dir, gene_file_df$alignment_file[i]),
+                                                                    partition_file = paste0(alignment_dir, gene_file_df$partition_file[i]), 
+                                                                    dataset_id = gene_file_df$dataset_id[[i]], 
+                                                                    gene_directory = gene_file_df$gene_directory[i], 
+                                                                    create.gene.alignments = FALSE)} )
+gene_df <- as.data.frame(do.call(rbind, id_op))
 
-extract.all.genes(alignment_file, partition_file, dataset_id, gene_directory)
+
+
+#### 4. Update constraint trees for each gene ####
+# List all constraint trees
+constraint_tree_files <- paste0(repo_dir, "constraint_trees/", list.files(paste0(repo_dir, "constraint_trees/")))
+# Process constraint trees for the taxa in each gene
+
+
+
+trim.constraint.tree.taxa <- function(row_id, gene_df){
+  ## Remove unneeded taxa from all constraint trees and save each updated tree
+  
+  # Extract row for this rownumber
+  gene_row <- gene_df[row_id, ]
+  # Identify relevant constraint tree files
+  gene_ct_files <- grep(gene_row$dataset_id, constraint_tree_files, value = T)
+  # Open alignment and identify which taxa are present
+  gene_al_file <- paste0(gene_row$gene_directory, gene_row$gene_file)
+  gene_taxa <- names(read.fasta(gene_al_file))
+  # Open trees and remove unneeded tips
+  gene_id <- gene_row$gene_id
+  gene_file <- gene_al_file
+  constraint_tree_file <- constraint_tree_files[1]
+  
+}
+
+trim.one.constraint.tree <- function(gene_id, gene_taxa, gene_file, constraint_tree_file){
+  ## Function to remove unneeded taxa from one constraint tree
+  
+  # Open constraint tree
+  t <- read.tree(constraint_tree_file)
+  
+}
+
+
 
 
