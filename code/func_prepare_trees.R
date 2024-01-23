@@ -470,7 +470,7 @@ redo.gene.names <- function(partition_file){
 
 
 #### Extract genes ####
-extract.all.genes <- function(alignment_file, partition_file, dataset_id, gene_directory){
+extract.all.genes <- function(alignment_file, partition_file, dataset_id, gene_directory, create.gene.alignments = TRUE){
   ## Given a partition file and an alignment, extract and output all genes as fasta files in the specified location
   
   ## Identify genes
@@ -512,13 +512,33 @@ extract.all.genes <- function(alignment_file, partition_file, dataset_id, gene_d
     al <- as.matrix(as.AAbin(al))
   }
   
-  ## Split alignment
-  # Use lapply to call extract.one.gene function for each row in the gene_table
-  lapply(1:nrow(gene_table), function(i){extract.one.gene(gene_details = gene_table[i, ], 
-                                                          al = al, 
-                                                          dataset_id = dataset_id, 
-                                                          gene_directory = gene_directory)})
+  ## Split alignment (default - does not need specification in function call)
+  if (create.gene.alignments == TRUE){
+    # Use lapply to call extract.one.gene function for each row in the gene_table
+    lapply_output <- lapply(1:nrow(gene_table), function(i){extract.one.gene(gene_details = gene_table[i, ], 
+                                                                             al = al, 
+                                                                             dataset_id = dataset_id, 
+                                                                             gene_directory = gene_directory)})
+  }
   
+  ## Return gene details
+  # Rename table rows
+  names(gene_table) <- c("gene_name", "gene_start", "gene_end")
+  # Add extra columns with details about the alignments
+  gene_table$alignment_file <- basename(alignment_file)
+  gene_table$partition_file <- basename(partition_file)
+  gene_table$gene_directory <- gene_directory
+  gene_table$dataset_id <- dataset_id
+  gene_table$dataset <- strsplit(dataset_id, "\\.")[[1]][1]
+  gene_table$matrix_name <- strsplit(dataset_id, "\\.")[[1]][2]
+  gene_table$gene_id <- paste0(dataset_id, ".", gene_table$gene_name)
+  gene_table$gene_file <- paste0(dataset_id, ".", gene_table$gene_name, ".fa")
+  # Rearrange gene columns
+  gene_table <- gene_table[ , c("dataset", "matrix_name", "dataset_id", "gene_name",
+                                "gene_id", "gene_start", "gene_end", "gene_file",
+                                "alignment_file", "partition_file", "gene_directory") ]
+  # Return the table
+  return(gene_table)
 }
 
 
