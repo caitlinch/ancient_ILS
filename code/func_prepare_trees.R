@@ -611,6 +611,61 @@ extract.one.gene <- function(gene_details, al, dataset_id, gene_directory){
 
 
 
+#### Trim constraint trees ####
+## Remove taxa from the constraint trees that aren't present in each gene
+
+trim.constraint.tree.taxa <- function(row_id, gene_df){
+  ## Remove unneeded taxa from all constraint trees and save each updated tree
+  
+  # Extract row for this rownumber
+  gene_row <- gene_df[row_id, ]
+  # Identify relevant constraint tree files
+  gene_ct_files <- grep(gene_row$dataset_id, constraint_tree_files, value = T)
+  # Open alignment and identify which taxa are present
+  gene_al_file <- paste0(gene_row$gene_directory, gene_row$gene_file)
+  gene_taxa <- names(read.fasta(gene_al_file))
+  # Open trees and remove unneeded tips
+  gene_id <- gene_row$gene_id
+  trimmed_tree_output_directory <- paste0(dirname(gene_al_file), "/")
+  # Trim each of the three constraint trees and output each row with the new information
+  gene_row$constraint_tree_1 <- trim.one.constraint.tree(gene_id = gene_id, 
+                                                         gene_taxa = gene_taxa, 
+                                                         trimmed_tree_output_directory = trimmed_tree_output_directory, 
+                                                         constraint_tree_file = constraint_tree_files[1])
+  gene_row$constraint_tree_2 <- trim.one.constraint.tree(gene_id = gene_id, 
+                                                         gene_taxa = gene_taxa, 
+                                                         trimmed_tree_output_directory = trimmed_tree_output_directory, 
+                                                         constraint_tree_file = constraint_tree_files[2])
+  gene_row$constraint_tree_3 <- trim.one.constraint.tree(gene_id = gene_id, 
+                                                         gene_taxa = gene_taxa, 
+                                                         trimmed_tree_output_directory = trimmed_tree_output_directory, 
+                                                         constraint_tree_file = constraint_tree_files[3])
+  # Return the updated row
+  return(gene_row)
+}
+
+trim.one.constraint.tree <- function(gene_id, gene_taxa, trimmed_tree_output_directory, constraint_tree_file){
+  ## Function to remove unneeded taxa from one constraint tree
+  
+  # Open constraint tree
+  t <- read.tree(constraint_tree_file)
+  # Remove any taxa from the gene taxa list that don't appear in the tree 
+  #   (i.e., Trichoplax which is unconstrained)
+  keep_taxa <- intersect(gene_taxa, t$tip.label)
+  # Remove missing tips
+  trimmed_t <- keep.tip(t, keep_taxa)
+  # Create new filename for outputting trimmed constraint tree
+  constraint_tree_split <- strsplit(basename(constraint_tree_file), "\\.")[[1]]
+  trimmed_tree_output_file <- paste0(trimmed_tree_output_directory, gene_id, ".", constraint_tree_split[3], ".nex")
+  # Write the trimmed tree
+  write.tree(trimmed_t, file = trimmed_tree_output_file, append = FALSE)
+  # Return the trimmed tree filepath
+  return(trimmed_tree_output_file)
+}
+
+
+
+
 #### Checking simulation completion ####
 check.rep <- function(dir_name){
   # Check that the ASTRAL tree, gene trees and IQ-Tree ML tree all exist
