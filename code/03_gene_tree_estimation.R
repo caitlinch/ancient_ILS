@@ -21,13 +21,10 @@ location = "local"
 if (location == "local"){
   repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   alignment_dir         <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/alignments/"
-  gene_output_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/alignments/genes/"
+  gene_output_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/genes/"
   output_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
   iqtree2               <- "iqtree2"
   iqtree2_num_threads   <- "AUTO"
-  astral                <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
-  astral_constrained    <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-Constrained-search-master/Astral2/astral.5.6.9.jar"
-  
 } else if (location == "dayhoff" | location == "rona" ){
   if (location == "dayhoff"){
     repo_dir          <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
@@ -39,8 +36,6 @@ if (location == "local"){
   output_dir          <- paste0(repo_dir, "output/")
   iqtree2             <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
   iqtree2_num_threads <- 20
-  astral              <- paste0(repo_dir, "astral/Astral/astral.5.7.8.jar")
-  astral_constrained  <- paste0(repo_dir, "astral_constrained/Astral/astral.5.6.9.jar")
 }
 
 # Set parameters that are identical for all run locations
@@ -97,19 +92,36 @@ constraint_df <- as.data.frame(do.call(rbind,  lapply(1:nrow(gene_df),
 constraint_df$constraint_tree_1 <- basename(constraint_df$constraint_tree_1)
 constraint_df$constraint_tree_2 <- basename(constraint_df$constraint_tree_2)
 constraint_df$constraint_tree_3 <- basename(constraint_df$constraint_tree_3)
-# Write the constraint tree to file
-constraint_df_filepath <- paste0(output_dir, "genes_002_individualGene_constraintTreeFiles.csv")
-write.csv(constraint_df, file = constraint_df_filepath, row.names = FALSE)
 
 
 
 #### 5. Estimate unconstrained gene tree ####
+## Add new columns for tree estimation
+constraint_df$initial_model             <- "MFP"
+constraint_df$unconstrained_tree_prefix <- paste0(constraint_df$gene_id, ".MFP")
+# Write the constraint tree to file
+constraint_df_filepath <- paste0(output_dir, "genes_002_individualGene_constraintTreeFiles.csv")
+write.csv(constraint_df, file = constraint_df_filepath, row.names = FALSE)
+
+## Construct IQ-Tree command line
 # Create IQ-Tree command line
+initial_df <- as.data.frame(do.call(rbind, lapply(1:nrow(constraint_df), estimate.empirical.single.gene.tree.wrapper, 
+                                                  dataframe = constraint_df, 
+                                                  iqtree2_path = iqtree2, 
+                                                  iqtree2_num_threads = iqtree2_num_threads, 
+                                                  estimate.trees = FALSE) ) )
+# Write the initial run df to file
+initial_df_filepath <- paste0(output_dir, "genes_003_individualGene_InitialIQTreeCommand.csv")
+write.csv(initial_df, file = initial_df_filepath, row.names = FALSE)
 
-
-
-# Extract model
-
+## Extract models from IQ-Tree initial (unconstrained) run
+# Extract output from iqtree files
+initial_run_df <- as.data.frame(do.call(rbind, lapply(1:nrow(initial_df), 
+                                                      extract.unconstrained.tree.details, 
+                                                      dataframe = initial_df) ) ) 
+# Write the initial run output df to file
+initial_run_df_filepath <- paste0(output_dir, "genes_004_individualGene_InitialIQTreeResults.csv")
+write.csv(initial_run_df, file = initial_run_df_filepath, row.names = FALSE)
 
 
 #### 6. Estimate constrained gene trees and sCF/quartet scores ####
