@@ -163,13 +163,20 @@ if (file.exists(initial_run_df_filepath) == FALSE){
 
 
 #### 6. Estimate constrained gene trees and sCF/quartet scores ####
-# Estimate gene tree (unconstrained)
+# Estimate gene trees (constrained)
+# Use model from initial unconstrained run - otherwise cannot compare trees with AU test or MAST
 
-# Extract model
+# Calculate sCF
+
+# Calculate quartet scores?
+
 
 
 
 #### 7. Calculate AU test for each gene ####
+# AU test
+
+# MAST?
 
 
 
