@@ -119,13 +119,16 @@ initial_df_filepath <- paste0(output_dir, "genes_003_individualGene_InitialIQTre
 # Open initial_df if it exists. If it doesn't, then create it.
 if (file.exists(initial_df_filepath) == FALSE){
   # Create IQ-Tree command line
-  initial_df <- as.data.frame(do.call(rbind, lapply(1:nrow(constraint_df), estimate.empirical.single.gene.tree.wrapper, 
+  initial_dayhoff_df <- as.data.frame(do.call(rbind, lapply(1:nrow(constraint_df), estimate.empirical.single.gene.tree.wrapper, 
                                                     dataframe = constraint_df, 
                                                     iqtree2_path = iqtree2, 
                                                     iqtree2_num_threads = iqtree2_num_threads, 
                                                     estimate.trees = FALSE) ) )
   # Write the initial run df to file
-  write.csv(initial_df, file = initial_df_filepath, row.names = FALSE)
+  write.csv(initial_dayhoff_df, file = dayhoff_initial_df_filepath, row.names = FALSE)
+  # Write just the IQ-Tree command lines to file
+  initial_commands_filepath <- paste0(output_dir, "genes_003_individualGene_InitialIQTreeCommand_IQTreeCall_Dayhoff.txt")
+  write(initial_dayhoff_df$unconstrained_tree_iqtree2_call, file = initial_commands_filepath)
 } else {
   initial_df <- read.csv(initial_df_filepath, stringsAsFactors = FALSE)
 }
