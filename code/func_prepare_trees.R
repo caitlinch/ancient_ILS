@@ -614,7 +614,7 @@ extract.one.gene <- function(gene_details, al, dataset_id, gene_directory){
 #### Trim constraint trees ####
 ## Remove taxa from the constraint trees that aren't present in each gene
 
-trim.constraint.tree.taxa <- function(row_id, gene_df){
+trim.constraint.tree.taxa <- function(row_id, gene_df, constraint_tree_files){
   ## Remove unneeded taxa from all constraint trees and save each updated tree
   
   # Extract row for this rownumber
