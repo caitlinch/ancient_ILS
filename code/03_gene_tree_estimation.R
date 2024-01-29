@@ -133,6 +133,20 @@ if (file.exists(initial_df_filepath) == FALSE){
   initial_df <- read.csv(initial_df_filepath, stringsAsFactors = FALSE)
 }
 
+## Split into 10 separate files to run in the server
+file_start <- paste0(output_dir, "initial_iqtree_run_")
+run_seq <- c(seq(from = 1, to = nrow(initial_df), by = ceiling(nrow(initial_df)/10) ), nrow(initial_df))
+max_i = ( length(run_seq) - 1)
+for (i in 1:max_i){
+  # Extract start and end points for this file
+  start_row <- run_seq[i]
+  end_row <- run_seq[ (i + 1) ] - 1
+  # Extract the rows for this file
+  i_rows <- initial_df$unconstrained_tree_iqtree2_call[start_row:end_row]
+  i_op_file <- paste0(file_start, i, ".txt")
+  write(i_rows, i_op_file)
+}
+
 ## Extract models from IQ-Tree initial (unconstrained) run
 initial_run_df_filepath <- paste0(output_dir, "genes_004_individualGene_InitialIQTreeResults.csv")
 # Open initial_run_df if it exists. If it doesn't, then create it.
