@@ -89,6 +89,6 @@ constraint_tree_files <- paste0(repo_dir, "constraint_trees/", list.files(paste0
 # Process constraint trees for the taxa in each gene
 ct_op <- lapply(1:nrow(gene_df), trim.constraint.tree.taxa, gene_df = gene_df)
 
-# Works for: Borowiec 2015,
+# Missing constraint trees: Hejnol 2009
 
-row_id <- 109
+row_id <- 459
