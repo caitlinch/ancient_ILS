@@ -50,6 +50,7 @@ library(ape)
 # Source functions and dataset information
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
 source(paste0(repo_dir, "code/func_empirical_tree_estimation.R"))
+source(paste0(repo_dir, "code/func_data_analysis.R"))
 
 
 
