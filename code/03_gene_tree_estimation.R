@@ -19,26 +19,28 @@
 
 location = "local"
 if (location == "local"){
-  repo_dir            <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-  alignment_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/alignments/"
-  output_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_empirical_tree_estimation/"
-  iqtree2             <- "iqtree2"
-  iqtree2_num_threads  <- "AUTO"
-  astral              <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
-  astral_constrained  <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-Constrained-search-master/Astral2/astral.5.6.9.jar"
+  repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
+  alignment_dir         <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/alignments/"
+  gene_output_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/alignments/genes/"
+  output_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
+  iqtree2               <- "iqtree2"
+  iqtree2_num_threads   <- "AUTO"
+  astral                <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
+  astral_constrained    <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-Constrained-search-master/Astral2/astral.5.6.9.jar"
   
 } else if (location == "dayhoff" | location == "rona" ){
   if (location == "dayhoff"){
-    repo_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
+    repo_dir          <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
   } else if (location == "rona"){
-    repo_dir <- "/home/caitlin/ancient_ILS/"
+    repo_dir          <- "/home/caitlin/ancient_ILS/"
   }
-  alignment_dir <- paste0(repo_dir, "data_all/")
-  output_dir <-  paste0(repo_dir, "output/")
-  iqtree2 <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
+  alignment_dir       <- paste0(repo_dir, "data_all/")
+  gene_output_dir     <- paste0(repo_dir, "genes/")
+  output_dir          <- paste0(repo_dir, "output/")
+  iqtree2             <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
   iqtree2_num_threads <- 20
-  astral <- paste0(repo_dir, "astral/Astral/astral.5.7.8.jar")
-  astral_constrained <- paste0(repo_dir, "astral_constrained/Astral/astral.5.6.9.jar")
+  astral              <- paste0(repo_dir, "astral/Astral/astral.5.7.8.jar")
+  astral_constrained  <- paste0(repo_dir, "astral_constrained/Astral/astral.5.6.9.jar")
 }
 
 # Set parameters that are identical for all run locations
@@ -71,15 +73,17 @@ dirs_to_create <- gene_file_df$gene_directory[! dir.exists(gene_file_df$gene_dir
 if (length(dirs_to_create) > 0){
   lapply(1:length(dirs_to_create), function(x){dir.create(dirs_to_create[x])})
 }
-
 # Separate each alignment into individual genes 
 # Note: set `create.gene.alignments=FALSE` to extract csv with gene details without extracting genes
-id_op <- lapply(1:nrow(gene_file_df), function(i){extract.all.genes(alignment_file = paste0(alignment_dir, gene_file_df$alignment_file[i]),
-                                                                    partition_file = paste0(alignment_dir, gene_file_df$partition_file[i]), 
-                                                                    dataset_id = gene_file_df$dataset_id[[i]], 
-                                                                    gene_directory = gene_file_df$gene_directory[i], 
-                                                                    create.gene.alignments = FALSE)} )
-gene_df <- as.data.frame(do.call(rbind, id_op))
+gene_df <- as.data.frame(do.call(rbind, lapply(1:nrow(gene_file_df), 
+                                               function(i){extract.all.genes(alignment_file = paste0(alignment_dir, gene_file_df$alignment_file[i]),
+                                                                             partition_file = paste0(alignment_dir, gene_file_df$partition_file[i]), 
+                                                                             dataset_id = gene_file_df$dataset_id[[i]], 
+                                                                             gene_directory = gene_file_df$gene_directory[i], 
+                                                                             create.gene.alignments = FALSE)} ) ) )
+# Write gene_df to file
+gene_df_filepath <- paste0(output_dir, "genes_001_individualGene_files.csv")
+write.csv(gene_df, file = gene_df_filepath, row.names = FALSE)
 
 
 
@@ -87,8 +91,40 @@ gene_df <- as.data.frame(do.call(rbind, id_op))
 # List all constraint trees
 constraint_tree_files <- paste0(repo_dir, "constraint_trees/", list.files(paste0(repo_dir, "constraint_trees/")))
 # Process constraint trees for the taxa in each gene
-ct_op <- lapply(1:nrow(gene_df), trim.constraint.tree.taxa, gene_df = gene_df)
+constraint_df <- as.data.frame(do.call(rbind,  lapply(1:nrow(gene_df), 
+                                                      trim.constraint.tree.taxa, 
+                                                      gene_df = gene_df, constraint_tree_files = constraint_tree_files) ) )
+# Remove directory path from constraint tree file paths
+constraint_df$constraint_tree_1 <- basename(constraint_df$constraint_tree_1)
+constraint_df$constraint_tree_2 <- basename(constraint_df$constraint_tree_2)
+constraint_df$constraint_tree_3 <- basename(constraint_df$constraint_tree_3)
+# Write the constraint tree to file
+constraint_df_filepath <- paste0(output_dir, "genes_002_individualGene_constraintTreeFiles.csv")
+write.csv(constraint_df, file = constraint_df_filepath, row.names = FALSE)
 
-# Missing constraint trees: Hejnol 2009
 
-row_id <- 459
+
+#### 5. Estimate unconstrained gene tree ####
+# Create IQ-Tree command line
+
+
+
+# Extract model
+
+
+
+#### 6. Estimate constrained gene trees and sCF/quartet scores ####
+# Estimate gene tree (unconstrained)
+
+# Extract model
+
+
+
+#### 7. Calculate AU test for each gene ####
+
+
+
+
+
+
+
