@@ -631,15 +631,15 @@ trim.constraint.tree.taxa <- function(row_id, gene_df){
   gene_row$constraint_tree_1 <- trim.one.constraint.tree(gene_id = gene_id, 
                                                          gene_taxa = gene_taxa, 
                                                          trimmed_tree_output_directory = trimmed_tree_output_directory, 
-                                                         constraint_tree_file = constraint_tree_files[1])
+                                                         constraint_tree_file = gene_ct_files[1])
   gene_row$constraint_tree_2 <- trim.one.constraint.tree(gene_id = gene_id, 
                                                          gene_taxa = gene_taxa, 
                                                          trimmed_tree_output_directory = trimmed_tree_output_directory, 
-                                                         constraint_tree_file = constraint_tree_files[2])
+                                                         constraint_tree_file = gene_ct_files[2])
   gene_row$constraint_tree_3 <- trim.one.constraint.tree(gene_id = gene_id, 
                                                          gene_taxa = gene_taxa, 
                                                          trimmed_tree_output_directory = trimmed_tree_output_directory, 
-                                                         constraint_tree_file = constraint_tree_files[3])
+                                                         constraint_tree_file = gene_ct_files[3])
   # Return the updated row
   return(gene_row)
 }

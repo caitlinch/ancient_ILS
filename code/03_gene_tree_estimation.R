@@ -87,10 +87,8 @@ gene_df <- as.data.frame(do.call(rbind, id_op))
 # List all constraint trees
 constraint_tree_files <- paste0(repo_dir, "constraint_trees/", list.files(paste0(repo_dir, "constraint_trees/")))
 # Process constraint trees for the taxa in each gene
+ct_op <- lapply(1:nrow(gene_df), trim.constraint.tree.taxa, gene_df = gene_df)
 
+# Works for: Borowiec 2015,
 
-
-trim.constraint.tree.taxa <- function(row_id, gene_df)
-
-
-
+row_id <- 109
