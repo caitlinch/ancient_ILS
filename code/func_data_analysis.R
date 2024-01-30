@@ -17,7 +17,7 @@ extract.unconstrained.tree.details <- function(row_id, dataframe){
   gamma1_op       <- extract.gamma.values(initial_iqtree_file, gamma.parameter = "List")
   gamma2_op       <- extract.gamma.values(initial_iqtree_file, gamma.parameter = "Shape")
   statfreq_op     <- extract.state.frequencies(initial_iqtree_file)
-  alisim_model_op <- extract.alisim.model(iqtree_file)
+  alisim_model_op <- extract.alisim.model(initial_iqtree_file)
   # Assemble output into a nice dataframe row
   op_row <- c(as.character(temp_row)[1:16], 
               best_model_op, alisim_model_op,
