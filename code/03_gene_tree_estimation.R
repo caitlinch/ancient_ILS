@@ -211,10 +211,10 @@ if (file.exists(constraint_tree_df_filepath) == FALSE){
 }
 
 ## Create slurm files
-## Split into 10 separate files to run in the server
+## Split into 5 separate files to run in the server
 # Prepare for extracting specific rows
 filepath_start <- paste0(output_dir, "constraint_tree_run_")
-run_seq <- c(seq(from = 1, to = nrow(constraint_tree_df), by = ceiling(nrow(constraint_tree_df)/10) ), nrow(constraint_tree_df))
+run_seq <- c(seq(from = 1, to = nrow(constraint_tree_df), by = ceiling(nrow(constraint_tree_df)/5) ), nrow(constraint_tree_df))
 max_i = ( length(run_seq) - 1)
 for (i in 1:max_i){
   # Extract start and end points for this file
