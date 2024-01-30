@@ -37,6 +37,26 @@ if (location == "local"){
 # Set parameters that are identical for all run locations
 iqtree2_num_bootstraps <- 1000
 
+# Set the Slurm lines for your specific server - so we can automate creaying the slurm files
+slurm_start_lines <- c("#!/bin/bash", "#")
+slurm_id_line <- "#SBATCH --job-name="
+slurm_middle_lines <- c("#SBATCH --output=/mnt/data/dayhoff/home/u5348329/ancient_ILS/slurm_files/%j.%x.out", 
+                        "#SBATCH --error=/mnt/data/dayhoff/home/u5348329/ancient_ILS/slurm_files/%j.%x.err",
+                        "#SBATCH --partition=Standard",
+                        "#",
+                        "#SBATCH --time=48:00:00 # 2 days",
+                        "#SBATCH --ntasks=1",
+                        "#SBATCH --cpus-per-task=20",
+                        "#SBATCH --mem=3000 # 3GB required by IQ-Tree",
+                        "#",
+                        "#SBATCH --mail-user u5348329@anu.edu.au",
+                        "#SBATCH --mail-type TIME_LIMIT,FAIL",
+                        "",
+                        "# Change to the directory containing each gene",
+                        "cd /mnt/data/dayhoff/home/u5348329/ancient_ILS/genes/",
+                        "",  
+                        "# Run IQ-Tree2 command lines")
+
 
 
 #### 2. Prepare functions, variables and packages ####
@@ -113,7 +133,8 @@ initial_df_filepath <- paste0(output_dir, "genes_003_individualGene_InitialIQTre
 # Open initial_df if it exists. If it doesn't, then create it.
 if (file.exists(initial_df_filepath) == FALSE){
   # Create IQ-Tree command line
-  initial_df <- as.data.frame(do.call(rbind, lapply(1:nrow(constraint_df), estimate.empirical.single.gene.tree.wrapper, 
+  initial_df <- as.data.frame(do.call(rbind, lapply(1:nrow(constraint_df), 
+                                                    estimate.empirical.single.gene.tree.wrapper, 
                                                     dataframe = constraint_df, 
                                                     iqtree2_path = iqtree2, 
                                                     iqtree2_num_threads = iqtree2_num_threads, 
@@ -127,18 +148,26 @@ if (file.exists(initial_df_filepath) == FALSE){
   initial_df <- read.csv(initial_df_filepath, stringsAsFactors = FALSE)
 }
 
-## Split into 10 separate files to run in the server
-file_start <- paste0(output_dir, "initial_iqtree_run_")
+## Create Slurm files
+# Prepare for extracting specific rows
+filepath_start <- paste0(output_dir, "initial_iqtree_run_")
 run_seq <- c(seq(from = 1, to = nrow(initial_df), by = ceiling(nrow(initial_df)/10) ), nrow(initial_df))
 max_i = ( length(run_seq) - 1)
 for (i in 1:max_i){
   # Extract start and end points for this file
-  start_row <- run_seq[i]
-  end_row <- run_seq[ (i + 1) ] - 1
+  i_start_row <- run_seq[i]
+  i_end_row   <- run_seq[ (i + 1) ] - 1
   # Extract the rows for this file
-  i_rows <- initial_df$unconstrained_tree_iqtree2_call[start_row:end_row]
-  i_op_file <- paste0(file_start, i, ".txt")
-  write(i_rows, i_op_file)
+  i_rows <- initial_df$unconstrained_tree_iqtree2_call[i_start_row:i_end_row]
+  # Make the slurm file
+  i_slurm_id_line <- paste0(slurm_id_line, "gene", i)
+  i_slurm_txt     <- c(slurm_start_lines,
+                       i_slurm_id_line,
+                       slurm_middle_lines,
+                       i_rows)
+  # Save the slurm file
+  i_op_file <- paste0(filepath_start, i, ".sh")
+  write(i_slurm_txt, i_op_file)
 }
 
 ## Extract models from IQ-Tree initial (unconstrained) run
@@ -156,10 +185,63 @@ if (file.exists(initial_run_df_filepath) == FALSE){
 }
 
 
-#### 6. Estimate constrained gene trees and sCF/quartet scores ####
-# Estimate gene trees (constrained)
-# Use model from initial unconstrained run - otherwise cannot compare trees with AU test or MAST
+#### 6. Estimate constrained gene trees ####
+## Construct IQ-Tree command line
+constraint_tree_df_filepath <- paste0(output_dir, "genes_005_individualGene_InitialIQTreeResults.csv")
+# Open constraint_tree_df if it exists. If it doesn't, then create it.
+if (file.exists(constraint_tree_df_filepath) == FALSE){
+  # Add columns needed for estimating constrained gene trees
+  initial_run_df$CTEN_prefix <- paste0(temp_row$gene_id, ".CTEN_tree")
+  initial_run_df$PORI_prefix <- paste0(temp_row$gene_id, ".PORI_tree")
+  initial_run_df$CTEN_PORI_prefix <- paste0(temp_row$gene_id, ".CTEN_PORI_tree")
+  # Estimate gene trees (constrained)
+  # Note: Use model from initial unconstrained run - otherwise cannot compare trees with AU test or MAST
+  constraint_tree_df <- as.data.frame(do.call(rbind, lapply(1:nrow(initial_run_df), 
+                                                            estimate.constrained.gene.trees.wrapper,
+                                                            dataframe = initial_run_df, 
+                                                            iqtree2_path = iqtree2, 
+                                                            iqtree2_num_threads = iqtree2_num_threads, 
+                                                            iqtree_num_bootstraps = iqtree2_num_bootstraps,
+                                                            run.UFB = TRUE, 
+                                                            estimate.trees = FALSE) ) )
+  # Write the constraint tree df to file
+  write.csv(constraint_tree_df, file = constraint_tree_df_filepath, row.names = FALSE)
+} else {
+  constraint_tree_df <- read.csv(constraint_tree_df_filepath, stringsAsFactors = FALSE)
+}
 
+## Create slurm files
+## Split into 10 separate files to run in the server
+# Prepare for extracting specific rows
+filepath_start <- paste0(output_dir, "constraint_tree_run_")
+run_seq <- c(seq(from = 1, to = nrow(constraint_tree_df), by = ceiling(nrow(constraint_tree_df)/10) ), nrow(constraint_tree_df))
+max_i = ( length(run_seq) - 1)
+for (i in 1:max_i){
+  # Extract start and end points for this file
+  i_start_row <- run_seq[i]
+  i_end_row   <- run_seq[ (i + 1) ] - 1
+  # Extract the rows for this file
+  i_iqtree_calls <- unlist(lapply(i_start_row:i_end_row, function(j){paste(constraint_tree_df$CTEN_iqtree2_call[j], 
+                                                                           constraint_tree_df$PORI_iqtree2_call[j], 
+                                                                           constraint_tree_df$CTEN_PORI_iqtree2_call[j], 
+                                                                           sep = "; ")}))
+  # Make the slurm file
+  i_slurm_id_line <- paste0(slurm_id_line, "ct", i)
+  i_slurm_txt     <- c(slurm_start_lines,
+                       i_slurm_id_line,
+                       slurm_middle_lines,
+                       i_iqtree_calls)
+  # Save the slurm file
+  i_op_file <- paste0(filepath_start, i, ".sh")
+  write(i_slurm_txt, i_op_file)
+}
+
+## Extract results from constrained trees
+
+
+
+
+#### 7. Estimate sCF/quartet scores ####
 # Calculate sCF
 
 # Calculate quartet scores?
@@ -167,7 +249,7 @@ if (file.exists(initial_run_df_filepath) == FALSE){
 
 
 
-#### 7. Calculate AU test for each gene ####
+#### 8. Calculate AU test for each gene ####
 # AU test
 
 # MAST?
