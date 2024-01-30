@@ -7,7 +7,7 @@ extract.unconstrained.tree.details <- function(row_id, dataframe){
   # Extract best model, rates, and results of IQ-Tree run
   
   # Identify run and extract row
-  temp_row <- dataframe[1,]
+  temp_row <- dataframe[row_id,]
   # Identify IQ-Tree file from intial run
   initial_iqtree_file <- paste0(temp_row$gene_directory, temp_row$unconstrained_tree_prefix, ".iqtree")
   # Run the functions that extract details from the iqtree file
