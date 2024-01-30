@@ -18,20 +18,16 @@ extract.unconstrained.tree.details <- function(row_id, dataframe){
   gamma2_op       <- extract.gamma.values(initial_iqtree_file, gamma.parameter = "Shape")
   statfreq_op     <- extract.state.frequencies(initial_iqtree_file)
   alisim_model_op <- extract.alisim.model(iqtree_file)
-  # Assemble output into the nice temp row
-  op_row <- temp_row
-  op_row$unconstrained_tree_best_model            <- best_model_op
-  op_row$unconstrained_tree_alisim_model          <- alisim_model_op
-  op_row$unconstrained_tree_gamma_shape           <- gamma2_op
-  op_row$unconstrained_tree_gamma_categories      <- gamma1_op
-  op_row$unconstrained_tree_rates                 <- rates_op
-  op_row$unconstrained_tree_state_freqs           <- statfreq_op
-  op_row$unconstrained_tree_logl                  <- tree_ll_op[1]
-  op_row$unconstrained_tree_unconstrained_logl    <- tree_ll_op[2]
-  op_row$unconstrained_tree_numFreeParams         <- tree_ll_op[3]
-  op_row$unconstrained_tree_BIC                   <- tree_ll_op[4]
-  op_row$unconstrained_tree_length                <- tree_ll_op[5]
-  op_row$unconstrained_tree_sumInternalBL         <- tree_ll_op[6]
+  # Assemble output into a nice dataframe row
+  op_row <- c(as.character(temp_row)[1:16], 
+              best_model_op, alisim_model_op,
+              gamma2_op, gamma1_op, 
+              rates_op, statfreq_op,
+              tree_ll_op)
+  names(op_row) <- c(names(temp_row)[1:16],
+                     paste0("unconstrained_tree_", c("best_model", "alisim_model", "gamma_shape", "gamma_categories",
+                                                     "rates", "state_freqs", "logl", "unconstrained_logl",
+                                                     "numFreeParams", "BIC", "length", "sumInternalBL")) )
   # Return the output
   return(op_row)
 }
