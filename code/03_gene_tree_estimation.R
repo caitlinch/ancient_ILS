@@ -242,7 +242,7 @@ for (i in 1:max_i){
 
 
 
-#### 7. Estimate sCF/quartet scores ####
+#### 7. Estimate sCFs ####
 # Calculate sCF: 
 # $ iqtree2 -te concat.treefile -s ALN_FILE -m 'best_model' --scfl 100 -pre sCF
 
