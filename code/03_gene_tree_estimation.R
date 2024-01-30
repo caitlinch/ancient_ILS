@@ -3,6 +3,7 @@
 # Caitlin Cherryh 2023
 
 
+
 #### 1. Input parameters ####
 ## Specify parameters:
 # location                    <- Where the script is being run
@@ -10,27 +11,22 @@
 # alignment_dir               <- Directory containing alignments for all data sets
 #                                   Alignment naming convention: [manuscript].[matrix_name].[sequence_type].fa
 #                                   E.g. Cherryh2022.alignment1.aa.fa
-# output_dir                  <- Directory for IQ-Tree output (trees and tree mixtures)
+# gene_output_dir             <- Location for saving genes and running gene-wise analyses
+# output_dir                  <- Directory for saving results files (csv and text)
 # iqtree2                     <- Location of IQ-Tree2 executable
 # iqtree2_num_bootstraps      <- Number of ultrafast bootstraps (UFB) to perform in IQ-Tree
 # iqtree2_num_threads         <- Number of parallel threads for IQ-Tree to use. Can be a set number (e.g. 2) or "AUTO"
-
-
 
 location = "local"
 if (location == "local"){
   repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
   alignment_dir         <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/alignments/"
-  gene_output_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/genes/"
+  gene_output_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/alignments/genes/"
   output_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
   iqtree2               <- "iqtree2"
   iqtree2_num_threads   <- "AUTO"
-} else if (location == "dayhoff" | location == "rona" ){
-  if (location == "dayhoff"){
-    repo_dir          <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
-  } else if (location == "rona"){
-    repo_dir          <- "/home/caitlin/ancient_ILS/"
-  }
+} else if (location == "dayhoff"){
+  repo_dir          <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
   alignment_dir       <- paste0(repo_dir, "data_all/")
   gene_output_dir     <- paste0(repo_dir, "genes/")
   output_dir          <- paste0(repo_dir, "output/")
@@ -54,19 +50,17 @@ source(paste0(repo_dir, "code/func_data_analysis.R"))
 
 
 
-
 #### 3. Extract genes ####
 gene_df_filepath <- paste0(output_dir, "genes_001_individualGene_files.csv")
 # Open gene_df if it exists. If it doesn't, then create it.
 if (file.exists(gene_df_filepath) == FALSE){
   # Create directory for the genes
-  gene_output_directory <- paste0(alignment_dir, "genes/")
-  if (dir.exists(gene_output_directory) == FALSE){
-    dir.create(gene_output_directory)
+  if (dir.exists(gene_output_dir) == FALSE){
+    dir.create(gene_output_dir)
   }
   # Open csv file with alignment information
   gene_file_df <- read.csv(paste0(repo_dir, "output/empirical_gene_files.csv"), stringsAsFactors = F)
-  gene_file_df$gene_directory <- paste0(gene_output_directory, gene_file_df$dataset_id, "/")
+  gene_file_df$gene_directory <- paste0(gene_output_dir, gene_file_df$dataset_id, "/")
   # Create directory to save all genes in 
   dirs_to_create <- gene_file_df$gene_directory[! dir.exists(gene_file_df$gene_directory)]
   if (length(dirs_to_create) > 0){
