@@ -31,7 +31,7 @@ if (location == "local"){
   gene_output_dir     <- paste0(repo_dir, "genes/")
   output_dir          <- paste0(repo_dir, "output/")
   iqtree2             <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
-  iqtree2_num_threads <- 20
+  iqtree2_num_threads <- 10
 }
 
 # Set parameters that are identical for all run locations
