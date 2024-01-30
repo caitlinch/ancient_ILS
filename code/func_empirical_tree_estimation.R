@@ -227,7 +227,7 @@ estimate.constrained.astral.tree <- function(gene_tree_file, astral_tree_file, a
 
 ## Estimating single gene trees in IQ-Tree
 estimate.empirical.single.gene.tree.wrapper <- function(row_id, dataframe, iqtree2_path, iqtree2_num_threads = "AUTO", estimate.trees = FALSE){
-  ## Wrap around estimate.empirical.gene.trees function
+  ## Wrap around estimate.empirical.single.gene.tree function
   temp_row <- dataframe[row_id, ]
   iqtree_call <- estimate.empirical.single.gene.tree(gene_file = paste0(temp_row$gene_directory, temp_row$gene_file), 
                                                      output_prefix = paste0(temp_row$gene_directory, temp_row$unconstrained_tree_prefix), 
@@ -267,7 +267,77 @@ estimate.empirical.single.gene.tree <- function(gene_file, output_prefix,
 
 
 ## Estimating constrained single gene trees in IQ-Tree (with UFB)
+estimate.constrained.gene.trees.wrapper <- function(row_id, dataframe, 
+                                                    iqtree2_path, iqtree2_num_threads = "AUTO", 
+                                                    iqtree_num_bootstraps = 1000, run.UFB = TRUE, 
+                                                    estimate.trees = FALSE){
+  ## Wrap around estimate.constrained.gene.trees function
+  
+  # Extract the relevant row
+  temp_row <- dataframe[row_id, ]
+  # Create iqtree2 call for each of the three constrained trees
+  temp_row$CTEN_iqtree2_call <- estimate.constrained.gene.trees(gene_file = paste0(temp_row$gene_directory, temp_row$gene_file), 
+                                                                output_prefix = paste0(temp_row$gene_directory, temp_row$CTEN_prefix), 
+                                                                model = temp_row$unconstrained_tree_alisim_model,
+                                                                constraint_tree_path = paste0(temp_row$gene_directory, temp_row$constraint_tree_1),
+                                                                iqtree2_path = iqtree2_path,
+                                                                iqtree2_num_threads = iqtree2_num_threads, 
+                                                                iqtree_num_bootstraps = iqtree_num_bootstraps,
+                                                                run.UFB = run.UFB,
+                                                                estimate.trees = estimate.trees)
+  temp_row$PORI_iqtree2_call <- estimate.constrained.gene.trees(gene_file = paste0(temp_row$gene_directory, temp_row$gene_file), 
+                                                                output_prefix = paste0(temp_row$gene_directory, temp_row$PORI_prefix), 
+                                                                model = temp_row$unconstrained_tree_alisim_model,
+                                                                constraint_tree_path = paste0(temp_row$gene_directory, temp_row$constraint_tree_2),
+                                                                iqtree2_path = iqtree2_path,
+                                                                iqtree2_num_threads = iqtree2_num_threads, 
+                                                                iqtree_num_bootstraps = iqtree_num_bootstraps,
+                                                                run.UFB = run.UFB,
+                                                                estimate.trees = estimate.trees)
+  temp_row$CTEN_PORI_iqtree2_call <- estimate.constrained.gene.trees(gene_file = paste0(temp_row$gene_directory, temp_row$gene_file), 
+                                                                     output_prefix = paste0(temp_row$gene_directory, temp_row$CTEN_PORI_prefix), 
+                                                                     model = temp_row$unconstrained_tree_alisim_model,
+                                                                     constraint_tree_path = paste0(temp_row$gene_directory, temp_row$constraint_tree_3),
+                                                                     iqtree2_path = iqtree2_path,
+                                                                     iqtree2_num_threads = iqtree2_num_threads, 
+                                                                     iqtree_num_bootstraps = iqtree_num_bootstraps,
+                                                                     run.UFB = run.UFB,
+                                                                     estimate.trees = estimate.trees)
+  # Return the temporary row
+  return(temp_row)
+}
 
+estimate.constrained.gene.trees <- function(gene_file, output_prefix, 
+                                            model = "MFP", constraint_tree_path,
+                                            iqtree2_path, iqtree2_num_threads = "AUTO", 
+                                            iqtree_num_bootstraps = 1000, run.UFB = TRUE,
+                                            estimate.trees = FALSE){
+  ## Estimate a set of gene trees using a partition file
+  ##   Command line: iqtree2 -s ALN_FILE -pre PREFIX -nt AUTO
+  
+  # Assemble model command
+  if (is.na(model) == FALSE){
+    model_call <- paste0("-m ", "'", model, "'")
+  } else if (is.na(model) == TRUE){
+    model_call <- "-m MFP"
+  }
+  # Assemble bootstrap command
+  if (run.UFB == TRUE){
+    bootstrap_call <- paste0("-bb ", iqtree_num_bootstraps)
+  } else {
+    bootstrap_call <- ""
+  }
+  # Assemble command line
+  command_line <- paste(iqtree2_path, "-s", gene_file, model_call, "-g", constraint_tree_path,
+                        "-pre", output_prefix, bootstrap_call, "-nt", iqtree2_num_threads,
+                        collapse = " ")
+  # Call IQ-Tree if desired
+  if (estimate.trees == TRUE){
+    system(command_line)
+  }
+  # Return IQ-Tree command line
+  return(command_line)
+}
 
 
 
