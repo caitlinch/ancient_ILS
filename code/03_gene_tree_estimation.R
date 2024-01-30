@@ -185,6 +185,7 @@ if (file.exists(initial_run_df_filepath) == FALSE){
 }
 
 
+
 #### 6. Estimate constrained gene trees ####
 ## Construct IQ-Tree command line
 constraint_tree_df_filepath <- paste0(output_dir, "genes_005_individualGene_InitialIQTreeResults.csv")
@@ -242,17 +243,18 @@ for (i in 1:max_i){
 
 
 #### 7. Estimate sCF/quartet scores ####
-# Calculate sCF
-
-# Calculate quartet scores?
+# Calculate sCF: 
+# $ iqtree2 -te concat.treefile -s ALN_FILE -m 'best_model' --scfl 100 -pre sCF
 
 
 
 
 #### 8. Calculate AU test for each gene ####
 # AU test
+# $ iqtree -s gene.fa -te constrained_tree.nex -n 0 -zb 1000 -zw -au -pre AU_test
 
-# MAST?
+# MAST
+# $ iqtree2 -s gene.fa -m 'best_model+TR' -te constrained_tree.nex -pre MAST
 
 
 
