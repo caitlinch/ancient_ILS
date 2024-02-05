@@ -467,3 +467,37 @@ estimate.quartet.scores <- function(gene_tree_file, input_test_tree, output_tree
   return(command_line)
 }
 
+
+
+#### Calculate AU test for each gene ####
+gene.au.test.mast.command <- function(row_id, dataframe, iqtree2_path, iqtree2_MAST_path, iqtree2_num_bootstraps){
+  # Create AU test command: $ iqtree -s gene.fa -te constrained_tree.nex -n 0 -zb 1000 -zw -au -pre AU_test
+  # Create MAST command   : $ iqtree2 -s gene.fa -m 'best_model+TR' -te constrained_tree.nex -pre MAST
+  
+  # Extract gene details
+  temp_row <- dataframe[row_id, ]
+  # Construct new columns
+  temp_row$AU_test_prefix <- paste0(temp_row$gene_id, ".AU_test")
+  temp_row$MAST_prefix    <- paste0(temp_row$gene_id, ".MAST")
+  # Create IQ-Tree2 command lines
+  temp_row$MAST_iqtree2_command <- paste0(iqtree2_MAST_path, " -s ", temp_row$gene_directory, temp_row$gene_file,
+                                          " -m ", "'", temp_row$unconstrained_tree_alisim_model, "+TR'", 
+                                          " -te ", temp_row$constraint_tree_directory, temp_row$collated_constraint_tree,
+                                          " -nt ", iqtree2_num_bootstraps, 
+                                          " -pre ", temp_row$constraint_tree_directory, temp_row$MAST_prefix)
+  temp_row$AU_test_iqtree2_command <- paste0(iqtree2_path, " -s ", temp_row$gene_directory, temp_row$gene_file,
+                                             " -m ", "'", temp_row$unconstrained_tree_alisim_model, "'", " -n 0",
+                                             " -z ", temp_row$constraint_tree_directory, temp_row$collated_constraint_tree,
+                                             " -zb 1000 -au", " -nt ", iqtree2_num_bootstraps, 
+                                             " -pre ", temp_row$constraint_tree_directory, temp_row$AU_test_prefix)
+  # Return the temporary row with the new command lines attached
+  return(temp_row)
+}
+
+
+paste0(iqtree2_path, " -te ", temp_row$constraint_tree_directory, temp_row$CTEN_treefile, 
+       " -s ", temp_row$gene_directory, temp_row$gene_file, " -m ", "'",
+       temp_row$unconstrained_tree_alisim_model, "'", " --scfl 100 -pre ",
+       temp_row$constraint_tree_directory, temp_row$CTEN_scf_prefix, 
+       " -nt ", iqtree2_num_threads)
+
