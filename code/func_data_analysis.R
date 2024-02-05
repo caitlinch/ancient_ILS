@@ -2,7 +2,7 @@
 ## This script includes functions to analyse concordance factors, quartet scores, and phylogenetic trees
 # Caitlin Cherryh, 2023
 
-#### Extract details from IQ-Tree output files ####
+#### Collate model details from IQ-Tree output files ####
 extract.unconstrained.tree.details <- function(row_id, dataframe){
   # Extract best model, rates, and results of IQ-Tree run
   
@@ -61,7 +61,7 @@ extract.constrained.tree.details <- function(row_id, dataframe){
 
 
 
-
+#### Extract individual model details from IQ-Tree output files ####
 extract.best.model <- function(iqtree_file){
   # Function that will extract the best model of sequence evolution or the model of sequence evolution used,
   #   given a .iqtree file
@@ -129,8 +129,6 @@ extract.best.model <- function(iqtree_file){
 }
 
 
-
-
 extract.rates <- function(iqtree_file){
   # Function to extract the rate parameters of a model from in IQ-Tree
   
@@ -171,8 +169,6 @@ extract.rates <- function(iqtree_file){
   # Return the output
   return(rates_op)
 }
-
-
 
 
 extract.tree.log.likelihood <- function(iqtree_file, var = "LogL"){
@@ -223,8 +219,6 @@ extract.tree.log.likelihood <- function(iqtree_file, var = "LogL"){
   # Return the output
   return(output)
 }
-
-
 
 
 extract.gamma.values <- function(iqtree_file, gamma.parameter = "List"){
@@ -296,8 +290,6 @@ extract.gamma.values <- function(iqtree_file, gamma.parameter = "List"){
 }
 
 
-
-
 extract.state.frequencies <- function(iqtree_file){
   # Given an iqtree file, this function will extract the state frequencies for the alignment
   
@@ -360,8 +352,6 @@ extract.state.frequencies <- function(iqtree_file){
 }
 
 
-
-
 extract.alisim.model <- function(iqtree_file){
   # Given an iqtree file, this function will extract the alisim model (if present)
   
@@ -401,3 +391,133 @@ extract.alisim.model <- function(iqtree_file){
   return(alisim_model)
 }
 
+
+
+
+#### Extract details from tree topology tests ####
+extract.tree.topology.test.results <- function(iqtree_file){
+  ## File to extract results from completed tree topology tests
+  # Extract identifier from the iqtree file
+  iqtree_file_split <- strsplit(basename(iqtree_file), "\\.")[[1]]
+  # Prepare vector of possible evolutionary hypotheses
+  possible_hypotheses <- c("CTEN-sister", "PORI-sister", "CTEN_PORI-sister")
+  # Open .iqtree file to get results of other tests
+  iq_lines <- readLines(iqtree_file)
+  # Find the table of test results
+  ind <- intersect(intersect(grep("deltaL", iq_lines), grep("bp-RELL", iq_lines)), intersect(grep("p-SH", iq_lines), grep("p-AU", iq_lines)))
+  # Find the number of trees by finding the next blank line after the end of the table of test results - 
+  #   the number of lines in the table is the number of trees
+  all_blank_lines <- which(iq_lines == "")
+  next_blank_line <- all_blank_lines[which(all_blank_lines > ind)[1]]
+  # Add 2 to starting ind (header row + "-----" division row) and subtract 1 from end ind (blank row) to get number of trees
+  number_of_trees <- length(iq_lines[(ind+2):(next_blank_line-1)])
+  # Adjust the indices for all rows
+  inds <- c(1:number_of_trees) + ind + 1
+  # Extract a row at a time
+  table_list <- lapply(inds, extract.results.for.one.tree, iq_lines)
+  table_df <- as.data.frame(do.call(rbind, table_list))
+  # Add names to the dataframe
+  names(table_df) <- c("tree", "logL", "deltaL", "bp_RELL", "p_KH", "p_SH", "p_wKH", "p_wSH", "c_ELW", "p_AU")
+  # Add columns to the table_df
+  table_df$ID <- paste(c(iqtree_file_split[1], iqtree_file_split[2], iqtree_file_split[3]), collapse = ".")
+  table_df$dataset <- iqtree_file_split[1]
+  table_df$matrix <- iqtree_file_split[2]
+  table_df$gene <- iqtree_file_split[3]
+  table_df$analysis <- "tree_topology_tests"
+  table_df$evolutionary_hypothesis <- possible_hypotheses[1:nrow(table_df)]
+  table_df$AU_test_rejected <- as.numeric(table_df$p_AU) < 0.05
+  table_df$tree_topology_iqtree_file <- iqtree_file
+  # Rearrange columns
+  table_df <- table_df[, c("ID", "dataset", "matrix", "gene", "analysis", "tree", "evolutionary_hypothesis", 
+                           "logL", "deltaL","bp_RELL", "p_KH", "p_SH", "p_wKH", "p_wSH", "c_ELW", "p_AU", "AU_test_rejected",
+                           "tree_topology_iqtree_file")]
+  # Return the tree topology test output
+  return(table_df)
+}
+
+extract.results.for.one.tree <- function(ind, iq_lines){
+  ## Function to return tree topology tests for a single tree
+  # Extract line
+  temp_line <- iq_lines[ind]
+  # Split line into the 10 components
+  temp_line_split <- strsplit(temp_line, " ")[[1]]
+  # Reformat line
+  temp_line_split <- temp_line_split[which(temp_line_split != "")]
+  temp_line_split <- temp_line_split[which(temp_line_split != "+")]
+  temp_line <- temp_line_split[which(temp_line_split != "-")]
+  # Return tree topology values from this line
+  return(temp_line)
+}
+
+
+
+
+#### Extract MAST (tree weight) results ####
+extract.tree.weights <- function(iqtree_file, trim.output.columns = FALSE){
+  ## Function to take an output prefix and directory, and return the results of the HMMster model
+  
+  # Open the iqtree file
+  iq_lines <- readLines(iqtree_file)
+  # Detect the tree weights for each tree
+  tw_ind <- grep("Tree weights", iq_lines, ignore.case = T)
+  tw_line <- iq_lines[ (tw_ind) ]
+  tws <- gsub(" ", "", strsplit(strsplit(tw_line, ":")[[1]][2], ",")[[1]])
+  # Detect the total tree length for each tree
+  ttls_ind <- grep("Total tree lengths", iq_lines, ignore.case = T)
+  ttls_line <- iq_lines[ (ttls_ind) ]
+  ttls_raw <- gsub(" ", "", strsplit(strsplit(ttls_line, ":")[[1]][2], " ")[[1]])
+  ttls <- ttls_raw[which(ttls_raw != "")]
+  # Detect the sum of internal branch lengths for each tree
+  sibl_ind <- grep("Sum of internal branch lengths", iq_lines, ignore.case = T)
+  sibl_line <- iq_lines[ (sibl_ind) ]
+  sibl_raw <- unlist(strsplit(strsplit(strsplit(sibl_line, ":")[[1]][2], "\\(")[[1]],  "\\)"))
+  sibl <- gsub(" ", "", grep("\\%", sibl_raw, value = TRUE, invert = TRUE))
+  # Extract log likelihood
+  ll_line <- grep("Log-likelihood of the tree", iq_lines, value = T)
+  ll_split <- strsplit(ll_line, ":")
+  ll_split2 <- strsplit(ll_split[[1]][2], "\\(")
+  ll_value <- gsub(" ", "", ll_split2[[1]][1])
+  # Extract unconstrained log likelihood
+  ull_line <- grep("Unconstrained log-likelihood", iq_lines, value = T)
+  ull_split <- strsplit(ull_line, ":")
+  ull_value <- gsub(" ", "", ull_split[[1]][2])
+  # Extract number of free parameters
+  nfp_line <- grep("Number of free parameters", iq_lines, value = T)
+  nfp_split <- strsplit(nfp_line, ":")
+  nfp_value <- gsub(" ", "", nfp_split[[1]][2])
+  # Extract AIC
+  aic_lines <- grep("Akaike information criterion", iq_lines, value = T)
+  aic_line <- grep("corrected", aic_lines, ignore.case = T, invert = T, value = T)
+  aic_split <- strsplit(aic_line, ":")
+  aic_value <- gsub(" ", "", aic_split[[1]][2])
+  # Extract AICc
+  aicc_line <- grep("Corrected Akaike information criterion", iq_lines, value = T)
+  aicc_split <- strsplit(aicc_line, ":")
+  aicc_value <- gsub(" ", "", aicc_split[[1]][2])
+  # Extract BIC score
+  bic_line <- grep("Bayesian information criterion", iq_lines, value = T)
+  bic_split <- strsplit(bic_line, ":")
+  bic_value <- gsub(" ", "", bic_split[[1]][2])
+  # Determine the number of trees
+  num_trees <- length(tws)
+  # EITHER keep all 5 columns (for the maximum number of 5 trees) OR 
+  #     remove any columns with NA values and return only the same number of columns as input trees
+  if (trim.output.columns == FALSE){
+    # Check how long each of the outputs are, and extend to 5 if necessary
+    tws <- c(tws, rep(NA, (5 - num_trees )) )
+    ttls <- c(ttls,rep(NA, (5 - num_trees )) )
+    sibl <- c(sibl, rep(NA, (5 - num_trees )) )
+    # Collect the output to return it
+    mast_output <- c(basename(iqtree_file), num_trees, ll_value, ull_value, nfp_value, aic_value, aicc_value, bic_value, tws, ttls, sibl)
+    names(mast_output) <- c("iqtree_file", "number_hypothesis_trees", "log_likelihood_tree", "unconstrained_log_likelihood",
+                            "num_free_params", "AIC", "AICc", "BIC", paste0("tree_", 1:5, "_tree_weight"),
+                            paste0("tree_", 1:5, "_total_tree_length"), paste0("tree_", 1:5, "_sum_internal_bl"))
+  } else if (trim.output.columns == TRUE){
+    mast_output <- c(basename(iqtree_file), num_trees, ll_value, ull_value, nfp_value, aic_value, aicc_value, bic_value, tws, ttls, sibl)
+    names(mast_output) <- c("iqtree_file", "number_hypothesis_trees", "log_likelihood_tree", "unconstrained_log_likelihood",
+                            "num_free_params", "AIC", "AICc", "BIC", paste0("tree_", 1:num_trees, "_tree_weight"),
+                            paste0("tree_", 1:num_trees, "_total_tree_length"), paste0("tree_", 1:num_trees, "_sum_internal_bl"))
+  }
+  # Return output
+  return(mast_output)
+}
