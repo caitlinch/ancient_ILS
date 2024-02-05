@@ -71,6 +71,10 @@ library(ape)
 source(paste0(repo_dir, "code/func_prepare_trees.R"))
 source(paste0(repo_dir, "code/func_empirical_tree_estimation.R"))
 source(paste0(repo_dir, "code/func_data_analysis.R"))
+source(paste0(repo_dir, "code/data_dataset_info.R"))
+rm(borowiec2015_list, chang2015_list, dunn2008_list, hejnol2009_list, laumer2018_list, laumer2019_list,
+   moroz2014_list, nosenko2013_list, philippe2009_list, philippe2011_list, pick2010_list, ryan2013_list,
+   simion2017_list, whelan2015_list, whelan2017_list, models_list)
 
 
 
@@ -296,7 +300,16 @@ if (file.exists(scf_call_df_filepath) == FALSE){
 }
 
 ## Extract sCFs
+# Prepare filepath
 scf_results_df_filepath <- paste0(output_dir, "genes_008_individualGene_sCFResults.csv")
+# Check sCF for key branches
+scf_results_df <- as.data.frame(do.call(rbind, lapply(1:length(scf_call_df),
+                                                      extract.key.scf,
+                                                      dataframe = scf_call_df, 
+                                                      all_datasets = all_datasets, 
+                                                      matrix_taxa = matrix_taxa)))
+# Write SCFs
+write.csv(scf_results_df, file = scf_results_df_filepath, row.names = FALSE)
 
 
 
