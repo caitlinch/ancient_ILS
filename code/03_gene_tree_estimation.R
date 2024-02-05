@@ -245,17 +245,18 @@ if (file.exists(constraint_tree_df_filepath) == FALSE){
 
 ## Extract results from constrained trees run
 ## Check whether dataframe exists
-constrained_run_df_filepath <- paste0(output_dir, "genes_004_individualGene_ConstrainedTreeResults.csv")
-# Open initial_run_df if it exists. If it doesn't, then create it.
+constrained_run_df_filepath <- paste0(output_dir, "genes_006_individualGene_ConstrainedTreeResults.csv")
+# Open constrained_run_df_ if it exists. If it doesn't, then create it.
 if (file.exists(constrained_run_df_filepath) == FALSE){
+  constraint_tree_df$constraint_tree_directory <- paste0(constraint_output_dir, constraint_tree_df$dataset_id, "/")
   # Extract output from iqtree files
-  initial_run_df <- as.data.frame(do.call(rbind, lapply(1:nrow(initial_df), 
-                                                        extract.unconstrained.tree.details, 
-                                                        dataframe = initial_df) ) ) 
+  constrained_run_df <- as.data.frame(do.call(rbind, lapply(1:nrow(constraint_tree_df), 
+                                                            extract.constrained.tree.details, 
+                                                            dataframe = constraint_tree_df) ) ) 
   # Write the initial run output df to file
-  write.csv(initial_run_df, file = constrained_run_df_filepath, row.names = FALSE)
+  write.csv(constrained_run_df, file = constrained_run_df_filepath, row.names = FALSE)
 } else {
-  initial_run_df <- read.csv(constrained_run_df_filepath, stringsAsFactors = FALSE)
+  constrained_run_df <- read.csv(constrained_run_df_filepath, stringsAsFactors = FALSE)
 }
 
 
