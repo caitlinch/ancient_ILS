@@ -2,6 +2,8 @@
 ## This script includes functions to analyse concordance factors, quartet scores, and phylogenetic trees
 # Caitlin Cherryh, 2023
 
+library(ape)
+
 #### Collate model details from IQ-Tree output files ####
 extract.unconstrained.tree.details <- function(row_id, dataframe){
   # Extract best model, rates, and results of IQ-Tree run
@@ -521,3 +523,85 @@ extract.tree.weights <- function(iqtree_file, trim.output.columns = FALSE){
   # Return output
   return(mast_output)
 }
+
+
+
+
+#### Extract details from sCF output ####
+extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
+  ## Function to extract key sCF from the scf files
+  
+  ## Extract temp row
+  temp_row <- dataframe[row_id, ]
+  
+  ## Assemble file paths
+  CTEN_cf_stat <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_scf_prefix, ".cf.stat")
+  CTEN_cf_branch <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_scf_prefix, ".cf.branch")
+  CTEN_cf_tree <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_scf_prefix, ".cf.tree")
+  PORI_cf_stat <- paste0(temp_row$constraint_tree_directory, temp_row$PORI_scf_prefix, ".cf.stat")
+  PORI_cf_branch <- paste0(temp_row$constraint_tree_directory, temp_row$PORI_scf_prefix, ".cf.branch")
+  PORI_cf_tree <- paste0(temp_row$constraint_tree_directory, temp_row$PORI_scf_prefix, ".cf.tree")
+  CTEN_PORI_cf_stat <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_PORI_scf_prefix, ".cf.stat")
+  CTEN_PORI_cf_branch <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_PORI_scf_prefix, ".cf.branch")
+  CTEN_PORI_cf_tree <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_PORI_scf_prefix, ".cf.tree")
+  
+  ## Prepare taxa
+  # Identify dataset
+  dataset_id <- temp_row$dataset_id
+  dataset_name <- temp_row$dataset
+  # Open CTEN tree
+  cten_tree <- read.tree(CTEN_cf_tree)
+  # Classify taxa
+  if (dataset_id %in% names(matrix_taxa)){
+    # If there are multiple matrices published with the same dataset, separate only the taxa from the matrix of interest
+    matrix_taxa_trimmed <- matrix_taxa[[dataset_id]]
+    dataset_taxa <- all_datasets[[dataset_name]]
+    dataset_taxa$Bilateria  <- dataset_taxa$Bilateria[ which( dataset_taxa$Bilateria %in% matrix_taxa_trimmed ) ]
+    dataset_taxa$Cnidaria   <- dataset_taxa$Cnidaria[ which( dataset_taxa$Cnidaria %in% matrix_taxa_trimmed ) ]
+    dataset_taxa$Ctenophora <- dataset_taxa$Ctenophora[ which( dataset_taxa$Ctenophora %in% matrix_taxa_trimmed ) ]
+    dataset_taxa$Placozoa   <- dataset_taxa$Placozoa[ which( dataset_taxa$Placozoa %in% matrix_taxa_trimmed ) ]
+    dataset_taxa$Porifera   <- dataset_taxa$Porifera[ which( dataset_taxa$Porifera %in% matrix_taxa_trimmed ) ]
+    dataset_taxa$Outgroup   <- dataset_taxa$Outgroup[ which( dataset_taxa$Outgroup %in% matrix_taxa_trimmed ) ]
+  } else {
+    # Separate out the taxa from the dataset of interest
+    dataset_taxa <- all_datasets[[dataset_name]]
+  }
+  # Now, separate the taxa in this gene based on clade
+  bilat_taxa  <- dataset_taxa$Bilateria[ which( dataset_taxa$Bilateria %in% cten_tree$tip.label ) ]
+  cnid_taxa   <- dataset_taxa$Cnidaria[ which( dataset_taxa$Cnidaria %in% cten_tree$tip.label ) ]
+  cten_taxa   <- dataset_taxa$Ctenophora[ which( dataset_taxa$Ctenophora %in% cten_tree$tip.label ) ]
+  plac_taxa   <- dataset_taxa$Placozoa[ which( dataset_taxa$Placozoa %in% cten_tree$tip.label ) ]
+  pori_taxa   <- dataset_taxa$Porifera[ which( dataset_taxa$Porifera %in% cten_tree$tip.label ) ]
+  outg_taxa   <- dataset_taxa$Outgroup[ which( dataset_taxa$Outgroup %in% cten_tree$tip.label ) ]
+  
+  ## Process CTEN files
+  # Open CTEN tree
+  cten_tree <- read.tree(CTEN_cf_tree)
+  # Root at outgroup
+  cten_rooted <- root(cten_tree, outgroup = outg_taxa)
+  # Extract branch id for the main branches
+  all_animals_branch_id <- getMRCA(cten_rooted, tip = c(bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa))
+  all_animals_node <- ""
+  all_other_metazoa <- ""
+  # Extract scf for CTEN and PORI clades (if they contain 2+ taxa)
+  if (length(cten_taxa) > 1){
+    cten_branch_id <- getMRCA(cten_rooted, tip = cten_taxa)
+  } else {
+    cten_branch_id <- NA
+  }
+  if (length(pori_taxa) > 1){
+    pori_branch_id <- getMRCA(cten_rooted, tip = pori_taxa)
+  } else {
+    pori_branch_id <- NA
+  }
+
+  
+  
+  
+  # Root at outgroup
+  cten_rooted <- root(cten_tree, outgroup = outg_taxa)
+  #
+}
+
+
+
