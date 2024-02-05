@@ -25,6 +25,7 @@ if (location == "local"){
   constraint_output_dir   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_03_empirical_genes_constrained_trees/"
   output_dir              <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
   iqtree2                 <- "iqtree2"
+  iqtree2_MAST_path       <- "/Users/caitlincherryh/Documents/C3_TreeMixtures_Sponges/03_Software_IQ-Tree/iqtree-2.2.4.hmmster-MacOSX/bin/iqtree2"
   iqtree2_num_threads     <- 3
 } else if (location == "dayhoff"){
   repo_dir                <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
@@ -261,22 +262,61 @@ if (file.exists(constrained_run_df_filepath) == FALSE){
   constrained_run_df <- read.csv(constrained_run_df_filepath, stringsAsFactors = FALSE)
 }
 
+## Collate constrained trees
+# Create file path for the collated constraint trees
+constrained_run_df$collated_constraint_tree <- paste0(constrained_run_df$gene_id, ".hypotheses.treefile")
+# Combine the constrained trees into one file
+for (i in 1:length(constrained_run_df)){
+  # Extract constrained tree files
+  i_ct_files <- paste0(constrained_run_df$constraint_tree_directory[i], c(constrained_run_df$CTEN_treefile[i], 
+                                                                          constrained_run_df$PORI_treefile[i], 
+                                                                          constrained_run_df$CTEN_PORI_treefile[i]))
+  i_ct_collated_trees <- c(unlist(lapply(i_ct_files,readLines)), "")
+  write(i_ct_collated_trees, file = paste0(constrained_run_df$constraint_tree_directory[i], constrained_run_df$collated_constraint_tree[i]) )
+}
 
 
 
 #### 7. Estimate sCFs ####
-# Calculate sCF: 
-# $ iqtree2 -te concat.treefile -s ALN_FILE -m 'best_model' --scfl 100 -pre sCF
+## Extimate sCFs
+# Check whether dataframe exists
+scf_call_df_filepath <- paste0(output_dir, "genes_007_individualGene_sCFCommand.csv")
+if (file.exists(scf_call_df_filepath) == FALSE){
+  # Create scf command lines
+  scf_call_df <- as.data.frame(do.call(rbind, lapply(1:nrow(constrained_run_df), 
+                                                     estimate.gene.scf.wrapper, 
+                                                     dataframe = constrained_run_df,
+                                                     iqtree2_path = iqtree2, 
+                                                     iqtree2_num_threads = iqtree2_num_threads) ) ) 
+  # Write the initial run output df to file
+  write.csv(scf_call_df, file = scf_call_df_filepath, row.names = FALSE)
+} else {
+  scf_call_df <- read.csv(scf_call_df_filepath, stringsAsFactors = FALSE)
+}
 
+## Extract sCFs
+scf_results_df_filepath <- paste0(output_dir, "genes_008_individualGene_sCFResults.csv")
 
 
 
 #### 8. Calculate AU test for each gene ####
-# AU test
-# $ iqtree -s gene.fa -te constrained_tree.nex -n 0 -zb 1000 -zw -au -pre AU_test
+# Check if file exists
+topology_test_df_filepath <- paste0(output_dir, "genes_009_individualGene_TreeComparisonCommands.csv")
+if (file.exists(topology_test_df_filepath) == FALSE){
+  # Create AU test commands and MAST commands for each gene
+  topology_test_df <- as.data.frame(do.call(rbind, lapply(1:nrow(constrained_run_df), 
+                                                          gene.au.test.mast.command, 
+                                                          dataframe = constrained_run_df,
+                                                          iqtree2_path = iqtree2, 
+                                                          iqtree2_num_threads = iqtree2_num_threads) ) ) 
+  # Write the initial run output df to file
+  write.csv(topology_test_df, file = topology_test_df_filepath, row.names = FALSE)
+} else {
+  topology_test_df <- read.csv(topology_test_df_filepath, stringsAsFactors = FALSE)
+}
 
-# MAST
-# $ iqtree2 -s gene.fa -m 'best_model+TR' -te constrained_tree.nex -pre MAST
+## Extract topology test results
+topology_results_df_filepath <- paste0(output_dir, "genes_010_individualGene_TreeComparisonResults.csv")
 
 
 
