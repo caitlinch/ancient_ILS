@@ -581,6 +581,7 @@ extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
   cten_rooted <- root(cten_tree, outgroup = outg_taxa)
   # Extract branch id for the main branches
   all_animals_branch_id <- getMRCA(cten_rooted, tip = c(bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa))
+  all_animals_branch_nodes <- cten_rooted$edge[which(all_animals_branch_id == cten_rooted$edge[ ,2]), ]
   all_animals_node <- ""
   all_other_metazoa <- ""
   # Extract scf for CTEN and PORI clades (if they contain 2+ taxa)
