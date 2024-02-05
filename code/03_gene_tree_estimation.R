@@ -19,19 +19,21 @@
 
 location = "local"
 if (location == "local"){
-  repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-  alignment_dir         <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/alignments/"
-  gene_output_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_empirical_genes_initial_run/"
-  output_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
-  iqtree2               <- "iqtree2"
-  iqtree2_num_threads   <- 3
+  repo_dir                <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
+  alignment_dir           <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/alignments/"
+  gene_output_dir         <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_02_empirical_genes_initial_tree_estimation/"
+  constraint_output_dir   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_03_empirical_genes_constrained_trees/"
+  output_dir              <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
+  iqtree2                 <- "iqtree2"
+  iqtree2_num_threads     <- 3
 } else if (location == "dayhoff"){
-  repo_dir          <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
-  alignment_dir       <- paste0(repo_dir, "data_all/")
-  gene_output_dir     <- paste0(repo_dir, "genes/")
-  output_dir          <- paste0(repo_dir, "output/")
-  iqtree2             <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
-  iqtree2_num_threads <- 5
+  repo_dir                <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
+  alignment_dir           <- paste0(repo_dir, "data_all/")
+  gene_output_dir         <- paste0(repo_dir, "genes/")
+  constraint_output_dir   <- gene_output_dir
+  output_dir              <- paste0(repo_dir, "output/")
+  iqtree2                 <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
+  iqtree2_num_threads     <- 5
 }
 
 # Set parameters that are identical for all run locations
@@ -185,7 +187,7 @@ if (file.exists(initial_run_df_filepath) == FALSE){
   # Write the initial run output df to file
   write.csv(initial_run_df, file = initial_run_df_filepath, row.names = FALSE)
 } else {
-  initial_run_df <- read.csv(initial_df_filepath, stringsAsFactors = FALSE)
+  initial_run_df <- read.csv(initial_run_df_filepath, stringsAsFactors = FALSE)
 }
 
 
@@ -241,7 +243,20 @@ if (file.exists(constraint_tree_df_filepath) == FALSE){
   constraint_tree_df <- read.csv(constraint_tree_df_filepath, stringsAsFactors = FALSE)
 }
 
-## Extract results from constrained trees
+## Extract results from constrained trees run
+## Check whether dataframe exists
+constrained_run_df_filepath <- paste0(output_dir, "genes_004_individualGene_ConstrainedTreeResults.csv")
+# Open initial_run_df if it exists. If it doesn't, then create it.
+if (file.exists(constrained_run_df_filepath) == FALSE){
+  # Extract output from iqtree files
+  initial_run_df <- as.data.frame(do.call(rbind, lapply(1:nrow(initial_df), 
+                                                        extract.unconstrained.tree.details, 
+                                                        dataframe = initial_df) ) ) 
+  # Write the initial run output df to file
+  write.csv(initial_run_df, file = constrained_run_df_filepath, row.names = FALSE)
+} else {
+  initial_run_df <- read.csv(constrained_run_df_filepath, stringsAsFactors = FALSE)
+}
 
 
 
