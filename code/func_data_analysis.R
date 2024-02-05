@@ -6,7 +6,6 @@
 extract.unconstrained.tree.details <- function(row_id, dataframe){
   # Extract best model, rates, and results of IQ-Tree run
   
-  print(row_id)
   # Identify run and extract row
   temp_row <- dataframe[row_id,]
   # Identify IQ-Tree file from intial run
