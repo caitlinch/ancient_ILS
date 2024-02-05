@@ -32,6 +32,34 @@ extract.unconstrained.tree.details <- function(row_id, dataframe){
   return(op_row)
 }
 
+extract.constrained.tree.details <- function(row_id, dataframe){
+  # Extract best model, rates, and results of the three constrained trees (CTEN, PORI, and CTEN_PORI)
+  
+  # Identify run and extract row
+  temp_row <- dataframe[row_id,]
+  # Identify IQ-Tree file from intial run
+  CTEN_iqtree_file <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_prefix, ".iqtree")
+  PORI_iqtree_file <- paste0(temp_row$constraint_tree_directory, temp_row$PORI_prefix, ".iqtree")
+  CTEN_PORI_iqtree_file <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_PORI_prefix, ".iqtree")
+  # Run the functions that extract details from the iqtree file
+  CTEN_ll_op      <- extract.tree.log.likelihood(CTEN_iqtree_file, var = "All")
+  PORI_ll_op      <- extract.tree.log.likelihood(PORI_iqtree_file, var = "All")
+  CTEN_PORI_ll_op      <- extract.tree.log.likelihood(CTEN_PORI_iqtree_file, var = "All")
+  ll_op_names <- names(CTEN_ll_op)
+  # Assemble output into a nice dataframe row
+  op_row <- c(as.character(temp_row)[1:35], 
+              CTEN_ll_op, paste0(temp_row$CTEN_prefix, ".treefile"),
+              PORI_ll_op, paste0(temp_row$PORI_prefix, ".treefile"),
+              CTEN_PORI_ll_op, paste0(temp_row$CTEN_PORI_prefix, ".treefile"))
+  names(op_row) <- c(names(temp_row)[1:35],
+                     paste0("CTEN_", ll_op_names), "CTEN_treefile",
+                     paste0("PORI_", ll_op_names), "PORI_treefile",
+                     paste0("CTEN_PORI_", ll_op_names), "CTEN_PORI_treefile")
+  # Return the output
+  return(op_row)
+}
+
+
 
 
 extract.best.model <- function(iqtree_file){
