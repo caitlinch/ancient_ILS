@@ -399,6 +399,37 @@ estimate.gcf.scf <- function(alignment_file, gene_trees_file, test_tree,
 }
 
 
+## Estimating site concordance factors for each gene
+estimate.gene.scf.wrapper <- function(row_id, dataframe, iqtree2_path, iqtree2_num_threads){
+  ## Wrap around the estimate.gene.scf function
+  
+  # Create temporary row
+  temp_row <- dataframe[row_id, ]
+  # Add new columns
+  temp_row$CTEN_scf_prefix <- gsub("CTEN_tree", "CTEN_scf", temp_row$CTEN_prefix)
+  temp_row$PORI_scf_prefix <- gsub("PORI_tree", "PORI_scf", temp_row$PORI_prefix)
+  temp_row$CTEN_PORI_scf_prefix <- gsub("CTEN_PORI_tree", "CTEN__PORI_scf", temp_row$CTEN_PORI_prefix)
+  # Create scf calls
+  # for version 2.2.2 or above: $ iqtree2 -te concat.treefile -s ALN_FILE --scfl 100 --prefix concord
+  temp_row$CTEN_scf_call <- paste0(iqtree2_path, " -te ", temp_row$constraint_tree_directory, temp_row$CTEN_treefile, 
+                                   " -s ", temp_row$gene_directory, temp_row$gene_file, " -m ", "'",
+                                   temp_row$unconstrained_tree_alisim_model, "'", " --scfl 100 -pre ",
+                                   temp_row$constraint_tree_directory, temp_row$CTEN_scf_prefix, 
+                                   " -nt ", iqtree2_num_threads)
+  temp_row$PORI_scf_call <- paste0(iqtree2_path, " -te ", temp_row$constraint_tree_directory, temp_row$PORI_treefile, 
+                                   " -s ", temp_row$gene_directory, temp_row$gene_file, " -m ", "'",
+                                   temp_row$unconstrained_tree_alisim_model, "'", " --scfl 100 -pre ",
+                                   temp_row$constraint_tree_directory, temp_row$PORI_scf_prefix, 
+                                   " -nt ", iqtree2_num_threads)
+  temp_row$CTEN_PORI_scf_call <- paste0(iqtree2_path, " -te ", temp_row$constraint_tree_directory, temp_row$CTEN_PORI_treefile, 
+                                        " -s ", temp_row$gene_directory, temp_row$gene_file, " -m ", "'",
+                                        temp_row$unconstrained_tree_alisim_model, "'", " --scfl 100 -pre ",
+                                        temp_row$constraint_tree_directory, temp_row$CTEN_PORI_scf_prefix, 
+                                        " -nt ", iqtree2_num_threads)
+  # Return output
+  return(temp_row)
+}
+
 
 ## Estimating quartet scores
 estimate.quartet.scores.wrapper <- function(row_id, dataframe, constraint_tree_hypothesis, astral_path, estimate.trees = FALSE){

@@ -248,8 +248,10 @@ if (file.exists(constraint_tree_df_filepath) == FALSE){
 constrained_run_df_filepath <- paste0(output_dir, "genes_006_individualGene_ConstrainedTreeResults.csv")
 # Open constrained_run_df_ if it exists. If it doesn't, then create it.
 if (file.exists(constrained_run_df_filepath) == FALSE){
+  # Add constraint tree directory (location of saved constraint tree output files)
   constraint_tree_df$constraint_tree_directory <- paste0(constraint_output_dir, constraint_tree_df$dataset_id, "/")
   # Extract output from iqtree files
+  ## NOTE: CURRENTLY ONLY ROWS 1 - 10 COMPLETED FOR TESTING
   constrained_run_df <- as.data.frame(do.call(rbind, lapply(1:nrow(constraint_tree_df), 
                                                             extract.constrained.tree.details, 
                                                             dataframe = constraint_tree_df) ) ) 
