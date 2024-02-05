@@ -195,9 +195,9 @@ constraint_tree_df_filepath <- paste0(output_dir, "genes_005_individualGene_Init
 # Open constraint_tree_df if it exists. If it doesn't, then create it.
 if (file.exists(constraint_tree_df_filepath) == FALSE){
   # Add columns needed for estimating constrained gene trees
-  initial_run_df$CTEN_prefix <- paste0(temp_row$gene_id, ".CTEN_tree")
-  initial_run_df$PORI_prefix <- paste0(temp_row$gene_id, ".PORI_tree")
-  initial_run_df$CTEN_PORI_prefix <- paste0(temp_row$gene_id, ".CTEN_PORI_tree")
+  initial_run_df$CTEN_prefix <- paste0(initial_run_df$gene_id, ".CTEN_tree")
+  initial_run_df$PORI_prefix <- paste0(initial_run_df$gene_id, ".PORI_tree")
+  initial_run_df$CTEN_PORI_prefix <- paste0(initial_run_df$gene_id, ".CTEN_PORI_tree")
   # Estimate gene trees (constrained)
   # Note: Use model from initial unconstrained run - otherwise cannot compare trees with AU test or MAST
   constraint_tree_df <- as.data.frame(do.call(rbind, lapply(1:nrow(initial_run_df), 
