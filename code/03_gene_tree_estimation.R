@@ -14,6 +14,7 @@
 # gene_output_dir             <- Location for saving genes and running gene-wise analyses
 # output_dir                  <- Directory for saving results files (csv and text)
 # iqtree2                     <- Location of IQ-Tree2 executable
+# iqtree_MAST                 <- Location of IQ-Tree2 release with MAST model
 # iqtree2_num_bootstraps      <- Number of ultrafast bootstraps (UFB) to perform in IQ-Tree
 # iqtree2_num_threads         <- Number of parallel threads for IQ-Tree to use. Can be a set number (e.g. 2) or "AUTO"
 
@@ -25,7 +26,7 @@ if (location == "local"){
   constraint_output_dir   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_03_empirical_genes_constrained_trees/"
   output_dir              <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
   iqtree2                 <- "iqtree2"
-  iqtree2_MAST_path       <- "/Users/caitlincherryh/Documents/C3_TreeMixtures_Sponges/03_Software_IQ-Tree/iqtree-2.2.4.hmmster-MacOSX/bin/iqtree2"
+  iqtree2_MAST            <- "/Users/caitlincherryh/Documents/C3_TreeMixtures_Sponges/03_Software_IQ-Tree/iqtree-2.2.4.hmmster-MacOSX/bin/iqtree2"
   iqtree2_num_threads     <- 3
 } else if (location == "dayhoff"){
   repo_dir                <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
@@ -308,6 +309,7 @@ if (file.exists(topology_test_df_filepath) == FALSE){
                                                           gene.au.test.mast.command, 
                                                           dataframe = constrained_run_df,
                                                           iqtree2_path = iqtree2, 
+                                                          iqtree2_MAST_path = iqtree_MAST,
                                                           iqtree2_num_threads = iqtree2_num_threads) ) ) 
   # Write the initial run output df to file
   write.csv(topology_test_df, file = topology_test_df_filepath, row.names = FALSE)
