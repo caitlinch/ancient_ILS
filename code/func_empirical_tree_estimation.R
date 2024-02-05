@@ -408,7 +408,7 @@ estimate.gene.scf.wrapper <- function(row_id, dataframe, iqtree2_path, iqtree2_n
   # Add new columns
   temp_row$CTEN_scf_prefix <- gsub("CTEN_tree", "CTEN_scf", temp_row$CTEN_prefix)
   temp_row$PORI_scf_prefix <- gsub("PORI_tree", "PORI_scf", temp_row$PORI_prefix)
-  temp_row$CTEN_PORI_scf_prefix <- gsub("CTEN_PORI_tree", "CTEN__PORI_scf", temp_row$CTEN_PORI_prefix)
+  temp_row$CTEN_PORI_scf_prefix <- gsub("CTEN_PORI_tree", "CTEN_PORI_scf", temp_row$CTEN_PORI_prefix)
   # Create scf calls
   # for version 2.2.2 or above: $ iqtree2 -te concat.treefile -s ALN_FILE --scfl 100 --prefix concord
   temp_row$CTEN_scf_call <- paste0(iqtree2_path, " -te ", temp_row$constraint_tree_directory, temp_row$CTEN_treefile, 
