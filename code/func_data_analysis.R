@@ -591,9 +591,9 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
   # Drop PLAC tips to simplify extraction process
   cten_tree <- drop.tip(cten_rooted, tip = plac_taxa)
   # Extract CTEN tree, ALL ANIMALS branch (AA)
-  aa_start    <- getMRCA(cten_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
-  aa_end      <- getMRCA(cten_tree, tip = c(bilat_taxa, cnid_taxa, pori_taxa))
-  aa_branch   <-  which((cten_tree$edge[,1] == aa_start) & (cten_tree$edge[,2] == aa_end))
+  aa_end      <- getMRCA(cten_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
+  aa_start    <- cten_tree$edge[which(cten_tree$edge[,2] == aa_end), 1]
+  aa_branch   <- which((cten_tree$edge[,1] == aa_start)  & (cten_tree$edge[,2] == aa_end))
   aa_node     <- cten_tree$node.label[aa_branch]
   aa_bs       <- as.numeric(strsplit(aa_node, "/")[[1]][1])
   aa_scf      <- as.numeric(strsplit(aa_node, "/")[[1]][2])
@@ -603,9 +603,9 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
                                                  round(cten_tab$Label, digits = 1) == round(aa_bs, digits = 1) & 
                                                  round(cten_tab$Length, digits = 4) == round(aa_length, digits = 4)), ]))
   # Extract CTEN tree, ALL OTHER ANIMALS branch (aoa)
-  aoa_start   <- getMRCA(cten_tree, tip = c(bilat_taxa, cnid_taxa, pori_taxa))
-  aoa_end     <- getMRCA(cten_tree, tip = c(bilat_taxa, cnid_taxa))
-  aoa_branch  <- which((cten_tree$edge[,1] == aoa_start) & (cten_tree$edge[,2] == aoa_end))
+  aoa_start   <- getMRCA(cten_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
+  aoa_end     <- getMRCA(cten_tree, tip = c(bilat_taxa, cnid_taxa, pori_taxa))
+  aoa_branch  <- which((cten_tree$edge[,1] == aoa_start)  & (cten_tree$edge[,2] == aoa_end))
   aoa_node    <- cten_tree$node.label[aoa_branch]
   aoa_bs      <- as.numeric(strsplit(aoa_node, "/")[[1]][1])
   aoa_scf     <- as.numeric(strsplit(aoa_node, "/")[[1]][2])
@@ -668,8 +668,8 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
   # Drop PLAC tips to simplify extraction process
   pori_tree <- drop.tip(pori_rooted, tip = plac_taxa)
   # Extract PORI tree, ALL ANIMALS branch (AA)
-  aa_start      <- getMRCA(pori_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
-  aa_end        <- getMRCA(pori_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa))
+  aa_end        <- getMRCA(pori_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
+  aa_start      <- pori_tree$edge[which(pori_tree$edge[,2] == aa_end), 1]
   aa_branch     <- which((pori_tree$edge[,1] == aa_start)  & (pori_tree$edge[,2] == aa_end))
   aa_node       <- pori_tree$node.label[ (aa_start - Ntip(pori_tree) ) ]
   aa_bs         <- as.numeric(strsplit(aa_node, "/")[[1]][1])
@@ -680,8 +680,8 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
                                                  round(pori_tab$Label, digits = 1) == round(aa_bs, digits = 1) & 
                                                  round(pori_tab$Length, digits = 4) == round(aa_length, digits = 4)), ]))
   # Extract PORI tree, ALL OTHER ANIMALS branch (aoa)
-  aoa_start   <- getMRCA(pori_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa))
-  aoa_end     <- getMRCA(pori_tree, tip = c(bilat_taxa, cnid_taxa))
+  aoa_start   <- getMRCA(pori_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
+  aoa_end     <- getMRCA(pori_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa))
   aoa_branch  <- which((pori_tree$edge[,1] == aoa_start)  & (pori_tree$edge[,2] == aoa_end))
   aoa_node    <- pori_tree$node.label[ (aoa_start - Ntip(pori_tree) ) ]
   aoa_bs      <- as.numeric(strsplit(aoa_node, "/")[[1]][1])
