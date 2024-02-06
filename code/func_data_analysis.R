@@ -573,9 +573,14 @@ extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
   pori_taxa   <- dataset_taxa$Porifera[ which( dataset_taxa$Porifera %in% cten_tree$tip.label ) ]
   outg_taxa   <- dataset_taxa$Outgroup[ which( dataset_taxa$Outgroup %in% cten_tree$tip.label ) ]
   
-  ## Process CTEN files
-  cten_scf_df <- process.CTEN.tree(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa)
-  pori_scf_df <- process.PORI.tree(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa)
+  ## Extract sCF from key branches of each constrained tree
+  cten_scf_df       <- process.CTEN.tree(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa)
+  pori_scf_df       <- process.PORI.tree(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa)
+  cten_pori_scf_df  <- process.CTEN_PORI.tree(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa)
+  
+  ## Collate output
+  temp_scf_output <- rbind(cten_scf_df, pori_scf_df, cten_pori_scf_df)
+  return(temp_scf_output)
 }
 
 
