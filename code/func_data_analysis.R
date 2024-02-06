@@ -576,20 +576,27 @@ extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
   
   ## Process CTEN files
   # Open CTEN tree
-  cten_tree <- read.tree(CTEN_cf_tree)
+  cten_tree_raw <- read.tree(CTEN_cf_tree)
   # Root at outgroup
-  cten_rooted <- root(cten_tree, outgroup = outg_taxa)
-  # Extract branch id for the main branches
+  cten_rooted <- root(cten_tree_raw, outgroup = outg_taxa)
+  # Drop PLAC tips to simplify extraction process
+  cten_tree <- drop.tip(cten_rooted, tip = plac_taxa)
+  # Extract CTEN tree, ALL ANIMALS branch
   all_animals_branch_id <- getMRCA(cten_rooted, tip = c(bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa))
   all_animals_branch_nodes <- cten_rooted$edge[which(all_animals_branch_id == cten_rooted$edge[ ,2]), ]
+  
+  all_animals_branch_id <- getMRCA(cten_rooted, tip = c(bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa))
+  
+  # Extract CTEN tree, ALL OTHER ANIMALS branch
   all_animals_node <- ""
   all_other_metazoa <- ""
-  # Extract scf for CTEN and PORI clades (if they contain 2+ taxa)
+  # Extract CTEN tree, CTEN branch
   if (length(cten_taxa) > 1){
     cten_branch_id <- getMRCA(cten_rooted, tip = cten_taxa)
   } else {
     cten_branch_id <- NA
   }
+  # Extract CTEN tree, PORI branch
   if (length(pori_taxa) > 1){
     pori_branch_id <- getMRCA(cten_rooted, tip = pori_taxa)
   } else {
