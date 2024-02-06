@@ -534,21 +534,20 @@ extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
   ## Extract temp row
   temp_row <- dataframe[row_id, ]
   
-  ## Assemble file paths
+  ## Assemble file paths from sCF tuns
   CTEN_cf_stat <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_scf_prefix, ".cf.stat")
-  CTEN_cf_branch <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_scf_prefix, ".cf.branch")
   CTEN_cf_tree <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_scf_prefix, ".cf.tree")
   PORI_cf_stat <- paste0(temp_row$constraint_tree_directory, temp_row$PORI_scf_prefix, ".cf.stat")
-  PORI_cf_branch <- paste0(temp_row$constraint_tree_directory, temp_row$PORI_scf_prefix, ".cf.branch")
   PORI_cf_tree <- paste0(temp_row$constraint_tree_directory, temp_row$PORI_scf_prefix, ".cf.tree")
   CTEN_PORI_cf_stat <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_PORI_scf_prefix, ".cf.stat")
-  CTEN_PORI_cf_branch <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_PORI_scf_prefix, ".cf.branch")
   CTEN_PORI_cf_tree <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_PORI_scf_prefix, ".cf.tree")
   
-  ## Prepare taxa
+  ## Prepare taxa for tree analysis
   # Identify dataset
   dataset_id <- temp_row$dataset_id
   dataset_name <- temp_row$dataset
+  # Assemble table output columns
+  dataset_info <- c(temp_row$dataset, temp_row$matrix_name, temp_row$dataset_id, temp_row$gene_name, temp_row$gene_id)
   # Open CTEN tree
   cten_tree <- read.tree(CTEN_cf_tree)
   # Classify taxa
@@ -575,40 +574,162 @@ extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
   outg_taxa   <- dataset_taxa$Outgroup[ which( dataset_taxa$Outgroup %in% cten_tree$tip.label ) ]
   
   ## Process CTEN files
+  cten_scf_df <- process.CTEN.tree(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa)
+  
+}
+
+
+process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa){
+  ## Process CTEN files to extract sCF for all relevant branches
+  
+  # Open the cf.stat table
+  cten_tab = read.table(CTEN_cf_stat, header=TRUE)
   # Open CTEN tree
   cten_tree_raw <- read.tree(CTEN_cf_tree)
   # Root at outgroup
   cten_rooted <- root(cten_tree_raw, outgroup = outg_taxa)
   # Drop PLAC tips to simplify extraction process
   cten_tree <- drop.tip(cten_rooted, tip = plac_taxa)
-  # Extract CTEN tree, ALL ANIMALS branch
-  all_animals_branch_id <- getMRCA(cten_rooted, tip = c(bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa))
-  all_animals_branch_nodes <- cten_rooted$edge[which(all_animals_branch_id == cten_rooted$edge[ ,2]), ]
-  
-  all_animals_branch_id <- getMRCA(cten_rooted, tip = c(bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa))
-  
-  # Extract CTEN tree, ALL OTHER ANIMALS branch
-  all_animals_node <- ""
-  all_other_metazoa <- ""
-  # Extract CTEN tree, CTEN branch
+  # Extract CTEN tree, ALL ANIMALS branch (AA)
+  aa_end      <- getMRCA(cten_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
+  aa_start    <- cten_tree$edge[which(cten_tree$edge[,2] == aa_end),1]
+  aa_branch   <- which(cten_tree$edge[,1] == aa_start & cten_tree$edge[,2] == aa_end)
+  aa_node     <- cten_tree$node.label[aa_branch]
+  aa_bs       <- as.numeric(strsplit(aa_node, "/")[[1]][1])
+  aa_scf      <- as.numeric(strsplit(aa_node, "/")[[1]][2])
+  aa_length   <- as.numeric(cten_tree$edge.length[aa_branch])
+  aa_vector   <- as.character(c(dataset_info, "CTEN_sister", "ALL_ANIMALS",
+                                cten_tab[which(round(cten_tab$sCF, digits = 1) == round(aa_scf, digits = 1) & 
+                                                 round(cten_tab$Label, digits = 1) == round(aa_bs, digits = 1) & 
+                                                 round(cten_tab$Length, digits = 4) == round(aa_length, digits = 4)), ]))
+  # Extract CTEN tree, ALL OTHER ANIMALS branch (aoa)
+  aoa_end     <- getMRCA(cten_tree, tip = c(bilat_taxa, cnid_taxa, pori_taxa))
+  aoa_start   <- cten_tree$edge[which(cten_tree$edge[,2] == aoa_end),1]
+  aoa_branch  <- which(cten_tree$edge[,1] == aoa_start & cten_tree$edge[,2] == aoa_end)
+  aoa_node    <- cten_tree$node.label[aoa_branch]
+  aoa_bs      <- as.numeric(strsplit(aoa_node, "/")[[1]][1])
+  aoa_scf     <- as.numeric(strsplit(aoa_node, "/")[[1]][2])
+  aoa_length  <- as.numeric(cten_tree$edge.length[aoa_branch])
+  aoa_vector  <- as.character(c(dataset_info, "CTEN_sister", "ALL_OTHER_ANIMALS",
+                                cten_tab[which(round(cten_tab$sCF, digits = 1) == round(aoa_scf, digits = 1) & 
+                                                 round(cten_tab$Label, digits = 1) == round(aoa_bs, digits = 1) & 
+                                                 round(cten_tab$Length, digits = 4) == round(aoa_length, digits = 4)), ]))
+  # Extract CTEN tree, CTEN branch (C)
   if (length(cten_taxa) > 1){
-    cten_branch_id <- getMRCA(cten_rooted, tip = cten_taxa)
+    c_end     <- getMRCA(cten_tree, tip = cten_taxa)
+    c_start   <- cten_tree$edge[which(cten_tree$edge[,2] == c_end),1]
+    c_branch  <- which(cten_tree$edge[,1] == c_start & cten_tree$edge[,2] == c_end)
+    c_node    <- cten_tree$node.label[c_branch]
+    c_bs      <- as.numeric(strsplit(c_node, "/")[[1]][1])
+    c_scf     <- as.numeric(strsplit(c_node, "/")[[1]][2])
+    c_length  <- as.numeric(cten_tree$edge.length[c_branch])
+    c_vector  <- as.character(c(dataset_info, "CTEN_sister", "CTEN_CLADE",
+                                cten_tab[which(round(cten_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
+                                                 round(cten_tab$Label, digits = 1) == round(c_bs, digits = 1) & 
+                                                 round(cten_tab$Length, digits = 4) == round(c_length, digits = 4)), ]))
   } else {
-    cten_branch_id <- NA
+    c_vector  <- as.character(c(dataset_info, "CTEN_sister", "CTEN_CLADE", rep(NA, 10) ))
   }
-  # Extract CTEN tree, PORI branch
+  # Extract CTEN tree, PORI branch (P)
   if (length(pori_taxa) > 1){
-    pori_branch_id <- getMRCA(cten_rooted, tip = pori_taxa)
+    p_end     <- getMRCA(cten_tree, tip = pori_taxa)
+    p_start   <- cten_tree$edge[which(cten_tree$edge[,2] == p_end),1]
+    p_branch  <- which(cten_tree$edge[,1] == p_start & cten_tree$edge[,2] == p_end)
+    p_node    <- cten_tree$node.label[p_branch]
+    p_bs      <- as.numeric(strsplit(p_node, "/")[[1]][1])
+    p_scf     <- as.numeric(strsplit(p_node, "/")[[1]][2])
+    p_length  <- as.numeric(cten_tree$edge.length[p_branch])
+    p_vector  <- as.character(c(dataset_info, "CTEN_sister", "PORI_CLADE",
+                                cten_tab[which(round(cten_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
+                                                 round(cten_tab$Label, digits = 1) == round(p_bs, digits = 1) & 
+                                                 round(cten_tab$Length, digits = 4) == round(p_length, digits = 4)), ]))
   } else {
-    pori_branch_id <- NA
+    p_vector  <- as.character(c(dataset_info, "CTEN_sister", "PORI_CLADE", rep(NA, 10) ))
   }
+  # Assemble rows into output table
+  cten_op_table <- as.data.frame(rbind(aa_vector, c_vector, aoa_vector, p_vector))
+  colnames(cten_op_table) <- c("dataset", "matrix", "dataset_id", "gene_name", "gene_id", "tree_topology", "branch_to_clade",
+                               "ID", "sCF", "sCF_N", "sDF1", "sDF1_N", "sDF2", "sDF2_N", "sN", "ultafast_bootstrap", "branch_length")
+  rownames(cten_op_table) <- NULL
+  # Return output directory 
+  return(cten_op_table)
+}
 
+
+process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa){
+  ## Process CTEN files to extract sCF for all relevant branches
   
-  
-  
+  # Open the cf.stat table
+  pori_tab = read.table(PORI_cf_stat, header=TRUE)
+  # Open CTEN tree
+  pori_tree_raw <- read.tree(PORI_cf_tree)
   # Root at outgroup
-  cten_rooted <- root(cten_tree, outgroup = outg_taxa)
-  #
+  pori_rooted <- root(pori_tree_raw, outgroup = outg_taxa)
+  # Drop PLAC tips to simplify extraction process
+  pori_tree <- drop.tip(pori_rooted, tip = plac_taxa)
+  # Extract PORI tree, ALL ANIMALS branch (AA)
+  aa_end      <- getMRCA(pori_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
+  aa_start    <- pori_tree$edge[which(pori_tree$edge[,2] == aa_end),1]
+  aa_branch   <- which(pori_tree$edge[,1] == aa_start & pori_tree$edge[,2] == aa_end)
+  aa_node     <- pori_tree$node.label[aa_branch]
+  aa_bs       <- as.numeric(strsplit(aa_node, "/")[[1]][1])
+  aa_scf      <- as.numeric(strsplit(aa_node, "/")[[1]][2])
+  aa_length   <- as.numeric(pori_tree$edge.length[aa_branch])
+  aa_vector   <- as.character(c(dataset_info, "PORI_sister", "ALL_ANIMALS",
+                                pori_tab[which(round(pori_tab$sCF, digits = 1) == round(aa_scf, digits = 1) & 
+                                                 round(pori_tab$Label, digits = 1) == round(aa_bs, digits = 1) & 
+                                                 round(pori_tab$Length, digits = 4) == round(aa_length, digits = 4)), ]))
+  # Extract PORI tree, ALL OTHER ANIMALS branch (aoa)
+  aoa_end     <- getMRCA(pori_tree, tip = c(bilat_taxa, cnid_taxa, pori_taxa))
+  aoa_start   <- pori_tree$edge[which(pori_tree$edge[,2] == aoa_end),1]
+  aoa_branch  <- which(pori_tree$edge[,1] == aoa_start & pori_tree$edge[,2] == aoa_end)
+  aoa_node    <- pori_tree$node.label[aoa_branch]
+  aoa_bs      <- as.numeric(strsplit(aoa_node, "/")[[1]][1])
+  aoa_scf     <- as.numeric(strsplit(aoa_node, "/")[[1]][2])
+  aoa_length  <- as.numeric(pori_tree$edge.length[aoa_branch])
+  aoa_vector  <- as.character(c(dataset_info, "CTEN_sister", "ALL_OTHER_ANIMALS",
+                                pori_tab[which(round(pori_tab$sCF, digits = 1) == round(aoa_scf, digits = 1) & 
+                                                 round(pori_tab$Label, digits = 1) == round(aoa_bs, digits = 1) & 
+                                                 round(pori_tab$Length, digits = 4) == round(aoa_length, digits = 4)), ]))
+  # Extract PORI tree, PORI branch (P)
+  if (length(pori_taxa) > 1){
+    p_end     <- getMRCA(pori_tree, tip = pori_taxa)
+    p_start   <- pori_tree$edge[which(pori_tree$edge[,2] == p_end),1]
+    p_branch  <- which(pori_tree$edge[,1] == p_start & pori_tree$edge[,2] == p_end)
+    p_node    <- pori_tree$node.label[p_branch]
+    p_bs      <- as.numeric(strsplit(p_node, "/")[[1]][1])
+    p_scf     <- as.numeric(strsplit(p_node, "/")[[1]][2])
+    p_length  <- as.numeric(pori_tree$edge.length[p_branch])
+    p_vector  <- as.character(c(dataset_info, "PORI_sister", "PORI_CLADE",
+                                pori_tab[which(round(pori_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
+                                                 round(pori_tab$Label, digits = 1) == round(p_bs, digits = 1) & 
+                                                 round(pori_tab$Length, digits = 4) == round(p_length, digits = 4)), ]))
+  } else {
+    p_vector  <- as.character(c(dataset_info, "PORI_sister", "PORI_CLADE", rep(NA, 10) ))
+  }
+  # Extract PORI tree, CTEN branch (C)
+  if (length(cten_taxa) > 1){
+    c_end     <- getMRCA(pori_tree, tip = cten_taxa)
+    c_start   <- pori_tree$edge[which(pori_tree$edge[,2] == c_end),1]
+    c_branch  <- which(pori_tree$edge[,1] == c_start & pori_tree$edge[,2] == c_end)
+    c_node    <- pori_tree$node.label[c_branch]
+    c_bs      <- as.numeric(strsplit(c_node, "/")[[1]][1])
+    c_scf     <- as.numeric(strsplit(c_node, "/")[[1]][2])
+    c_length  <- as.numeric(pori_tree$edge.length[c_branch])
+    c_vector  <- as.character(c(dataset_info, "PORI_sister", "CTEN_CLADE",
+                                pori_tab[which(round(pori_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
+                                                 round(pori_tab$Label, digits = 1) == round(c_bs, digits = 1) & 
+                                                 round(pori_tab$Length, digits = 4) == round(c_length, digits = 4)), ]))
+  } else {
+    c_vector  <- as.character(c(dataset_info, "PORI_sister", "CTEN_CLADE", rep(NA, 10) ))
+  }
+  # Assemble rows into output table
+  pori_op_table <- as.data.frame(rbind(aa_vector, p_vector, aoa_vector, c_vector))
+  colnames(pori_op_table) <- c("dataset", "matrix", "dataset_id", "gene_name", "gene_id", "tree_topology", "branch_to_clade",
+                               "ID", "sCF", "sCF_N", "sDF1", "sDF1_N", "sDF2", "sDF2_N", "sN", "ultafast_bootstrap", "branch_length")
+  rownames(pori_op_table) <- NULL
+  # Return output directory 
+  return(pori_op_table)
 }
 
 
