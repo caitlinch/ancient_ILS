@@ -19,7 +19,7 @@ summarise.AU.test.results <- function(dataset_id, au_test_df){
   # Create a new row for output
   new_row <- c(d_df$ID[1], d_df$dataset[1], d_df$matrix[1], d_df$gene[1], "AU_test_p_values", 
                au_test_pvalues, dataset_year)
-  names(new_row) <- c("ID", "dataset", "matrix", "gene", "topology_test", 
+  names(new_row) <- c("gene_id", "dataset", "matrix", "gene", "topology_test", 
                       "tree_1", "tree_2", "tree_3", "tree_4", "tree_5", "year")
   # Return the output
   return(new_row)
@@ -39,7 +39,7 @@ summarise.eLW <- function(dataset_id, au_test_df){
   # Create a new row for output
   new_row <- c(d_df$ID[1], d_df$dataset[1], d_df$matrix[1], d_df$gene[1], "expected_likelihood_weights", 
                elw_values, dataset_year)
-  names(new_row) <- c("ID", "dataset", "matrix", "gene", "topology_test", 
+  names(new_row) <- c("gene_id", "dataset", "matrix", "gene", "topology_test", 
                       "tree_1", "tree_2", "tree_3", "tree_4", "tree_5", "year")
   # Return the output
   return(new_row)
