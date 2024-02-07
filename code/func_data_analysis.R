@@ -823,9 +823,45 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
   # Assemble rows into output table
   cten_pori_op_table <- as.data.frame(rbind(aa_vector, cp_vector, c_vector, p_vector, aoa_vector))
   colnames(cten_pori_op_table) <- c("dataset", "matrix", "dataset_id", "gene_name", "gene_id", "tree_topology", "branch_to_clade",
-                               "ID", "sCF", "sCF_N", "sDF1", "sDF1_N", "sDF2", "sDF2_N", "sN", "ultafast_bootstrap", "branch_length")
+                                    "ID", "sCF", "sCF_N", "sDF1", "sDF1_N", "sDF2", "sDF2_N", "sN", "ultafast_bootstrap", "branch_length")
   rownames(cten_pori_op_table) <- NULL
   # Return output directory 
   return(cten_pori_op_table)
+}
+
+
+
+
+#### Update columns in dataset ####
+update.directory.paths <- function(any_dataframe, location = "dayhoff"){
+  ## Quickly update file paths for running on server
+  
+  if (location == "local"){
+    new_repo_dir                <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
+    new_alignment_dir           <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/alignments/"
+    new_gene_output_dir         <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_02_empirical_genes_initial_tree_estimation/"
+    new_constraint_output_dir   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_03_empirical_genes_constrained_trees/"
+    new_scf_output_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_04_empirical_genes_scf/"
+    new_au_test_output_dir      <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_05_empirical_genes_AU_tests/"
+    new_iqtree2                 <- "iqtree2"
+    new_iqtree2_num_threads     <- 3
+  } else if (location == "dayhoff"){
+    new_repo_dir                <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
+    new_alignment_dir           <- paste0(repo_dir, "data_all/")
+    new_gene_output_dir         <- paste0(repo_dir, "genes/")
+    new_constraint_output_dir   <- gene_output_dir
+    new_scf_output_dir          <- paste0(repo_dir, "gene_scf/")
+    new_au_test_output_dir      <- paste0(repo_dir, "gene_au_test/")
+    new_iqtree2                 <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
+    new_iqtree2_num_threads     <- 5
+  }
+  
+  # Update dataframe
+  any_dataframe$gene_directory <- paste0(new_gene_output_dir, "/", basename(any_dataframe$gene_directory), "/")
+  any_dataframe$constraint_tree_directory <- paste0(new_constraint_output_dir, "/", basename(any_dataframe$constraint_tree_directory), "/")
+  any_dataframe$scf_directory <- paste0(new_scf_output_dir, "/", basename(any_dataframe$scf_directory), "/")
+  any_dataframe$au_test_directory <- paste0(new_au_test_output_dir, "/", basename(any_dataframe$au_test_directory), "/")
+  # Return the updated dataframe
+  return(any_dataframe)
 }
 
