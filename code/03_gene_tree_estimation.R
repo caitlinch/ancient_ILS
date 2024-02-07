@@ -355,6 +355,8 @@ for (i in 1:max_i){
 ## Extract sCFs
 # Prepare filepath
 scf_results_df_filepath <- paste0(output_dir, "genes_008_individualGene_sCFResults.csv")
+# Update output for local directories
+scf_call_df <- update.directory.paths(any_dataframe = scf_call_df, location = "local")
 # Check sCF for key branches
 scf_results_df <- as.data.frame(do.call(rbind, lapply(1:length(scf_call_df),
                                                       extract.key.scf,
