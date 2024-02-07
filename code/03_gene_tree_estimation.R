@@ -422,7 +422,8 @@ for (i in 1:max_i){
 ## Extract topology test results
 # Prepare filepaths
 topology_results_df_filepath <- paste0(output_dir, "genes_010_individualGene_TreeComparisonResults.csv")
-all_au_test_files <- paste0(topology_test_df$au_test_directory, topology_test_df$AU_test_prefix, ".iqtree")
+all_au_test_files <- paste0(update.directory.paths(any_dataframe = constrained_run_df, location = "dayhoff")$au_test_directory,
+                            topology_test_df$AU_test_prefix, ".iqtree")
 # Apply function to extract tree topology details
 topology_results_df <- as.data.frame(do.call(rbind,lapply(all_au_test_files, 
                                                           extract.tree.topology.test.results)))
@@ -432,7 +433,8 @@ write(topology_results_df, file = topology_results_df_filepath, row.names = FALS
 ## Extract MAST results
 # Prepare filepaths
 mast_results_df_filepath <- paste0(output_dir, "genes_010_individualGene_MASTResults.csv")
-all_MAST_files <- paste0(topology_test_df$mast_directory, topology_test_df$MAST_prefix, ".iqtree")
+all_MAST_files <- paste0(update.directory.paths(any_dataframe = constrained_run_df, location = "dayhoff")$mast_directory,
+                         topology_test_df$MAST_prefix, ".iqtree")
 # Apply function to extract tree topology details
 mast_results_df <- as.data.frame(do.call(rbind,lapply(all_MAST_files, 
                                                       extract.tree.weights,
