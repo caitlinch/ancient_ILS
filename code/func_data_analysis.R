@@ -49,11 +49,27 @@ extract.constrained.tree.details <- function(row_id, dataframe){
   PORI_ll_op      <- extract.tree.log.likelihood(PORI_iqtree_file, var = "All")
   CTEN_PORI_ll_op      <- extract.tree.log.likelihood(CTEN_PORI_iqtree_file, var = "All")
   ll_op_names <- names(CTEN_ll_op)
+  # Check whether trees exist
+  if (file.exists(CTEN_iqtree_file) == TRUE){
+    output_CTEN_tree <- paste0(temp_row$CTEN_prefix, ".treefile")}
+  else {
+    output_CTEN_tree <- NA
+  }
+  if (file.exists(PORI_iqtree_file) == TRUE){
+    output_PORI_tree <- paste0(temp_row$PORI_prefix, ".treefile")}
+  else {
+    output_PORI_tree <- NA
+  }
+  if (file.exists(CTEN_PORI_iqtree_file) == TRUE){
+    output_CTEN_PORI_tree <- paste0(temp_row$CTEN_PORI_prefix, ".treefile")
+  } else {
+    output_CTEN_PORI_tree <- NA
+  }
   # Assemble output into a nice dataframe row
   op_row <- c(as.character(temp_row)[1:35], 
-              CTEN_ll_op, paste0(temp_row$CTEN_prefix, ".treefile"),
-              PORI_ll_op, paste0(temp_row$PORI_prefix, ".treefile"),
-              CTEN_PORI_ll_op, paste0(temp_row$CTEN_PORI_prefix, ".treefile"))
+              CTEN_ll_op, output_CTEN_tree,
+              PORI_ll_op, output_PORI_tree,
+              CTEN_PORI_ll_op, output_CTEN_PORI_tree )
   names(op_row) <- c(names(temp_row)[1:35],
                      paste0("CTEN_", ll_op_names), "CTEN_treefile",
                      paste0("PORI_", ll_op_names), "PORI_treefile",
