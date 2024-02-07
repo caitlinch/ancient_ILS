@@ -218,6 +218,9 @@ extract.tree.log.likelihood <- function(iqtree_file, var = "LogL"){
       output <- c("LogL" = logl, "Unconstrained_LogL" = ull, "NumFreeParams" = nfp, 
                   "BIC" = bic, "TreeLength" = treelen, "SumInternalBranchLengths" = sibl)
     } # end if (var == "LogL")
+  } else {
+    output <- c("LogL" = NA, "Unconstrained_LogL" = NA, "NumFreeParams" = NA, 
+                "BIC" = NA, "TreeLength" = NA, "SumInternalBranchLengths" = NA)
   } # end if (file.exists(iqtree_file) == TRUE)
   
   # Return the output
@@ -847,20 +850,20 @@ update.directory.paths <- function(any_dataframe, location = "dayhoff"){
     new_iqtree2_num_threads     <- 3
   } else if (location == "dayhoff"){
     new_repo_dir                <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
-    new_alignment_dir           <- paste0(repo_dir, "data_all/")
-    new_gene_output_dir         <- paste0(repo_dir, "genes/")
-    new_constraint_output_dir   <- gene_output_dir
-    new_scf_output_dir          <- paste0(repo_dir, "gene_scf/")
-    new_au_test_output_dir      <- paste0(repo_dir, "gene_au_test/")
-    new_iqtree2                 <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
+    new_alignment_dir           <- paste0(new_repo_dir, "data_all/")
+    new_gene_output_dir         <- paste0(new_repo_dir, "genes/")
+    new_constraint_output_dir   <- new_gene_output_dir
+    new_scf_output_dir          <- paste0(new_repo_dir, "gene_scf/")
+    new_au_test_output_dir      <- paste0(new_repo_dir, "gene_au_test/")
+    new_iqtree2                 <- paste0(new_repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
     new_iqtree2_num_threads     <- 5
   }
   
   # Update dataframe
-  any_dataframe$gene_directory <- paste0(new_gene_output_dir, "/", basename(any_dataframe$gene_directory), "/")
-  any_dataframe$constraint_tree_directory <- paste0(new_constraint_output_dir, "/", basename(any_dataframe$constraint_tree_directory), "/")
-  any_dataframe$scf_directory <- paste0(new_scf_output_dir, "/", basename(any_dataframe$scf_directory), "/")
-  any_dataframe$au_test_directory <- paste0(new_au_test_output_dir, "/", basename(any_dataframe$au_test_directory), "/")
+  any_dataframe$gene_directory <- paste0(new_gene_output_dir, basename(any_dataframe$dataset_id), "/")
+  any_dataframe$constraint_tree_directory <- paste0(new_constraint_output_dir, basename(any_dataframe$dataset_id), "/")
+  any_dataframe$scf_directory <- paste0(new_scf_output_dir, basename(any_dataframe$dataset_id), "/")
+  any_dataframe$au_test_directory <- paste0(new_au_test_output_dir, basename(any_dataframe$dataset_id), "/")
   # Return the updated dataframe
   return(any_dataframe)
 }
