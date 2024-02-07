@@ -855,7 +855,7 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
 update.directory.paths <- function(any_dataframe, location = "dayhoff"){
   ## Quickly update file paths for running on server
   
-  if (location == "local"){
+  if (tolower(location) == "local"){
     new_repo_dir                <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
     new_alignment_dir           <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/alignments/"
     new_gene_output_dir         <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_02_empirical_genes_initial_tree_estimation/"
@@ -864,7 +864,7 @@ update.directory.paths <- function(any_dataframe, location = "dayhoff"){
     new_au_test_output_dir      <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_05_empirical_genes_AU_tests/"
     new_iqtree2                 <- "iqtree2"
     new_iqtree2_num_threads     <- 3
-  } else if (location == "dayhoff"){
+  } else if (tolower(location) == "dayhoff"){
     new_repo_dir                <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
     new_alignment_dir           <- paste0(new_repo_dir, "data_all/")
     new_gene_output_dir         <- paste0(new_repo_dir, "genes/")
