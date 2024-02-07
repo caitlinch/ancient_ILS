@@ -34,6 +34,7 @@ extract.unconstrained.tree.details <- function(row_id, dataframe){
   return(op_row)
 }
 
+
 extract.constrained.tree.details <- function(row_id, dataframe){
   # Extract best model, rates, and results of the three constrained trees (CTEN, PORI, and CTEN_PORI)
   
@@ -60,6 +61,7 @@ extract.constrained.tree.details <- function(row_id, dataframe){
   # Return the output
   return(op_row)
 }
+
 
 
 
@@ -437,6 +439,7 @@ extract.tree.topology.test.results <- function(iqtree_file){
   return(table_df)
 }
 
+
 extract.results.for.one.tree <- function(ind, iq_lines){
   ## Function to return tree topology tests for a single tree
   # Extract line
@@ -661,7 +664,6 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
 }
 
 
-
 process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa){
   ## Process CTEN files to extract sCF for all relevant branches
   
@@ -737,7 +739,6 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
   # Return output directory 
   return(pori_op_table)
 }
-
 
 
 process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa){
@@ -827,3 +828,4 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
   # Return output directory 
   return(cten_pori_op_table)
 }
+
