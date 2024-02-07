@@ -573,11 +573,13 @@ extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
   # Open CTEN tree
   cten_tree <- read.tree(CTEN_cf_tree)
   # Classify taxa
-  if (dataset_id %in% names(matrix_taxa)){
+  check_dataset_id <- paste0(dataset_id, ".aa")
+  if (check_dataset_id %in% names(matrix_taxa)){
     # If there are multiple matrices published with the same dataset, separate only the taxa from the matrix of interest
-    matrix_taxa_trimmed <- matrix_taxa[[dataset_id]]
+    matrix_taxa_trimmed <- matrix_taxa[[check_dataset_id]]
     dataset_taxa <- all_datasets[[dataset_name]]
-    dataset_taxa$Bilateria  <- dataset_taxa$Bilateria[ which( dataset_taxa$Bilateria %in% matrix_taxa_trimmed ) ]
+    ### FIX THIS SECTION
+    dataset_taxa$Bilateria  <- dataset_taxa$Bilateria[ which(  matrix_taxa_trimmed %in% dataset_taxa$Bilateria ) ]
     dataset_taxa$Cnidaria   <- dataset_taxa$Cnidaria[ which( dataset_taxa$Cnidaria %in% matrix_taxa_trimmed ) ]
     dataset_taxa$Ctenophora <- dataset_taxa$Ctenophora[ which( dataset_taxa$Ctenophora %in% matrix_taxa_trimmed ) ]
     dataset_taxa$Placozoa   <- dataset_taxa$Placozoa[ which( dataset_taxa$Placozoa %in% matrix_taxa_trimmed ) ]
