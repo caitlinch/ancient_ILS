@@ -24,15 +24,18 @@ if (location == "local"){
   alignment_dir           <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/alignments/"
   gene_output_dir         <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_02_empirical_genes_initial_tree_estimation/"
   constraint_output_dir   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_03_empirical_genes_constrained_trees/"
+  scf_output_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_04_empirical_genes_scf/"
+  au_test_output_dir      <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_05_empirical_genes_AU_tests/"
   output_dir              <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
   iqtree2                 <- "iqtree2"
-  iqtree2_MAST            <- "/Users/caitlincherryh/Documents/C3_TreeMixtures_Sponges/03_Software_IQ-Tree/iqtree-2.2.4.hmmster-MacOSX/bin/iqtree2"
   iqtree2_num_threads     <- 3
 } else if (location == "dayhoff"){
   repo_dir                <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
   alignment_dir           <- paste0(repo_dir, "data_all/")
   gene_output_dir         <- paste0(repo_dir, "genes/")
   constraint_output_dir   <- gene_output_dir
+  scf_output_dir          <- paste0(repo_dir, "gene_scf/")
+  au_test_output_dir      <- paste0(repo_dir, "gene_au_test/")
   output_dir              <- paste0(repo_dir, "output/")
   iqtree2                 <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
   iqtree2_num_threads     <- 5
