@@ -66,11 +66,11 @@ extract.constrained.tree.details <- function(row_id, dataframe){
     output_CTEN_PORI_tree <- NA
   }
   # Assemble output into a nice dataframe row
-  op_row <- c(as.character(temp_row)[1:35], 
+  op_row <- c(as.character(temp_row), 
               CTEN_ll_op, output_CTEN_tree,
               PORI_ll_op, output_PORI_tree,
               CTEN_PORI_ll_op, output_CTEN_PORI_tree )
-  names(op_row) <- c(names(temp_row)[1:35],
+  names(op_row) <- c(names(temp_row),
                      paste0("CTEN_", ll_op_names), "CTEN_treefile",
                      paste0("PORI_", ll_op_names), "PORI_treefile",
                      paste0("CTEN_PORI_", ll_op_names), "CTEN_PORI_treefile")

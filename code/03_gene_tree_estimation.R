@@ -260,7 +260,7 @@ if (file.exists(constrained_run_df_filepath) == FALSE){
   # Add constraint tree directory (location of saved constraint tree output files)
   constraint_tree_df$constraint_tree_directory <- paste0(constraint_output_dir, constraint_tree_df$dataset_id, "/")
   # Check that updated paths are for local run
-  constraint_tree_df2 <- update.directory.paths(any_dataframe = constraint_tree_df, location = "local")
+  constraint_tree_df <- update.directory.paths(any_dataframe = constraint_tree_df, location = "local")
   # Extract output from iqtree files
   ## NOTE: CURRENTLY ONLY ROWS 1 - 10 COMPLETED FOR TESTING
   constrained_run_df <- as.data.frame(do.call(rbind, lapply(1:nrow(constraint_tree_df), 
