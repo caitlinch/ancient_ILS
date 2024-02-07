@@ -51,7 +51,7 @@ slurm_middle_lines <- c("#SBATCH --output=/mnt/data/dayhoff/home/u5348329/ancien
                         "#SBATCH --error=/mnt/data/dayhoff/home/u5348329/ancient_ILS/slurm_files/%j.%x.err",
                         "#SBATCH --partition=Standard",
                         "#",
-                        "#SBATCH --time=96:00:00 # 4 days",
+                        "#SBATCH --time=192:00:00 # 8 days",
                         "#SBATCH --ntasks=1",
                         paste0("#SBATCH --cpus-per-task=", iqtree2_num_threads),
                         "#SBATCH --mem=3000 # 3GB required by IQ-Tree",
@@ -223,8 +223,7 @@ if (file.exists(constraint_tree_df_filepath) == FALSE){
   # Write the constraint tree df to file
   write.csv(constraint_tree_df, file = constraint_tree_df_filepath, row.names = FALSE)
   
-  
-  ## Create slurm files (separate all command lines into 5 slurm files)
+  ## Create slurm files
   # Prepare for extracting specific rows
   filepath_start <- paste0(output_dir, "constraint_tree_run_")
   max_i     <- 10
@@ -309,17 +308,43 @@ if (file.exists(constrained_run_df_filepath) == FALSE){
 scf_call_df_filepath <- paste0(output_dir, "genes_007_individualGene_sCFCommand.csv")
 if (file.exists(scf_call_df_filepath) == FALSE){
   # Update paths for dayhoff
-  scf_input_tree <- update.directory.paths(any_dataframe = constrained_run_df, location = "dayhoff")
+  scf_input_df <- update.directory.paths(any_dataframe = constrained_run_df, location = "dayhoff")
   # Create scf command lines
   scf_call_df <- as.data.frame(do.call(rbind, lapply(1:nrow(constrained_run_df), 
                                                      estimate.gene.scf.wrapper, 
-                                                     dataframe = constrained_run_df,
-                                                     iqtree2_path = iqtree2, 
-                                                     iqtree2_num_threads = iqtree2_num_threads) ) ) 
+                                                     dataframe = scf_input_df,
+                                                     iqtree2_path = iqtree2_dayhoff, 
+                                                     iqtree2_num_threads = iqtree2_num_threads_dayhoff) ) ) 
   # Write the initial run output df to file
   write.csv(scf_call_df, file = scf_call_df_filepath, row.names = FALSE)
 } else {
   scf_call_df <- read.csv(scf_call_df_filepath, stringsAsFactors = FALSE)
+}
+
+## Create slurm files
+# Prepare for extracting specific rows
+filepath_start <- paste0(output_dir, "scf_run_")
+max_i     <- 10
+start_seq <- seq(from = 1, to = nrow(scf_call_df), by = ceiling(nrow(scf_call_df)/max_i) )
+end_seq   <- c( (start_seq[2:length(start_seq)] - 1), nrow(scf_call_df))
+for (i in 1:max_i){
+  # Extract start and end points for this file
+  i_start_row     <- start_seq[i]
+  i_end_row       <- end_seq[i]
+  # Extract the rows for this file
+  i_iqtree_calls <- unlist(lapply(i_start_row:i_end_row, function(j){paste(scf_call_df$CTEN_scf_call[j], 
+                                                                           scf_call_df$PORI_scf_call[j], 
+                                                                           scf_call_df$CTEN_PORI_scf_call[j], 
+                                                                           sep = "; ")}))
+  # Make the slurm file
+  i_slurm_id_line <- paste0(slurm_id_line, "scf_", i)
+  i_slurm_txt     <- c(slurm_start_lines,
+                       i_slurm_id_line,
+                       slurm_middle_lines,
+                       i_iqtree_calls)
+  # Save the slurm file
+  i_op_file <- paste0(filepath_start, i, ".sh")
+  write(i_slurm_txt, i_op_file)
 }
 
 ## Extract sCFs
