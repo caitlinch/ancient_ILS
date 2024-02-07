@@ -862,6 +862,7 @@ update.directory.paths <- function(any_dataframe, location = "dayhoff"){
     new_constraint_output_dir   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_03_empirical_genes_constrained_trees/"
     new_scf_output_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_04_empirical_genes_scf/"
     new_au_test_output_dir      <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_05_empirical_genes_AU_tests/"
+    new_mast_output_dir         <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_05_empirical_genes_MAST/"
     new_iqtree2                 <- "iqtree2"
     new_iqtree2_num_threads     <- 3
   } else if (tolower(location) == "dayhoff"){
@@ -871,6 +872,7 @@ update.directory.paths <- function(any_dataframe, location = "dayhoff"){
     new_constraint_output_dir   <- new_gene_output_dir
     new_scf_output_dir          <- paste0(new_repo_dir, "gene_scf/")
     new_au_test_output_dir      <- paste0(new_repo_dir, "gene_au_test/")
+    new_mast_output_dir         <- paste0(new_repo_dir, "gene_mast/")
     new_iqtree2                 <- paste0(new_repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
     new_iqtree2_num_threads     <- 5
   }
@@ -880,6 +882,8 @@ update.directory.paths <- function(any_dataframe, location = "dayhoff"){
   any_dataframe$constraint_tree_directory <- paste0(new_constraint_output_dir, basename(any_dataframe$dataset_id), "/")
   any_dataframe$scf_directory <- paste0(new_scf_output_dir, basename(any_dataframe$dataset_id), "/")
   any_dataframe$au_test_directory <- paste0(new_au_test_output_dir, basename(any_dataframe$dataset_id), "/")
+  any_dataframe$mast_directory <- paste0(new_au_test_output_dir, basename(any_dataframe$dataset_id), "/")
+  
   # Return the updated dataframe
   return(any_dataframe)
 }

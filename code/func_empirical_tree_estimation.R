@@ -484,12 +484,12 @@ gene.au.test.mast.command <- function(row_id, dataframe, iqtree2_path, iqtree2_M
                                           " -m ", "'", temp_row$unconstrained_tree_alisim_model, "+TR'", 
                                           " -te ", temp_row$constraint_tree_directory, temp_row$collated_constraint_tree,
                                           " -nt ", iqtree2_num_threads, 
-                                          " -pre ", temp_row$constraint_tree_directory, temp_row$MAST_prefix, " -safe")
+                                          " -pre ", temp_row$mast_directory, temp_row$MAST_prefix, " -safe")
   temp_row$AU_test_iqtree2_command <- paste0(iqtree2_path, " -s ", temp_row$gene_directory, temp_row$gene_file,
                                              " -m ", "'", temp_row$unconstrained_tree_alisim_model, "'", " -n 0",
                                              " -z ", temp_row$constraint_tree_directory, temp_row$collated_constraint_tree,
                                              " -zb 10000 -au", " -nt ", iqtree2_num_threads, 
-                                             " -pre ", temp_row$constraint_tree_directory, temp_row$AU_test_prefix)
+                                             " -pre ", temp_row$au_test_directory, temp_row$AU_test_prefix)
   # Return the temporary row with the new command lines attached
   return(temp_row)
 }

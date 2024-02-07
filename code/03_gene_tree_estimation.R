@@ -26,9 +26,11 @@ if (location == "local"){
   constraint_output_dir   <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_03_empirical_genes_constrained_trees/"
   scf_output_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_04_empirical_genes_scf/"
   au_test_output_dir      <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_05_empirical_genes_AU_tests/"
+  mast_output_dir         <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_05_empirical_genes_MAST/"
   output_dir              <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
   iqtree2                 <- "iqtree2"
-  iqtree2_num_threads     <- 3
+  iqtree_MAST             <- "/Users/caitlincherryh/Documents/C3_TreeMixtures_Sponges/03_Software_IQ-Tree/iqtree-2.2.6.hmmster-MacOSX/bin/iqtree2"
+  iqtree2_num_threads     <- 5
 } else if (location == "dayhoff"){
   repo_dir                <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
   alignment_dir           <- paste0(repo_dir, "data_all/")
@@ -36,8 +38,10 @@ if (location == "local"){
   constraint_output_dir   <- gene_output_dir
   scf_output_dir          <- paste0(repo_dir, "gene_scf/")
   au_test_output_dir      <- paste0(repo_dir, "gene_au_test/")
+  mast_output_dir         <- paste0(repo_dir, "gene_mast/")
   output_dir              <- paste0(repo_dir, "output/")
   iqtree2                 <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
+  iqtree_MAST             <- paste0(repo_dir, "iqtree2/iqtree-2.2.6.hmmster-Linux/bin/iqtree2")
   iqtree2_num_threads     <- 5
 }
 
@@ -365,17 +369,46 @@ write.csv(scf_results_df, file = scf_results_df_filepath, row.names = FALSE)
 # Check if file exists
 topology_test_df_filepath <- paste0(output_dir, "genes_009_individualGene_TreeComparisonCommands.csv")
 if (file.exists(topology_test_df_filepath) == FALSE){
+  # Update paths for dayhoff
+  topology_input_df <- update.directory.paths(any_dataframe = constrained_run_df, location = "dayhoff")
   # Create AU test commands and MAST commands for each gene
-  topology_test_df <- as.data.frame(do.call(rbind, lapply(1:nrow(constrained_run_df), 
+  topology_test_df <- as.data.frame(do.call(rbind, lapply(1:nrow(topology_input_df), 
                                                           gene.au.test.mast.command, 
-                                                          dataframe = constrained_run_df,
-                                                          iqtree2_path = iqtree2, 
-                                                          iqtree2_MAST_path = iqtree_MAST,
+                                                          dataframe = topology_input_df,
+                                                          iqtree2_path = iqtree2_dayhoff, 
+                                                          iqtree2_MAST_path = iqtree2_MAST_dayhoff,
                                                           iqtree2_num_threads = iqtree2_num_threads) ) ) 
   # Write the initial run output df to file
   write.csv(topology_test_df, file = topology_test_df_filepath, row.names = FALSE)
 } else {
   topology_test_df <- read.csv(topology_test_df_filepath, stringsAsFactors = FALSE)
+}
+
+
+## Create slurm files
+# Prepare for extracting specific rows
+filepath_start <- paste0(output_dir, "au_test_")
+max_i     <- 10
+start_seq <- seq(from = 1, to = nrow(topology_test_df), by = ceiling(nrow(topology_test_df)/max_i) )
+end_seq   <- c( (start_seq[2:length(start_seq)] - 1), nrow(topology_test_df))
+for (i in 1:max_i){
+  # Extract start and end points for this file
+  i_start_row     <- start_seq[i]
+  i_end_row       <- end_seq[i]
+  # Extract the rows for this file
+  i_iqtree_calls <- unlist(lapply(i_start_row:i_end_row, function(j){paste(scf_call_df$CTEN_scf_call[j], 
+                                                                           scf_call_df$PORI_scf_call[j], 
+                                                                           scf_call_df$CTEN_PORI_scf_call[j], 
+                                                                           sep = "; ")}))
+  # Make the slurm file
+  i_slurm_id_line <- paste0(slurm_id_line, "scf_", i)
+  i_slurm_txt     <- c(slurm_start_lines,
+                       i_slurm_id_line,
+                       slurm_middle_lines,
+                       i_iqtree_calls)
+  # Save the slurm file
+  i_op_file <- paste0(filepath_start, i, ".sh")
+  write(i_slurm_txt, i_op_file)
 }
 
 ## Extract topology test results
