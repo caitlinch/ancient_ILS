@@ -557,12 +557,12 @@ extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
   temp_row <- dataframe[row_id, ]
   
   ## Assemble file paths from sCF tuns
-  CTEN_cf_stat <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_scf_prefix, ".cf.stat")
-  CTEN_cf_tree <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_scf_prefix, ".cf.tree")
-  PORI_cf_stat <- paste0(temp_row$constraint_tree_directory, temp_row$PORI_scf_prefix, ".cf.stat")
-  PORI_cf_tree <- paste0(temp_row$constraint_tree_directory, temp_row$PORI_scf_prefix, ".cf.tree")
-  CTEN_PORI_cf_stat <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_PORI_scf_prefix, ".cf.stat")
-  CTEN_PORI_cf_tree <- paste0(temp_row$constraint_tree_directory, temp_row$CTEN_PORI_scf_prefix, ".cf.tree")
+  CTEN_cf_stat <- paste0(temp_row$scf_directory, temp_row$CTEN_scf_prefix, ".cf.stat")
+  CTEN_cf_tree <- paste0(temp_row$scf_directory, temp_row$CTEN_scf_prefix, ".cf.tree")
+  PORI_cf_stat <- paste0(temp_row$scf_directory, temp_row$PORI_scf_prefix, ".cf.stat")
+  PORI_cf_tree <- paste0(temp_row$scf_directory, temp_row$PORI_scf_prefix, ".cf.tree")
+  CTEN_PORI_cf_stat <- paste0(temp_row$scf_directory, temp_row$CTEN_PORI_scf_prefix, ".cf.stat")
+  CTEN_PORI_cf_tree <- paste0(temp_row$scf_directory, temp_row$CTEN_PORI_scf_prefix, ".cf.tree")
   
   ## Prepare taxa for tree analysis
   # Identify dataset
