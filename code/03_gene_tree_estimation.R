@@ -314,11 +314,11 @@ if (file.exists(scf_call_df_filepath) == FALSE){
   # Update paths for dayhoff
   scf_input_df <- update.directory.paths(any_dataframe = constrained_run_df, location = "dayhoff")
   # Create scf command lines
-  scf_call_df <- as.data.frame(do.call(rbind, lapply(1:nrow(constrained_run_df), 
+  scf_call_df <- as.data.frame(do.call(rbind, lapply(1:nrow(scf_input_df), 
                                                      estimate.gene.scf.wrapper, 
                                                      dataframe = scf_input_df,
                                                      iqtree2_path = iqtree2_dayhoff, 
-                                                     iqtree2_num_threads = iqtree2_num_threads_dayhoff) ) ) 
+                                                     iqtree2_num_threads = iqtree2_num_threads) ) ) 
   # Write the initial run output df to file
   write.csv(scf_call_df, file = scf_call_df_filepath, row.names = FALSE)
 } else {
@@ -335,22 +335,19 @@ for (i in 1:max_i){
   # Extract start and end points for this file
   i_start_row     <- start_seq[i]
   i_end_row       <- end_seq[i]
-  # Extract the rows for this file
-  # Extract the rows for this file
-  i_rows          <- initial_df$unconstrained_tree_iqtree2_call[i_start_row:i_end_row]
-  # Make the slurm file
-  i_slurm_id_line <- paste0(slurm_id_line, "gene", i)
-  i_slurm_txt     <- c(slurm_start_lines,
-                       i_slurm_id_line,
-                       slurm_middle_lines,
-                       i_rows)
   # Make the slurm file
   i_slurm_id_line <- paste0(slurm_id_line, "scf_", i)
+  # Extract the rows for this file
+  i_iqtree_calls <- unlist(lapply(i_start_row:i_end_row, function(j){paste(scf_call_df$CTEN_scf_call[j], 
+                                                                           scf_call_df$PORI_scf_call[j], 
+                                                                           scf_call_df$CTEN_PORI_scf_call[j], 
+                                                                           sep = "; ")}))
+  # Save the slurm file
   i_slurm_txt     <- c(slurm_start_lines,
                        i_slurm_id_line,
                        slurm_middle_lines,
-                       i_iqtree_calls)
-  # Save the slurm file
+                       i_iqtree_calls,
+                       "")
   i_op_file <- paste0(filepath_start, i, ".sh")
   write(i_slurm_txt, i_op_file)
 }

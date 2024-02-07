@@ -882,7 +882,7 @@ update.directory.paths <- function(any_dataframe, location = "dayhoff"){
   any_dataframe$constraint_tree_directory <- paste0(new_constraint_output_dir, basename(any_dataframe$dataset_id), "/")
   any_dataframe$scf_directory <- paste0(new_scf_output_dir, basename(any_dataframe$dataset_id), "/")
   any_dataframe$au_test_directory <- paste0(new_au_test_output_dir, basename(any_dataframe$dataset_id), "/")
-  any_dataframe$mast_directory <- paste0(new_au_test_output_dir, basename(any_dataframe$dataset_id), "/")
+  any_dataframe$mast_directory <- paste0(new_mast_output_dir, basename(any_dataframe$dataset_id), "/")
   
   # Return the updated dataframe
   return(any_dataframe)

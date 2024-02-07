@@ -414,17 +414,17 @@ estimate.gene.scf.wrapper <- function(row_id, dataframe, iqtree2_path, iqtree2_n
   temp_row$CTEN_scf_call <- paste0(iqtree2_path, " -te ", temp_row$constraint_tree_directory, temp_row$CTEN_treefile, 
                                    " -s ", temp_row$gene_directory, temp_row$gene_file, " -m ", "'",
                                    temp_row$unconstrained_tree_alisim_model, "'", " --scfl 100 -pre ",
-                                   temp_row$constraint_tree_directory, temp_row$CTEN_scf_prefix, 
+                                   temp_row$scf_directory, temp_row$CTEN_scf_prefix, 
                                    " -nt ", iqtree2_num_threads)
   temp_row$PORI_scf_call <- paste0(iqtree2_path, " -te ", temp_row$constraint_tree_directory, temp_row$PORI_treefile, 
                                    " -s ", temp_row$gene_directory, temp_row$gene_file, " -m ", "'",
                                    temp_row$unconstrained_tree_alisim_model, "'", " --scfl 100 -pre ",
-                                   temp_row$constraint_tree_directory, temp_row$PORI_scf_prefix, 
+                                   temp_row$scf_directory, temp_row$PORI_scf_prefix, 
                                    " -nt ", iqtree2_num_threads)
   temp_row$CTEN_PORI_scf_call <- paste0(iqtree2_path, " -te ", temp_row$constraint_tree_directory, temp_row$CTEN_PORI_treefile, 
                                         " -s ", temp_row$gene_directory, temp_row$gene_file, " -m ", "'",
                                         temp_row$unconstrained_tree_alisim_model, "'", " --scfl 100 -pre ",
-                                        temp_row$constraint_tree_directory, temp_row$CTEN_PORI_scf_prefix, 
+                                        temp_row$scf_directory, temp_row$CTEN_PORI_scf_prefix, 
                                         " -nt ", iqtree2_num_threads)
   # Return output
   return(temp_row)
