@@ -223,6 +223,7 @@ if (file.exists(constraint_tree_df_filepath) == FALSE){
   # Write the constraint tree df to file
   write.csv(constraint_tree_df, file = constraint_tree_df_filepath, row.names = FALSE)
   
+  
   ## Create slurm files (separate all command lines into 5 slurm files)
   # Prepare for extracting specific rows
   filepath_start <- paste0(output_dir, "constraint_tree_run_")
@@ -257,32 +258,47 @@ if (file.exists(constraint_tree_df_filepath) == FALSE){
 constrained_run_df_filepath <- paste0(output_dir, "genes_006_individualGene_ConstrainedTreeResults.csv")
 # Open constrained_run_df_ if it exists. If it doesn't, then create it.
 if (file.exists(constrained_run_df_filepath) == FALSE){
+  ## Extract constraint tree output from iqtree files
   # Add constraint tree directory (location of saved constraint tree output files)
   constraint_tree_df$constraint_tree_directory <- paste0(constraint_output_dir, constraint_tree_df$dataset_id, "/")
   # Check that updated paths are for local run
   constraint_tree_df <- update.directory.paths(any_dataframe = constraint_tree_df, location = "local")
   # Extract output from iqtree files
-  ## NOTE: CURRENTLY ONLY ROWS 1 - 10 COMPLETED FOR TESTING
   constrained_run_df <- as.data.frame(do.call(rbind, lapply(1:nrow(constraint_tree_df), 
                                                             extract.constrained.tree.details, 
                                                             dataframe = constraint_tree_df) ) ) 
+  
+  ## Separate into missing and present genes
+  # Identify missing genes
+  missing_gene_rows <- union( which(is.na(constrained_run_df$CTEN_treefile) == TRUE),
+                              union( which(is.na(constrained_run_df$PORI_treefile) == TRUE),
+                                     which(is.na(constrained_run_df$CTEN_PORI_treefile) == TRUE) ) )
+  missing_gene_df <- constrained_run_df[missing_gene_rows, ]
+  missing_gene_df_filepath <- paste0(output_dir, "genes_006_individualGene_ConstrainedTreeResults_MissingGenes.csv")
+  write.csv(missing_gene_df, file = missing_gene_df_filepath, row.names = FALSE)
+  # Remove missing genes
+  constrained_run_df <- constrained_run_df[setdiff(1:nrow(constrained_run_df), missing_gene_rows), ]
+  
+  
+  ## Collate constrained trees
+  # Create file path for the collated constraint trees
+  constrained_run_df$collated_constraint_tree <- paste0(constrained_run_df$gene_id, ".hypothesis.treefile")
+  # Combine the constrained trees into one file
+  for (i in 1:nrow(constrained_run_df)){
+    # Extract constrained tree files
+    i_ct_files <- paste0(constrained_run_df$constraint_tree_directory[i], c(constrained_run_df$CTEN_treefile[i],
+                                                                            constrained_run_df$PORI_treefile[i],
+                                                                            constrained_run_df$CTEN_PORI_treefile[i]))
+    i_ct_collated_trees <- c(unlist(lapply(i_ct_files,readLines)), "")
+    write(i_ct_collated_trees, file = paste0(constraint_output_dir, constrained_run_df$collated_constraint_tree[i]) )
+  }
+  
   # Write the initial run output df to file
   write.csv(constrained_run_df, file = constrained_run_df_filepath, row.names = FALSE)
+  
+  
 } else {
   constrained_run_df <- read.csv(constrained_run_df_filepath, stringsAsFactors = FALSE)
-}
-
-## Collate constrained trees
-# Create file path for the collated constraint trees
-constrained_run_df$collated_constraint_tree <- paste0(constrained_run_df$gene_id, ".hypotheses.treefile")
-# Combine the constrained trees into one file
-for (i in 1:length(constrained_run_df)){
-  # Extract constrained tree files
-  i_ct_files <- paste0(constrained_run_df$constraint_tree_directory[i], c(constrained_run_df$CTEN_treefile[i], 
-                                                                          constrained_run_df$PORI_treefile[i], 
-                                                                          constrained_run_df$CTEN_PORI_treefile[i]))
-  i_ct_collated_trees <- c(unlist(lapply(i_ct_files,readLines)), "")
-  write(i_ct_collated_trees, file = paste0(constrained_run_df$constraint_tree_directory[i], constrained_run_df$collated_constraint_tree[i]) )
 }
 
 
@@ -292,6 +308,8 @@ for (i in 1:length(constrained_run_df)){
 # Check whether dataframe exists
 scf_call_df_filepath <- paste0(output_dir, "genes_007_individualGene_sCFCommand.csv")
 if (file.exists(scf_call_df_filepath) == FALSE){
+  # Update paths for dayhoff
+  scf_input_tree <- update.directory.paths(any_dataframe = constrained_run_df, location = "dayhoff")
   # Create scf command lines
   scf_call_df <- as.data.frame(do.call(rbind, lapply(1:nrow(constrained_run_df), 
                                                      estimate.gene.scf.wrapper, 
