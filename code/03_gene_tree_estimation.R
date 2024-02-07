@@ -428,19 +428,20 @@ all_au_test_files <- paste0(update.directory.paths(any_dataframe = constrained_r
 topology_results_df <- as.data.frame(do.call(rbind,lapply(all_au_test_files, 
                                                           extract.tree.topology.test.results)))
 # Save dataframe with AU test results 
-write(topology_results_df, file = topology_results_df_filepath, row.names = FALSE)
+write.csv(topology_results_df, file = topology_results_df_filepath, row.names = FALSE)
 
-## Extract MAST results
-# Prepare filepaths
-mast_results_df_filepath <- paste0(output_dir, "genes_010_individualGene_MASTResults.csv")
-all_MAST_files <- paste0(update.directory.paths(any_dataframe = constrained_run_df, location = "local")$mast_directory,
-                         topology_test_df$MAST_prefix, ".iqtree")
-# Apply function to extract tree topology details
-mast_results_df <- as.data.frame(do.call(rbind,lapply(all_MAST_files, 
-                                                      extract.tree.weights,
-                                                      trim.output.columns = FALSE)))
-# Save dataframe with AU test results 
-write(mast_results_df, file = mast_results_df_filepath, row.names = FALSE)
+## Commented out - MAST not good option for single genes - was not able to converge in test runs
+# ## Extract MAST results
+# # Prepare filepaths
+# mast_results_df_filepath <- paste0(output_dir, "genes_010_individualGene_MASTResults.csv")
+# all_MAST_files <- paste0(update.directory.paths(any_dataframe = constrained_run_df, location = "local")$mast_directory,
+#                          topology_test_df$MAST_prefix, ".iqtree")
+# # Apply function to extract tree topology details
+# mast_results_df <- as.data.frame(do.call(rbind,lapply(all_MAST_files, 
+#                                                       extract.tree.weights,
+#                                                       trim.output.columns = FALSE)))
+# # Save dataframe with AU test results 
+# write(mast_results_df, file = mast_results_df_filepath, row.names = FALSE)
 
 
 
