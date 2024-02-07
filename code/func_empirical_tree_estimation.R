@@ -495,9 +495,4 @@ gene.au.test.mast.command <- function(row_id, dataframe, iqtree2_path, iqtree2_M
 }
 
 
-paste0(iqtree2_path, " -te ", temp_row$constraint_tree_directory, temp_row$CTEN_treefile, 
-       " -s ", temp_row$gene_directory, temp_row$gene_file, " -m ", "'",
-       temp_row$unconstrained_tree_alisim_model, "'", " --scfl 100 -pre ",
-       temp_row$constraint_tree_directory, temp_row$CTEN_scf_prefix, 
-       " -nt ", iqtree2_num_threads)
 
