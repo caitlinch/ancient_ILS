@@ -553,6 +553,7 @@ extract.tree.weights <- function(iqtree_file, trim.output.columns = FALSE){
 extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
   ## Function to extract key sCF from the scf files
   
+  print(row_id)
   ## Extract temp row
   temp_row <- dataframe[row_id, ]
   
@@ -605,6 +606,7 @@ extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
   cten_pori_scf_df  <- process.CTEN_PORI.tree(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa)
   
   ## Collate output
+  # Combine into one dataframe
   temp_scf_output <- rbind(cten_scf_df, pori_scf_df, cten_pori_scf_df)
   return(temp_scf_output)
 }
@@ -629,22 +631,29 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
   aa_bs       <- as.numeric(strsplit(aa_node, "/")[[1]][1])
   aa_scf      <- as.numeric(strsplit(aa_node, "/")[[1]][2])
   aa_length   <- as.numeric(cten_tree$edge.length[aa_branch])
-  aa_vector   <- as.character(c(dataset_info, "CTEN_sister", "ALL_ANIMALS",
+  aa_ntaxa    <- length(c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
+  aa_vector   <- as.character(c(dataset_info, "CTEN_sister", "ALL_ANIMALS", aa_ntaxa,
                                 cten_tab[which(round(cten_tab$sCF, digits = 1) == round(aa_scf, digits = 1) & 
                                                  round(cten_tab$Label, digits = 1) == round(aa_bs, digits = 1) & 
                                                  round(cten_tab$Length, digits = 4) == round(aa_length, digits = 4)), ]))
   # Extract CTEN tree, ALL OTHER ANIMALS branch (aoa)
-  aoa_start   <- getMRCA(cten_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
-  aoa_end     <- getMRCA(cten_tree, tip = c(bilat_taxa, cnid_taxa, pori_taxa))
-  aoa_branch  <- which((cten_tree$edge[,1] == aoa_start)  & (cten_tree$edge[,2] == aoa_end))
-  aoa_node    <- cten_tree$node.label[aoa_branch]
-  aoa_bs      <- as.numeric(strsplit(aoa_node, "/")[[1]][1])
-  aoa_scf     <- as.numeric(strsplit(aoa_node, "/")[[1]][2])
-  aoa_length  <- as.numeric(cten_tree$edge.length[aoa_branch])
-  aoa_vector  <- as.character(c(dataset_info, "CTEN_sister", "ALL_OTHER_ANIMALS",
-                                cten_tab[which(round(cten_tab$sCF, digits = 1) == round(aoa_scf, digits = 1) & 
-                                                 round(cten_tab$Label, digits = 1) == round(aoa_bs, digits = 1) & 
-                                                 round(cten_tab$Length, digits = 4) == round(aoa_length, digits = 4)), ]))
+  if (length(pori_taxa) > 0 & length(cten_taxa) > 0){
+    aoa_start   <- getMRCA(cten_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
+    aoa_end     <- getMRCA(cten_tree, tip = c(bilat_taxa, cnid_taxa, pori_taxa))
+    aoa_branch  <- which((cten_tree$edge[,1] == aoa_start)  & (cten_tree$edge[,2] == aoa_end))
+    aoa_node    <- cten_tree$node.label[aoa_branch]
+    aoa_bs      <- as.numeric(strsplit(aoa_node, "/")[[1]][1])
+    aoa_scf     <- as.numeric(strsplit(aoa_node, "/")[[1]][2])
+    aoa_length  <- as.numeric(cten_tree$edge.length[aoa_branch])
+    aoa_ntaxa   <- length(c(bilat_taxa, cnid_taxa, pori_taxa))
+    aoa_vector  <- as.character(c(dataset_info, "CTEN_sister", "ALL_OTHER_ANIMALS", aoa_ntaxa, 
+                                  cten_tab[which(round(cten_tab$sCF, digits = 1) == round(aoa_scf, digits = 1) & 
+                                                   round(cten_tab$Label, digits = 1) == round(aoa_bs, digits = 1) & 
+                                                   round(cten_tab$Length, digits = 4) == round(aoa_length, digits = 4)), ]))
+  } else {
+    aoa_ntaxa   <- length(c(bilat_taxa, cnid_taxa, pori_taxa))
+    aoa_vector  <- as.character(c(dataset_info, "CTEN_sister", "ALL_OTHER_ANIMALS", aoa_ntaxa, rep(NA, 10) ))
+  }
   # Extract CTEN tree, CTEN branch (C)
   if (length(cten_taxa) > 1){
     c_start   <- getMRCA(cten_tree, tip = cten_taxa)
@@ -654,6 +663,7 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
     c_bs      <- as.numeric(strsplit(c_node, "/")[[1]][1])
     c_scf     <- as.numeric(strsplit(c_node, "/")[[1]][2])
     c_length  <- as.numeric(cten_tree$edge.length[c_branch])
+    c_ntaxa   <- length(cten_taxa)
     c_tab_extract <- cten_tab[which(round(cten_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
                                       round(cten_tab$Label, digits = 1) == round(c_bs, digits = 1) & 
                                       round(cten_tab$Length, digits = 4) == round(c_length, digits = 4)), ]
@@ -661,9 +671,10 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
       c_tab_extract <- cten_tab[which(round(cten_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
                                         round(cten_tab$Label, digits = 1) == round(c_bs, digits = 1)), ]
     }
-    c_vector  <- as.character(c(dataset_info, "CTEN_sister", "CTEN_CLADE", c_tab_extract))
+    c_vector  <- as.character(c(dataset_info, "CTEN_sister", "CTEN_CLADE", c_ntaxa, c_tab_extract))
   } else {
-    c_vector  <- as.character(c(dataset_info, "CTEN_sister", "CTEN_CLADE", rep(NA, 10) ))
+    c_ntaxa   <- length(cten_taxa)
+    c_vector  <- as.character(c(dataset_info, "CTEN_sister", "CTEN_CLADE", c_ntaxa, rep(NA, 10) ))
   }
   # Extract CTEN tree, PORI branch (P)
   if (length(pori_taxa) > 1){
@@ -674,6 +685,7 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
     p_bs      <- as.numeric(strsplit(p_node, "/")[[1]][1])
     p_scf     <- as.numeric(strsplit(p_node, "/")[[1]][2])
     p_length  <- as.numeric(cten_tree$edge.length[p_branch])
+    p_ntaxa   <- length(pori_taxa)
     p_tab_extract <- cten_tab[which(round(cten_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
                                       round(cten_tab$Label, digits = 1) == round(p_bs, digits = 1) & 
                                       round(cten_tab$Length, digits = 4) == round(p_length, digits = 4)), ]
@@ -681,13 +693,14 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
       p_tab_extract <- cten_tab[which(round(cten_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
                                         round(cten_tab$Label, digits = 1) == round(p_bs, digits = 1)), ]
     }
-    p_vector  <- as.character(c(dataset_info, "CTEN_sister", "PORI_CLADE", p_tab_extract))
+    p_vector  <- as.character(c(dataset_info, "CTEN_sister", "PORI_CLADE", p_ntaxa, p_tab_extract))
   } else {
-    p_vector  <- as.character(c(dataset_info, "CTEN_sister", "PORI_CLADE", rep(NA, 10) ))
+    p_ntaxa   <- length(pori_taxa)
+    p_vector  <- as.character(c(dataset_info, "CTEN_sister", "PORI_CLADE", p_ntaxa, rep(NA, 10) ))
   }
   # Assemble rows into output table
   cten_op_table <- as.data.frame(rbind(aa_vector, c_vector, aoa_vector, p_vector))
-  colnames(cten_op_table) <- c("dataset", "matrix", "dataset_id", "gene_name", "gene_id", "tree_topology", "branch_to_clade",
+  colnames(cten_op_table) <- c("dataset", "matrix", "dataset_id", "gene_name", "gene_id", "tree_topology", "branch_to_clade", "num_taxa", 
                                "ID", "sCF", "sCF_N", "sDF1", "sDF1_N", "sDF2", "sDF2_N", "sN", "ultafast_bootstrap", "branch_length")
   rownames(cten_op_table) <- NULL
   # Return output directory 
@@ -714,22 +727,29 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
   aa_bs         <- as.numeric(strsplit(aa_node, "/")[[1]][1])
   aa_scf        <- as.numeric(strsplit(aa_node, "/")[[1]][2])
   aa_length     <- as.numeric(pori_tree$edge.length[aa_branch])
-  aa_vector     <- as.character(c(dataset_info, "PORI_sister", "ALL_ANIMALS",
+  aa_ntaxa      <- length(c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
+  aa_vector     <- as.character(c(dataset_info, "PORI_sister", "ALL_ANIMALS", aa_ntaxa,
                                   pori_tab[which(round(pori_tab$sCF, digits = 1) == round(aa_scf, digits = 1) & 
                                                    round(pori_tab$Label, digits = 1) == round(aa_bs, digits = 1) & 
                                                    round(pori_tab$Length, digits = 4) == round(aa_length, digits = 4)), ]))
   # Extract PORI tree, ALL OTHER ANIMALS branch (aoa)
-  aoa_start   <- getMRCA(pori_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
-  aoa_end     <- getMRCA(pori_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa))
-  aoa_branch  <- which((pori_tree$edge[,1] == aoa_start)  & (pori_tree$edge[,2] == aoa_end))
-  aoa_node    <- pori_tree$node.label[ (aoa_start - Ntip(pori_tree) ) ]
-  aoa_bs      <- as.numeric(strsplit(aoa_node, "/")[[1]][1])
-  aoa_scf     <- as.numeric(strsplit(aoa_node, "/")[[1]][2])
-  aoa_length  <- as.numeric(pori_tree$edge.length[aoa_branch])
-  aoa_vector  <- as.character(c(dataset_info, "PORI_sister", "ALL_OTHER_ANIMALS",
-                                pori_tab[which(round(pori_tab$sCF, digits = 1) == round(aoa_scf, digits = 1) & 
-                                                 round(pori_tab$Label, digits = 1) == round(aoa_bs, digits = 1) & 
-                                                 round(pori_tab$Length, digits = 4) == round(aoa_length, digits = 4)), ]))
+  if (length(pori_taxa) > 0 & length(cten_taxa) > 0){
+    aoa_start   <- getMRCA(pori_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
+    aoa_end     <- getMRCA(pori_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa))
+    aoa_branch  <- which((pori_tree$edge[,1] == aoa_start)  & (pori_tree$edge[,2] == aoa_end))
+    aoa_node    <- pori_tree$node.label[ (aoa_start - Ntip(pori_tree) ) ]
+    aoa_bs      <- as.numeric(strsplit(aoa_node, "/")[[1]][1])
+    aoa_scf     <- as.numeric(strsplit(aoa_node, "/")[[1]][2])
+    aoa_length  <- as.numeric(pori_tree$edge.length[aoa_branch])
+    aoa_ntaxa   <- length(c(bilat_taxa, cnid_taxa, cten_taxa))
+    aoa_vector  <- as.character(c(dataset_info, "PORI_sister", "ALL_OTHER_ANIMALS", aoa_ntaxa,
+                                  pori_tab[which(round(pori_tab$sCF, digits = 1) == round(aoa_scf, digits = 1) & 
+                                                   round(pori_tab$Label, digits = 1) == round(aoa_bs, digits = 1) & 
+                                                   round(pori_tab$Length, digits = 4) == round(aoa_length, digits = 4)), ]))
+  } else {
+    aoa_ntaxa   <- length(c(bilat_taxa, cnid_taxa, cten_taxa))
+    aoa_vector  <- as.character(c(dataset_info, "PORI_sister", "ALL_OTHER_ANIMALS", aoa_ntaxa, rep(NA, 10) ))
+  }
   # Extract PORI tree, PORI branch (P)
   if (length(pori_taxa) > 1){
     p_start   <- getMRCA(pori_tree, tip = pori_taxa)
@@ -739,6 +759,7 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
     p_bs      <- as.numeric(strsplit(p_node, "/")[[1]][1])
     p_scf     <- as.numeric(strsplit(p_node, "/")[[1]][2])
     p_length  <- as.numeric(pori_tree$edge.length[p_branch])
+    p_ntaxa   <- length(pori_taxa)
     p_tab_extract <- pori_tab[which(round(pori_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
                                       round(pori_tab$Label, digits = 1) == round(p_bs, digits = 1) & 
                                       round(pori_tab$Length, digits = 4) == round(p_length, digits = 4)), ]
@@ -746,9 +767,10 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
       p_tab_extract <- pori_tab[which(round(pori_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
                                         round(pori_tab$Label, digits = 1) == round(p_bs, digits = 1)), ]
     }
-    p_vector  <- as.character(c(dataset_info, "PORI_sister", "PORI_CLADE", p_tab_extract))
+    p_vector  <- as.character(c(dataset_info, "PORI_sister", "PORI_CLADE", p_ntaxa, p_tab_extract))
   } else {
-    p_vector  <- as.character(c(dataset_info, "PORI_sister", "PORI_CLADE", rep(NA, 10) ))
+    p_ntaxa   <- length(pori_taxa)
+    p_vector  <- as.character(c(dataset_info, "PORI_sister", "PORI_CLADE", p_ntaxa, rep(NA, 10) ))
   }
   # Extract PORI tree, CTEN branch (C)
   if (length(cten_taxa) > 1){
@@ -759,6 +781,7 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
     c_bs      <- as.numeric(strsplit(c_node, "/")[[1]][1])
     c_scf     <- as.numeric(strsplit(c_node, "/")[[1]][2])
     c_length  <- as.numeric(pori_tree$edge.length[c_branch])
+    c_ntaxa   <- length(cten_taxa)
     c_tab_extract <- pori_tab[which(round(pori_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
                                       round(pori_tab$Label, digits = 1) == round(c_bs, digits = 1) & 
                                       round(pori_tab$Length, digits = 4) == round(c_length, digits = 4)), ]
@@ -766,13 +789,14 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
       c_tab_extract <- pori_tab[which(round(pori_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
                                         round(pori_tab$Label, digits = 1) == round(c_bs, digits = 1)), ]
     }
-    c_vector  <- as.character(c(dataset_info, "PORI_sister", "CTEN_CLADE", c_tab_extract))
+    c_vector  <- as.character(c(dataset_info, "PORI_sister", "CTEN_CLADE", c_ntaxa, c_tab_extract))
   } else {
-    c_vector  <- as.character(c(dataset_info, "PORI_sister", "CTEN_CLADE", rep(NA, 10) ))
+    c_ntaxa   <- length(cten_taxa)
+    c_vector  <- as.character(c(dataset_info, "PORI_sister", "CTEN_CLADE", c_ntaxa, rep(NA, 10) ))
   }
   # Assemble rows into output table
   pori_op_table <- as.data.frame(rbind(aa_vector, p_vector, aoa_vector, c_vector))
-  colnames(pori_op_table) <- c("dataset", "matrix", "dataset_id", "gene_name", "gene_id", "tree_topology", "branch_to_clade",
+  colnames(pori_op_table) <- c("dataset", "matrix", "dataset_id", "gene_name", "gene_id", "tree_topology", "branch_to_clade", "num_taxa", 
                                "ID", "sCF", "sCF_N", "sDF1", "sDF1_N", "sDF2", "sDF2_N", "sN", "ultafast_bootstrap", "branch_length")
   rownames(pori_op_table) <- NULL
   # Return output directory 
@@ -799,34 +823,47 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
   aa_bs       <- as.numeric(strsplit(aa_node, "/")[[1]][1])
   aa_scf      <- as.numeric(strsplit(aa_node, "/")[[1]][2])
   aa_length   <- as.numeric(cten_pori_tree$edge.length[aa_branch])
-  aa_vector   <- as.character(c(dataset_info, "CTEN_PORI_sister", "ALL_ANIMALS",
+  aa_ntaxa    <- length(c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
+  aa_vector   <- as.character(c(dataset_info, "CTEN_PORI_sister", "ALL_ANIMALS", aa_ntaxa, 
                                 cten_pori_tab[which(round(cten_pori_tab$sCF, digits = 1) == round(aa_scf, digits = 1) & 
                                                       round(cten_pori_tab$Label, digits = 1) == round(aa_bs, digits = 1) & 
                                                       round(cten_pori_tab$Length, digits = 4) == round(aa_length, digits = 4)), ]))
   # Extract CTEN tree, CTEN+PORI branch (CP)
-  cp_start   <- getMRCA(cten_pori_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
-  cp_end     <- getMRCA(cten_pori_tree, tip = c(cten_taxa, pori_taxa))
-  cp_branch   <- which((cten_pori_tree$edge[,1] == cp_start)  & (cten_pori_tree$edge[,2] == cp_end))
-  cp_node     <- cten_pori_tree$node.label[ (cp_end - Ntip(cten_pori_tree) ) ]
-  cp_bs       <- as.numeric(strsplit(cp_node, "/")[[1]][1])
-  cp_scf      <- as.numeric(strsplit(cp_node, "/")[[1]][2])
-  cp_length   <- as.numeric(cten_pori_tree$edge.length[cp_branch])
-  cp_vector   <- as.character(c(dataset_info, "CTEN_PORI_sister", "CTEN_PORI",
-                                cten_pori_tab[which(round(cten_pori_tab$sCF, digits = 1) == round(cp_scf, digits = 1) & 
-                                                      round(cten_pori_tab$Label, digits = 1) == round(cp_bs, digits = 1) & 
-                                                      round(cten_pori_tab$Length, digits = 4) == round(cp_length, digits = 4)), ]))
+  if (length(cten_taxa) > 0 & length(pori_taxa) > 0){
+    cp_start   <- getMRCA(cten_pori_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
+    cp_end     <- getMRCA(cten_pori_tree, tip = c(cten_taxa, pori_taxa))
+    cp_branch   <- which((cten_pori_tree$edge[,1] == cp_start)  & (cten_pori_tree$edge[,2] == cp_end))
+    cp_node     <- cten_pori_tree$node.label[ (cp_end - Ntip(cten_pori_tree) ) ]
+    cp_bs       <- as.numeric(strsplit(cp_node, "/")[[1]][1])
+    cp_scf      <- as.numeric(strsplit(cp_node, "/")[[1]][2])
+    cp_length   <- as.numeric(cten_pori_tree$edge.length[cp_branch])
+    cp_ntaxa    <- length(c(cten_taxa, pori_taxa))
+    cp_vector   <- as.character(c(dataset_info, "CTEN_PORI_sister", "CTEN_PORI", cp_ntaxa, 
+                                  cten_pori_tab[which(round(cten_pori_tab$sCF, digits = 1) == round(cp_scf, digits = 1) & 
+                                                        round(cten_pori_tab$Label, digits = 1) == round(cp_bs, digits = 1) & 
+                                                        round(cten_pori_tab$Length, digits = 4) == round(cp_length, digits = 4)), ]))
+  } else {
+    cp_ntaxa    <- length(c(cten_taxa, pori_taxa))
+    cp_vector  <- as.character(c(dataset_info,  "CTEN_PORI_sister", "CTEN_PORI", cp_ntaxa, rep(NA, 10) ))
+  }
   # Extract CTEN tree, ALL OTHER ANIMALS branch (AOA)
-  aoa_start   <- getMRCA(cten_pori_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
-  aoa_end     <- getMRCA(cten_pori_tree, tip = c(bilat_taxa, cnid_taxa))
-  aoa_branch  <- which((cten_pori_tree$edge[,1] == aoa_start)  & (cten_pori_tree$edge[,2] == aoa_end))
-  aoa_node    <- cten_pori_tree$node.label[aoa_branch]
-  aoa_bs      <- as.numeric(strsplit(aoa_node, "/")[[1]][1])
-  aoa_scf     <- as.numeric(strsplit(aoa_node, "/")[[1]][2])
-  aoa_length  <- as.numeric(cten_pori_tree$edge.length[aoa_branch])
-  aoa_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "ALL_OTHER_ANIMALS",
-                                cten_pori_tab[which(round(cten_pori_tab$sCF, digits = 1) == round(aoa_scf, digits = 1) & 
-                                                      round(cten_pori_tab$Label, digits = 1) == round(aoa_bs, digits = 1) & 
-                                                      round(cten_pori_tab$Length, digits = 4) == round(aoa_length, digits = 4)), ]))
+  if (length(bilat_taxa) > 0 & length(cnid_taxa) > 0){
+    aoa_start   <- getMRCA(cten_pori_tree, tip = c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
+    aoa_end     <- getMRCA(cten_pori_tree, tip = c(bilat_taxa, cnid_taxa))
+    aoa_branch  <- which((cten_pori_tree$edge[,1] == aoa_start)  & (cten_pori_tree$edge[,2] == aoa_end))
+    aoa_node    <- cten_pori_tree$node.label[aoa_branch]
+    aoa_bs      <- as.numeric(strsplit(aoa_node, "/")[[1]][1])
+    aoa_scf     <- as.numeric(strsplit(aoa_node, "/")[[1]][2])
+    aoa_length  <- as.numeric(cten_pori_tree$edge.length[aoa_branch])
+    aoa_ntaxa   <- length(c(bilat_taxa, cnid_taxa))
+    aoa_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "ALL_OTHER_ANIMALS", aoa_ntaxa, 
+                                  cten_pori_tab[which(round(cten_pori_tab$sCF, digits = 1) == round(aoa_scf, digits = 1) & 
+                                                        round(cten_pori_tab$Label, digits = 1) == round(aoa_bs, digits = 1) & 
+                                                        round(cten_pori_tab$Length, digits = 4) == round(aoa_length, digits = 4)), ]))
+  } else {
+    aoa_ntaxa   <- length(c(bilat_taxa, cnid_taxa))
+    aoa_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "ALL_OTHER_ANIMALS", aoa_ntaxa, rep(NA, 10) ))
+  }
   # Extract CTEN tree, CTEN branch (C)
   if (length(cten_taxa) > 1){
     c_start   <- getMRCA(cten_pori_tree, tip = cten_taxa)
@@ -836,6 +873,7 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
     c_bs      <- as.numeric(strsplit(c_node, "/")[[1]][1])
     c_scf     <- as.numeric(strsplit(c_node, "/")[[1]][2])
     c_length  <- as.numeric(cten_pori_tree$edge.length[c_branch])
+    c_ntaxa   <- length(cten_taxa)
     c_tab_extract <- cten_pori_tab[which(round(cten_pori_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
                                            round(cten_pori_tab$Label, digits = 1) == round(c_bs, digits = 1) & 
                                            round(cten_pori_tab$Length, digits = 4) == round(c_length, digits = 4)), ]
@@ -843,9 +881,10 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
       c_tab_extract <- cten_pori_tab[which(round(cten_pori_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
                                              round(cten_pori_tab$Label, digits = 1) == round(c_bs, digits = 1)), ]
     }
-    c_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "CTEN_CLADE", c_tab_extract))
+    c_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "CTEN_CLADE", c_ntaxa, c_tab_extract))
   } else {
-    c_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "CTEN_CLADE", rep(NA, 10) ))
+    c_ntaxa   <- length(cten_taxa)
+    c_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "CTEN_CLADE", c_ntaxa, rep(NA, 10) ))
   }
   # Extract CTEN tree, PORI branch (P)
   if (length(pori_taxa) > 1){
@@ -856,6 +895,7 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
     p_bs      <- as.numeric(strsplit(p_node, "/")[[1]][1])
     p_scf     <- as.numeric(strsplit(p_node, "/")[[1]][2])
     p_length  <- as.numeric(cten_pori_tree$edge.length[p_branch])
+    p_ntaxa   <- length(pori_taxa)
     p_tab_extract <- cten_pori_tab[which(round(cten_pori_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
                                            round(cten_pori_tab$Label, digits = 1) == round(p_bs, digits = 1) & 
                                            round(cten_pori_tab$Length, digits = 4) == round(p_length, digits = 4)), ]
@@ -863,13 +903,14 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
       p_tab_extract <- cten_pori_tab[which(round(cten_pori_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
                                              round(cten_pori_tab$Label, digits = 1) == round(p_bs, digits = 1)), ]
     }
-    p_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "PORI_CLADE", p_tab_extract))
+    p_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "PORI_CLADE", p_ntaxa, p_tab_extract))
   } else {
-    p_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "PORI_CLADE", rep(NA, 10) ))
+    p_ntaxa   <- length(pori_taxa)
+    p_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "PORI_CLADE", p_ntaxa, rep(NA, 10) ))
   }
   # Assemble rows into output table
   cten_pori_op_table <- as.data.frame(rbind(aa_vector, cp_vector, c_vector, p_vector, aoa_vector))
-  colnames(cten_pori_op_table) <- c("dataset", "matrix", "dataset_id", "gene_name", "gene_id", "tree_topology", "branch_to_clade",
+  colnames(cten_pori_op_table) <- c("dataset", "matrix", "dataset_id", "gene_name", "gene_id", "tree_topology", "branch_to_clade", "num_taxa", 
                                     "ID", "sCF", "sCF_N", "sDF1", "sDF1_N", "sDF2", "sDF2_N", "sN", "ultafast_bootstrap", "branch_length")
   rownames(cten_pori_op_table) <- NULL
   # Return output directory 
