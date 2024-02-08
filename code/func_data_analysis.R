@@ -579,7 +579,7 @@ extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
     matrix_taxa_trimmed <- matrix_taxa[[check_dataset_id]]
     dataset_taxa_raw <- all_datasets[[dataset_name]] # For debugging
     dataset_taxa <- all_datasets[[dataset_name]]
-    ### FIX THIS SECTION
+    # Remove any taxa not in this matrix
     dataset_taxa$Bilateria  <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa_raw$Bilateria ) ]
     dataset_taxa$Cnidaria   <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa_raw$Cnidaria ) ]
     dataset_taxa$Ctenophora <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa_raw$Ctenophora ) ]
