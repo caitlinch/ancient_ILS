@@ -570,32 +570,34 @@ extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
   dataset_name <- temp_row$dataset
   # Assemble table output columns
   dataset_info <- c(temp_row$dataset, temp_row$matrix_name, temp_row$dataset_id, temp_row$gene_name, temp_row$gene_id)
-  # Open CTEN tree
-  cten_tree <- read.tree(CTEN_cf_tree)
+  # Extract list of taxa in this tree
+  gene_taxa <- read.tree(CTEN_cf_tree)$tip.label
   # Classify taxa
   check_dataset_id <- paste0(dataset_id, ".aa")
   if (check_dataset_id %in% names(matrix_taxa)){
     # If there are multiple matrices published with the same dataset, separate only the taxa from the matrix of interest
     matrix_taxa_trimmed <- matrix_taxa[[check_dataset_id]]
+    dataset_taxa_raw <- all_datasets[[dataset_name]] # For debugging
     dataset_taxa <- all_datasets[[dataset_name]]
     ### FIX THIS SECTION
-    dataset_taxa$Bilateria  <- dataset_taxa$Bilateria[ which(  matrix_taxa_trimmed %in% dataset_taxa$Bilateria ) ]
-    dataset_taxa$Cnidaria   <- dataset_taxa$Cnidaria[ which( dataset_taxa$Cnidaria %in% matrix_taxa_trimmed ) ]
-    dataset_taxa$Ctenophora <- dataset_taxa$Ctenophora[ which( dataset_taxa$Ctenophora %in% matrix_taxa_trimmed ) ]
-    dataset_taxa$Placozoa   <- dataset_taxa$Placozoa[ which( dataset_taxa$Placozoa %in% matrix_taxa_trimmed ) ]
-    dataset_taxa$Porifera   <- dataset_taxa$Porifera[ which( dataset_taxa$Porifera %in% matrix_taxa_trimmed ) ]
-    dataset_taxa$Outgroup   <- dataset_taxa$Outgroup[ which( dataset_taxa$Outgroup %in% matrix_taxa_trimmed ) ]
+    dataset_taxa$Bilateria  <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa_raw$Bilateria ) ]
+    dataset_taxa$Cnidaria   <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa_raw$Cnidaria ) ]
+    dataset_taxa$Ctenophora <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa_raw$Ctenophora ) ]
+    dataset_taxa$Placozoa   <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa_raw$Placozoa ) ]
+    dataset_taxa$Porifera   <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa_raw$Porifera ) ]
+    dataset_taxa$Outgroup   <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa_raw$Outgroup ) ]
   } else {
     # Separate out the taxa from the dataset of interest
+    dataset_taxa_raw <- all_datasets[[dataset_name]] # For debugging
     dataset_taxa <- all_datasets[[dataset_name]]
   }
   # Now, separate the taxa in this gene based on clade
-  bilat_taxa  <- dataset_taxa$Bilateria[ which( dataset_taxa$Bilateria %in% cten_tree$tip.label ) ]
-  cnid_taxa   <- dataset_taxa$Cnidaria[ which( dataset_taxa$Cnidaria %in% cten_tree$tip.label ) ]
-  cten_taxa   <- dataset_taxa$Ctenophora[ which( dataset_taxa$Ctenophora %in% cten_tree$tip.label ) ]
-  plac_taxa   <- dataset_taxa$Placozoa[ which( dataset_taxa$Placozoa %in% cten_tree$tip.label ) ]
-  pori_taxa   <- dataset_taxa$Porifera[ which( dataset_taxa$Porifera %in% cten_tree$tip.label ) ]
-  outg_taxa   <- dataset_taxa$Outgroup[ which( dataset_taxa$Outgroup %in% cten_tree$tip.label ) ]
+  bilat_taxa  <- dataset_taxa$Bilateria[ which( dataset_taxa$Bilateria %in% gene_taxa ) ]
+  cnid_taxa   <- dataset_taxa$Cnidaria[ which( dataset_taxa$Cnidaria %in% gene_taxa ) ]
+  cten_taxa   <- dataset_taxa$Ctenophora[ which( dataset_taxa$Ctenophora %in% gene_taxa ) ]
+  plac_taxa   <- dataset_taxa$Placozoa[ which( dataset_taxa$Placozoa %in% gene_taxa ) ]
+  pori_taxa   <- dataset_taxa$Porifera[ which( dataset_taxa$Porifera %in% gene_taxa ) ]
+  outg_taxa   <- dataset_taxa$Outgroup[ which( dataset_taxa$Outgroup %in% gene_taxa ) ]
   
   ## Extract sCF from key branches of each constrained tree
   cten_scf_df       <- process.CTEN.tree(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa)
@@ -652,10 +654,14 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
     c_bs      <- as.numeric(strsplit(c_node, "/")[[1]][1])
     c_scf     <- as.numeric(strsplit(c_node, "/")[[1]][2])
     c_length  <- as.numeric(cten_tree$edge.length[c_branch])
-    c_vector  <- as.character(c(dataset_info, "CTEN_sister", "CTEN_CLADE",
-                                cten_tab[which(round(cten_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
-                                                 round(cten_tab$Label, digits = 1) == round(c_bs, digits = 1) & 
-                                                 round(cten_tab$Length, digits = 4) == round(c_length, digits = 4)), ]))
+    c_tab_extract <- cten_tab[which(round(cten_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
+                                      round(cten_tab$Label, digits = 1) == round(c_bs, digits = 1) & 
+                                      round(cten_tab$Length, digits = 4) == round(c_length, digits = 4)), ]
+    if (nrow(c_tab_extract) == 0){
+      c_tab_extract <- cten_tab[which(round(cten_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
+                                        round(cten_tab$Label, digits = 1) == round(c_bs, digits = 1)), ]
+    }
+    c_vector  <- as.character(c(dataset_info, "CTEN_sister", "CTEN_CLADE", c_tab_extract))
   } else {
     c_vector  <- as.character(c(dataset_info, "CTEN_sister", "CTEN_CLADE", rep(NA, 10) ))
   }
@@ -668,10 +674,14 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
     p_bs      <- as.numeric(strsplit(p_node, "/")[[1]][1])
     p_scf     <- as.numeric(strsplit(p_node, "/")[[1]][2])
     p_length  <- as.numeric(cten_tree$edge.length[p_branch])
-    p_vector  <- as.character(c(dataset_info, "CTEN_sister", "PORI_CLADE",
-                                cten_tab[which(round(cten_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
-                                                 round(cten_tab$Label, digits = 1) == round(p_bs, digits = 1) & 
-                                                 round(cten_tab$Length, digits = 4) == round(p_length, digits = 4)), ]))
+    p_tab_extract <- cten_tab[which(round(cten_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
+                                      round(cten_tab$Label, digits = 1) == round(p_bs, digits = 1) & 
+                                      round(cten_tab$Length, digits = 4) == round(p_length, digits = 4)), ]
+    if (nrow(p_tab_extract) == 0){
+      p_tab_extract <- cten_tab[which(round(cten_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
+                                        round(cten_tab$Label, digits = 1) == round(p_bs, digits = 1)), ]
+    }
+    p_vector  <- as.character(c(dataset_info, "CTEN_sister", "PORI_CLADE", p_tab_extract))
   } else {
     p_vector  <- as.character(c(dataset_info, "CTEN_sister", "PORI_CLADE", rep(NA, 10) ))
   }
@@ -729,10 +739,14 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
     p_bs      <- as.numeric(strsplit(p_node, "/")[[1]][1])
     p_scf     <- as.numeric(strsplit(p_node, "/")[[1]][2])
     p_length  <- as.numeric(pori_tree$edge.length[p_branch])
-    p_vector  <- as.character(c(dataset_info, "PORI_sister", "PORI_CLADE",
-                                pori_tab[which(round(pori_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
-                                                 round(pori_tab$Label, digits = 1) == round(p_bs, digits = 1) & 
-                                                 round(pori_tab$Length, digits = 4) == round(p_length, digits = 4)), ]))
+    p_tab_extract <- pori_tab[which(round(pori_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
+                                      round(pori_tab$Label, digits = 1) == round(p_bs, digits = 1) & 
+                                      round(pori_tab$Length, digits = 4) == round(p_length, digits = 4)), ]
+    if (nrow(p_tab_extract) == 0){
+      p_tab_extract <- pori_tab[which(round(pori_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
+                                        round(pori_tab$Label, digits = 1) == round(p_bs, digits = 1)), ]
+    }
+    p_vector  <- as.character(c(dataset_info, "PORI_sister", "PORI_CLADE", p_tab_extract))
   } else {
     p_vector  <- as.character(c(dataset_info, "PORI_sister", "PORI_CLADE", rep(NA, 10) ))
   }
@@ -745,10 +759,14 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
     c_bs      <- as.numeric(strsplit(c_node, "/")[[1]][1])
     c_scf     <- as.numeric(strsplit(c_node, "/")[[1]][2])
     c_length  <- as.numeric(pori_tree$edge.length[c_branch])
-    c_vector  <- as.character(c(dataset_info, "PORI_sister", "CTEN_CLADE",
-                                pori_tab[which(round(pori_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
-                                                 round(pori_tab$Label, digits = 1) == round(c_bs, digits = 1) & 
-                                                 round(pori_tab$Length, digits = 4) == round(c_length, digits = 4)), ]))
+    c_tab_extract <- pori_tab[which(round(pori_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
+                                      round(pori_tab$Label, digits = 1) == round(c_bs, digits = 1) & 
+                                      round(pori_tab$Length, digits = 4) == round(c_length, digits = 4)), ]
+    if (nrow(c_tab_extract) == 0){
+      c_tab_extract <- pori_tab[which(round(pori_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
+                                        round(pori_tab$Label, digits = 1) == round(c_bs, digits = 1)), ]
+    }
+    c_vector  <- as.character(c(dataset_info, "PORI_sister", "CTEN_CLADE", c_tab_extract))
   } else {
     c_vector  <- as.character(c(dataset_info, "PORI_sister", "CTEN_CLADE", rep(NA, 10) ))
   }
@@ -818,10 +836,14 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
     c_bs      <- as.numeric(strsplit(c_node, "/")[[1]][1])
     c_scf     <- as.numeric(strsplit(c_node, "/")[[1]][2])
     c_length  <- as.numeric(cten_pori_tree$edge.length[c_branch])
-    c_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "CTEN_CLADE",
-                                cten_pori_tab[which(round(cten_pori_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
-                                                      round(cten_pori_tab$Label, digits = 1) == round(c_bs, digits = 1) & 
-                                                      round(cten_pori_tab$Length, digits = 4) == round(c_length, digits = 4)), ]))
+    c_tab_extract <- cten_pori_tab[which(round(cten_pori_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
+                                           round(cten_pori_tab$Label, digits = 1) == round(c_bs, digits = 1) & 
+                                           round(cten_pori_tab$Length, digits = 4) == round(c_length, digits = 4)), ]
+    if (nrow(c_tab_extract) == 0){
+      c_tab_extract <- cten_pori_tab[which(round(cten_pori_tab$sCF, digits = 1) == round(c_scf, digits = 1) & 
+                                             round(cten_pori_tab$Label, digits = 1) == round(c_bs, digits = 1)), ]
+    }
+    c_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "CTEN_CLADE", c_tab_extract))
   } else {
     c_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "CTEN_CLADE", rep(NA, 10) ))
   }
@@ -834,10 +856,14 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
     p_bs      <- as.numeric(strsplit(p_node, "/")[[1]][1])
     p_scf     <- as.numeric(strsplit(p_node, "/")[[1]][2])
     p_length  <- as.numeric(cten_pori_tree$edge.length[p_branch])
-    p_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "PORI_CLADE",
-                                cten_pori_tab[which(round(cten_pori_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
-                                                      round(cten_pori_tab$Label, digits = 1) == round(p_bs, digits = 1) & 
-                                                      round(cten_pori_tab$Length, digits = 4) == round(p_length, digits = 4)), ]))
+    p_tab_extract <- cten_pori_tab[which(round(cten_pori_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
+                                           round(cten_pori_tab$Label, digits = 1) == round(p_bs, digits = 1) & 
+                                           round(cten_pori_tab$Length, digits = 4) == round(p_length, digits = 4)), ]
+    if (nrow(p_tab_extract) == 0){
+      p_tab_extract <- cten_pori_tab[which(round(cten_pori_tab$sCF, digits = 1) == round(p_scf, digits = 1) & 
+                                             round(cten_pori_tab$Label, digits = 1) == round(p_bs, digits = 1)), ]
+    }
+    p_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "PORI_CLADE", p_tab_extract))
   } else {
     p_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "PORI_CLADE", rep(NA, 10) ))
   }
