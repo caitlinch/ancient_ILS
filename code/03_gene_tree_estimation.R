@@ -363,7 +363,7 @@ scf_results_df_filepath <- paste0(output_dir, "genes_008_individualGene_sCFResul
 # Update output for local directories
 scf_call_df <- update.directory.paths(any_dataframe = scf_call_df, location = "local")
 # Check sCF for key branches
-scf_results_df <- as.data.frame(do.call(rbind, lapply(1:100,
+scf_results_df <- as.data.frame(do.call(rbind, lapply(1:nrow(scf_call_df),
                                                       extract.key.scf,
                                                       dataframe = scf_call_df, 
                                                       all_datasets = all_datasets, 

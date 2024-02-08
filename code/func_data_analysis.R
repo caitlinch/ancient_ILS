@@ -639,7 +639,7 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
       all_animals_node  <- all_animals_tree$node.label[1]
       if ((nchar(all_animals_node) == 0) | all_animals_node == "Root"){
         # This tree goes to the root and needs extra thought
-        all_animals_tree2 <- drop.tip(gene_tree, outg_taxa)
+        all_animals_tree2 <- drop.tip(gene_tree, c(cnid_taxa, bilat_taxa, pori_taxa, cten_taxa))
         all_animals_node  <- all_animals_tree2$node.label[1]
       } 
       all_animals_scf   <- as.numeric(strsplit(all_animals_node, "/")[[1]][2]) 
@@ -747,6 +747,11 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
     if (Ntip(cten_tree) > 1){
       cten_ntaxa  <- Ntip(cten_tree)
       cten_node   <- cten_tree$node.label[1]
+      if ((nchar(cten_node) == 0) | pori_node == "Root"){
+        # This tree goes to the root and needs extra thought
+        cten_tree2 <- drop.tip(gene_tree, cten_taxa)
+        cten_node  <- cten_tree2$node.label[1]
+      } 
       cten_scf    <- as.numeric(strsplit(cten_node, "/")[[1]][2]) 
       cten_ufb    <- as.numeric(strsplit(cten_node, "/")[[1]][1]) 
       cten_id     <- intersect( which( abs(scf_tab$sCF - cten_scf) == min(abs(scf_tab$sCF - cten_scf)) ), 
@@ -783,6 +788,11 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
     if (Ntip(pori_tree) > 1){
       pori_ntaxa  <- Ntip(pori_tree)
       pori_node   <- pori_tree$node.label[1]
+      if ((nchar(pori_node) == 0) | pori_node == "Root"){
+        # This tree goes to the root and needs extra thought
+        pori_tree2 <- drop.tip(gene_tree, pori_taxa)
+        pori_node  <- pori_tree2$node.label[1]
+      } 
       pori_scf    <- as.numeric(strsplit(pori_node, "/")[[1]][2]) 
       pori_ufb    <- as.numeric(strsplit(pori_node, "/")[[1]][1]) 
       pori_id     <- intersect( which( abs(scf_tab$sCF - pori_scf) == min(abs(scf_tab$sCF - pori_scf)) ), 
@@ -819,11 +829,6 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
         cnid_bilat_ntaxa  <- Ntip(cnid_bilat_tree)
         cnid_bilat_node   <- cnid_bilat_tree$node.label[1]
         if ((nchar(cnid_bilat_node) == 0) | cnid_bilat_node == "Root"){
-          # This tree goes to the root and needs extra thought
-          cnid_bilat_monophyly <- NA
-          cnid_bilat_ntaxa <- 0
-          cnid_bilat_row <- c("Root", rep(NA, 9))
-          
           # This tree goes to the root and needs extra thought
           cnid_bilat_tree2 <- drop.tip(gene_tree, c(cnid_taxa, bilat_taxa))
           cnid_bilat_node  <- cnid_bilat_tree2$node.label[1]
@@ -904,6 +909,7 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
   # Add new columns
   info_df <- as.data.frame(matrix(data = rep(dataset_info, times = nrow(scf_df)), nrow = nrow(scf_df), ncol = length(dataset_info), byrow = T))
   names(info_df) <- c("dataset", "matrix", "dataset_id", "gene_name", "gene_id")
+  
   # Add more information columns
   info_df$tree_topology     <- tree_topology
   info_df$branch_to_clade   <- c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CNID_BILAT", "CTEN_PORI", "CTEN", "PORI")
