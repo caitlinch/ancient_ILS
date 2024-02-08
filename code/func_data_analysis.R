@@ -790,6 +790,151 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
 }
 
 
+simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa, tree_topology = ""){
+  ## Process scf output files to extract sCF for all relevant branches
+  
+  ## Prepare analyses
+  # Open the cf.stat table
+  scf_tab = read.table(cf_stat, header=TRUE)
+  # Open CTEN tree
+  gene_tree_raw <- read.tree(cf_tree)
+  # Drop PLAC tips to simplify extraction process
+  gene_tree_drop <- drop.tip(gene_tree_raw, tip = plac_taxa)
+  # Root at outgroup
+  gene_tree <- root(gene_tree_drop, outgroup = outg_taxa)
+  
+  ## Extract ALL ANIMALS branch
+  all_animals_monophyly <- is.monophyletic(gene_tree, c(cnid_taxa, bilat_taxa, pori_taxa, cten_taxa))
+  all_animals_tree  <- drop.tip(gene_tree, outg_taxa)
+  all_animals_ntaxa <- Ntip(all_animals_tree)
+  all_animals_node  <- all_animals_tree$node.label[1]
+  all_animals_scf   <- as.numeric(strsplit(all_animals_node, "/")[[1]][2]) 
+  all_animals_ufb   <- as.numeric(strsplit(all_animals_node, "/")[[1]][1]) 
+  all_animals_id    <- intersect( which( abs(scf_tab$sCF - all_animals_scf) == min(abs(scf_tab$sCF - all_animals_scf)) ), 
+                                  which( abs(scf_tab$Label - all_animals_ufb) == min(abs(scf_tab$Label - all_animals_ufb)) ) )
+  all_animals_row  <- scf_tab[all_animals_id, ]
+  
+  ## Extract ALL OTHER ANIMALS branch
+  if (tree_topology == "CTEN" | tree_topology == "PORI"){
+    if (tree_topology == "CTEN"){
+      all_other_animals_taxa <- c(outg_taxa, cten_taxa)
+      all_other_animals_check_monophyly_taxa <- c(pori_taxa, cnid_taxa, bilat_taxa)
+    } else if (tree_topology == "PORI"){
+      all_other_animals_taxa <- c(outg_taxa, pori_taxa)
+      all_other_animals_check_monophyly_taxa <- c(cten_taxa, cnid_taxa, bilat_taxa)
+    }
+    all_other_animals_monophyly <- is.monophyletic(gene_tree, all_other_animals_check_monophyly_taxa)
+    all_other_animals_tree  <- drop.tip(gene_tree, all_other_animals_taxa)
+    all_other_animals_ntaxa <- Ntip(all_other_animals_tree)
+    all_other_animals_node  <- all_other_animals_tree$node.label[1]
+    all_other_animals_scf   <- as.numeric(strsplit(all_other_animals_node, "/")[[1]][2]) 
+    all_other_animals_ufb   <- as.numeric(strsplit(all_other_animals_node, "/")[[1]][1]) 
+    all_other_animals_id    <- intersect( which( abs(scf_tab$sCF - all_other_animals_scf) == min(abs(scf_tab$sCF - all_other_animals_scf)) ), 
+                                          which( abs(scf_tab$Label - all_other_animals_ufb) == min(abs(scf_tab$Label - all_other_animals_ufb)) ) )
+    all_other_animals_row  <- scf_tab[all_other_animals_id, ]
+  } else {
+    cten_pori_monophyly <- NA
+    all_other_animals_ntaxa <- NA
+    all_other_animals_row   <- rep(NA, 10)
+  }
+  
+  ## Extract CTEN branch
+  cten_monophyly <- is.monophyletic(gene_tree, cten_taxa)
+  cten_tree   <- drop.tip(gene_tree, c(outg_taxa, bilat_taxa, cnid_taxa, pori_taxa))
+  if (Ntip(cten_tree) > 1){
+    cten_ntaxa  <- Ntip(cten_tree)
+    cten_node   <- cten_tree$node.label[1]
+    cten_scf    <- as.numeric(strsplit(cten_node, "/")[[1]][2]) 
+    cten_ufb    <- as.numeric(strsplit(cten_node, "/")[[1]][1]) 
+    cten_id     <- intersect( which( abs(scf_tab$sCF - cten_scf) == min(abs(scf_tab$sCF - cten_scf)) ), 
+                              which( abs(scf_tab$Label - cten_ufb) == min(abs(scf_tab$Label - cten_ufb)) ) )
+    cten_row  <- scf_tab[cten_id, ]
+  } else {
+    cten_ntaxa <- 1
+    cten_row <- rep(NA, 10)
+  }
+  
+  ## Extract PORI branch
+  pori_monophyly <- is.monophyletic(gene_tree, pori_taxa)
+  pori_tree <- drop.tip(gene_tree, c(outg_taxa, bilat_taxa, cnid_taxa, cten_taxa))
+  if (Ntip(pori_tree) > 1){
+    pori_ntaxa  <- Ntip(pori_tree)
+    pori_node   <- pori_tree$node.label[1]
+    pori_scf    <- as.numeric(strsplit(pori_node, "/")[[1]][2]) 
+    pori_ufb    <- as.numeric(strsplit(pori_node, "/")[[1]][1]) 
+    pori_id     <- intersect( which( abs(scf_tab$sCF - pori_scf) == min(abs(scf_tab$sCF - pori_scf)) ), 
+                             which( abs(scf_tab$Label - pori_ufb) == min(abs(scf_tab$Label - pori_ufb)) ) )
+    pori_row    <- scf_tab[pori_id, ]
+  } else {
+    pori_ntaxa <- 1
+    pori_row <- rep(NA, 10)
+  }
+  
+  # Extract CNID+BILAT branch
+  cnid_bilat_monophyly <- is.monophyletic(gene_tree, c(cnid_taxa, bilat_taxa))
+  if (cnid_bilat_monophyly == TRUE){
+    cnid_bilat_tree <- drop.tip(gene_tree, c(outg_taxa, cten_taxa, pori_taxa))
+    if (Ntip(cnid_bilat_tree) > 1){
+      cnid_bilat_ntaxa  <- Ntip(cnid_bilat_tree)
+      cnid_bilat_node   <- cnid_bilat_tree$node.label[1]
+      cnid_bilat_scf    <- as.numeric(strsplit(cnid_bilat_node, "/")[[1]][2]) 
+      cnid_bilat_ufb    <- as.numeric(strsplit(cnid_bilat_node, "/")[[1]][1]) 
+      cnid_bilat_id     <- intersect( which( abs(scf_tab$sCF - cnid_bilat_scf) == min(abs(scf_tab$sCF - cnid_bilat_scf)) ), 
+                                     which( abs(scf_tab$Label - cnid_bilat_ufb) == min(abs(scf_tab$Label - cnid_bilat_ufb)) ) )
+      cnid_bilat_row    <- scf_tab[cnid_bilat_id, ]
+    } else {
+      cnid_bilat_ntaxa  <- 1
+      cnid_bilat_row    <- rep(NA, 10)
+    }
+  } else {
+    cnid_bilat_ntaxa    <- length(c(cnid_taxa, bilat_taxa))
+    cnid_bilat_row      <- rep(NA, 10)
+  }
+  
+  # Extract CTEN+PORI branch
+  cten_pori_monophyly <- is.monophyletic(gene_tree, c(cten_taxa, pori_taxa))
+  if (is.monophyletic(gene_tree, c(cten_taxa, pori_taxa)) == TRUE){
+    cten_pori_tree <- drop.tip(gene_tree, c(outg_taxa, cnid_taxa, bilat_taxa))
+    if (Ntip(cten_pori_tree) > 1){
+      cten_pori_ntaxa   <- Ntip(cten_pori_tree)
+      cten_pori_node    <- cten_pori_tree$node.label[1]
+      cten_pori_scf     <- as.numeric(strsplit(cten_pori_node, "/")[[1]][2]) 
+      cten_pori_ufb     <- as.numeric(strsplit(cten_pori_node, "/")[[1]][1]) 
+      cten_pori_id      <- intersect( which( abs(scf_tab$sCF - cten_pori_scf) == min(abs(scf_tab$sCF - cten_pori_scf)) ), 
+                                    which( abs(scf_tab$Label - cten_pori_ufb) == min(abs(scf_tab$Label - cten_pori_ufb)) ) )
+      cten_pori_row     <- scf_tab[cten_pori_id, ]
+    } else {
+      cten_pori_ntaxa   <- 1
+      cten_pori_row     <- rep(NA, 10)
+    }
+  } else {
+    cten_pori_ntaxa     <- length(c(cten_taxa, pori_taxa))
+    cten_pori_row       <- rep(NA, 10)
+  }
+  
+  # Assemble rows into output table
+  scf_df <- as.data.frame(rbind(all_animals_row, all_other_animals_row, cnid_bilat_row, cten_pori_row, cten_row, pori_row))
+  # Add new columns
+  info_df <- as.data.frame(matrix(data = rep(dataset_info, times = nrow(scf_df)), nrow = nrow(scf_df), ncol = length(dataset_info), byrow = T))
+  names(info_df) <- c("dataset", "matrix", "dataset_id", "gene_name", "gene_id")
+  # Add more information columns
+  info_df$tree_topology     <- tree_topology
+  info_df$branch_to_clade   <- c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CNID_BILAT", "CTEN_PORI", "CTEN", "PORI")
+  info_df$clade_monophyly   <- c(all_animals_monophyly, all_other_animals_monophyly, cnid_bilat_monophyly, cten_pori_monophyly, cten_monophyly, pori_monophyly)
+  info_df$num_taxa_total    <- c(Ntip(gene_tree))
+  info_df$num_taxa_clade    <- c(all_animals_ntaxa, all_other_animals_ntaxa, cnid_bilat_ntaxa, cten_pori_ntaxa, cten_ntaxa, pori_ntaxa)
+  # Bind dataframes
+  op_df <- cbind(info_df, scf_df)
+  # Reorder the columns
+  colnames(op_df) <- c("dataset", "matrix", "dataset_id", "gene_name", "gene_id", 
+                          "tree_topology", "branch_to_clade", "clade_monophyly", "num_taxa_total", "num_taxa_clade",
+                          "ID", "sCF", "sCF_N", "sDF1", "sDF1_N", "sDF2", "sDF2_N", "sN", "ultafast_bootstrap", "branch_length")
+  rownames(op_df) <- NULL
+  # Return output directory 
+  return(op_df)
+}
+
+
 process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa){
   ## Process CTEN files to extract sCF for all relevant branches
   
