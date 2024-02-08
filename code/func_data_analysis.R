@@ -634,6 +634,14 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
   all_animals_ufb   <- as.numeric(strsplit(all_animals_node, "/")[[1]][1]) 
   all_animals_id    <- intersect( which( abs(scf_tab$sCF - all_animals_scf) == min(abs(scf_tab$sCF - all_animals_scf)) ), 
                                   which( abs(scf_tab$Label - all_animals_ufb) == min(abs(scf_tab$Label - all_animals_ufb)) ) )
+  if (identical(all_animals_id, integer(0))){
+    all_animals_id    <- intersect( which( abs(scf_tab$sCF - all_animals_scf) < 0.5 ), 
+                                          which( abs(scf_tab$Label - all_animals_ufb) < 0.5 ) )
+    if (identical(all_animals_id, integer(0))){
+      all_animals_id    <- intersect( which( abs(scf_tab$sCF - all_animals_scf) < 1 ), 
+                                            which( abs(scf_tab$Label - all_animals_ufb) < 1 ) )
+    }
+  }
   all_animals_row  <- scf_tab[all_animals_id, ]
   
   ## Extract ALL OTHER ANIMALS branch
@@ -653,6 +661,14 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
     all_other_animals_ufb   <- as.numeric(strsplit(all_other_animals_node, "/")[[1]][1]) 
     all_other_animals_id    <- intersect( which( abs(scf_tab$sCF - all_other_animals_scf) == min(abs(scf_tab$sCF - all_other_animals_scf)) ), 
                                           which( abs(scf_tab$Label - all_other_animals_ufb) == min(abs(scf_tab$Label - all_other_animals_ufb)) ) )
+    if (identical(all_other_animals_id, integer(0))){
+      all_other_animals_id    <- intersect( which( abs(scf_tab$sCF - all_other_animals_scf) < 0.5 ), 
+                                            which( abs(scf_tab$Label - all_other_animals_ufb) < 0.5 ) )
+      if (identical(all_other_animals_id, integer(0))){
+        all_other_animals_id    <- intersect( which( abs(scf_tab$sCF - all_other_animals_scf) < 1 ), 
+                                              which( abs(scf_tab$Label - all_other_animals_ufb) < 1 ) )
+      }
+    }
     all_other_animals_row  <- scf_tab[all_other_animals_id, ]
   } else {
     all_other_animals_monophyly <- NA
@@ -670,6 +686,14 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
     cten_ufb    <- as.numeric(strsplit(cten_node, "/")[[1]][1]) 
     cten_id     <- intersect( which( abs(scf_tab$sCF - cten_scf) == min(abs(scf_tab$sCF - cten_scf)) ), 
                               which( abs(scf_tab$Label - cten_ufb) == min(abs(scf_tab$Label - cten_ufb)) ) )
+    if (identical(cten_id, integer(0))){
+      cten_id    <- intersect( which( abs(scf_tab$sCF - cten_scf) < 0.5 ), 
+                                      which( abs(scf_tab$Label - cten_ufb) < 0.5 ) )
+      if (identical(cten_id, integer(0))){
+        cten_id    <- intersect( which( abs(scf_tab$sCF - cten_scf) < 1 ), 
+                                        which( abs(scf_tab$Label - cten_ufb) < 1 ) )
+      }
+    }
     cten_row  <- scf_tab[cten_id, ]
   } else {
     cten_ntaxa <- 1
@@ -685,7 +709,15 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
     pori_scf    <- as.numeric(strsplit(pori_node, "/")[[1]][2]) 
     pori_ufb    <- as.numeric(strsplit(pori_node, "/")[[1]][1]) 
     pori_id     <- intersect( which( abs(scf_tab$sCF - pori_scf) == min(abs(scf_tab$sCF - pori_scf)) ), 
-                             which( abs(scf_tab$Label - pori_ufb) == min(abs(scf_tab$Label - pori_ufb)) ) )
+                              which( abs(scf_tab$Label - pori_ufb) == min(abs(scf_tab$Label - pori_ufb)) ) )
+    if (identical(pori_id, integer(0))){
+      pori_id    <- intersect( which( abs(scf_tab$sCF - pori_scf) < 0.5 ), 
+                               which( abs(scf_tab$Label - pori_ufb) < 0.5 ) )
+      if (identical(pori_id, integer(0))){
+        pori_id    <- intersect( which( abs(scf_tab$sCF - pori_scf) < 1 ), 
+                                 which( abs(scf_tab$Label - pori_ufb) < 1 ) )
+      }
+    }
     pori_row    <- scf_tab[pori_id, ]
   } else {
     pori_ntaxa <- 1
@@ -702,7 +734,15 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
       cnid_bilat_scf    <- as.numeric(strsplit(cnid_bilat_node, "/")[[1]][2]) 
       cnid_bilat_ufb    <- as.numeric(strsplit(cnid_bilat_node, "/")[[1]][1]) 
       cnid_bilat_id     <- intersect( which( abs(scf_tab$sCF - cnid_bilat_scf) == min(abs(scf_tab$sCF - cnid_bilat_scf)) ), 
-                                     which( abs(scf_tab$Label - cnid_bilat_ufb) == min(abs(scf_tab$Label - cnid_bilat_ufb)) ) )
+                                      which( abs(scf_tab$Label - cnid_bilat_ufb) == min(abs(scf_tab$Label - cnid_bilat_ufb)) ) )
+      if (identical(cnid_bilat_id, integer(0))){
+        cnid_bilat_id    <- intersect( which( abs(scf_tab$sCF - cnid_bilat_scf) < 0.5 ), 
+                                 which( abs(scf_tab$Label - cnid_bilat_ufb) < 0.5 ) )
+        if (identical(cnid_bilat_id, integer(0))){
+          cnid_bilat_id    <- intersect( which( abs(scf_tab$sCF - cnid_bilat_scf) < 1 ), 
+                                   which( abs(scf_tab$Label - cnid_bilat_ufb) < 1 ) )
+        }
+      }
       cnid_bilat_row    <- scf_tab[cnid_bilat_id, ]
     } else {
       cnid_bilat_ntaxa  <- 1
@@ -723,7 +763,15 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
       cten_pori_scf     <- as.numeric(strsplit(cten_pori_node, "/")[[1]][2]) 
       cten_pori_ufb     <- as.numeric(strsplit(cten_pori_node, "/")[[1]][1]) 
       cten_pori_id      <- intersect( which( abs(scf_tab$sCF - cten_pori_scf) == min(abs(scf_tab$sCF - cten_pori_scf)) ), 
-                                    which( abs(scf_tab$Label - cten_pori_ufb) == min(abs(scf_tab$Label - cten_pori_ufb)) ) )
+                                      which( abs(scf_tab$Label - cten_pori_ufb) == min(abs(scf_tab$Label - cten_pori_ufb)) ) )
+      if (identical(cten_pori_id, integer(0))){
+        cten_pori_id    <- intersect( which( abs(scf_tab$sCF - cten_pori_scf) < 0.5 ), 
+                                       which( abs(scf_tab$Label - cten_pori_ufb) < 0.5 ) )
+        if (identical(cten_pori_id, integer(0))){
+          cten_pori_id    <- intersect( which( abs(scf_tab$sCF - cten_pori_scf) < 1 ), 
+                                         which( abs(scf_tab$Label - cten_pori_ufb) < 1 ) )
+        }
+      }
       cten_pori_row     <- scf_tab[cten_pori_id, ]
     } else {
       cten_pori_ntaxa   <- 1
@@ -749,8 +797,8 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
   op_df <- cbind(info_df, scf_df)
   # Reorder the columns
   colnames(op_df) <- c("dataset", "matrix", "dataset_id", "gene_name", "gene_id", 
-                          "tree_topology", "branch_to_clade", "clade_monophyly", "num_taxa_total", "num_taxa_clade",
-                          "ID", "sCF", "sCF_N", "sDF1", "sDF1_N", "sDF2", "sDF2_N", "sN", "ultafast_bootstrap", "branch_length")
+                       "tree_topology", "branch_to_clade", "clade_monophyly", "num_taxa_total", "num_taxa_clade",
+                       "ID", "sCF", "sCF_N", "sDF1", "sDF1_N", "sDF2", "sDF2_N", "sN", "ultafast_bootstrap", "branch_length")
   rownames(op_df) <- NULL
   # Return output directory 
   return(op_df)
