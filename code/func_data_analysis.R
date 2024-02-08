@@ -633,17 +633,14 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
     aa_scf      <- as.numeric(strsplit(aa_node, "/")[[1]][2])
     aa_length   <- as.numeric(gene_tree$edge.length[aa_branch])
     aa_ntaxa    <- length(c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
-    aa_tab_extract   <- scf_tab[which(round(scf_tab$sCF, digits = 1) == round(aa_scf, digits = 1) & 
-                                        round(scf_tab$Label, digits = 1) == round(aa_bs, digits = 1) & 
-                                        round(scf_tab$Length, digits = 4) == round(aa_length, digits = 4)), ]
-    if (nrow(aa_tab_extract) == 0){
-      aa_tab_extract <- scf_tab[which(round(scf_tab$sCF, digits = 1) == round(aa_scf, digits = 1) & 
-                                        round(scf_tab$Label, digits = 1) == round(aa_bs, digits = 1)), ]
-      if (nrow(aa_tab_extract) == 0){
-        aa_tab_extract <- scf_tab[which(round(scf_tab$sCF, digits = 0) == round(aa_scf, digits = 0) & 
-                                          round(scf_tab$Label, digits = 1) == round(aa_bs, digits = 1)), ]
-      }
+    aa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aa_scf) == min(abs(scf_tab$sCF - aa_scf))), 
+                                    intersect(which(abs(scf_tab$Label - aa_bs) == min(abs(scf_tab$Label - aa_bs))), 
+                                              which(abs(scf_tab$Length - aa_length) == min(abs(scf_tab$Length - aa_length)))))
+    if (identical(aa_row_to_extract, integer(0))){
+      aa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aa_scf) == min(abs(scf_tab$sCF - aa_scf))), 
+                                      which(abs(scf_tab$Label - aa_bs) == min(abs(scf_tab$Label - aa_bs))))
     }
+    aa_tab_extract  <- scf_tab[aa_row_to_extract, ]
     aa_vector  <- as.character(c(dataset_info, "CTEN_sister", "ALL_ANIMALS", aa_ntaxa, aa_tab_extract))
   } else if (length(outg_taxa) == 0){
     aa_ntaxa   <- length(c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
@@ -672,6 +669,10 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
       aa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aa_scf) == min(abs(scf_tab$sCF - aa_scf))), 
                                       intersect(which(abs(scf_tab$Label - aa_bs) == min(abs(scf_tab$Label - aa_bs))), 
                                                 which(abs(scf_tab$Length - aa_length) == min(abs(scf_tab$Length - aa_length)))))
+      if (identical(aa_row_to_extract, integer(0))){
+        aa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aa_scf) == min(abs(scf_tab$sCF - aa_scf))), 
+                                        which(abs(scf_tab$Label - aa_bs) == min(abs(scf_tab$Label - aa_bs))))
+      }
       aa_tab_extract  <- scf_tab[aa_row_to_extract, ]
       aa_vector  <- as.character(c(dataset_info, "CTEN_sister", "ALL_ANIMALS", aa_ntaxa, aa_tab_extract))
     }
@@ -693,6 +694,10 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
       aoa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aoa_scf) == min(abs(scf_tab$sCF - aoa_scf))), 
                                        intersect(which(abs(scf_tab$Label - aoa_bs) == min(abs(scf_tab$Label - aoa_bs))), 
                                                  which(abs(scf_tab$Length - aoa_length) == min(abs(scf_tab$Length - aoa_length)))))
+      if (identical(aoa_row_to_extract, integer(0))){
+        aoa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aoa_scf) == min(abs(scf_tab$sCF - aoa_scf))), 
+                                         which(abs(scf_tab$Label - aoa_bs) == min(abs(scf_tab$Label - aoa_bs))))
+      }
       aoa_tab_extract  <- scf_tab[aoa_row_to_extract, ]
       aoa_vector <- as.character(c(dataset_info, "CTEN_sister", "ALL_OTHER_ANIMALS", aoa_ntaxa, aoa_tab_extract))
     }
@@ -719,6 +724,10 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
       aoa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aoa_scf) == min(abs(scf_tab$sCF - aoa_scf))), 
                                        intersect(which(abs(scf_tab$Label - aoa_bs) == min(abs(scf_tab$Label - aoa_bs))), 
                                                  which(abs(scf_tab$Length - aoa_length) == min(abs(scf_tab$Length - aoa_length)))))
+      if (identical(aoa_row_to_extract, integer(0))){
+        aoa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aoa_scf) == min(abs(scf_tab$sCF - aoa_scf))), 
+                                         which(abs(scf_tab$Label - aoa_bs) == min(abs(scf_tab$Label - aoa_bs))))
+      }
       aoa_tab_extract  <- scf_tab[aoa_row_to_extract, ]
       aoa_vector <- as.character(c(dataset_info, "CTEN_sister", "ALL_OTHER_ANIMALS", aoa_ntaxa, aoa_tab_extract))
     }
@@ -739,6 +748,10 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
     c_row_to_extract <- intersect( which(abs(scf_tab$sCF - c_scf) == min(abs(scf_tab$sCF - c_scf))), 
                                    intersect(which(abs(scf_tab$Label - c_bs) == min(abs(scf_tab$Label - c_bs))), 
                                              which(abs(scf_tab$Length - c_length) == min(abs(scf_tab$Length - c_length)))))
+    if (identical(c_row_to_extract, integer(0))){
+      c_row_to_extract <- intersect( which(abs(scf_tab$sCF - c_scf) == min(abs(scf_tab$sCF - c_scf))), 
+                                       which(abs(scf_tab$Label - c_bs) == min(abs(scf_tab$Label - c_bs))))
+    }
     c_tab_extract  <- scf_tab[c_row_to_extract, ]
     c_vector  <- as.character(c(dataset_info, "CTEN_sister", "CTEN_CLADE", c_ntaxa, c_tab_extract))
   } else {
@@ -758,6 +771,10 @@ process.CTEN.tree <- function(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_ta
     p_row_to_extract <- intersect( which(abs(scf_tab$sCF - p_scf) == min(abs(scf_tab$sCF - p_scf))), 
                                    intersect(which(abs(scf_tab$Label - p_bs) == min(abs(scf_tab$Label - p_bs))), 
                                              which(abs(scf_tab$Length - p_length) == min(abs(scf_tab$Length - p_length)))))
+    if (identical(p_row_to_extract, integer(0))){
+      p_row_to_extract <- intersect( which(abs(scf_tab$sCF - p_scf) == min(abs(scf_tab$sCF - p_scf))), 
+                                     which(abs(scf_tab$Label - p_bs) == min(abs(scf_tab$Label - p_bs))))
+    }
     p_tab_extract  <- scf_tab[p_row_to_extract, ]
     p_vector  <- as.character(c(dataset_info, "CTEN_sister", "PORI_CLADE", p_ntaxa, p_tab_extract))
   } else {
@@ -798,6 +815,10 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
     aa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aa_scf) == min(abs(scf_tab$sCF - aa_scf))), 
                                     intersect(which(abs(scf_tab$Label - aa_bs) == min(abs(scf_tab$Label - aa_bs))), 
                                               which(abs(scf_tab$Length - aa_length) == min(abs(scf_tab$Length - aa_length)))))
+    if (identical(aa_row_to_extract, integer(0))){
+      aa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aa_scf) == min(abs(scf_tab$sCF - aa_scf))), 
+                                      which(abs(scf_tab$Label - aa_bs) == min(abs(scf_tab$Label - aa_bs))))
+    }
     aa_tab_extract  <- scf_tab[aa_row_to_extract, ]
     aa_vector  <- as.character(c(dataset_info, "PORI_sister", "ALL_ANIMALS", aa_ntaxa, aa_tab_extract))
   } else if (length(outg_taxa) == 0){
@@ -827,6 +848,10 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
       aa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aa_scf) == min(abs(scf_tab$sCF - aa_scf))), 
                                       intersect(which(abs(scf_tab$Label - aa_bs) == min(abs(scf_tab$Label - aa_bs))), 
                                                 which(abs(scf_tab$Length - aa_length) == min(abs(scf_tab$Length - aa_length)))))
+      if (identical(aa_row_to_extract, integer(0))){
+        aa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aa_scf) == min(abs(scf_tab$sCF - aa_scf))), 
+                                        which(abs(scf_tab$Label - aa_bs) == min(abs(scf_tab$Label - aa_bs))))
+      }
       aa_tab_extract  <- scf_tab[aa_row_to_extract, ]
       aa_vector  <- as.character(c(dataset_info, "PORI_sister", "ALL_OTHER_ANIMALS", aa_ntaxa, aa_tab_extract))
     }
@@ -845,6 +870,10 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
     aoa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aoa_scf) == min(abs(scf_tab$sCF - aoa_scf))), 
                                      intersect(which(abs(scf_tab$Label - aoa_bs) == min(abs(scf_tab$Label - aoa_bs))), 
                                                which(abs(scf_tab$Length - aoa_length) == min(abs(scf_tab$Length - aoa_length)))))
+    if (identical(aoa_row_to_extract, integer(0))){
+      aoa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aoa_scf) == min(abs(scf_tab$sCF - aoa_scf))), 
+                                       which(abs(scf_tab$Label - aoa_bs) == min(abs(scf_tab$Label - aoa_bs))))
+    }
     aoa_tab_extract  <- scf_tab[aoa_row_to_extract, ]
     aoa_vector  <- as.character(c(dataset_info, "PORI_sister", "ALL_OTHER_ANIMALS", aoa_ntaxa, aoa_tab_extract))
   } else if (length(pori_taxa) == 1 | length(cten_taxa) == 1){
@@ -870,6 +899,10 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
       aoa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aoa_scf) == min(abs(scf_tab$sCF - aoa_scf))), 
                                        intersect(which(abs(scf_tab$Label - aoa_bs) == min(abs(scf_tab$Label - aoa_bs))), 
                                                  which(abs(scf_tab$Length - aoa_length) == min(abs(scf_tab$Length - aoa_length)))))
+      if (identical(aoa_row_to_extract, integer(0))){
+        aoa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aoa_scf) == min(abs(scf_tab$sCF - aoa_scf))), 
+                                         which(abs(scf_tab$Label - aoa_bs) == min(abs(scf_tab$Label - aoa_bs))))
+      }
       aoa_tab_extract  <- scf_tab[aoa_row_to_extract, ]
       aoa_vector  <- as.character(c(dataset_info, "PORI_sister", "ALL_OTHER_ANIMALS", aoa_ntaxa, aoa_tab_extract))
     }
@@ -890,6 +923,10 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
     p_row_to_extract <- intersect( which(abs(scf_tab$sCF - p_scf) == min(abs(scf_tab$sCF - p_scf))), 
                                    intersect(which(abs(scf_tab$Label - p_bs) == min(abs(scf_tab$Label - p_bs))), 
                                              which(abs(scf_tab$Length - p_length) == min(abs(scf_tab$Length - p_length)))))
+    if (identical(p_row_to_extract, integer(0))){
+      p_row_to_extract <- intersect( which(abs(scf_tab$sCF - p_scf) == min(abs(scf_tab$sCF - p_scf))), 
+                                     which(abs(scf_tab$Label - p_bs) == min(abs(scf_tab$Label - p_bs))))
+    }
     p_tab_extract  <- scf_tab[p_row_to_extract, ]
     p_vector  <- as.character(c(dataset_info, "PORI_sister", "PORI_CLADE", p_ntaxa, p_tab_extract))
   } else {
@@ -909,6 +946,10 @@ process.PORI.tree <- function(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_ta
     c_row_to_extract <- intersect( which(abs(scf_tab$sCF - c_scf) == min(abs(scf_tab$sCF - c_scf))), 
                                    intersect(which(abs(scf_tab$Label - c_bs) == min(abs(scf_tab$Label - c_bs))), 
                                              which(abs(scf_tab$Length - c_length) == min(abs(scf_tab$Length - c_length)))))
+    if (identical(c_row_to_extract, integer(0))){
+      c_row_to_extract <- intersect( which(abs(scf_tab$sCF - c_scf) == min(abs(scf_tab$sCF - c_scf))), 
+                                     which(abs(scf_tab$Label - c_bs) == min(abs(scf_tab$Label - c_bs))))
+    }
     c_tab_extract  <- scf_tab[c_row_to_extract, ]
     c_vector  <- as.character(c(dataset_info, "PORI_sister", "CTEN_CLADE", c_ntaxa, c_tab_extract))
   } else {
@@ -949,6 +990,10 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
     aa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aa_scf) == min(abs(scf_tab$sCF - aa_scf))), 
                                     intersect(which(abs(scf_tab$Label - aa_bs) == min(abs(scf_tab$Label - aa_bs))), 
                                               which(abs(scf_tab$Length - aa_length) == min(abs(scf_tab$Length - aa_length)))))
+    if (identical(aa_row_to_extract, integer(0))){
+      aa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aa_scf) == min(abs(scf_tab$sCF - aa_scf))), 
+                                      which(abs(scf_tab$Label - aa_bs) == min(abs(scf_tab$Label - aa_bs))))
+    }
     aa_tab_extract  <- scf_tab[aa_row_to_extract, ]
     aa_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "ALL_OTHER_ANIMALS", aa_ntaxa, aa_tab_extract))
   } else if (length(outg_taxa) == 0){
@@ -986,10 +1031,15 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
       aa_scf      <- as.numeric(strsplit(aa_node, "/")[[1]][2])
       aa_length   <- as.numeric(aa_tree$edge.length[aa_branch])
       aa_ntaxa    <- length(c(bilat_taxa, cnid_taxa, cten_taxa, pori_taxa))
-      aa_vector   <- as.character(c(dataset_info, "CTEN_PORI_sister", "ALL_ANIMALS", aa_ntaxa,
-                                    scf_tab[which(round(scf_tab$sCF, digits = 1) == round(aa_scf, digits = 1) & 
-                                                    round(scf_tab$Label, digits = 1) == round(aa_bs, digits = 1) & 
-                                                    round(scf_tab$Length, digits = 4) == round(aa_length, digits = 4)), ])) 
+      aa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aa_scf) == min(abs(scf_tab$sCF - aa_scf))), 
+                                      intersect(which(abs(scf_tab$Label - aa_bs) == min(abs(scf_tab$Label - aa_bs))), 
+                                                which(abs(scf_tab$Length - aa_length) == min(abs(scf_tab$Length - aa_length)))))
+      if (identical(aa_row_to_extract, integer(0))){
+        aa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aa_scf) == min(abs(scf_tab$sCF - aa_scf))), 
+                                        which(abs(scf_tab$Label - aa_bs) == min(abs(scf_tab$Label - aa_bs))))
+      }
+      aa_tab_extract  <- scf_tab[aa_row_to_extract, ]
+      aa_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "ALL_OTHER_ANIMALS", aa_ntaxa, aa_tab_extract))
     }
   }
   # Extract CTEN tree, CTEN+PORI branch (CP)
@@ -1005,6 +1055,10 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
     cp_row_to_extract <- intersect( which(abs(scf_tab$sCF - cp_scf) == min(abs(scf_tab$sCF - cp_scf))), 
                                     intersect(which(abs(scf_tab$Label - cp_bs) == min(abs(scf_tab$Label - cp_bs))), 
                                               which(abs(scf_tab$Length - cp_length) == min(abs(scf_tab$Length - cp_length)))))
+    if (identical(cp_row_to_extract, integer(0))){
+      cp_row_to_extract <- intersect( which(abs(scf_tab$sCF - cp_scf) == min(abs(scf_tab$sCF - cp_scf))), 
+                                       which(abs(scf_tab$Label - cp_bs) == min(abs(scf_tab$Label - cp_bs))))
+    }
     cp_tab_extract  <- scf_tab[cp_row_to_extract, ]
     cp_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "CTEN_PORI", cp_ntaxa, cp_tab_extract))
   } else {
@@ -1024,6 +1078,10 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
     aoa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aoa_scf) == min(abs(scf_tab$sCF - aoa_scf))), 
                                      intersect(which(abs(scf_tab$Label - aoa_bs) == min(abs(scf_tab$Label - aoa_bs))), 
                                                which(abs(scf_tab$Length - aoa_length) == min(abs(scf_tab$Length - aoa_length)))))
+    if (identical(aoa_row_to_extract, integer(0))){
+      aoa_row_to_extract <- intersect( which(abs(scf_tab$sCF - aoa_scf) == min(abs(scf_tab$sCF - aoa_scf))), 
+                                       which(abs(scf_tab$Label - aoa_bs) == min(abs(scf_tab$Label - aoa_bs))))
+    }
     aoa_tab_extract  <- scf_tab[aoa_row_to_extract, ]
     aoa_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "ALL_OTHER_ANIMALS", aoa_ntaxa, aoa_tab_extract))
   } else {
@@ -1043,6 +1101,10 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
     c_row_to_extract <- intersect( which(abs(scf_tab$sCF - c_scf) == min(abs(scf_tab$sCF - c_scf))), 
                                    intersect(which(abs(scf_tab$Label - c_bs) == min(abs(scf_tab$Label - c_bs))), 
                                              which(abs(scf_tab$Length - c_length) == min(abs(scf_tab$Length - c_length)))))
+    if (identical(c_row_to_extract, integer(0))){
+      c_row_to_extract <- intersect( which(abs(scf_tab$sCF - c_scf) == min(abs(scf_tab$sCF - c_scf))), 
+                                     which(abs(scf_tab$Label - c_bs) == min(abs(scf_tab$Label - c_bs))))
+    }
     c_tab_extract  <- scf_tab[c_row_to_extract, ]
     c_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "CTEN_CLADE", c_ntaxa, c_tab_extract))
   } else {
@@ -1062,6 +1124,10 @@ process.CTEN_PORI.tree <- function(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset
     p_row_to_extract <- intersect( which(abs(scf_tab$sCF - p_scf) == min(abs(scf_tab$sCF - p_scf))), 
                                    intersect(which(abs(scf_tab$Label - p_bs) == min(abs(scf_tab$Label - p_bs))), 
                                              which(abs(scf_tab$Length - p_length) == min(abs(scf_tab$Length - p_length)))))
+    if (identical(p_row_to_extract, integer(0))){
+      p_row_to_extract <- intersect( which(abs(scf_tab$sCF - p_scf) == min(abs(scf_tab$sCF - p_scf))), 
+                                     which(abs(scf_tab$Label - p_bs) == min(abs(scf_tab$Label - p_bs))))
+    }
     p_tab_extract  <- scf_tab[p_row_to_extract, ]
     p_vector  <- as.character(c(dataset_info, "CTEN_PORI_sister", "PORI_CLADE", p_ntaxa, p_tab_extract))
   } else {
