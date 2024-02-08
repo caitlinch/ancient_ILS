@@ -601,9 +601,9 @@ extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
   outg_taxa   <- dataset_taxa$Outgroup[ which( dataset_taxa$Outgroup %in% gene_taxa ) ]
   
   ## Extract sCF from key branches of each constrained tree
-  cten_scf_df       <- process.CTEN.tree(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa)
-  pori_scf_df       <- process.PORI.tree(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa)
-  cten_pori_scf_df  <- process.CTEN_PORI.tree(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa)
+  cten_scf_df       <- simple.scf.extraction(CTEN_cf_tree, CTEN_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa, "CTEN")
+  pori_scf_df       <- simple.scf.extraction(PORI_cf_tree, PORI_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa, "PORI")
+  cten_pori_scf_df  <- simple.scf.extraction(CTEN_PORI_cf_tree, CTEN_PORI_cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa, "CTEN_PORI")
   
   ## Collate output
   # Combine into one dataframe
@@ -612,7 +612,7 @@ extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
 }
 
 
-simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa, tree_topology = ""){
+simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa, tree_topology = "CTEN"){
   ## Process scf output files to extract sCF for all relevant branches
   
   ## Prepare analyses
@@ -655,7 +655,7 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
                                           which( abs(scf_tab$Label - all_other_animals_ufb) == min(abs(scf_tab$Label - all_other_animals_ufb)) ) )
     all_other_animals_row  <- scf_tab[all_other_animals_id, ]
   } else {
-    cten_pori_monophyly <- NA
+    all_other_animals_monophyly <- NA
     all_other_animals_ntaxa <- NA
     all_other_animals_row   <- rep(NA, 10)
   }
