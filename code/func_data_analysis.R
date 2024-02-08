@@ -873,6 +873,11 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
       if (Ntip(cten_pori_tree) > 1){
         cten_pori_ntaxa   <- Ntip(cten_pori_tree)
         cten_pori_node    <- cten_pori_tree$node.label[1]
+        if ((nchar(cten_pori_node) == 0) | cnid_bilat_node == "Root"){
+          # This tree goes to the root and needs extra thought
+          cten_pori_tree2 <- drop.tip(gene_tree, c(cten_taxa, pori_taxa))
+          cten_pori_node  <- cten_pori_tree2$node.label[1]
+        } 
         cten_pori_scf     <- as.numeric(strsplit(cten_pori_node, "/")[[1]][2]) 
         cten_pori_ufb     <- as.numeric(strsplit(cten_pori_node, "/")[[1]][1]) 
         cten_pori_id      <- intersect( which( abs(scf_tab$sCF - cten_pori_scf) == min(abs(scf_tab$sCF - cten_pori_scf)) ), 
