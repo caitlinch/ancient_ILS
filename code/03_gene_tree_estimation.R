@@ -359,7 +359,7 @@ if (create.slurm.files == TRUE){
 
 ## Extract sCFs
 # Prepare filepath
-scf_results_df_filepath <- paste0(output_dir, "genes_008_individualGene_sCFResults.csv")
+scf_results_df_filepath <- paste0(output_dir, "results_gene_scf.csv")
 # Update output for local directories
 scf_call_df <- update.directory.paths(any_dataframe = scf_call_df, location = "local")
 # Row check
@@ -367,8 +367,8 @@ all_rows <- 1:nrow(scf_call_df)
 simion_rows <- which(scf_call_df$dataset == "Simion2017") # issues with most Simion genes
 missing_rows <- c(794, 1146, 1314, 2844, 2925) # missing rows from other datasets
 run_rows <- setdiff(all_rows, c(simion_rows, missing_rows))
-# Check sCF for key branches
-scf_results_df <- as.data.frame(do.call(rbind, lapply(1:108,
+# Check sCF for key branches # hejnol start 459
+scf_results_df <- as.data.frame(do.call(rbind, lapply(run_rows,
                                                       extract.key.scf,
                                                       dataframe = scf_call_df, 
                                                       all_datasets = all_datasets, 
