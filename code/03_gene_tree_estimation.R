@@ -362,8 +362,11 @@ if (create.slurm.files == TRUE){
 scf_results_df_filepath <- paste0(output_dir, "genes_008_individualGene_sCFResults.csv")
 # Update output for local directories
 scf_call_df <- update.directory.paths(any_dataframe = scf_call_df, location = "local")
+# Row check
+all_rows <- 1:nrow(scf_input_df)
+missing_rows <- c(794, 1146, 1314, 2844, 2925, 3271:4884) # includes all Simion genes...
 # Check sCF for key branches
-scf_results_df <- as.data.frame(do.call(rbind, lapply(1:nrow(scf_call_df),
+scf_results_df <- as.data.frame(do.call(rbind, lapply(3271:4884,
                                                       extract.key.scf,
                                                       dataframe = scf_call_df, 
                                                       all_datasets = all_datasets, 

@@ -3,6 +3,7 @@
 # Caitlin Cherryh, 2023
 
 library(ape)
+library(castor)
 
 #### Collate model details from IQ-Tree output files ####
 extract.unconstrained.tree.details <- function(row_id, dataframe){
@@ -552,7 +553,7 @@ extract.tree.weights <- function(iqtree_file, trim.output.columns = FALSE){
 #### Extract details from sCF output ####
 extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
   ## Function to extract key sCF from the scf files
-
+  
   ## Extract temp row
   temp_row <- dataframe[row_id, ]
   
@@ -572,25 +573,46 @@ extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
   dataset_info <- c(temp_row$dataset, temp_row$matrix_name, temp_row$dataset_id, temp_row$gene_name, temp_row$gene_id)
   # Extract list of taxa in this tree
   gene_taxa <- read.tree(CTEN_cf_tree)$tip.label
+  # For Simion2017, update taxa to remove "." characters in taxa names
+  if (dataset_name == "Simion2017"){
+    gene_taxa <- gsub("\\\\.|\\.", "", gene_taxa)
+  }
   # Classify taxa
   check_dataset_id <- paste0(dataset_id, ".aa")
   if (check_dataset_id %in% names(matrix_taxa)){
     # If there are multiple matrices published with the same dataset, separate only the taxa from the matrix of interest
     matrix_taxa_trimmed <- matrix_taxa[[check_dataset_id]]
-    dataset_taxa_raw <- all_datasets[[dataset_name]] # For debugging
-    dataset_taxa <- all_datasets[[dataset_name]]
+    dataset_taxa_raw <- all_datasets[[dataset_name]]
+    # Copy item for updating taxa names
+    dataset_taxa <- dataset_taxa_raw
+    # For Simion2017, update taxa to remove "." characters in taxa names
+    if (dataset_name == "Simion2017"){
+      # Remove "." characters in matrix taxa
+      matrix_taxa_trimmed <- gsub("\\.", "", matrix_taxa_trimmed)
+      # Remove "." characters in dataset_taxa
+      dataset_taxa <- dataset_taxa_raw
+      for (c in c("Bilateria", "Cnidaria", "Placozoa", "Porifera", "Ctenophora", "Outgroup", 
+                  "Outgroup_Choanoflagellata", "Outgroup_Opisthokonta",
+                  "Sponges_Calcarea", "Sponges_Homoscleromorpha",
+                  "Sponges_Hexactinellida", "Sponges_Demospongiae")){
+        new_c <- gsub("\\\\.|\\.", "", dataset_taxa[[c]])
+        dataset_taxa[[c]] <- new_c
+      }
+    } 
     # Remove any taxa not in this matrix
-    dataset_taxa$Bilateria  <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa_raw$Bilateria ) ]
-    dataset_taxa$Cnidaria   <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa_raw$Cnidaria ) ]
-    dataset_taxa$Ctenophora <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa_raw$Ctenophora ) ]
-    dataset_taxa$Placozoa   <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa_raw$Placozoa ) ]
-    dataset_taxa$Porifera   <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa_raw$Porifera ) ]
-    dataset_taxa$Outgroup   <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa_raw$Outgroup ) ]
+    dataset_taxa$Bilateria  <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa$Bilateria ) ]
+    dataset_taxa$Cnidaria   <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa$Cnidaria ) ]
+    dataset_taxa$Ctenophora <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa$Ctenophora ) ]
+    dataset_taxa$Placozoa   <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa$Placozoa ) ]
+    dataset_taxa$Porifera   <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa$Porifera ) ]
+    dataset_taxa$Outgroup   <- matrix_taxa_trimmed[ which( matrix_taxa_trimmed %in% dataset_taxa$Outgroup ) ]
   } else {
     # Separate out the taxa from the dataset of interest
-    dataset_taxa_raw <- all_datasets[[dataset_name]] # For debugging
+    dataset_taxa_raw <- all_datasets[[dataset_name]]
+    # Copy object to remove unneeded taxa
     dataset_taxa <- all_datasets[[dataset_name]]
   }
+  
   # Now, separate the taxa in this gene based on clade
   bilat_taxa  <- dataset_taxa$Bilateria[ which( dataset_taxa$Bilateria %in% gene_taxa ) ]
   cnid_taxa   <- dataset_taxa$Cnidaria[ which( dataset_taxa$Cnidaria %in% gene_taxa ) ]
@@ -618,18 +640,83 @@ extract.key.scf <- function(row_id, dataframe, all_datasets, matrix_taxa){
 simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cnid_taxa, cten_taxa, plac_taxa, pori_taxa, outg_taxa, tree_topology = "CTEN"){
   ## Process scf output files to extract sCF for all relevant branches
   
-  ## Prepare analyses
+  ## Open files
   # Open the cf.stat table
   scf_tab = read.table(cf_stat, header=TRUE)
-  # Open CTEN tree
+  # Open tree
   gene_tree_raw <- read.tree(cf_tree)
-  # Drop PLAC tips to simplify extraction process
+  # Remove "." in taxa names for Simion 2017 dataset only
+  if (dataset_info[1] == "Simion2017"){
+    gene_tree_raw$tip.label <- gsub("\\\\.|\\.", "", gene_tree_raw$tip.label)
+  }
+  
+  ## Drop PLAC tips to simplify extraction process
   gene_tree_drop <- drop.tip(gene_tree_raw, tip = plac_taxa)
   
+  ## Identify any outgroup tips NOT in the outgroup and drop them
+  test_tree <- root(gene_tree_drop, pori_taxa[1], resolve = T)
+  if ((getMRCA(gene_tree_drop, outg_taxa) == getMRCA(gene_tree_drop, c(cten_taxa, bilat_taxa, cnid_taxa, pori_taxa)) ) | 
+      Ntip(extract.clade(gene_tree_drop, getMRCA(gene_tree_drop, c(cten_taxa, bilat_taxa, cnid_taxa, pori_taxa)))) > length(c(cten_taxa, bilat_taxa, cnid_taxa, pori_taxa))){
+    # Extract distance between each pair of outgroup tips
+    pd <- c()
+    for (i in outg_taxa){
+      for (j in outg_taxa){
+        temp_p <- get_pairwise_mrcas(gene_tree_drop, i, j)
+        pd <- c(pd, temp_p)
+      }
+    }
+    pd_mat <- matrix(data = pd, nrow = length(outg_taxa), ncol = length(outg_taxa), byrow = T)
+    pd_df <- as.data.frame(pd_mat)
+    rownames(pd_df) <- outg_taxa
+    colnames(pd_df) <- outg_taxa
+    # Find MRCA for the different iterations of the outgroup
+    dists <- sort(colMeans(pd_df))
+    dist_names <- names(dists)
+    test_tree <- root(gene_tree_drop, pori_taxa[1], resolve = T)
+    test_mrcas <- c()
+    all_outg_mrca <- getMRCA(test_tree, outg_taxa)
+    # Recursively add tips to form a monophyletic outgroup
+    for (k in 1:(length(dists))){
+      k_nums <- seq(from = k, to = length(dists), by = 1)
+      k_tips <- dist_names[k_nums]
+      k_mrca <- getMRCA(test_tree, k_tips)
+      test_mrcas <- c(test_mrcas, k_mrca)
+    }
+    # Add names to mrcas
+    test_mrcas <- c(test_mrcas, NA)
+    names(test_mrcas) <- dist_names
+    # Remove any MRCAs equal to the MRCA for the whole outgroup - indicates that 
+    test_mrcas <- sort(test_mrcas[which(test_mrcas != all_outg_mrca)])
+    num_tips <- c()
+    for (n in test_mrcas){
+      num_tips <- c(num_tips, Ntip(extract.clade(test_tree, n)))
+    }
+    # Identify node to main set of outgroup taxa
+    check_df <- data.frame(mrca = test_mrcas, ntip = num_tips)
+    outg_node <- check_df[which(num_tips[which(num_tips <= length(outg_taxa))] == max(num_tips[which(num_tips <= length(outg_taxa))])), "mrca"]
+    outg_clade <- extract.clade(test_tree, outg_node)
+    # Remove non-monophyletic outg_taxa from tree
+    outg_to_keep <- outg_clade$tip.label
+    outg_to_go <- setdiff(outg_taxa, outg_to_keep)
+    gene_tree_drop <- drop.tip(gene_tree_drop, outg_to_go)
+    # Update outg_taxa object
+    outg_taxa <- outg_to_keep
+  }
   
+  
+  ## Start extracting sCFs
   if (length(outg_taxa) > 0){
-    # Root at outgroup
-    gene_tree <- root(gene_tree_drop, outgroup = outg_taxa)
+    ## Root at outgroup
+    if (is.monophyletic(gene_tree_drop, outg_taxa)){
+      gene_tree <- root(gene_tree_drop, outgroup = outg_taxa)
+    } else if (is.monophyletic(gene_tree_drop, c(cnid_taxa, bilat_taxa, pori_taxa, cten_taxa))){
+      gene_tree <- root(gene_tree_drop, outgroup = c(cnid_taxa, bilat_taxa, pori_taxa, cten_taxa), resolve.root = TRUE)
+      if (is.monophyletic(gene_tree, outg_taxa)){
+        gene_tree <- root(gene_tree, outgroup = outg_taxa)
+      } 
+    } else {
+      gene_tree <- root(gene_tree_drop, outgroup = outg_taxa[1])
+    }
     
     ## Extract ALL ANIMALS branch
     if (length(c(cnid_taxa, bilat_taxa, pori_taxa, cten_taxa)) > 0){
@@ -641,6 +728,11 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
         # This tree goes to the root and needs extra thought
         all_animals_tree2 <- drop.tip(gene_tree, c(cnid_taxa, bilat_taxa, pori_taxa, cten_taxa))
         all_animals_node  <- all_animals_tree2$node.label[1]
+        if ((nchar(all_animals_node) == 0) | all_animals_node == "Root"){
+          # This tree ALSO goes to the root and needs extra thought
+          all_animals_tree3 <- drop.tip(gene_tree_drop, outg_taxa)
+          all_animals_node  <- all_animals_tree2$node.label[1]
+        }
       } 
       all_animals_scf   <- as.numeric(strsplit(all_animals_node, "/")[[1]][2]) 
       all_animals_ufb   <- as.numeric(strsplit(all_animals_node, "/")[[1]][1]) 
@@ -665,7 +757,7 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
       all_animals_row   <- rep(NA, 10)
     }
   } else {
-    # Otherwise, if no outgroup, root tree at Bilateria and Cnidaria
+    ## Otherwise, if no outgroup, root tree at Bilateria and Cnidaria
     if (length(cten_taxa) > 0){
       if (is.monophyletic(gene_tree_drop, cten_taxa)){
         gene_tree <- root(gene_tree_drop, outgroup = cten_taxa)
@@ -747,7 +839,7 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
     if (Ntip(cten_tree) > 1){
       cten_ntaxa  <- Ntip(cten_tree)
       cten_node   <- cten_tree$node.label[1]
-      if ((nchar(cten_node) == 0) | pori_node == "Root"){
+      if ((nchar(cten_node) == 0) | cten_node == "Root"){
         # This tree goes to the root and needs extra thought
         cten_tree2 <- drop.tip(gene_tree, cten_taxa)
         cten_node  <- cten_tree2$node.label[1]
@@ -873,7 +965,7 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
       if (Ntip(cten_pori_tree) > 1){
         cten_pori_ntaxa   <- Ntip(cten_pori_tree)
         cten_pori_node    <- cten_pori_tree$node.label[1]
-        if ((nchar(cten_pori_node) == 0) | cnid_bilat_node == "Root"){
+        if ((nchar(cten_pori_node) == 0) | cten_pori_node == "Root"){
           # This tree goes to the root and needs extra thought
           cten_pori_tree2 <- drop.tip(gene_tree, c(cten_taxa, pori_taxa))
           cten_pori_node  <- cten_pori_tree2$node.label[1]
