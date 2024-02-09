@@ -655,8 +655,26 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
   
   ## Identify any outgroup tips NOT in the outgroup and drop them
   test_tree <- root(gene_tree_drop, pori_taxa[1], resolve = T)
-  if ((getMRCA(gene_tree_drop, outg_taxa) == getMRCA(gene_tree_drop, c(cten_taxa, bilat_taxa, cnid_taxa, pori_taxa)) ) | 
-      Ntip(extract.clade(gene_tree_drop, getMRCA(gene_tree_drop, c(cten_taxa, bilat_taxa, cnid_taxa, pori_taxa)))) > length(c(cten_taxa, bilat_taxa, cnid_taxa, pori_taxa))){
+  # Create logical check
+  node_check_outg <- getMRCA(gene_tree_drop, outg_taxa)
+  node_check_all_animals <- getMRCA(gene_tree_drop, c(cten_taxa, bilat_taxa, cnid_taxa, pori_taxa))
+  if (identical(NULL, node_check_outg) == FALSE) {
+    if (node_check_outg == node_check_all_animals){
+      run_fix_taxa_chunk = TRUE
+    } else {
+      run_fix_taxa_chunk = FALSE
+    }
+  } else if  (identical(NULL, node_check_outg) == TRUE){
+    run_fix_taxa_chunk = FALSE
+  }
+  # Run this section to fix outgroup clade
+  if ( (run_fix_taxa_chunk == TRUE ) &  (length(outg_taxa) > 1) ){
+    # Run this section if:
+    #     - There is more than one outgroup taxa
+    #     - The most commmon recent ancestor node is the SAME for the OUTGROUP clade and the ALL ANIMALS clade
+    #           (which indicates some outgroup taxa are mixed into other clades)
+    # Make a note of this
+    fix_all_animals_monophyly <- TRUE
     # Extract distance between each pair of outgroup tips
     pd <- c()
     for (i in outg_taxa){
@@ -701,6 +719,8 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
     gene_tree_drop <- drop.tip(gene_tree_drop, outg_to_go)
     # Update outg_taxa object
     outg_taxa <- outg_to_keep
+  } else {
+    fix_all_animals_monophyly <- FALSE
   }
   
   
@@ -1006,6 +1026,11 @@ simple.scf.extraction <- function(cf_tree, cf_stat, dataset_info, bilat_taxa, cn
   # Add new columns
   info_df <- as.data.frame(matrix(data = rep(dataset_info, times = nrow(scf_df)), nrow = nrow(scf_df), ncol = length(dataset_info), byrow = T))
   names(info_df) <- c("dataset", "matrix", "dataset_id", "gene_name", "gene_id")
+  
+  # Fix the all_animals_monophyly if required
+  if (fix_all_animals_monophyly == TRUE){
+    all_animals_monophyly <- FALSE
+  }
   
   # Add more information columns
   info_df$tree_topology     <- tree_topology
