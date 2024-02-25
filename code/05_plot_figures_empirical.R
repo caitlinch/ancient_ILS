@@ -12,9 +12,10 @@ location = "local"
 if (location == "local"){
   ## File paths
   repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-  output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/04_figures/"
+  output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/06_figures/"
 }
 
+control_parameters <- list(add.extra.color.palettes = FALSE)
 
 
 ###### 2. Open packages and functions ######
@@ -28,7 +29,7 @@ library(patchwork)
 
 ###### 3. Prepare csvs for plotting  ######
 # Identify output csv files
-empirical_cf_path <- paste0(repo_dir, "output/empirical_concordance_factors.csv")
+empirical_cf_path <- paste0(repo_dir, "output/empirical_dataset_concordance_factors.csv")
 empirical_df <- read.csv(empirical_cf_path, stringsAsFactors = FALSE)
 # Remove unusual branaches
 empirical_df <- empirical_df[(empirical_df$branch_description == "To_all_animals" | empirical_df$branch_description == "To_all_other_metazoans" |
@@ -127,18 +128,18 @@ ggsave(filename = scf_plot_name, plot = scf_plot, width = 8, height = 10, units 
 
 ###### 6. Plot quartet scores  ######
 # Extract quartet scores into long dataframe
-qs_df <- melt(empirical_df,
+pp_df <- melt(empirical_df,
               id.vars = id.var_cols,
-              measure.vars = c("quartet_score", "gcf_Label"))
+              measure.vars = c("local_posterior_probability", "gcf_Label"))
 # Scale UFB from 0 - 1
-qs_df[which(qs_df$variable == "gcf_Label"), ]$value <- qs_df[which(qs_df$variable == "gcf_Label"), ]$value/100
+pp_df[which(pp_df$variable == "gcf_Label"), ]$value <- pp_df[which(pp_df$variable == "gcf_Label"), ]$value/100
 # Add labels for plotting
-qs_df$variable_label <- factor(qs_df$variable,
-                               levels = c("quartet_score", "gcf_Label"),
-                               labels = c("Quartet Score", "Ultra-Fast Bootstrap"),
+pp_df$variable_label <- factor(pp_df$variable,
+                               levels = c("local_posterior_probability", "gcf_Label"),
+                               labels = c("Posterior Probability", "Ultra-Fast Bootstrap"),
                                ordered = T)
 # Plot quartet scores
-qs_plot <- ggplot(qs_df, aes(x = branch_label, y = value, fill = hypothesis_label)) +
+pp_plot <- ggplot(pp_df, aes(x = branch_label, y = value, fill = hypothesis_label)) +
   facet_grid(.~variable_label, scales = "fixed") +
   geom_boxplot(alpha = 1) +
   scale_x_discrete(name = "Clade") +
@@ -155,8 +156,8 @@ qs_plot <- ggplot(qs_df, aes(x = branch_label, y = value, fill = hypothesis_labe
         legend.text = element_text(size = 14),
         legend.key.size = unit(30, "pt") )
 # Save plot
-qs_plot_name <- paste0(repo_dir, "figures/", "empirical_quartet_scores.pdf")
-ggsave(filename = qs_plot_name, plot = qs_plot, width = 10, height = 8, units = "in")
+pp_plot_name <- paste0(repo_dir, "figures/", "empirical_branch_support.pdf")
+ggsave(filename = pp_plot_name, plot = pp_plot, width = 10, height = 8, units = "in")
 
 
 
@@ -189,7 +190,7 @@ ggsave(filename = bl_plot_name, plot = bl_plot, width = 7, height = 8, units = "
 
 ###### 8. Collate branch support and branch length plots  ######
 # Plot quartet scores
-qs_plot <- ggplot(qs_df, aes(x = branch_label, y = value, fill = hypothesis_label)) +
+pp_plot <- ggplot(pp_df, aes(x = branch_label, y = value, fill = hypothesis_label)) +
   facet_grid(.~variable_label, scales = "fixed") +
   geom_boxplot(alpha = 1) +
   scale_x_discrete(name = "Clade") +
@@ -220,7 +221,7 @@ bl_plot <- ggplot(bl_df, aes(x = branch_label, y = value, fill = hypothesis_labe
         legend.text = element_text(size = 12),
         legend.key.size = unit(30, "pt") )
 # Create quilt
-quilt <- qs_plot + bl_plot + plot_layout(widths = c(2, 1), ncol = 2) + plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
+quilt <- pp_plot + bl_plot + plot_layout(widths = c(2, 1), ncol = 2) + plot_annotation(tag_levels = 'a', tag_suffix = ".") & 
   theme(plot.tag = element_text(size = 30))
 # Save quilt
 quilt_name <- paste0(repo_dir, "figures/", "empirical_collated_branch.pdf")
