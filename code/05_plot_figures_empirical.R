@@ -5,15 +5,10 @@
 ###### 1. Input parameters ######
 ## File paths
 # repo_dir                  <- location of caitlinch/ancient_ILS github repository
-# input_dir                 <- location of simulation and analysis result dataframes
 # output_dir                <- output directory to save figures
 
-location = "local"
-if (location == "local"){
-  ## File paths
-  repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-  output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/06_figures/"
-}
+repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
+output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/06_figures/"
 
 control_parameters <- list(add.extra.color.palettes = FALSE)
 
