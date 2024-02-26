@@ -27,9 +27,6 @@ library(patchwork)
 
 # Specify colour palettes used within these plots
 metazoan_clade_palette  <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
-tonal_palette           <- c("Ctenophora" = "#bdd7e7", "Porifera" =  "#2171b5")
-boxplot_bars            <- c("Ctenophora" = "#e7d4e8", "Porifera" =  "#d9f0d3")
-boxplot_points          <- c("Ctenophora" = "#762a83", "Porifera" =  "#1b7837")
 bl_bars                 <- c("Ctenophora" = "#2171b5", "Porifera" =  "#E69F00")
 bl_points               <- c("Ctenophora" = "black", "Porifera" =  "black")
 
@@ -44,6 +41,9 @@ if (control_parameters$add.extra.color.palettes == TRUE){
   tree2_cividis     <- c(tree5_cividis[1], tree5_cividis[5])
   tree2_tonal       <- c("#bdd7e7", "#2171b5")
   model3_tonal      <- c("#980043", "#df65b0", "#d4b9da")
+  bp_bars           <- c("Ctenophora" = "#e7d4e8", "Porifera" =  "#d9f0d3")
+  bp_points         <- c("Ctenophora" = "#762a83", "Porifera" =  "#1b7837")
+  tonal_palette     <- c("Ctenophora" = "#bdd7e7", "Porifera" =  "#2171b5")
 }
 
 
@@ -361,7 +361,7 @@ if (control_parameters$plot.boxplots == TRUE){
                                                ordered = TRUE)
   long_boxplot_df_1b$color <- factor(as.character(long_boxplot_df_1b$tree_topology_formatted),
                                      levels = c("Ctenophora", "Porifera"),
-                                     labels = c(boxplot_points[["Ctenophora"]], boxplot_points[["Porifera"]]),
+                                     labels = c(bl_points[["Ctenophora"]], bl_points[["Porifera"]]),
                                      ordered = FALSE)
   
   # Create faceted boxplot - each facet is a different branch, and each boxplot is a different variable, with colors to denote topology
@@ -371,8 +371,8 @@ if (control_parameters$plot.boxplots == TRUE){
     facet_wrap(dataset_id_formatted ~ .) +
     scale_x_discrete(name = "Site Concordance Factors") +
     scale_y_continuous(name = "Value") +
-    scale_fill_manual(values = boxplot_bars, name = "Gene sCF") +
-    scale_color_manual(values = boxplot_points, name = "Concatenated sCF") +
+    scale_fill_manual(values = bl_bars, name = "Gene sCF") +
+    scale_color_manual(values = bl_points, name = "Concatenated sCF") +
     scale_shape_discrete(name = "Concatenated sCF") +
     labs(title = "Clade: Metazoan") +
     theme_bw() +
@@ -425,7 +425,7 @@ if (control_parameters$plot.boxplots == TRUE){
                                                ordered = TRUE)
   long_boxplot_df_2b$color <- factor(as.character(long_boxplot_df_2b$tree_topology_formatted),
                                      levels = c("Ctenophora", "Porifera"),
-                                     labels = c(boxplot_points[["Ctenophora"]], boxplot_points[["Porifera"]]),
+                                     labels = c(bl_points[["Ctenophora"]], bl_points[["Porifera"]]),
                                      ordered = FALSE)
   # Create faceted boxplot - each facet is a different branch, and each boxplot is a different variable, with colors to denote topology
   boxplot2 <- ggplot(long_boxplot_df_2) +
@@ -434,8 +434,8 @@ if (control_parameters$plot.boxplots == TRUE){
     facet_wrap(dataset_id_formatted ~ .) +
     scale_x_discrete(name = "Site Concordance Factors") +
     scale_y_continuous(name = "Value") +
-    scale_fill_manual(values = boxplot_bars, name = "Gene sCF") +
-    scale_color_manual(values = boxplot_points, name = "Concatenated sCF") +
+    scale_fill_manual(values = bl_bars, name = "Gene sCF") +
+    scale_color_manual(values = bl_points, name = "Concatenated sCF") +
     scale_shape_discrete(name = "Concatenated sCF") +
     labs(title = "Clade: All Other Animals",
          subtitle = "Branch separating first clade to diverge from all other Metazoan species") +
@@ -489,7 +489,7 @@ if (control_parameters$plot.boxplots == TRUE){
                                                ordered = TRUE)
   long_boxplot_df_3b$color <- factor(as.character(long_boxplot_df_3b$tree_topology_formatted),
                                      levels = c("Ctenophora", "Porifera"),
-                                     labels = c(boxplot_points[["Ctenophora"]], boxplot_points[["Porifera"]]),
+                                     labels = c(bl_points[["Ctenophora"]], bl_points[["Porifera"]]),
                                      ordered = FALSE)
   # Create faceted boxplot - each facet is a different branch, and each boxplot is a different variable, with colors to denote topology
   boxplot3 <- ggplot(long_boxplot_df_3) +
@@ -498,8 +498,8 @@ if (control_parameters$plot.boxplots == TRUE){
     facet_wrap(dataset_id_formatted ~ .) +
     scale_x_discrete(name = "Site Concordance Factors") +
     scale_y_continuous(name = "Value") +
-    scale_fill_manual(values = boxplot_bars, name = "Gene sCF") +
-    scale_color_manual(values = boxplot_points, name = "Concatenated sCF") +
+    scale_fill_manual(values = bl_bars, name = "Gene sCF") +
+    scale_color_manual(values = bl_points, name = "Concatenated sCF") +
     scale_shape_discrete(name = "Concatenated sCF") +
     labs(title = "Clade: Ctenophora") +
     theme_bw() +
@@ -552,7 +552,7 @@ if (control_parameters$plot.boxplots == TRUE){
                                                ordered = TRUE)
   long_boxplot_df_4b$color <- factor(as.character(long_boxplot_df_4b$tree_topology_formatted),
                                      levels = c("Ctenophora", "Porifera"),
-                                     labels = c(boxplot_points[["Ctenophora"]], boxplot_points[["Porifera"]]),
+                                     labels = c(bl_points[["Ctenophora"]], bl_points[["Porifera"]]),
                                      ordered = FALSE)
   # Create faceted boxplot - each facet is a different branch, and each boxplot is a different variable, with colors to denote topology
   boxplot4 <- ggplot(long_boxplot_df_4) +
@@ -561,8 +561,8 @@ if (control_parameters$plot.boxplots == TRUE){
     facet_wrap(dataset_id_formatted ~ .) +
     scale_x_discrete(name = "Site Concordance Factors") +
     scale_y_continuous(name = "Value") +
-    scale_fill_manual(values = boxplot_bars, name = "Gene sCF") +
-    scale_color_manual(values = boxplot_points, name = "Concatenated sCF") +
+    scale_fill_manual(values = bl_bars, name = "Gene sCF") +
+    scale_color_manual(values = bl_points, name = "Concatenated sCF") +
     scale_shape_discrete(name = "Concatenated sCF") +
     labs(title = "Clade: Porifera") +
     theme_bw() +
