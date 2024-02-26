@@ -11,8 +11,8 @@ repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/anc
 output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/06_figures/"
 
 control_parameters <- list(add.extra.color.palettes = FALSE,
-                           plot.ternary = FALSE,
-                           plot.boxplots = FALSE,
+                           plot.ternary = TRUE,
+                           plot.boxplots = TRUE,
                            plot.branch.lengths = TRUE)
 
 
@@ -30,6 +30,8 @@ metazoan_clade_palette  <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenop
 tonal_palette           <- c("Ctenophora" = "#bdd7e7", "Porifera" =  "#2171b5")
 boxplot_bars            <- c("Ctenophora" = "#e7d4e8", "Porifera" =  "#d9f0d3")
 boxplot_points          <- c("Ctenophora" = "#762a83", "Porifera" =  "#1b7837")
+bl_bars                 <- c("Ctenophora" = "#2171b5", "Porifera" =  "#E69F00")
+bl_points               <- c("Ctenophora" = "black", "Porifera" =  "black")
 
 # Extra colour palettes (unused)
 if (control_parameters$add.extra.color.palettes == TRUE){
@@ -76,11 +78,11 @@ if (control_parameters$plot.ternary == TRUE | control_parameters$plot.boxplots =
   species_scf_df$dataset_id <- paste0(species_scf_df$dataset, ".", species_scf_df$matrix) 
   species_scf_df$dataset_id_formatted <- factor(species_scf_df$dataset_id,
                                                 levels =  c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
-                                                            "Ryan2013.REA_EST_includingXenoturbella", "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix",
+                                                            "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix", "Ryan2013.REA_EST_includingXenoturbella", 
                                                             "Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
                                                             "Whelan2015.Dataset10", "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk"),
                                                 labels = c("Dunn 2008",  "Philippe 2009", "Philippe 2011", 
-                                                           "Ryan 2013", "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", 
+                                                           "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", "Ryan 2013", 
                                                            "Moroz 2014", "Borowiec 2015", "Chang 2015", 
                                                            "Whelan 2015", "Whelan 2017",  "Laumer 2018"),
                                                 ordered = TRUE)
@@ -103,11 +105,11 @@ if (control_parameters$plot.ternary == TRUE | control_parameters$plot.boxplots =
   # Add new column for plot output dataset id
   scf_df$dataset_id_formatted <- factor(scf_df$dataset_id,
                                         levels =  c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
-                                                    "Ryan2013.REA_EST_includingXenoturbella", "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix",
+                                                    "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix", "Ryan2013.REA_EST_includingXenoturbella",
                                                     "Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
                                                     "Whelan2015.Dataset10", "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk"),
                                         labels = c("Dunn 2008",  "Philippe 2009", "Philippe 2011", 
-                                                   "Ryan 2013", "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", 
+                                                   "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", "Ryan 2013",
                                                    "Moroz 2014", "Borowiec 2015", "Chang 2015", 
                                                    "Whelan 2015", "Whelan 2017",  "Laumer 2018"),
                                         ordered = TRUE)
@@ -586,34 +588,63 @@ if (control_parameters$plot.boxplots == TRUE){
 ###### 11. Species and gene branch lengths ######
 # Collate all branch lengths into a single dataframe
 species_scf_df$branch_length <- species_scf_df$sCF_length
-bl_df <- rbind(scf_df[ , c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
-                           "tree_topology", "tree_topology_formatted", "branch_to_clade",
-                           "dataset_type", "branch_length")],
-               species_scf_df[ , c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
-                                   "tree_topology", "tree_topology_formatted", "branch_to_clade",
-                                   "dataset_type", "branch_length")])
+bl_df <- scf_df[ , c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
+                     "tree_topology", "tree_topology_formatted", "branch_to_clade",
+                     "dataset_type", "branch_length")]
+species_bl_df <- species_scf_df[ , c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
+                                     "tree_topology", "tree_topology_formatted", "branch_to_clade",
+                                     "dataset_type", "branch_length")]
+# Remove branch lengths with NA values
+bl_df <- bl_df[which(is.na(bl_df$branch_length) == FALSE), ]
+bl_df <- bl_df[which(bl_df$tree_topology_formatted %in% c("Ctenophora", "Porifera")), ]
+bl_df <- bl_df[which(bl_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
+species_bl_df <- species_bl_df[which(is.na(species_bl_df$branch_length) == FALSE), ]
+species_bl_df <- species_bl_df[which(species_bl_df$tree_topology_formatted %in% c("Ctenophora", "Porifera")), ]
+species_bl_df <- species_bl_df[which(species_bl_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
+# Melt datasets to long format
 long_bl_df <- melt(bl_df,
                    id.vars = c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
                                "tree_topology", "tree_topology_formatted", "branch_to_clade",
                                "dataset_type"),
                    measure.vars = c("branch_length"))
-# Remove branch lengths with NA values
-bl_df <- bl_df[which(is.na(bl_df$branch_length) == FALSE), ]
-bl_df <- bl_df[which(bl_df$tree_topology_formatted %in% c("Ctenophora", "Porifera")), ]
-bl_df <- bl_df[which(bl_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
+long_species_bl_df <- melt(species_bl_df,
+                           id.vars = c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
+                                       "tree_topology", "tree_topology_formatted", "branch_to_clade",
+                                       "dataset_type"),
+                           measure.vars = c("branch_length"))
 # Add new nicely formatted branch_to_clade
-bl_df$clade_formatted <- factor(bl_df$branch_to_clade,
-                                levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
-                                labels = c("Metazoa", "Other animals", "Ctenophora", "Porifera"))
+long_bl_df$clade_formatted <- factor(long_bl_df$branch_to_clade,
+                                     levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
+                                     labels = c("Metazoa", "Other animals", "Ctenophora", "Porifera"))
+long_species_bl_df$clade_formatted <- factor(long_species_bl_df$branch_to_clade,
+                                             levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
+                                             labels = c("Metazoa", "Other animals", "Ctenophora", "Porifera"))
 # Plot branch lengths
-bl_plot <- ""
-ggplot(bl_df, aes(x = tree_topology_formatted, y = branch_length, fill = tree_topology_formatted)) +
-  geom_boxplot() +
-  facet_grid(dataset_id_formatted ~ clade_formatted) +
-  theme_bw()
+bl_plot <- ggplot(long_bl_df) +
+  geom_boxplot(aes(x = tree_topology_formatted, y = value, fill = tree_topology_formatted), outlier.colour = "grey40", color = "grey40") +
+  geom_point(data = long_species_bl_df, aes(x = tree_topology_formatted, y = value, color = tree_topology_formatted, shape = tree_topology_formatted), size = 4) +
+  facet_grid(clade_formatted ~ dataset_id_formatted, scale = "free_y") +
+  scale_x_discrete(name = "Constrained tree topology") +
+  scale_y_continuous(name = "Branch length (substitutions per site)") +
+  scale_fill_manual(values = bl_bars, name = "Genes") +
+  scale_color_manual(values = bl_points, name = "Concatenated") +
+  scale_shape_discrete(name = "Concatenated") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 22, hjust = 0.5),
+        plot.subtitle = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 12),
+        axis.title.x = element_text(size = 14, margin = margin(t = 15, r = 0, b = 0, l = 0, unit = "pt")),
+        axis.title.y = element_text(size = 14, margin = margin(t = 0, r = 15, b = 0, l = 0, unit = "pt")),
+        axis.text.x = element_text(size = 12, vjust = 1.0, hjust = 1.0, angle = 45),
+        axis.text.y = element_text(size = 12),
+        legend.title = element_text(size = 14), 
+        legend.text = element_text(size = 12),
+        legend.key.size = unit(2, "lines")) +
+  guides(fill = guide_legend(override.aes = list(size = 8)),
+         color = guide_legend(override.aes = list(size = 8)))
 # Save plot
 bl_plot_name <- paste0(repo_dir, "figures/", "GeneSpecies_branch_lengths_boxplot.pdf")
-ggsave(filename = bl_plot_name, plot = bl_plot, width = 10, height = 10, units = "in")
+ggsave(filename = bl_plot_name, plot = bl_plot, width = 18, height = 12, units = "in")
 
 
 
