@@ -753,12 +753,7 @@ ggsave(filename = au_plot_name, plot = au_plot, width = 10, height = 10, units =
 
 
 
-###### 14. Log likelihoods ######
-
-
-
-
-###### 15. Empirical gCF, sCF and quartet values: All Other Metazoans ######
+###### 14. Empirical gCF, sCF and quartet values: All Other Metazoans ######
 # Extract variables of interest
 emp_df <- species_scf_df
 emp_df <- emp_df[which(emp_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
@@ -768,27 +763,41 @@ emp_df$clade_formatted <- factor(emp_df$branch_to_clade,
                                  labels = c("Metazoans", "All other animals", "Ctenophora", "Porifera"))
 # Plot gCF
 emp_gcf <- ggtern(emp_df, aes(x = gDF1, y = gCF, z = gDF2)) +
-  geom_point() +
+  geom_point(size = 2.5, alpha = 0.5) +
   facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
   labs(title = "a)") +
-  theme_bw() 
+  theme_bw() +
+  theme(plot.title = element_text(size = 30),
+        strip.text = element_text(size = 20))
 # Plot sCF
 emp_scf <- ggtern(emp_df, aes(x = sDF1, y = sCF, z = sDF2)) +
-  geom_point() +
+  geom_point(size = 2.5, alpha = 0.5) +
   facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
   labs(title = "b)") +
-  theme_bw()
+  theme_bw() +
+  theme(plot.title = element_text(size = 30),
+        strip.text = element_text(size = 20))
 # Plot quartet scores
 emp_qs <- ggtern(emp_df, aes(x = q2, y = q1, z = q3)) +
-  geom_point() +
+  geom_point(size = 2.5, alpha = 0.5) +
   facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
   labs(title = "c)") +
-  theme_bw() 
+  theme_bw() +
+  theme(plot.title = element_text(size = 30),
+        strip.text = element_text(size = 20))
 # Assemble the three ternary plots using ggtern::grid.arrange 
 #     (as ternary plots have three axes, patchwork and ggplot::grid.arrange don't work cleanly here)
 quilt <- ggtern::grid.arrange(emp_gcf, emp_scf, emp_qs, nrow = 3, ncol = 1)
 # Save the quilt
 emp_tern_file <- paste0(repo_dir, "figures/", "empirical_dataset_gCF_sCF_qs_ternary_plots.pdf")
 ggsave(filename = emp_tern_file, plot = quilt, width = 16, height = 12, units = "in")
+
+
+
+###### 14. Log likelihoods ######
+# Possible log likelihood plot?
+
+
+
 
 
