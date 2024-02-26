@@ -21,15 +21,14 @@ control_parameters <- list(add.extra.color.palettes = FALSE,
 ## Open packages
 library(reshape2)
 library(ggplot2)
-library(ggpubr)
-library(ggtern)
-library(patchwork)
+library(ggtern) # for ternary plots of sCF
+library(Cairo) # for AU test plot (which includes unicode characters)
 
 # Specify colour palettes used within these plots
 metazoan_clade_palette  <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
 bl_bars                 <- c("Ctenophora" = "#2171b5", "Porifera" =  "#E69F00")
 bl_points               <- c("Ctenophora" = "black", "Porifera" =  "black")
-sN_palette              <- c("sN" = "#addd8e", "gene_lengths" = "#005a32")
+passfail_palette        <- c("Pass (p > 0.05)" = "#addd8e", "Fail (p \u2264 0.05)" = "#005a32")
 
 # Extra colour palettes (unused)
 if (control_parameters$add.extra.color.palettes == TRUE){
@@ -677,10 +676,10 @@ sN_long$variable_formatted <- factor(sN_long$variable,
 sN_plot <- ggplot(data = sN_long, aes(x = variable_formatted, y = value, fill = tree_topology_formatted)) +
   geom_boxplot() +
   facet_grid(dataset_id_formatted ~ clade_formatted, scale = "free_y") +
-  theme_bw() +
-  scale_x_discrete(name = "Gene parameters") +
+  scale_x_discrete(name = "Gene parameter category") +
   scale_y_continuous(name = "Length (number of base pairs)") +
   scale_fill_manual(values = bl_bars, name = "Constrained\ntree topology") +
+  theme_bw() +
   theme(plot.title = element_text(size = 22, hjust = 0.5),
         plot.subtitle = element_text(size = 18, hjust = 0.5),
         strip.text = element_text(size = 10),
@@ -702,8 +701,59 @@ ggsave(filename = sN_plot_name, plot = sN_plot, height = 14, width = 10, units =
 
 
 ###### 14. AU tests ######
-
-
+# Add missing columns
+au_df$dataset_id <- paste0(au_df$dataset, ".", au_df$matrix) 
+au_df$dataset_id_formatted <- factor(au_df$dataset_id,
+                                     levels =  c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
+                                                 "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix", "Ryan2013.REA_EST_includingXenoturbella", 
+                                                 "Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
+                                                 "Whelan2015.Dataset10", "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk"),
+                                     labels = c("Dunn 2008",  "Philippe 2009", "Philippe 2011", 
+                                                "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", "Ryan 2013", 
+                                                "Moroz 2014", "Borowiec 2015", "Chang 2015", 
+                                                "Whelan 2015", "Whelan 2017",  "Laumer 2018"),
+                                     ordered = TRUE)
+# Calculate which trees passed the AU test
+au_df$tree_1_significant  <- au_df$tree_1 <= 0.05
+au_df$tree_1_result       <- factor(au_df$tree_1_significant,
+                                    levels = c(TRUE, FALSE),
+                                    labels = c("Fail (p \u2264 0.05)", "Pass (p > 0.05)"))
+au_df$tree_2_significant  <- au_df$tree_2 <= 0.05
+au_df$tree_2_result       <- factor(au_df$tree_2_significant,
+                                    levels = c(TRUE, FALSE),
+                                    labels = c("Fail (p \u2264 0.05)", "Pass (p > 0.05)"))
+au_df$tree_3_significant  <- au_df$tree_3 <= 0.05
+au_df$tree_3_result       <- factor(au_df$tree_3_significant,
+                                    levels = c(TRUE, FALSE),
+                                    labels = c("Fail (p \u2264 0.05)", "Pass (p > 0.05)"))
+# Melt the au_df
+au_long <- melt(au_df,
+                id.vars = c("gene_id", "dataset", "matrix", "dataset_id", "dataset_id_formatted",
+                            "gene", "year", "topology_test", "tree_1", "tree_2", "tree_3"),
+                measure.vars = c("tree_1_result", "tree_2_result", "tree_3_result"))
+au_long$variable_formatted <- factor(au_long$variable,
+                                     levels = c("tree_1_result", "tree_2_result", "tree_3_result"),
+                                     labels = c("Ctenophora", "Porifera", "Ctenophora+Porifera"))
+# Plot results as a bar chart
+au_plot <- ggplot(au_long, aes(x = variable_formatted, fill = value)) +
+  geom_bar(stat = "count") +
+  facet_wrap(dataset_id_formatted~., scale = "free_y") +
+  scale_x_discrete(name = "Constrained tree topology") +
+  scale_y_continuous(name = "Number of gene trees") +
+  scale_fill_manual(values = passfail_palette, name = "AU test results") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 22, hjust = 0.5),
+        plot.subtitle = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 12),
+        axis.title.x = element_text(size = 14, margin = margin(t = 15, r = 0, b = 0, l = 0, unit = "pt")),
+        axis.title.y = element_text(size = 14, margin = margin(t = 0, r = 15, b = 0, l = 0, unit = "pt")),
+        axis.text.x = element_text(size = 12, vjust = 1.0, hjust = 1.0, angle = 45),
+        axis.text.y = element_text(size = 12),
+        legend.title = element_text(size = 14), 
+        legend.text = element_text(size = 12)) 
+# Save plot
+au_plot_name <- paste0(repo_dir, "figures/", "gene_AU_test_stackedBars.pdf")
+ggsave(filename = au_plot_name, plot = au_plot, width = 10, height = 10, units = "in", device = cairo_pdf)
 
 
 
