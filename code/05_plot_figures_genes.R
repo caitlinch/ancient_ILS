@@ -601,11 +601,15 @@ long_bl_df <- melt(bl_df,
 bl_df <- bl_df[which(is.na(bl_df$branch_length) == FALSE), ]
 bl_df <- bl_df[which(bl_df$tree_topology_formatted %in% c("Ctenophora", "Porifera")), ]
 bl_df <- bl_df[which(bl_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
+# Add new nicely formatted branch_to_clade
+bl_df$clade_formatted <- factor(bl_df$branch_to_clade,
+                                levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
+                                labels = c("Metazoa", "Other animals", "Ctenophora", "Porifera"))
 # Plot branch lengths
 bl_plot <- ""
-ggplot(bl_df, aes(x = tree_topology_formatted, y = branch_length)) +
+ggplot(bl_df, aes(x = tree_topology_formatted, y = branch_length, fill = tree_topology_formatted)) +
   geom_boxplot() +
-  facet_grid(dataset_id_formatted ~ branch_to_clade) +
+  facet_grid(dataset_id_formatted ~ clade_formatted) +
   theme_bw()
 # Save plot
 bl_plot_name <- paste0(repo_dir, "figures/", "GeneSpecies_branch_lengths_boxplot.pdf")
