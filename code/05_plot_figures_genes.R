@@ -770,50 +770,25 @@ emp_df$clade_formatted <- factor(emp_df$branch_to_clade,
 emp_gcf <- ggtern(emp_df, aes(x = gDF1, y = gCF, z = gDF2)) +
   geom_point() +
   facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
-  theme_bw() +
-  theme(panel.spacing = unit(1, "lines"))
+  labs(title = "a)") +
+  theme_bw() 
 # Plot sCF
 emp_scf <- ggtern(emp_df, aes(x = sDF1, y = sCF, z = sDF2)) +
   geom_point() +
   facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
-  theme_bw() +
-  theme(panel.spacing = unit(1, "lines"))
+  labs(title = "b)") +
+  theme_bw()
 # Plot quartet scores
 emp_qs <- ggtern(emp_df, aes(x = q2, y = q1, z = q3)) +
   geom_point() +
   facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
-  theme_bw() +
-  theme(panel.spacing = unit(1, "lines"))
-
-# Assemble the three ternary plots using patchwork
-
-emp_long <- emp_df[, c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "hypothesis_tree",
-                       "tree_topology", "tree_topology_formatted", "branch_description", "branch_to_clade",
-                       "clade_formatted")]
-emp_long <- rbind(emp_long, emp_long, emp_long)
-emp_long$axis1 <- c(emp_df$gCF, emp_df$sCF, emp_df$q1)
-emp_long$axis1_label <- c(rep("gCF", nrow(emp_df)), rep("sCF", nrow(emp_df)), rep("q1", nrow(emp_df)))
-emp_long$axis2 <- c(emp_df$gDF1, emp_df$sDF1, emp_df$q2)
-emp_long$axis2_label <- c(rep("gDF1", nrow(emp_df)), rep("sDF1", nrow(emp_df)), rep("q2", nrow(emp_df)))
-emp_long$axis3 <- c(emp_df$gDF2, emp_df$sDF2, emp_df$q3)
-emp_long$axis3_label <- c(rep("gDF2", nrow(emp_df)), rep("sDF2", nrow(emp_df)), rep("q3", nrow(emp_df)))
-emp_long$analysis <- c(rep("gCF", nrow(emp_df)), rep("sCF", nrow(emp_df)), rep("quartets", nrow(emp_df)))
-
-ggtern(emp_long, aes(x = axis1, y = axis2, z = axis3)) +
-  geom_point() +
-  facet_grid(analysis ~ clade_formatted) +
-  xlab(emp_long$axis1_label) +
-  ylab("y") +
-  zlab("z")
-  
-  
-  
-  Tlab(c(rep("gCF", 4), rep("sCF", 4), rep("q1", 4)) +
-       y = c(rep("gDF1", 4), rep("sDF1", 4), rep("q2", 4)),
-       z = c(rep("gDF2", 4), rep("sDF2", 4), rep("q3", 4))) +
-  theme_bw()
-
-
-
+  labs(title = "c)") +
+  theme_bw() 
+# Assemble the three ternary plots using ggtern::grid.arrange 
+#     (as ternary plots have three axes, patchwork and ggplot::grid.arrange don't work cleanly here)
+quilt <- ggtern::grid.arrange(emp_gcf, emp_scf, emp_qs, nrow = 3, ncol = 1)
+# Save the quilt
+emp_tern_file <- paste0(repo_dir, "figures/", "empirical_dataset_gCF_sCF_qs_ternary_plots.pdf")
+ggsave(filename = emp_tern_file, plot = quilt, width = 16, height = 12, units = "in")
 
 
