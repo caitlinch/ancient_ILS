@@ -23,6 +23,7 @@ library(reshape2)
 library(ggplot2)
 library(ggtern) # for ternary plots of sCF
 library(Cairo) # for AU test plot (which includes unicode characters)
+library(patchwork) # for assembling ternary plots of emperical gCF, sCF and quartet scores
 
 # Specify colour palettes used within these plots
 metazoan_clade_palette  <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
@@ -695,12 +696,7 @@ ggsave(filename = sN_plot_name, plot = sN_plot, height = 14, width = 10, units =
 
 
 
-###### 13. Log likelihoods ######
-
-
-
-
-###### 14. AU tests ######
+###### 13. AU tests ######
 # Add missing columns
 au_df$dataset_id <- paste0(au_df$dataset, ".", au_df$matrix) 
 au_df$dataset_id_formatted <- factor(au_df$dataset_id,
@@ -754,6 +750,70 @@ au_plot <- ggplot(au_long, aes(x = variable_formatted, fill = value)) +
 # Save plot
 au_plot_name <- paste0(repo_dir, "figures/", "gene_AU_test_stackedBars.pdf")
 ggsave(filename = au_plot_name, plot = au_plot, width = 10, height = 10, units = "in", device = cairo_pdf)
+
+
+
+###### 14. Log likelihoods ######
+
+
+
+
+###### 15. Empirical gCF, sCF and quartet values: All Other Metazoans ######
+# Extract variables of interest
+emp_df <- species_scf_df
+emp_df <- emp_df[which(emp_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
+# Add new columns
+emp_df$clade_formatted <- factor(emp_df$branch_to_clade,
+                                 levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
+                                 labels = c("Metazoans", "All other animals", "Ctenophora", "Porifera"))
+# Plot gCF
+emp_gcf <- ggtern(emp_df, aes(x = gDF1, y = gCF, z = gDF2)) +
+  geom_point() +
+  facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
+  theme_bw() +
+  theme(panel.spacing = unit(1, "lines"))
+# Plot sCF
+emp_scf <- ggtern(emp_df, aes(x = sDF1, y = sCF, z = sDF2)) +
+  geom_point() +
+  facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
+  theme_bw() +
+  theme(panel.spacing = unit(1, "lines"))
+# Plot quartet scores
+emp_qs <- ggtern(emp_df, aes(x = q2, y = q1, z = q3)) +
+  geom_point() +
+  facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
+  theme_bw() +
+  theme(panel.spacing = unit(1, "lines"))
+
+# Assemble the three ternary plots using patchwork
+
+emp_long <- emp_df[, c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "hypothesis_tree",
+                       "tree_topology", "tree_topology_formatted", "branch_description", "branch_to_clade",
+                       "clade_formatted")]
+emp_long <- rbind(emp_long, emp_long, emp_long)
+emp_long$axis1 <- c(emp_df$gCF, emp_df$sCF, emp_df$q1)
+emp_long$axis1_label <- c(rep("gCF", nrow(emp_df)), rep("sCF", nrow(emp_df)), rep("q1", nrow(emp_df)))
+emp_long$axis2 <- c(emp_df$gDF1, emp_df$sDF1, emp_df$q2)
+emp_long$axis2_label <- c(rep("gDF1", nrow(emp_df)), rep("sDF1", nrow(emp_df)), rep("q2", nrow(emp_df)))
+emp_long$axis3 <- c(emp_df$gDF2, emp_df$sDF2, emp_df$q3)
+emp_long$axis3_label <- c(rep("gDF2", nrow(emp_df)), rep("sDF2", nrow(emp_df)), rep("q3", nrow(emp_df)))
+emp_long$analysis <- c(rep("gCF", nrow(emp_df)), rep("sCF", nrow(emp_df)), rep("quartets", nrow(emp_df)))
+
+ggtern(emp_long, aes(x = axis1, y = axis2, z = axis3)) +
+  geom_point() +
+  facet_grid(analysis ~ clade_formatted) +
+  xlab(emp_long$axis1_label) +
+  ylab("y") +
+  zlab("z")
+  
+  
+  
+  Tlab(c(rep("gCF", 4), rep("sCF", 4), rep("q1", 4)) +
+       y = c(rep("gDF1", 4), rep("sDF1", 4), rep("q2", 4)),
+       z = c(rep("gDF2", 4), rep("sDF2", 4), rep("q3", 4))) +
+  theme_bw()
+
+
 
 
 
