@@ -29,6 +29,7 @@ library(patchwork)
 metazoan_clade_palette  <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
 bl_bars                 <- c("Ctenophora" = "#2171b5", "Porifera" =  "#E69F00")
 bl_points               <- c("Ctenophora" = "black", "Porifera" =  "black")
+sN_palette              <- c("sN" = "#addd8e", "gene_lengths" = "#005a32")
 
 # Extra colour palettes (unused)
 if (control_parameters$add.extra.color.palettes == TRUE){
@@ -73,56 +74,55 @@ species_scf_df  <- species_scf_df[which(species_scf_df$dataset != "Hejnol2009"),
 
 
 ###### 4. Update and format sCF files for plots ######
-if (control_parameters$plot.ternary == TRUE | control_parameters$plot.boxplots == TRUE | control_parameters$plot.branch.lengths == TRUE){
-  # Add any missing columns
-  species_scf_df$dataset_id <- paste0(species_scf_df$dataset, ".", species_scf_df$matrix) 
-  species_scf_df$dataset_id_formatted <- factor(species_scf_df$dataset_id,
-                                                levels =  c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
-                                                            "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix", "Ryan2013.REA_EST_includingXenoturbella", 
-                                                            "Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
-                                                            "Whelan2015.Dataset10", "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk"),
-                                                labels = c("Dunn 2008",  "Philippe 2009", "Philippe 2011", 
-                                                           "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", "Ryan 2013", 
-                                                           "Moroz 2014", "Borowiec 2015", "Chang 2015", 
-                                                           "Whelan 2015", "Whelan 2017",  "Laumer 2018"),
-                                                ordered = TRUE)
-  species_scf_df$tree_topology <- species_scf_df$hypothesis_tree
-  species_scf_df$tree_topology_formatted <- factor(species_scf_df$tree_topology,
-                                                   levels =  c("CTEN", "PORI", "CTEN_PORI"),
-                                                   labels = c("Ctenophora", "Porifera", "Ctenophora+Porifera"),
-                                                   ordered = TRUE)
-  species_scf_df$branch_to_clade <- factor(species_scf_df$branch_description,
-                                           levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade",
-                                                      "To_CTEN+PLAC_clade", "To_PORI+PLAC_clade", "To_all_animals_except_PLAC"),
-                                           labels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI",
-                                                      "CTEN_PLAC", "PORI_PLAC", "ALL_ANIMLS_EXCEPT_PLAC"),
-                                           ordered = TRUE)
-  species_scf_df$ultrafast_bootstrap <- species_scf_df$sCF_Label
-  species_scf_df$dataset_type <- "species"
-  scf_df$dataset_type         <- "gene"
-  scf_df$ultrafast_bootstrap <- scf_df$ultafast_bootstrap # typo in column name
-  
-  # Add new column for plot output dataset id
-  scf_df$dataset_id_formatted <- factor(scf_df$dataset_id,
-                                        levels =  c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
-                                                    "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix", "Ryan2013.REA_EST_includingXenoturbella",
-                                                    "Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
-                                                    "Whelan2015.Dataset10", "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk"),
-                                        labels = c("Dunn 2008",  "Philippe 2009", "Philippe 2011", 
-                                                   "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", "Ryan 2013",
-                                                   "Moroz 2014", "Borowiec 2015", "Chang 2015", 
-                                                   "Whelan 2015", "Whelan 2017",  "Laumer 2018"),
-                                        ordered = TRUE)
-  scf_df$tree_topology_formatted <- factor(scf_df$tree_topology,
-                                           levels =  c("CTEN", "PORI", "CTEN_PORI"),
-                                           labels = c("Ctenophora", "Porifera", "Ctenophora+Porifera"),
-                                           ordered = TRUE)
-  
-  # Remove any branches without sCF, sDF1 and sDF2 values
-  scf_trimmed_df <- scf_df[which(is.na(scf_df$sCF) == FALSE & 
-                                   is.na(scf_df$sDF1) == FALSE & 
-                                   is.na(scf_df$sDF2) == FALSE), ]
-}
+# Add any missing columns
+species_scf_df$dataset_id <- paste0(species_scf_df$dataset, ".", species_scf_df$matrix) 
+species_scf_df$dataset_id_formatted <- factor(species_scf_df$dataset_id,
+                                              levels =  c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
+                                                          "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix", "Ryan2013.REA_EST_includingXenoturbella", 
+                                                          "Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
+                                                          "Whelan2015.Dataset10", "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk"),
+                                              labels = c("Dunn 2008",  "Philippe 2009", "Philippe 2011", 
+                                                         "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", "Ryan 2013", 
+                                                         "Moroz 2014", "Borowiec 2015", "Chang 2015", 
+                                                         "Whelan 2015", "Whelan 2017",  "Laumer 2018"),
+                                              ordered = TRUE)
+species_scf_df$tree_topology <- species_scf_df$hypothesis_tree
+species_scf_df$tree_topology_formatted <- factor(species_scf_df$tree_topology,
+                                                 levels =  c("CTEN", "PORI", "CTEN_PORI"),
+                                                 labels = c("Ctenophora", "Porifera", "Ctenophora+Porifera"),
+                                                 ordered = TRUE)
+species_scf_df$branch_to_clade <- factor(species_scf_df$branch_description,
+                                         levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade",
+                                                    "To_CTEN+PLAC_clade", "To_PORI+PLAC_clade", "To_all_animals_except_PLAC"),
+                                         labels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI",
+                                                    "CTEN_PLAC", "PORI_PLAC", "ALL_ANIMLS_EXCEPT_PLAC"),
+                                         ordered = TRUE)
+species_scf_df$ultrafast_bootstrap <- species_scf_df$sCF_Label
+species_scf_df$dataset_type <- "species"
+scf_df$dataset_type         <- "gene"
+scf_df$ultrafast_bootstrap <- scf_df$ultafast_bootstrap # typo in column name
+
+# Add new column for plot output dataset id
+scf_df$dataset_id_formatted <- factor(scf_df$dataset_id,
+                                      levels =  c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
+                                                  "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix", "Ryan2013.REA_EST_includingXenoturbella",
+                                                  "Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
+                                                  "Whelan2015.Dataset10", "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk"),
+                                      labels = c("Dunn 2008",  "Philippe 2009", "Philippe 2011", 
+                                                 "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", "Ryan 2013",
+                                                 "Moroz 2014", "Borowiec 2015", "Chang 2015", 
+                                                 "Whelan 2015", "Whelan 2017",  "Laumer 2018"),
+                                      ordered = TRUE)
+scf_df$tree_topology_formatted <- factor(scf_df$tree_topology,
+                                         levels =  c("CTEN", "PORI", "CTEN_PORI"),
+                                         labels = c("Ctenophora", "Porifera", "Ctenophora+Porifera"),
+                                         ordered = TRUE)
+
+# Remove any branches without sCF, sDF1 and sDF2 values
+scf_trimmed_df <- scf_df[which(is.na(scf_df$sCF) == FALSE & 
+                                 is.na(scf_df$sDF1) == FALSE & 
+                                 is.na(scf_df$sDF2) == FALSE), ]
+
 
 
 
@@ -586,73 +586,113 @@ if (control_parameters$plot.boxplots == TRUE){
 
 
 ###### 11. Species and gene branch lengths ######
-# Collate all branch lengths into a single dataframe
-species_scf_df$branch_length <- species_scf_df$sCF_length
-bl_df <- scf_df[ , c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
-                     "tree_topology", "tree_topology_formatted", "branch_to_clade",
-                     "dataset_type", "branch_length")]
-species_bl_df <- species_scf_df[ , c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
-                                     "tree_topology", "tree_topology_formatted", "branch_to_clade",
-                                     "dataset_type", "branch_length")]
-# Remove branch lengths with NA values
-bl_df <- bl_df[which(is.na(bl_df$branch_length) == FALSE), ]
-bl_df <- bl_df[which(bl_df$tree_topology_formatted %in% c("Ctenophora", "Porifera")), ]
-bl_df <- bl_df[which(bl_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
-species_bl_df <- species_bl_df[which(is.na(species_bl_df$branch_length) == FALSE), ]
-species_bl_df <- species_bl_df[which(species_bl_df$tree_topology_formatted %in% c("Ctenophora", "Porifera")), ]
-species_bl_df <- species_bl_df[which(species_bl_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
-# Melt datasets to long format
-long_bl_df <- melt(bl_df,
-                   id.vars = c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
-                               "tree_topology", "tree_topology_formatted", "branch_to_clade",
-                               "dataset_type"),
-                   measure.vars = c("branch_length"))
-long_species_bl_df <- melt(species_bl_df,
-                           id.vars = c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
+if (control_parameters$plot.branch.lengths == TRUE){
+  # Collate all branch lengths into a single dataframe
+  species_scf_df$branch_length <- species_scf_df$sCF_length
+  bl_df <- scf_df[ , c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
+                       "tree_topology", "tree_topology_formatted", "branch_to_clade",
+                       "dataset_type", "branch_length")]
+  species_bl_df <- species_scf_df[ , c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
                                        "tree_topology", "tree_topology_formatted", "branch_to_clade",
-                                       "dataset_type"),
-                           measure.vars = c("branch_length"))
-# Add new nicely formatted branch_to_clade
-long_bl_df$clade_formatted <- factor(long_bl_df$branch_to_clade,
-                                     levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
-                                     labels = c("Metazoa", "Other animals", "Ctenophora", "Porifera"))
-long_species_bl_df$clade_formatted <- factor(long_species_bl_df$branch_to_clade,
-                                             levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
-                                             labels = c("Metazoa", "Other animals", "Ctenophora", "Porifera"))
-# Plot branch lengths
-bl_plot <- ggplot(long_bl_df) +
-  geom_boxplot(aes(x = tree_topology_formatted, y = value, fill = tree_topology_formatted), outlier.colour = "grey40", color = "grey40") +
-  geom_point(data = long_species_bl_df, aes(x = tree_topology_formatted, y = value, color = tree_topology_formatted, shape = tree_topology_formatted), size = 4) +
-  facet_grid(clade_formatted ~ dataset_id_formatted, scale = "free_y") +
-  scale_x_discrete(name = "Constrained tree topology") +
-  scale_y_continuous(name = "Branch length (substitutions per site)") +
-  scale_fill_manual(values = bl_bars, name = "Genes") +
-  scale_color_manual(values = bl_points, name = "Concatenated") +
-  scale_shape_discrete(name = "Concatenated") +
+                                       "dataset_type", "branch_length")]
+  # Remove branch lengths with NA values
+  bl_df <- bl_df[which(is.na(bl_df$branch_length) == FALSE), ]
+  bl_df <- bl_df[which(bl_df$tree_topology_formatted %in% c("Ctenophora", "Porifera")), ]
+  bl_df <- bl_df[which(bl_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
+  species_bl_df <- species_bl_df[which(is.na(species_bl_df$branch_length) == FALSE), ]
+  species_bl_df <- species_bl_df[which(species_bl_df$tree_topology_formatted %in% c("Ctenophora", "Porifera")), ]
+  species_bl_df <- species_bl_df[which(species_bl_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
+  # Melt datasets to long format
+  long_bl_df <- melt(bl_df,
+                     id.vars = c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
+                                 "tree_topology", "tree_topology_formatted", "branch_to_clade",
+                                 "dataset_type"),
+                     measure.vars = c("branch_length"))
+  long_species_bl_df <- melt(species_bl_df,
+                             id.vars = c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
+                                         "tree_topology", "tree_topology_formatted", "branch_to_clade",
+                                         "dataset_type"),
+                             measure.vars = c("branch_length"))
+  # Add new nicely formatted branch_to_clade
+  long_bl_df$clade_formatted <- factor(long_bl_df$branch_to_clade,
+                                       levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
+                                       labels = c("Metazoa", "Other animals", "Ctenophora", "Porifera"))
+  long_species_bl_df$clade_formatted <- factor(long_species_bl_df$branch_to_clade,
+                                               levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
+                                               labels = c("Metazoa", "Other animals", "Ctenophora", "Porifera"))
+  # Plot branch lengths
+  bl_plot <- ggplot(long_bl_df) +
+    geom_boxplot(aes(x = tree_topology_formatted, y = value, fill = tree_topology_formatted), outlier.colour = "grey40", color = "grey40") +
+    geom_point(data = long_species_bl_df, aes(x = tree_topology_formatted, y = value, color = tree_topology_formatted, shape = tree_topology_formatted), size = 4) +
+    facet_grid(clade_formatted ~ dataset_id_formatted, scale = "free_y") +
+    scale_x_discrete(name = "Constrained tree topology") +
+    scale_y_continuous(name = "Branch length (substitutions per site)") +
+    scale_fill_manual(values = bl_bars, name = "Genes") +
+    scale_color_manual(values = bl_points, name = "Concatenated") +
+    scale_shape_discrete(name = "Concatenated") +
+    theme_bw() +
+    theme(plot.title = element_text(size = 22, hjust = 0.5),
+          plot.subtitle = element_text(size = 18, hjust = 0.5),
+          strip.text = element_text(size = 12),
+          axis.title.x = element_text(size = 14, margin = margin(t = 15, r = 0, b = 0, l = 0, unit = "pt")),
+          axis.title.y = element_text(size = 14, margin = margin(t = 0, r = 15, b = 0, l = 0, unit = "pt")),
+          axis.text.x = element_text(size = 12, vjust = 1.0, hjust = 1.0, angle = 45),
+          axis.text.y = element_text(size = 12),
+          legend.title = element_text(size = 14), 
+          legend.text = element_text(size = 12),
+          legend.key.size = unit(2, "lines")) +
+    guides(fill = guide_legend(override.aes = list(size = 8)),
+           color = guide_legend(override.aes = list(size = 8)))
+  # Save plot
+  bl_plot_name <- paste0(repo_dir, "figures/", "GeneSpecies_branch_lengths_boxplot.pdf")
+  ggsave(filename = bl_plot_name, plot = bl_plot, width = 18, height = 12, units = "in")
+}
+
+
+
+###### 12. Species and gene sCFs: number of decisive sites c.f. total number of sites ######
+# Extract gene lengths
+input_df <- read.csv(paste0(repo_dir, "output/input_gene_files.csv"), stringsAsFactors = FALSE)
+scf_df$gene_lengths <- unlist(lapply(scf_df$gene_id, function(x){length(input_df[which(input_df$gene_id == x), ]$gene_start: input_df[which(input_df$gene_id == x), ]$gene_end)}))
+# Create new dataframe
+sN_df <- scf_df
+# Add new columns
+sN_df$clade_formatted <- factor(sN_df$branch_to_clade,
+                                levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
+                                labels = c("Metazoa", "Other animals", "Ctenophora", "Porifera"))
+# Remove branches not present for certain topologies
+sN_df <- sN_df[which(is.na(sN_df$branch_length) == FALSE), ]
+sN_df <- sN_df[which(sN_df$tree_topology_formatted %in% c("Ctenophora", "Porifera")), ]
+sN_df <- sN_df[which(sN_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
+# Melt dataframe
+sN_long <- melt(data = sN_df,
+                id.vars = c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "gene_name", "gene_id",
+                            "tree_topology", "tree_topology_formatted", "branch_to_clade", "clade_formatted", "dataset_type"),
+                measure.vars = c("sN", "gene_lengths") )
+sN_long$variable_formatted <- factor(sN_long$variable,
+                                     levels = c("sN", "gene_lengths"),
+                                     labels = c("Informative sites (sN)", "Gene length"),
+                                     ordered = TRUE)
+# Plot sN for each dataset
+sN_plot <- ggplot(data = sN_long, aes(x = variable_formatted, y = value, fill = tree_topology_formatted)) +
+  geom_boxplot() +
+  facet_grid(dataset_id_formatted ~ clade_formatted, scale = "free_y") +
   theme_bw() +
+  scale_x_discrete(name = "Gene parameters") +
+  scale_y_continuous(name = "Length (number of base pairs)") +
+  scale_fill_manual(values = bl_bars, name = "Constrained\ntree topology") +
   theme(plot.title = element_text(size = 22, hjust = 0.5),
         plot.subtitle = element_text(size = 18, hjust = 0.5),
-        strip.text = element_text(size = 12),
+        strip.text = element_text(size = 10),
         axis.title.x = element_text(size = 14, margin = margin(t = 15, r = 0, b = 0, l = 0, unit = "pt")),
         axis.title.y = element_text(size = 14, margin = margin(t = 0, r = 15, b = 0, l = 0, unit = "pt")),
         axis.text.x = element_text(size = 12, vjust = 1.0, hjust = 1.0, angle = 45),
         axis.text.y = element_text(size = 12),
         legend.title = element_text(size = 14), 
-        legend.text = element_text(size = 12),
-        legend.key.size = unit(2, "lines")) +
-  guides(fill = guide_legend(override.aes = list(size = 8)),
-         color = guide_legend(override.aes = list(size = 8)))
+        legend.text = element_text(size = 12)) 
 # Save plot
-bl_plot_name <- paste0(repo_dir, "figures/", "GeneSpecies_branch_lengths_boxplot.pdf")
-ggsave(filename = bl_plot_name, plot = bl_plot, width = 18, height = 12, units = "in")
-
-
-
-
-
-
-###### 12. Species and gene sCFs: number of decisive sites c.f. total number of sites ######
-
+sN_plot_name <- paste0(repo_dir, "figures/", "GeneSpecies_sN_boxplot.pdf")
+ggsave(filename = sN_plot_name, plot = sN_plot, height = 14, width = 10, units = "in")
 
 
 
