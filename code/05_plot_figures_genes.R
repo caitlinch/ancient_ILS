@@ -69,55 +69,57 @@ species_scf_df  <- species_scf_df[which(species_scf_df$dataset != "Hejnol2009"),
 
 
 
-###### 4. Update and integrate csv files ######
-# Add any missing columns
-species_scf_df$dataset_id <- paste0(species_scf_df$dataset, ".", species_scf_df$matrix) 
-species_scf_df$dataset_id_formatted <- factor(species_scf_df$dataset_id,
-                                              levels =  c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
-                                                          "Ryan2013.REA_EST_includingXenoturbella", "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix",
-                                                          "Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
-                                                          "Whelan2015.Dataset10", "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk"),
-                                              labels = c("Dunn 2008",  "Philippe 2009", "Philippe 2011", 
-                                                         "Ryan 2013", "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", 
-                                                         "Moroz 2014", "Borowiec 2015", "Chang 2015", 
-                                                         "Whelan 2015", "Whelan 2017",  "Laumer 2018"),
-                                              ordered = TRUE)
-species_scf_df$tree_topology <- species_scf_df$hypothesis_tree
-species_scf_df$tree_topology_formatted <- factor(species_scf_df$tree_topology,
-                                                 levels =  c("CTEN", "PORI", "CTEN_PORI"),
-                                                 labels = c("Ctenophora", "Porifera", "Ctenophora+Porifera"),
-                                                 ordered = TRUE)
-species_scf_df$branch_to_clade <- factor(species_scf_df$branch_description,
-                                         levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade",
-                                                    "To_CTEN+PLAC_clade", "To_PORI+PLAC_clade", "To_all_animals_except_PLAC"),
-                                         labels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI",
-                                                    "CTEN_PLAC", "PORI_PLAC", "ALL_ANIMLS_EXCEPT_PLAC"),
-                                         ordered = TRUE)
-species_scf_df$ultrafast_bootstrap <- species_scf_df$sCF_Label
-species_scf_df$dataset_type <- "species"
-scf_df$dataset_type         <- "gene"
-scf_df$ultrafast_bootstrap <- scf_df$ultafast_bootstrap # typo in column name
-
-# Add new column for plot output dataset id
-scf_df$dataset_id_formatted <- factor(scf_df$dataset_id,
-                                      levels =  c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
-                                                  "Ryan2013.REA_EST_includingXenoturbella", "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix",
-                                                  "Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
-                                                  "Whelan2015.Dataset10", "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk"),
-                                      labels = c("Dunn 2008",  "Philippe 2009", "Philippe 2011", 
-                                                 "Ryan 2013", "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", 
-                                                 "Moroz 2014", "Borowiec 2015", "Chang 2015", 
-                                                 "Whelan 2015", "Whelan 2017",  "Laumer 2018"),
-                                      ordered = TRUE)
-scf_df$tree_topology_formatted <- factor(scf_df$tree_topology,
-                                         levels =  c("CTEN", "PORI", "CTEN_PORI"),
-                                         labels = c("Ctenophora", "Porifera", "Ctenophora+Porifera"),
-                                         ordered = TRUE)
-
-# Remove any branches without sCF, sDF1 and sDF2 values
-scf_trimmed_df <- scf_df[which(is.na(scf_df$sCF) == FALSE & 
-                                 is.na(scf_df$sDF1) == FALSE & 
-                                 is.na(scf_df$sDF2) == FALSE), ]
+###### 4. Update and format sCF files for plots ######
+if (control_parameters$plot.ternary == TRUE | control_parameters$plot.boxplots == TRUE){
+  # Add any missing columns
+  species_scf_df$dataset_id <- paste0(species_scf_df$dataset, ".", species_scf_df$matrix) 
+  species_scf_df$dataset_id_formatted <- factor(species_scf_df$dataset_id,
+                                                levels =  c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
+                                                            "Ryan2013.REA_EST_includingXenoturbella", "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix",
+                                                            "Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
+                                                            "Whelan2015.Dataset10", "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk"),
+                                                labels = c("Dunn 2008",  "Philippe 2009", "Philippe 2011", 
+                                                           "Ryan 2013", "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", 
+                                                           "Moroz 2014", "Borowiec 2015", "Chang 2015", 
+                                                           "Whelan 2015", "Whelan 2017",  "Laumer 2018"),
+                                                ordered = TRUE)
+  species_scf_df$tree_topology <- species_scf_df$hypothesis_tree
+  species_scf_df$tree_topology_formatted <- factor(species_scf_df$tree_topology,
+                                                   levels =  c("CTEN", "PORI", "CTEN_PORI"),
+                                                   labels = c("Ctenophora", "Porifera", "Ctenophora+Porifera"),
+                                                   ordered = TRUE)
+  species_scf_df$branch_to_clade <- factor(species_scf_df$branch_description,
+                                           levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade",
+                                                      "To_CTEN+PLAC_clade", "To_PORI+PLAC_clade", "To_all_animals_except_PLAC"),
+                                           labels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI",
+                                                      "CTEN_PLAC", "PORI_PLAC", "ALL_ANIMLS_EXCEPT_PLAC"),
+                                           ordered = TRUE)
+  species_scf_df$ultrafast_bootstrap <- species_scf_df$sCF_Label
+  species_scf_df$dataset_type <- "species"
+  scf_df$dataset_type         <- "gene"
+  scf_df$ultrafast_bootstrap <- scf_df$ultafast_bootstrap # typo in column name
+  
+  # Add new column for plot output dataset id
+  scf_df$dataset_id_formatted <- factor(scf_df$dataset_id,
+                                        levels =  c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
+                                                    "Ryan2013.REA_EST_includingXenoturbella", "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix",
+                                                    "Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
+                                                    "Whelan2015.Dataset10", "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk"),
+                                        labels = c("Dunn 2008",  "Philippe 2009", "Philippe 2011", 
+                                                   "Ryan 2013", "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", 
+                                                   "Moroz 2014", "Borowiec 2015", "Chang 2015", 
+                                                   "Whelan 2015", "Whelan 2017",  "Laumer 2018"),
+                                        ordered = TRUE)
+  scf_df$tree_topology_formatted <- factor(scf_df$tree_topology,
+                                           levels =  c("CTEN", "PORI", "CTEN_PORI"),
+                                           labels = c("Ctenophora", "Porifera", "Ctenophora+Porifera"),
+                                           ordered = TRUE)
+  
+  # Remove any branches without sCF, sDF1 and sDF2 values
+  scf_trimmed_df <- scf_df[which(is.na(scf_df$sCF) == FALSE & 
+                                   is.na(scf_df$sDF1) == FALSE & 
+                                   is.na(scf_df$sDF2) == FALSE), ]
+}
 
 
 
