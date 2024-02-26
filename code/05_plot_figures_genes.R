@@ -12,7 +12,8 @@ output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/0
 
 control_parameters <- list(add.extra.color.palettes = FALSE,
                            plot.ternary = FALSE,
-                           plot.boxplots = FALSE)
+                           plot.boxplots = FALSE,
+                           plot.branch.lengths = TRUE)
 
 
 
@@ -70,7 +71,7 @@ species_scf_df  <- species_scf_df[which(species_scf_df$dataset != "Hejnol2009"),
 
 
 ###### 4. Update and format sCF files for plots ######
-if (control_parameters$plot.ternary == TRUE | control_parameters$plot.boxplots == TRUE){
+if (control_parameters$plot.ternary == TRUE | control_parameters$plot.boxplots == TRUE | control_parameters$plot.branch.lengths == TRUE){
   # Add any missing columns
   species_scf_df$dataset_id <- paste0(species_scf_df$dataset, ".", species_scf_df$matrix) 
   species_scf_df$dataset_id_formatted <- factor(species_scf_df$dataset_id,
@@ -583,8 +584,34 @@ if (control_parameters$plot.boxplots == TRUE){
 
 
 ###### 11. Species and gene branch lengths ######
-bl_df <- ""
-emp_bl_df <- ""
+# Collate all branch lengths into a single dataframe
+species_scf_df$branch_length <- species_scf_df$sCF_length
+bl_df <- rbind(scf_df[ , c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
+                           "tree_topology", "tree_topology_formatted", "branch_to_clade",
+                           "dataset_type", "branch_length")],
+               species_scf_df[ , c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
+                                   "tree_topology", "tree_topology_formatted", "branch_to_clade",
+                                   "dataset_type", "branch_length")])
+long_bl_df <- melt(bl_df,
+                   id.vars = c("dataset", "matrix", "dataset_id", "dataset_id_formatted", 
+                               "tree_topology", "tree_topology_formatted", "branch_to_clade",
+                               "dataset_type"),
+                   measure.vars = c("branch_length"))
+# Remove branch lengths with NA values
+bl_df <- bl_df[which(is.na(bl_df$branch_length) == FALSE), ]
+bl_df <- bl_df[which(bl_df$tree_topology_formatted %in% c("Ctenophora", "Porifera")), ]
+bl_df <- bl_df[which(bl_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
+# Plot branch lengths
+bl_plot <- ""
+ggplot(bl_df, aes(x = tree_topology_formatted, y = branch_length)) +
+  geom_boxplot() +
+  facet_grid(dataset_id_formatted ~ branch_to_clade) +
+  theme_bw()
+# Save plot
+bl_plot_name <- paste0(repo_dir, "figures/", "GeneSpecies_branch_lengths_boxplot.pdf")
+ggsave(filename = bl_plot_name, plot = bl_plot, width = 10, height = 10, units = "in")
+
+
 
 
 
