@@ -41,7 +41,7 @@ if (control_parameters$add.extra.color.palettes == TRUE){
 
 
 
-###### 3. Prepare csvs for plotting  ######
+###### 3. Open and prepare csvs for plotting  ######
 # Open gene csv results
 ll_df           <- read.csv(paste0(repo_dir, "output/results_gene_tree_likelihood.csv"), stringsAsFactors = FALSE)
 elw_df          <- read.csv(paste0(repo_dir, "output/results_gene_AU_test.csv"), stringsAsFactors = FALSE)
@@ -49,29 +49,61 @@ au_df           <- read.csv(paste0(repo_dir, "output/results_gene_elw.csv"), str
 scf_df          <- read.csv(paste0(repo_dir, "output/results_gene_scf.csv"), stringsAsFactors = FALSE)
 species_scf_df  <- read.csv(paste0(repo_dir, "output/empirical_dataset_concordance_factors.csv"),  stringsAsFactors = FALSE)
 
-# Remove Simion 2017 from all dfs (haven't successfully extracted sCF per gene yet)
+# Remove Simion 2017 from all dfs (haven't successfully extracted sCF per gene yet OR estimated species trees)
 ll_df           <- ll_df[which(ll_df$dataset != "Simion2017"), ]
 elw_df          <- elw_df[which(elw_df$dataset != "Simion2017"), ]
 au_df           <- au_df[which(au_df$dataset != "Simion2017"), ]
 scf_df          <- scf_df[which(scf_df$dataset != "Simion2017"), ]
 species_scf_df  <- species_scf_df[which(species_scf_df$dataset != "Simion2017"), ]
 
+# Remove Hejnol 2009 from all dfs (haven't successfully estimated species trees yet)
+ll_df           <- ll_df[which(ll_df$dataset != "Hejnol2009"), ]
+elw_df          <- elw_df[which(elw_df$dataset != "Hejnol2009"), ]
+au_df           <- au_df[which(au_df$dataset != "Hejnol2009"), ]
+scf_df          <- scf_df[which(scf_df$dataset != "Hejnol2009"), ]
+species_scf_df  <- species_scf_df[which(species_scf_df$dataset != "Hejnol2009"), ]
+
+
+
+###### 4. Update and integrate csv files ######
+# Add any missing columns
+species_scf_df$dataset_id <- paste0(species_scf_df$dataset, ".", species_scf_df$matrix) 
+species_scf_df$dataset_id_formatted <- factor(species_scf_df$dataset_id,
+                                              levels =  c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
+                                                          "Ryan2013.REA_EST_includingXenoturbella", "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix",
+                                                          "Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
+                                                          "Whelan2015.Dataset10", "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk"),
+                                              labels = c("Dunn 2008",  "Philippe 2009", "Philippe 2011", 
+                                                         "Ryan 2013", "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", 
+                                                         "Moroz 2014", "Borowiec 2015", "Chang 2015", 
+                                                         "Whelan 2015", "Whelan 2017",  "Laumer 2018"),
+                                              ordered = TRUE)
+species_scf_df$tree_topology <- species_scf_df$hypothesis_tree
+species_scf_df$tree_topology_formatted <- factor(species_scf_df$tree_topology,
+                                                 levels =  c("CTEN", "PORI", "CTEN_PORI"),
+                                                 labels = c("Ctenophora", "Porifera", "Ctenophora+Porifera"),
+                                                 ordered = TRUE)
+species_scf_df$branch_to_clade <- factor(species_scf_df$branch_description,
+                                         levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade",
+                                                    "To_CTEN+PLAC_clade", "To_PORI+PLAC_clade", "To_all_animals_except_PLAC"),
+                                         labels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI",
+                                                    "CTEN_PLAC", "PORI_PLAC", "ALL_ANIMLS_EXCEPT_PLAC"),
+                                         ordered = TRUE)
+species_scf_df$ultrafast_bootstrap <- species_scf_df$sCF_Label
+species_scf_df$dataset_type <- "species"
+scf_df$dataset_type         <- "gene"
+scf_df$ultrafast_bootstrap <- scf_df$ultafast_bootstrap # typo in column name
+
 # Add new column for plot output dataset id
 scf_df$dataset_id_formatted <- factor(scf_df$dataset_id,
-                                      levels =  c("Dunn2008.Dunn2008_FixedNames", "Hejnol2009.Hejnol_etal_2009_FixedNames", 
-                                                  "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
-                                                  "Ryan2013.REA_EST_includingXenoturbella", "Nosenko2013.nonribosomal_9187_smatrix", 
-                                                  "Nosenko2013.ribosomal_14615_smatrix", "Moroz2014.ED3d", 
-                                                  "Borowiec2015.Best108", "Chang2015.Chang_AA", 
-                                                  "Whelan2015.Dataset10", "Whelan2017.Metazoa_Choano_RCFV_strict", 
-                                                  "Laumer2018.Tplx_BUSCOeuk"),
-                                      labels = c("Dunn 2008", "Hejnol 2009", 
-                                                 "Philippe 2009", "Philippe 2011", 
-                                                 "Ryan 2013", "Nosenko 2013\nnonribosomal", 
-                                                 "Nosenko 2013\nribosomal", "Moroz 2014", 
-                                                 "Borowiec 2015", "Chang 2015", 
-                                                 "Whelan 2015", "Whelan 2017", 
-                                                 "Laumer 2018"),
+                                      levels =  c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
+                                                  "Ryan2013.REA_EST_includingXenoturbella", "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix",
+                                                  "Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
+                                                  "Whelan2015.Dataset10", "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk"),
+                                      labels = c("Dunn 2008",  "Philippe 2009", "Philippe 2011", 
+                                                 "Ryan 2013", "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", 
+                                                 "Moroz 2014", "Borowiec 2015", "Chang 2015", 
+                                                 "Whelan 2015", "Whelan 2017",  "Laumer 2018"),
                                       ordered = TRUE)
 scf_df$tree_topology_formatted <- factor(scf_df$tree_topology,
                                          levels =  c("CTEN", "PORI", "CTEN_PORI"),
@@ -80,52 +112,228 @@ scf_df$tree_topology_formatted <- factor(scf_df$tree_topology,
 
 
 
-###### 4. Plot sCFs on ternary plots  ######
+###### 5. Species and gene sCFs: ternary plots for ALL ANIMALS branch, CTEN/PORI topologies for 12 datasets ######
 # Remove any branches without sCF, sDF1 and sDF2 values
 scf_trimmed_df <- scf_df[which(is.na(scf_df$sCF) == FALSE & 
                                  is.na(scf_df$sDF1) == FALSE & 
                                  is.na(scf_df$sDF2) == FALSE), ]
-plot_scf_1 <- scf_trimmed_df[which(scf_trimmed_df$dataset_id %in% c("Dunn2008.Dunn2008_FixedNames", "Hejnol2009.Hejnol_etal_2009_FixedNames", 
-                                                                    "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
-                                                                    "Ryan2013.REA_EST_includingXenoturbella", "Nosenko2013.nonribosomal_9187_smatrix", 
-                                                                    "Nosenko2013.ribosomal_14615_smatrix")), ]
-plot_scf_2 <- scf_trimmed_df[which(scf_trimmed_df$dataset_id %in% c("Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
-                                                                    "Whelan2015.Dataset10", "Whelan2017.Metazoa_Choano_RCFV_strict", 
-                                                                    "Laumer2018.Tplx_BUSCOeuk")), ]
-# Reformat scf_df
-long_scf_df <- melt(data = scf_trimmed_df,
-                    id.vars = c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "gene_name", "gene_id" ,"tree_topology", "tree_topology_formatted",
-                                "branch_to_clade", "clade_monophyly", "num_taxa_total", "num_taxa_outgroup", "num_taxa_bilateria", 
-                                "num_taxa_cnidaria", "num_taxa_ctenophora", "num_taxa_placozoa", "num_taxa_porifera", "num_taxa_clade",
-                                "ID", "ultafast_bootstrap", "branch_length", "sN"),
-                    measure.vars = c("sCF", "sDF1", "sDF2"))
-# Create a ternary plot of the sCFs - two separate plots due to 13 datasets
-scf1_plot<- ggtern(data = plot_scf_1, aes(x = sDF1, y = sCF, z = sDF2)) + 
-  geom_point(alpha = 0.2) +
+# Split into two dataframes (two plots)
+plot_scf_1 <- rbind(scf_trimmed_df[which(scf_trimmed_df$dataset_id %in% c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", 
+                                                                          "Philippe2011.UPDUNN_MB_FixedNames", "Ryan2013.REA_EST_includingXenoturbella") &
+                                           scf_trimmed_df$branch_to_clade == "ALL_ANIMALS" &
+                                           scf_trimmed_df$tree_topology %in% c("CTEN", "PORI")), 
+                                   c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "tree_topology", "tree_topology_formatted", "branch_to_clade", "dataset_type", "sCF", "sDF1", "sDF2")],
+                    species_scf_df[which(species_scf_df$dataset_id %in% c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", 
+                                                                          "Philippe2011.UPDUNN_MB_FixedNames", "Ryan2013.REA_EST_includingXenoturbella") &
+                                           species_scf_df$branch_to_clade == "ALL_ANIMALS" &
+                                           species_scf_df$tree_topology %in% c("CTEN", "PORI")), 
+                                   c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "tree_topology", "tree_topology_formatted", "branch_to_clade", "dataset_type", "sCF", "sDF1", "sDF2")] )
+plot_scf_2 <- rbind(scf_trimmed_df[which(scf_trimmed_df$dataset_id %in% c("Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix",
+                                                                          "Moroz2014.ED3d", "Borowiec2015.Best108") &
+                                           scf_trimmed_df$branch_to_clade == "ALL_ANIMALS" &
+                                           scf_trimmed_df$tree_topology %in% c("CTEN", "PORI")), 
+                                   c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "tree_topology", "tree_topology_formatted", "branch_to_clade", "dataset_type", "sCF", "sDF1", "sDF2")],
+                    species_scf_df[which(species_scf_df$dataset_id %in% c("Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix", 
+                                                                          "Moroz2014.ED3d", "Borowiec2015.Best108") &
+                                           species_scf_df$branch_to_clade == "ALL_ANIMALS" &
+                                           species_scf_df$tree_topology %in% c("CTEN", "PORI")), 
+                                   c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "tree_topology", "tree_topology_formatted", "branch_to_clade", "dataset_type", "sCF", "sDF1", "sDF2")] )
+plot_scf_3 <- rbind(scf_trimmed_df[which(scf_trimmed_df$dataset_id %in% c("Chang2015.Chang_AA", "Whelan2015.Dataset10", 
+                                                                          "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk") &
+                                           scf_trimmed_df$branch_to_clade == "ALL_ANIMALS" &
+                                           scf_trimmed_df$tree_topology %in% c("CTEN", "PORI")), 
+                                   c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "tree_topology", "tree_topology_formatted", "branch_to_clade", "dataset_type", "sCF", "sDF1", "sDF2")],
+                    species_scf_df[which(species_scf_df$dataset_id %in% c("Chang2015.Chang_AA", "Whelan2015.Dataset10",
+                                                                          "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk") &
+                                           species_scf_df$branch_to_clade == "ALL_ANIMALS" &
+                                           species_scf_df$tree_topology %in% c("CTEN", "PORI")), 
+                                   c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "tree_topology", "tree_topology_formatted", "branch_to_clade", "dataset_type", "sCF", "sDF1", "sDF2")] )
+# Create a ternary plot of the sCFs - three separate plots of 4 datasets each
+scf1_plot <- ggtern(data = plot_scf_1, aes(x = sDF1, y = sCF, z = sDF2, shape = dataset_type, color = dataset_type)) + 
+  geom_point(alpha = 0.7, size = 3) +
   facet_grid(dataset_id_formatted ~ tree_topology_formatted) +
-  labs(title = "Constrained tree topology") +
+  labs(title = "Clade: Metazoa") +
+  scale_color_manual(values = c("species" = "black", "gene" = "grey80"), name = "sCF Type") +
+  scale_shape_manual(values = c("species" = 17, "gene" = 19), name = "sCF Type") + 
   theme_bw() +
   theme(plot.title = element_text(size = 26, hjust = 0.5),
-        strip.text = element_text(size = 22),
+        strip.background = element_blank(), 
+        strip.text.x = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 5, b = 15, l = 5, "pt")),
+        strip.text.y = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 15, b = 5, l = 20, "pt")),
         axis.title = element_text(size = 10),
         axis.text = element_text(size = 10),
-        panel.spacing = unit(1, "lines"),
-        strip.clip = "off")
-scf2_plot <- ggtern(data = plot_scf_2, aes(x = sDF1, y = sCF, z = sDF2)) + 
-  geom_point(alpha = 0.2) +
+        legend.title = element_text(size = 26), 
+        legend.text = element_text(size = 22), 
+        legend.key.size = unit(2, "lines"),
+        panel.spacing = unit(1, "lines")) +
+  guides(shape = guide_legend(override.aes = list(size = 5)))
+
+scf2_plot <- ggtern(data = plot_scf_2, aes(x = sDF1, y = sCF, z = sDF2, shape = dataset_type, color = dataset_type)) + 
+  geom_point(alpha = 0.7, size = 3) +
   facet_grid(dataset_id_formatted ~ tree_topology_formatted) +
-  labs(title = "Constrained tree topology") +
+  labs(title = "Clade: Metazoa") +
+  scale_color_manual(values = c("species" = "black", "gene" = "grey80"), name = "sCF Type") +
+  scale_shape_manual(values = c("species" = 17, "gene" = 19), name = "sCF Type") + 
   theme_bw() +
   theme(plot.title = element_text(size = 26, hjust = 0.5),
-        strip.text = element_text(size = 22),
+        strip.background = element_blank(), 
+        strip.text.x = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 5, b = 15, l = 5, "pt")),
+        strip.text.y = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 15, b = 5, l = 20, "pt")),
         axis.title = element_text(size = 10),
         axis.text = element_text(size = 10),
-        panel.spacing = unit(1, "lines"),
-        strip.clip = "off")
+        legend.title = element_text(size = 26), 
+        legend.text = element_text(size = 22), 
+        legend.key.size = unit(2, "lines"),
+        panel.spacing = unit(1, "lines")) +
+  guides(shape = guide_legend(override.aes = list(size = 5)))
+scf3_plot <- ggtern(data = plot_scf_3, aes(x = sDF1, y = sCF, z = sDF2, shape = dataset_type, color = dataset_type)) + 
+  geom_point(alpha = 0.7, size = 3) +
+  facet_grid(dataset_id_formatted ~ tree_topology_formatted) +
+  labs(title = "Clade: Metazoa") +
+  scale_color_manual(values = c("species" = "black", "gene" = "grey80"), name = "sCF Type") +
+  scale_shape_manual(values = c("species" = 17, "gene" = 19), name = "sCF Type") + 
+  theme_bw() +
+  theme(plot.title = element_text(size = 26, hjust = 0.5),
+        strip.background = element_blank(), 
+        strip.text.x = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 5, b = 15, l = 5, "pt")),
+        strip.text.y = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 15, b = 5, l = 20, "pt")),
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 10),
+        legend.title = element_text(size = 26), 
+        legend.text = element_text(size = 22), 
+        legend.key.size = unit(2, "lines"),
+        panel.spacing = unit(1, "lines")) +
+  guides(shape = guide_legend(override.aes = list(size = 5)))
 # Save plots
-scf1_plot_name <- paste0(repo_dir, "figures/", "gene_scf1_ternary_plot.pdf")
-ggsave(filename = scf1_plot_name, plot = scf1_plot, width = 20, height = 20, units = "in")
-scf2_plot_name <- paste0(repo_dir, "figures/", "gene_scf2_ternary_plot.pdf")
-ggsave(filename = scf2_plot_name, plot = scf2_plot, width = 20, height = 20, units = "in")
+scf1_plot_name <- paste0(repo_dir, "figures/", "gene_scf_AllAnimals_ternary_plot1.pdf")
+ggsave(filename = scf1_plot_name, plot = scf1_plot, width = 12, height = 12, units = "in")
+scf2_plot_name <- paste0(repo_dir, "figures/", "gene_scf_AllAnimals_ternary_plot2.pdf")
+ggsave(filename = scf2_plot_name, plot = scf2_plot, width = 12, height = 12, units = "in")
+scf3_plot_name <- paste0(repo_dir, "figures/", "gene_scf_AllAnimals_ternary_plot3.pdf")
+ggsave(filename = scf3_plot_name, plot = scf3_plot, width = 12, height = 12, units = "in")
+
+
+
+###### 6. Species and gene sCFs: ternary plots for ALL ANIMALS branch, CTEN/PORI topologies for 12 datasets ######
+# Remove any branches without sCF, sDF1 and sDF2 values
+scf_trimmed_df <- scf_df[which(is.na(scf_df$sCF) == FALSE & 
+                                 is.na(scf_df$sDF1) == FALSE & 
+                                 is.na(scf_df$sDF2) == FALSE), ]
+# Split into two dataframes (two plots)
+plot_scf_4 <- rbind(scf_trimmed_df[which(scf_trimmed_df$dataset_id %in% c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", 
+                                                                          "Philippe2011.UPDUNN_MB_FixedNames", "Ryan2013.REA_EST_includingXenoturbella") &
+                                           scf_trimmed_df$branch_to_clade == "ALL_OTHER_ANIMALS" &
+                                           scf_trimmed_df$tree_topology %in% c("CTEN", "PORI")), 
+                                   c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "tree_topology", "tree_topology_formatted", "branch_to_clade", "dataset_type", "sCF", "sDF1", "sDF2")],
+                    species_scf_df[which(species_scf_df$dataset_id %in% c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", 
+                                                                          "Philippe2011.UPDUNN_MB_FixedNames", "Ryan2013.REA_EST_includingXenoturbella") &
+                                           species_scf_df$branch_to_clade == "ALL_OTHER_ANIMALS" &
+                                           species_scf_df$tree_topology %in% c("CTEN", "PORI")), 
+                                   c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "tree_topology", "tree_topology_formatted", "branch_to_clade", "dataset_type", "sCF", "sDF1", "sDF2")] )
+plot_scf_5 <- rbind(scf_trimmed_df[which(scf_trimmed_df$dataset_id %in% c("Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix",
+                                                                          "Moroz2014.ED3d", "Borowiec2015.Best108") &
+                                           scf_trimmed_df$branch_to_clade == "ALL_OTHER_ANIMALS" &
+                                           scf_trimmed_df$tree_topology %in% c("CTEN", "PORI")), 
+                                   c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "tree_topology", "tree_topology_formatted", "branch_to_clade", "dataset_type", "sCF", "sDF1", "sDF2")],
+                    species_scf_df[which(species_scf_df$dataset_id %in% c("Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix", 
+                                                                          "Moroz2014.ED3d", "Borowiec2015.Best108") &
+                                           species_scf_df$branch_to_clade == "ALL_OTHER_ANIMALS" &
+                                           species_scf_df$tree_topology %in% c("CTEN", "PORI")), 
+                                   c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "tree_topology", "tree_topology_formatted", "branch_to_clade", "dataset_type", "sCF", "sDF1", "sDF2")] )
+plot_scf_6 <- rbind(scf_trimmed_df[which(scf_trimmed_df$dataset_id %in% c("Chang2015.Chang_AA", "Whelan2015.Dataset10", 
+                                                                          "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk") &
+                                           scf_trimmed_df$branch_to_clade == "ALL_OTHER_ANIMALS" &
+                                           scf_trimmed_df$tree_topology %in% c("CTEN", "PORI")), 
+                                   c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "tree_topology", "tree_topology_formatted", "branch_to_clade", "dataset_type", "sCF", "sDF1", "sDF2")],
+                    species_scf_df[which(species_scf_df$dataset_id %in% c("Chang2015.Chang_AA", "Whelan2015.Dataset10",
+                                                                          "Whelan2017.Metazoa_Choano_RCFV_strict", "Laumer2018.Tplx_BUSCOeuk") &
+                                           species_scf_df$branch_to_clade == "ALL_OTHER_ANIMALS" &
+                                           species_scf_df$tree_topology %in% c("CTEN", "PORI")), 
+                                   c("dataset", "matrix", "dataset_id", "dataset_id_formatted", "tree_topology", "tree_topology_formatted", "branch_to_clade", "dataset_type", "sCF", "sDF1", "sDF2")] )
+# Create a ternary plot of the sCFs - three separate plots of 4 datasets each
+scf4_plot <- ggtern(data = plot_scf_4, aes(x = sDF1, y = sCF, z = sDF2, shape = dataset_type, color = dataset_type)) + 
+  geom_point(alpha = 0.7, size = 3) +
+  facet_grid(dataset_id_formatted ~ tree_topology_formatted) +
+  labs(title = "Clade: All Other Animals",
+       subtitle = "Branch separating first clade to diverge from all other Metazoan species") +
+  scale_color_manual(values = c("species" = "black", "gene" = "grey80"), name = "sCF Type") +
+  scale_shape_manual(values = c("species" = 17, "gene" = 19), name = "sCF Type") + 
+  theme_bw() +
+  theme(plot.title = element_text(size = 26, hjust = 0.5),
+        plot.subtitle = element_text(size = 20, hjust = 0.5),
+        strip.background = element_blank(), 
+        strip.text.x = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 5, b = 15, l = 5, "pt")),
+        strip.text.y = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 15, b = 5, l = 20, "pt")),
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 10),
+        legend.title = element_text(size = 26), 
+        legend.text = element_text(size = 22), 
+        legend.key.size = unit(2, "lines"),
+        panel.spacing = unit(1, "lines")) +
+  guides(shape = guide_legend(override.aes = list(size = 5)))
+scf5_plot <- ggtern(data = plot_scf_5, aes(x = sDF1, y = sCF, z = sDF2, shape = dataset_type, color = dataset_type)) + 
+  geom_point(alpha = 0.7, size = 3) +
+  facet_grid(dataset_id_formatted ~ tree_topology_formatted) +
+  labs(title = "Clade: All Other Animals",
+       subtitle = "Branch separating first clade to diverge from all other Metazoan species") +
+  scale_color_manual(values = c("species" = "black", "gene" = "grey80"), name = "sCF Type") +
+  scale_shape_manual(values = c("species" = 17, "gene" = 19), name = "sCF Type") + 
+  theme_bw() +
+  theme(plot.title = element_text(size = 26, hjust = 0.5),
+        plot.subtitle = element_text(size = 20, hjust = 0.5),
+        strip.background = element_blank(), 
+        strip.text.x = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 5, b = 15, l = 5, "pt")),
+        strip.text.y = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 15, b = 5, l = 20, "pt")),
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 10),
+        legend.title = element_text(size = 26), 
+        legend.text = element_text(size = 22), 
+        legend.key.size = unit(2, "lines"),
+        panel.spacing = unit(1, "lines")) +
+  guides(shape = guide_legend(override.aes = list(size = 5)))
+scf6_plot <- ggtern(data = plot_scf_6, aes(x = sDF1, y = sCF, z = sDF2, shape = dataset_type, color = dataset_type)) + 
+  geom_point(alpha = 0.7, size = 3) +
+  facet_grid(dataset_id_formatted ~ tree_topology_formatted) +
+  labs(title = "Clade: All Other Animals",
+       subtitle = "Branch separating first clade to diverge from all other Metazoan species") +
+  scale_color_manual(values = c("species" = "black", "gene" = "grey80"), name = "sCF Type") +
+  scale_shape_manual(values = c("species" = 17, "gene" = 19), name = "sCF Type") + 
+  theme_bw() +
+  theme(plot.title = element_text(size = 26, hjust = 0.5),
+        plot.subtitle = element_text(size = 20, hjust = 0.5),
+        strip.background = element_blank(), 
+        strip.text.x = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 5, b = 15, l = 5, "pt")),
+        strip.text.y = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 15, b = 5, l = 20, "pt")),
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 10),
+        legend.title = element_text(size = 26), 
+        legend.text = element_text(size = 22), 
+        legend.key.size = unit(2, "lines"),
+        panel.spacing = unit(1, "lines")) +
+  guides(shape = guide_legend(override.aes = list(size = 5)))
+# Save plots
+scf4_plot_name <- paste0(repo_dir, "figures/", "gene_scf_AllOtherAnimals_ternary_plot1.pdf")
+ggsave(filename = scf4_plot_name, plot = scf4_plot, width = 12, height = 12, units = "in")
+scf5_plot_name <- paste0(repo_dir, "figures/", "gene_scf_AllOtherAnimals_ternary_plot2.pdf")
+ggsave(filename = scf5_plot_name, plot = scf5_plot, width = 12, height = 12, units = "in")
+scf6_plot_name <- paste0(repo_dir, "figures/", "gene_scf_AllOtherAnimals_ternary_plot3.pdf")
+ggsave(filename = scf6_plot_name, plot = scf6_plot, width = 12, height = 12, units = "in")
+
+
+
+###### 7. Species and gene sCFs: box plot ######
+# Remove any branches without sCF, sDF1 and sDF2 values
+scf_trimmed_df <- scf_df[which(is.na(scf_df$sCF) == FALSE & 
+                                 is.na(scf_df$sDF1) == FALSE & 
+                                 is.na(scf_df$sDF2) == FALSE), ]
+# Assemble boxplot dataframe
+boxplot_scf_df <- rbind(scf_trimmed_df[which(scf_trimmed_df$branch_to_clade == "ALL_OTHER_ANIMALS" &
+                                               scf_trimmed_df$tree_topology %in% c("CTEN", "PORI")), 
+                                       c("dataset", "matrix", "dataset_id_formatted", "tree_topology", "tree_topology_formatted", 
+                                         "branch_to_clade", "dataset_type", "sCF", "sDF1", "sDF2", "sN", "ultrafast_bootstrap") ],
+                        species_scf_df[which(species_scf_df$branch_to_clade == "ALL_OTHER_ANIMALS" &
+                                               species_scf_df$tree_topology %in% c("CTEN", "PORI")), 
+                                       c("dataset", "matrix", "dataset_id_formatted", "tree_topology", "tree_topology_formatted", 
+                                         "branch_to_clade", "dataset_type", "sCF", "sDF1", "sDF2", "sN", "ultrafast_bootstrap")] )
 
 
