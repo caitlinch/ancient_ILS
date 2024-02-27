@@ -24,6 +24,7 @@ library(ggplot2)
 library(ggtern) # for ternary plots of sCF
 library(Cairo) # for AU test plot (which includes unicode characters)
 library(patchwork) # for assembling ternary plots of emperical gCF, sCF and quartet scores
+library(ggpubr) # for adding regression line in sN~gene length plot
 
 # Specify colour palettes used within these plots
 metazoan_clade_palette  <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
@@ -693,6 +694,28 @@ sN_plot <- ggplot(data = sN_long, aes(x = variable_formatted, y = value, fill = 
 # Save plot
 sN_plot_name <- paste0(repo_dir, "figures/", "GeneSpecies_sN_boxplot.pdf")
 ggsave(filename = sN_plot_name, plot = sN_plot, height = 14, width = 10, units = "in")
+
+# New dataframe summarising gene and sN length for all datasets
+length_df <- data.frame(dataset_id = unique(sN_df$dataset_id),
+                        sN_min = unlist(lapply(unique(sN_df$dataset_id), function(x){min(sN_df[which(sN_df$dataset_id == x), "sN"])})),
+                        sN_mean = unlist(lapply(unique(sN_df$dataset_id), function(x){mean(sN_df[which(sN_df$dataset_id == x), "sN"])})),
+                        sN_max = unlist(lapply(unique(sN_df$dataset_id), function(x){max(sN_df[which(sN_df$dataset_id == x), "sN"])})),
+                        gene_length_min = unlist(lapply(unique(sN_df$dataset_id), function(x){min(sN_df[which(sN_df$dataset_id == x), "gene_lengths"])})),
+                        gene_length_mean = unlist(lapply(unique(sN_df$dataset_id), function(x){mean(sN_df[which(sN_df$dataset_id == x), "gene_lengths"])})),
+                        gene_length_max = unlist(lapply(unique(sN_df$dataset_id), function(x){max(sN_df[which(sN_df$dataset_id == x), "gene_lengths"])})) )
+
+# Plot sN against gene length in quick plot
+sN_gl_df <- sN_df[which(sN_df$branch_to_clade == "ALL_OTHER_ANIMALS"),]
+sN_fixed <- ggplot(data = sN_gl_df, aes(x = sN, y = gene_lengths)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_wrap(dataset_id_formatted ~ .) +
+  scale_x_continuous(name = "sN (bp)") +
+  scale_y_continuous(name = "Gene length (bp)") +
+  theme_bw() +
+  stat_cor(aes(label = paste(after_stat(rr.label), after_stat(p.label), sep = "~`,`~")))
+sN_fixed_plot_name <- paste0(repo_dir, "figures/", "sN_GeneLength_plot_fixedAxes.pdf")
+ggsave(filename = sN_fixed_plot_name, plot = sN_fixed, height = 14, width = 10, units = "in")
 
 
 
