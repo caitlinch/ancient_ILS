@@ -99,8 +99,8 @@ species_scf_df$branch_to_clade <- factor(species_scf_df$branch_description,
                                                     "CTEN_PLAC", "PORI_PLAC", "ALL_ANIMLS_EXCEPT_PLAC"),
                                          ordered = TRUE)
 species_scf_df$ultrafast_bootstrap <- species_scf_df$sCF_Label
-species_scf_df$dataset_type <- "species"
-scf_df$dataset_type         <- "gene"
+species_scf_df$dataset_type <- "Concatenated"
+scf_df$dataset_type         <- "Gene"
 scf_df$ultrafast_bootstrap <- scf_df$ultafast_bootstrap # typo in column name
 
 # Add new column for plot output dataset id
@@ -165,8 +165,8 @@ if (control_parameters$plot.ternary == TRUE){
     geom_point(alpha = 0.7, size = 3) +
     facet_grid(dataset_id_formatted ~ tree_topology_formatted) +
     labs(title = "Clade: Metazoa") +
-    scale_color_manual(values = c("species" = "black", "gene" = "grey80"), name = "sCF Type") +
-    scale_shape_manual(values = c("species" = 17, "gene" = 19), name = "sCF Type") + 
+    scale_color_manual(values = c("Concatenated" = "black", "Gene" = "grey80"), name = "sCF Type") +
+    scale_shape_manual(values = c("Concatenated" = 17, "Gene" = 19), name = "sCF Type") + 
     theme_bw() +
     theme(plot.title = element_text(size = 26, hjust = 0.5),
           strip.background = element_blank(), 
@@ -179,13 +179,12 @@ if (control_parameters$plot.ternary == TRUE){
           legend.key.size = unit(2, "lines"),
           panel.spacing = unit(1, "lines")) +
     guides(shape = guide_legend(override.aes = list(size = 5)))
-  
   scf2_plot <- ggtern(data = plot_scf_2, aes(x = sDF1, y = sCF, z = sDF2, shape = dataset_type, color = dataset_type)) + 
     geom_point(alpha = 0.7, size = 3) +
     facet_grid(dataset_id_formatted ~ tree_topology_formatted) +
     labs(title = "Clade: Metazoa") +
-    scale_color_manual(values = c("species" = "black", "gene" = "grey80"), name = "sCF Type") +
-    scale_shape_manual(values = c("species" = 17, "gene" = 19), name = "sCF Type") + 
+    scale_color_manual(values = c("Concatenated" = "black", "Gene" = "grey80"), name = "sCF Type") +
+    scale_shape_manual(values = c("Concatenated" = 17, "Gene" = 19), name = "sCF Type") + 
     theme_bw() +
     theme(plot.title = element_text(size = 26, hjust = 0.5),
           strip.background = element_blank(), 
@@ -202,8 +201,8 @@ if (control_parameters$plot.ternary == TRUE){
     geom_point(alpha = 0.7, size = 3) +
     facet_grid(dataset_id_formatted ~ tree_topology_formatted) +
     labs(title = "Clade: Metazoa") +
-    scale_color_manual(values = c("species" = "black", "gene" = "grey80"), name = "sCF Type") +
-    scale_shape_manual(values = c("species" = 17, "gene" = 19), name = "sCF Type") + 
+    scale_color_manual(values = c("Concatenated" = "black", "Gene" = "grey80"), name = "sCF Type") +
+    scale_shape_manual(values = c("Concatenated" = 17, "Gene" = 19), name = "sCF Type") + 
     theme_bw() +
     theme(plot.title = element_text(size = 26, hjust = 0.5),
           strip.background = element_blank(), 
@@ -266,11 +265,11 @@ if (control_parameters$plot.ternary == TRUE){
     facet_grid(dataset_id_formatted ~ tree_topology_formatted) +
     labs(title = "Clade: All Other Animals",
          subtitle = "Branch separating first clade to diverge from all other Metazoan species") +
-    scale_color_manual(values = c("species" = "black", "gene" = "grey80"), name = "sCF Type") +
-    scale_shape_manual(values = c("species" = 17, "gene" = 19), name = "sCF Type") + 
+    scale_color_manual(values = c("Concatenated" = "black", "Gene" = "grey80"), name = "sCF Type") +
+    scale_shape_manual(values = c("Concatenated" = 17, "Gene" = 19), name = "sCF Type") + 
     theme_bw() +
     theme(plot.title = element_text(size = 26, hjust = 0.5),
-          plot.subtitle = element_text(size = 20, hjust = 0.5),
+          plot.subtitle = element_text(size = 18, hjust = 0.5),
           strip.background = element_blank(), 
           strip.text.x = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 5, b = 15, l = 5, "pt")),
           strip.text.y = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 15, b = 5, l = 20, "pt")),
@@ -286,11 +285,11 @@ if (control_parameters$plot.ternary == TRUE){
     facet_grid(dataset_id_formatted ~ tree_topology_formatted) +
     labs(title = "Clade: All Other Animals",
          subtitle = "Branch separating first clade to diverge from all other Metazoan species") +
-    scale_color_manual(values = c("species" = "black", "gene" = "grey80"), name = "sCF Type") +
-    scale_shape_manual(values = c("species" = 17, "gene" = 19), name = "sCF Type") + 
+    scale_color_manual(values = c("Concatenated" = "black", "Gene" = "grey80"), name = "sCF Type") +
+    scale_shape_manual(values = c("Concatenated" = 17, "Gene" = 19), name = "sCF Type") + 
     theme_bw() +
     theme(plot.title = element_text(size = 26, hjust = 0.5),
-          plot.subtitle = element_text(size = 20, hjust = 0.5),
+          plot.subtitle = element_text(size = 18, hjust = 0.5),
           strip.background = element_blank(), 
           strip.text.x = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 5, b = 15, l = 5, "pt")),
           strip.text.y = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 15, b = 5, l = 20, "pt")),
@@ -306,11 +305,11 @@ if (control_parameters$plot.ternary == TRUE){
     facet_grid(dataset_id_formatted ~ tree_topology_formatted) +
     labs(title = "Clade: All Other Animals",
          subtitle = "Branch separating first clade to diverge from all other Metazoan species") +
-    scale_color_manual(values = c("species" = "black", "gene" = "grey80"), name = "sCF Type") +
-    scale_shape_manual(values = c("species" = 17, "gene" = 19), name = "sCF Type") + 
+    scale_color_manual(values = c("Concatenated" = "black", "Gene" = "grey80"), name = "sCF Type") +
+    scale_shape_manual(values = c("Concatenated" = 17, "Gene" = 19), name = "sCF Type") + 
     theme_bw() +
     theme(plot.title = element_text(size = 26, hjust = 0.5),
-          plot.subtitle = element_text(size = 20, hjust = 0.5),
+          plot.subtitle = element_text(size = 18, hjust = 0.5),
           strip.background = element_blank(), 
           strip.text.x = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 5, b = 15, l = 5, "pt")),
           strip.text.y = element_text(size = 22, color = "grey40", margin = margin(t = 5, r = 15, b = 5, l = 20, "pt")),
