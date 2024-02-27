@@ -791,35 +791,64 @@ emp_df$clade_formatted <- factor(emp_df$branch_to_clade,
                                  levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
                                  labels = c("Metazoans", "All other animals", "Ctenophora", "Porifera"))
 # Plot gCF
-emp_gcf <- ggtern(emp_df, aes(x = gDF1, y = gCF, z = gDF2)) +
-  geom_point(size = 2.5, alpha = 0.5) +
+emp_gcf <- ggtern(emp_df, aes(x = gDF1, y = gCF, z = gDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
+  geom_point(size = 4, alpha = 0.6) +
   facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
   labs(title = "a)") +
+  scale_color_manual(values = bl_bars, name = "Constrained\ntree topology") +
+  scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17), name = "Constrained\ntree topology") +
   theme_bw() +
   theme(plot.title = element_text(size = 30),
-        strip.text = element_text(size = 20))
+        strip.text = element_text(size = 20),
+        legend.title = element_text(size = 16),
+        legend.text = element_text(size = 14),
+        legend.key.size = unit(1.5, "lines"),
+        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 8),
+        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 8) ) +
+  guides( color = guide_legend(override.aes = list(size = 5)) )  
 # Plot sCF
-emp_scf <- ggtern(emp_df, aes(x = sDF1, y = sCF, z = sDF2)) +
-  geom_point(size = 2.5, alpha = 0.5) +
+emp_scf <- ggtern(emp_df, aes(x = sDF1, y = sCF, z = sDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
+  geom_point(size = 4, alpha = 0.6) +
   facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
   labs(title = "b)") +
+  scale_color_manual(values = bl_bars, name = "Constrained\ntree topology") +
+  scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17), name = "Constrained\ntree topology") +
   theme_bw() +
   theme(plot.title = element_text(size = 30),
-        strip.text = element_text(size = 20))
+        strip.text = element_text(size = 20),
+        legend.title = element_text(size = 16),
+        legend.text = element_text(size = 14),
+        legend.key.size = unit(1.5, "lines"),
+        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 8),
+        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 8) ) +
+  guides( color = guide_legend(override.aes = list(size = 5)) ) 
 # Plot quartet scores
-emp_qs <- ggtern(emp_df, aes(x = q2, y = q1, z = q3)) +
-  geom_point(size = 2.5, alpha = 0.5) +
+emp_qs <- ggtern(emp_df, aes(x = q2, y = q1, z = q3, color = tree_topology_formatted, shape = tree_topology_formatted)) +
+  geom_point(size = 4, alpha = 0.6) +
   facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
   labs(title = "c)") +
+  scale_color_manual(values = bl_bars, name = "Constrained\ntree topology") +
+  scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17), name = "Constrained\ntree topology") +
   theme_bw() +
   theme(plot.title = element_text(size = 30),
-        strip.text = element_text(size = 20))
+        strip.text = element_text(size = 20),
+        legend.title = element_text(size = 16),
+        legend.text = element_text(size = 14),
+        legend.key.size = unit(1.5, "lines"),
+        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 8),
+        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 8) ) +
+  guides( color = guide_legend(override.aes = list(size = 5)) ) +
+  Tlab("qCF") +
+  Llab("qDF1") +
+  Rlab("qDF2")
 # Assemble the three ternary plots using ggtern::grid.arrange 
 #     (as ternary plots have three axes, patchwork and ggplot::grid.arrange don't work cleanly here)
 quilt <- ggtern::grid.arrange(emp_gcf, emp_scf, emp_qs, nrow = 3, ncol = 1)
 # Save the quilt
-emp_tern_file <- paste0(repo_dir, "figures/", "empirical_dataset_gCF_sCF_qs_ternary_plots.pdf")
-ggsave(filename = emp_tern_file, plot = quilt, width = 16, height = 12, units = "in")
+emp_tern_file <- paste0(repo_dir, "figures/", "empirical_dataset_gCF_sCF_qs_ternary_plots_coloured.pdf")
+ggsave(filename = emp_tern_file, plot = quilt, width = 18, height = 12, units = "in")
+emp_tern_file_png <- paste0(repo_dir, "figures/", "empirical_dataset_gCF_sCF_qs_ternary_plots_coloured.png")
+ggsave(filename = emp_tern_file_png, plot = quilt, width = 18, height = 12, units = "in")
 
 
 
