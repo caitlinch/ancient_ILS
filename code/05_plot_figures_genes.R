@@ -751,6 +751,12 @@ au_plot <- ggplot(au_long, aes(x = variable_formatted, fill = value)) +
 au_plot_name <- paste0(repo_dir, "figures/", "gene_AU_test_stackedBars.pdf")
 ggsave(filename = au_plot_name, plot = au_plot, width = 10, height = 10, units = "in", device = cairo_pdf)
 
+# Create a nice table of the AU test results (% of gene trees rejected for each dataset)
+tree1_percent <- unlist(lapply(unique(au_df$dataset_id), function(x){round((length(which(au_df[which(au_df$dataset_id == x), ]$tree_1_result == "Fail"))/nrow(au_df[which(au_df$dataset_id == x), ]))*100, digits = 2)}))
+tree2_percent <- unlist(lapply(unique(au_df$dataset_id), function(x){round((length(which(au_df[which(au_df$dataset_id == x), ]$tree_2_result == "Fail"))/nrow(au_df[which(au_df$dataset_id == x), ]))*100, digits = 2)}))
+tree3_percent <- unlist(lapply(unique(au_df$dataset_id), function(x){round((length(which(au_df[which(au_df$dataset_id == x), ]$tree_3_result == "Fail"))/nrow(au_df[which(au_df$dataset_id == x), ]))*100, digits = 2)}))
+percent_df <- data.frame(dataset_id = unique(au_df$dataset_id), tree1_percent, tree2_percent, tree3_percent)
+
 
 
 ###### 14. Empirical gCF, sCF and quartet values: All Other Metazoans ######
