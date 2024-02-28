@@ -52,6 +52,7 @@ if (control_parameters$add.extra.color.palettes == TRUE){
 
 ###### 3. Open and prepare csvs for plotting  ######
 # Open gene csv results
+input_df        <- read.csv(paste0(repo_dir, "output/input_gene_files.csv"), stringsAsFactors = FALSE)
 ll_df           <- read.csv(paste0(repo_dir, "output/results_gene_tree_likelihood.csv"), stringsAsFactors = FALSE)
 elw_df          <- read.csv(paste0(repo_dir, "output/results_gene_AU_test.csv"), stringsAsFactors = FALSE)
 au_df           <- read.csv(paste0(repo_dir, "output/results_gene_elw.csv"), stringsAsFactors = FALSE)
@@ -59,6 +60,7 @@ scf_df          <- read.csv(paste0(repo_dir, "output/results_gene_scf.csv"), str
 species_scf_df  <- read.csv(paste0(repo_dir, "output/empirical_dataset_concordance_factors.csv"),  stringsAsFactors = FALSE)
 
 # Remove Simion 2017 from all dfs (haven't successfully extracted sCF per gene yet OR estimated species trees)
+input_df        <- input_df[which(input_df$dataset != "Simion2017"), ]
 ll_df           <- ll_df[which(ll_df$dataset != "Simion2017"), ]
 elw_df          <- elw_df[which(elw_df$dataset != "Simion2017"), ]
 au_df           <- au_df[which(au_df$dataset != "Simion2017"), ]
@@ -66,6 +68,7 @@ scf_df          <- scf_df[which(scf_df$dataset != "Simion2017"), ]
 species_scf_df  <- species_scf_df[which(species_scf_df$dataset != "Simion2017"), ]
 
 # Remove Hejnol 2009 from all dfs (haven't successfully estimated species trees yet)
+input_df        <- input_df[which(input_df$dataset != "Hejnol2009"), ]
 ll_df           <- ll_df[which(ll_df$dataset != "Hejnol2009"), ]
 elw_df          <- elw_df[which(elw_df$dataset != "Hejnol2009"), ]
 au_df           <- au_df[which(au_df$dataset != "Hejnol2009"), ]
@@ -651,8 +654,7 @@ if (control_parameters$plot.branch.lengths == TRUE){
 
 
 ###### 12. Species and gene sCFs: number of decisive sites c.f. total number of sites ######
-# Extract gene lengths
-input_df <- read.csv(paste0(repo_dir, "output/input_gene_files.csv"), stringsAsFactors = FALSE)
+# Extract gene lengths from input_df
 scf_df$gene_lengths <- unlist(lapply(scf_df$gene_id, function(x){length(input_df[which(input_df$gene_id == x), ]$gene_start: input_df[which(input_df$gene_id == x), ]$gene_end)}))
 # Create new dataframe
 sN_df <- scf_df
@@ -793,7 +795,7 @@ emp_df$clade_formatted <- factor(emp_df$branch_to_clade,
 emp_gcf <- ggtern(emp_df, aes(x = gDF1, y = gCF, z = gDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
   geom_point(size = 4, alpha = 0.6) +
   facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
-  labs(title = "a)") +
+  labs(title = "a.") +
   scale_color_manual(values = bl_bars, name = "Constrained\ntree topology") +
   scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17), name = "Constrained\ntree topology") +
   theme_bw() +
@@ -809,7 +811,7 @@ emp_gcf <- ggtern(emp_df, aes(x = gDF1, y = gCF, z = gDF2, color = tree_topology
 emp_scf <- ggtern(emp_df, aes(x = sDF1, y = sCF, z = sDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
   geom_point(size = 4, alpha = 0.6) +
   facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
-  labs(title = "b)") +
+  labs(title = "b.") +
   scale_color_manual(values = bl_bars, name = "Constrained\ntree topology") +
   scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17), name = "Constrained\ntree topology") +
   theme_bw() +
@@ -825,7 +827,7 @@ emp_scf <- ggtern(emp_df, aes(x = sDF1, y = sCF, z = sDF2, color = tree_topology
 emp_qs <- ggtern(emp_df, aes(x = q2, y = q1, z = q3, color = tree_topology_formatted, shape = tree_topology_formatted)) +
   geom_point(size = 4, alpha = 0.6) +
   facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
-  labs(title = "c)") +
+  labs(title = "c.") +
   scale_color_manual(values = bl_bars, name = "Constrained\ntree topology") +
   scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17), name = "Constrained\ntree topology") +
   theme_bw() +
