@@ -8,9 +8,11 @@
 ## Specify parameters:
 # repo_dir                    <- Location of caitlinch/metazoan-mixtures github repository
 # output_dir                  <- Directory for saving results files (csv and text)
+# hypothesis_tree_dir         <- Location of constrained ML and ASTRAL trees
 
 repo_dir                <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 output_dir              <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
+hypothesis_tree_dir     <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_02_empirical_tree_estimation/03_hypothesis_trees/"
 
 
 
@@ -99,4 +101,37 @@ elw_df <- elw_df[, c("gene_id", "dataset", "matrix", "gene", "year",
 # Write the output
 elw_file <- paste0(output_dir, "results_gene_elw.csv")
 write.csv(elw_df, file = elw_file, row.names = FALSE)
+
+
+
+#### 6. Collate hypothesis trees ####
+# List all files in the directory
+all_ht_files <- list.files(hypothesis_tree_dir)
+all_ht_files <- grep("00_", all_ht_files, value = TRUE, invert = TRUE)
+# Create ID for each set of trees
+dataset_id <- unique(unlist(lapply(strsplit(all_ht_files, "\\."), function(x){paste0(x[1], ".", x[2])})))
+dataset_id <- grep("Simion|Hejnol", dataset_id, value = TRUE, invert = TRUE)
+# Call each ID and collate the tree files
+for (id in dataset_id){
+  # Extract output files for this dataset
+  id_files <- grep(id, all_ht_files, value = T)
+  # Collate ML files
+  ml_tree_files <- grep("\\.treefile", grep("_ML_", id_files, value = T), value = T)
+  ml_tree_files_ordered <- paste0(hypothesis_tree_dir, c(grep("\\.CTEN_ML", ml_tree_files, value = T), 
+                                                         grep("\\.PORI_ML", ml_tree_files, value = T), 
+                                                         grep("\\.CTEN_PORI_ML", ml_tree_files, value = T)))
+  ml_trees <- c(unlist(lapply(ml_tree_files_ordered, readLines)), "")
+  collated_ml_tree_file <- paste0(hypothesis_tree_dir, id, ".ModelFinder.ML.collated_hypothesis_trees.treefile")
+  write(ml_trees, file = collated_ml_tree_file)
+  # Collate ASTRAL files
+  astral_tree_files <- grep("\\.tre", grep("_ASTRAL_", id_files, value = T), value = T)
+  astral_tree_files_ordered <- paste0(hypothesis_tree_dir, c(grep("\\.CTEN_ASTRAL", astral_tree_files, value = T), 
+                                                             grep("\\.PORI_ASTRAL", astral_tree_files, value = T), 
+                                                             grep("\\.CTEN_PORI_ASTRAL", astral_tree_files, value = T)))  
+  astral_trees <- c(unlist(lapply(astral_tree_files_ordered, readLines)), "")
+  collated_astral_tree_file <- paste0(hypothesis_tree_dir, id, ".ModelFinder.ASTRAL.collated_hypothesis_trees.treefile")
+  write(astral_trees, file = collated_astral_tree_file)
+  
+}
+
 
