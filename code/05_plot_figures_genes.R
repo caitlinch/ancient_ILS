@@ -662,6 +662,7 @@ sN_df <- scf_df
 sN_df$clade_formatted <- factor(sN_df$branch_to_clade,
                                 levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
                                 labels = c("Metazoa", "Other animals", "Ctenophora", "Porifera"))
+sN_df$percent_informative <- round(sN_df$sN/sN_df$gene_lengths*100, digits = 2)
 # Remove branches not present for certain topologies
 sN_df <- sN_df[which(is.na(sN_df$branch_length) == FALSE), ]
 sN_df <- sN_df[which(sN_df$tree_topology_formatted %in% c("Ctenophora", "Porifera")), ]
