@@ -126,7 +126,13 @@ if (control_parameters$output.command.lines == TRUE){
 
 
 #### 6. Run concordance factors for constrained species trees with constrained and unconstrained gene trees  ####
+# prefix = "constrained_cf"
+if (control_parameters$constrained.concordance.analysis == TRUE){
+  
+}
 
+# Open csv file
+in_df <- read.csv(paste0(output_csv_dir, "constrained_cf_input.csv"), stringsAsFactors = FALSE)
 
 
 

@@ -241,6 +241,6 @@ if (location == "Dayhoff"){
                                   qcf_dir = qcf_dir)
   # Save the csv file
   constrained_cf_csv_path <- paste0(output_csv_dir, "constrained_cf_input.csv")
-  write.csv(constrained_cf_df, file = constrained_cf_csv_path)
+  write.csv(constrained_cf_df, file = constrained_cf_csv_path, row.names = FALSE)
 }
 
