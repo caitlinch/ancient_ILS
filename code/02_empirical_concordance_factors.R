@@ -131,9 +131,93 @@ if (control_parameters$constrained.concordance.analysis == TRUE){
   
 }
 
-# Open csv file
-in_df <- read.csv(paste0(output_csv_dir, "constrained_cf_input.csv"), stringsAsFactors = FALSE)
+# Open csv file with file paths for constrained cf analysis
+in_df                     <- read.csv(paste0(output_csv_dir, "constrained_cf_input.csv"), stringsAsFactors = FALSE)
+in_df$astral_constrained  <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/astral_constrained/Astral/astral.5.6.9.jar"
+# gCF: Create command lines for gCF with constrained ML tree and constrained gene trees
+in_df$gcf_constrGenes_CTEN_prefix       <- paste0(in_df$dataset_id, ".gCF.constrGenes.CTEN")
+in_df$gcf_constrGenes_PORI_prefix       <- paste0(in_df$dataset_id, ".gCF.constrGenes.PORI")
+in_df$gcf_constrGenes_CTEN_PORI_prefix  <- paste0(in_df$dataset_id, ".gCF.constrGenes.CTEN_PORI")
+in_df$gcf_constrGenes_CTEN_command      <- paste0(in_df$iqtree2, " -t ", in_df$CTEN_ML_tree_path, " --gcf ", in_df$CTEN_gene_trees, 
+                                                  " -pre ", in_df$gcf_dir, in_df$gcf_constrGenes_CTEN_prefix, " -nt ", iqtree2_num_threads)
+in_df$gcf_constrGenes_PORI_command      <- paste0(in_df$iqtree2, " -t ", in_df$PORI_ML_tree_path, " --gcf ", in_df$PORI_gene_trees, 
+                                                  " -pre ", in_df$gcf_dir, in_df$gcf_constrGenes_PORI_prefix, " -nt ", iqtree2_num_threads)
+in_df$gcf_constrGenes_CTEN_PORI_command <- paste0(in_df$iqtree2, " -t ", in_df$CTEN_PORI_ML_tree_path, " --gcf ", in_df$CTEN_PORI_gene_trees, 
+                                                  " -pre ", in_df$gcf_dir, in_df$gcf_constrGenes_CTEN_PORI_prefix, " -nt ", iqtree2_num_threads)
+# gCF: Create command lines for gCF with constrained ML tree and unconstrained gene trees
+in_df$gcf_unconstrGenes_CTEN_prefix       <- paste0(in_df$dataset_id, ".gCF.unconstrGenes.CTEN")
+in_df$gcf_unconstrGenes_PORI_prefix       <- paste0(in_df$dataset_id, ".gCF.unconstrGenes.PORI")
+in_df$gcf_unconstrGenes_CTEN_PORI_prefix  <- paste0(in_df$dataset_id, ".gCF.unconstrGenes.CTEN_PORI")
+in_df$gcf_unconstrGenes_CTEN_command      <- paste0(in_df$iqtree2, " -t ", in_df$CTEN_ML_tree_path, " --gcf ", in_df$MFP_gene_trees, 
+                                                    " -pre ", in_df$gcf_dir, in_df$gcf_unconstrGenes_CTEN_prefix, " -nt ", iqtree2_num_threads)
+in_df$gcf_unconstrGenes_PORI_command      <- paste0(in_df$iqtree2, " -t ", in_df$PORI_ML_tree_path, " --gcf ", in_df$MFP_gene_trees, 
+                                                    " -pre ", in_df$gcf_dir, in_df$gcf_unconstrGenes_PORI_prefix, " -nt ", iqtree2_num_threads)
+in_df$gcf_unconstrGenes_CTEN_PORI_command <- paste0(in_df$iqtree2, " -t ", in_df$CTEN_PORI_ML_tree_path, " --gcf ", in_df$MFP_gene_trees, 
+                                                    " -pre ", in_df$gcf_dir, in_df$gcf_unconstrGenes_CTEN_PORI_prefix, " -nt ", iqtree2_num_threads)
+# sCF: Create command lines for sCF with constrained ML tree and alignment (cannot run constrained and unconstrained as does not include gene trees)
+in_df$scf_CTEN_prefix       <- paste0(in_df$dataset_id, ".sCF.CTEN")
+in_df$scf_PORI_prefix       <- paste0(in_df$dataset_id, ".sCF.PORI")
+in_df$scf_CTEN_PORI_prefix  <- paste0(in_df$dataset_id, ".sCF.CTEN_PORI")
+in_df$scf_CTEN_command      <- paste0(in_df$iqtree2, " -te ", in_df$CTEN_ML_tree_path, " -s ",  in_df$alignment_path, " --scf 1000 ",
+                                      "-pre ", in_df$scf_dir, in_df$scf_CTEN_prefix, " -nt ", iqtree2_num_threads)
+in_df$scf_PORI_command      <- paste0(in_df$iqtree2, " -te ", in_df$PORI_ML_tree_path, " -s ",  in_df$alignment_path, " --scf 1000 ",
+                                      " -pre ", in_df$scf_dir, in_df$scf_PORI_prefix, " -nt ", iqtree2_num_threads)
+in_df$scf_CTEN_PORI_command <- paste0(in_df$iqtree2, " -te ", in_df$CTEN_PORI_ML_tree_path, " -s ",  in_df$alignment_path, " --scf 1000 ",
+                                      "-pre ", in_df$scf_dir, in_df$scf_CTEN_PORI_prefix, " -nt ", iqtree2_num_threads)
+# qCF: Create command lines for qCF with constrained ASTRAL tree and constrained gene trees
+in_df$qcf_constrGenes_CTEN_prefix         <- paste0(in_df$dataset_id, ".qCF.constrGenes.CTEN")
+in_df$qcf_constrGenes_PORI_prefix         <- paste0(in_df$dataset_id, ".qCF.constrGenes.PORI")
+in_df$qcf_constrGenes_CTEN_PORI_prefix    <- paste0(in_df$dataset_id, ".qCF.constrGenes.CTEN_PORI")
+in_df$qcf_constrGenes_CTEN_command        <- paste0("java jar ", in_df$astral_constrained, " -q ", in_df$CTEN_ASTRAL_tree_path,  " -i ", in_df$CTEN_gene_trees,
+                                                    " -t 2 -o ", in_df$qcf_dir, in_df$qcf_constrGenes_CTEN_prefix, ".tre", " 2> ",
+                                                    in_df$qcf_dir, in_df$qcf_constrGenes_CTEN_prefix, ".log")
+in_df$qcf_constrGenes_PORI_command        <- paste0("java jar ", in_df$astral_constrained, " -q ", in_df$PORI_ASTRAL_tree_path,  " -i ", in_df$PORI_gene_trees,
+                                                    " -t 2 -o ", in_df$qcf_dir, in_df$qcf_constrGenes_PORI_prefix, ".tre", " 2> ",
+                                                    in_df$qcf_dir, in_df$qcf_constrGenes_PORI_prefix, ".log")
+in_df$qcf_constrGenes_CTEN_PORI_command   <- paste0("java jar ", in_df$astral_constrained, " -q ", in_df$CTEN_PORI_ASTRAL_tree_path,  " -i ", in_df$CTEN_PORI_gene_trees,
+                                                    " -t 2 -o ", in_df$qcf_dir, in_df$qcf_constrGenes_CTEN_PORI_prefix, ".tre", " 2> ",
+                                                    in_df$qcf_dir, in_df$qcf_constrGenes_CTEN_PORI_prefix, ".log")
+# qCF: Create command lines for qCF with constrained ASTRAL tree and unconstrained gene trees
+in_df$qcf_unconstrGenes_CTEN_prefix         <- paste0(in_df$dataset_id, ".qCF.unconstrGenes.CTEN")
+in_df$qcf_unconstrGenes_PORI_prefix         <- paste0(in_df$dataset_id, ".qCF.unconstrGenes.PORI")
+in_df$qcf_unconstrGenes_CTEN_PORI_prefix    <- paste0(in_df$dataset_id, ".qCF.unconstrGenes.CTEN_PORI")
+in_df$qcf_unconstrGenes_CTEN_command        <- paste0("java jar ", in_df$astral_constrained, " -q ", in_df$CTEN_ASTRAL_tree_path,  " -i ", in_df$MFP_gene_trees,
+                                                      " -t 2 -o ", in_df$qcf_dir, in_df$qcf_unconstrGenes_CTEN_prefix, ".tre", " 2> ",
+                                                      in_df$qcf_dir, in_df$qcf_unconstrGenes_CTEN_prefix, ".log")
+in_df$qcf_unconstrGenes_PORI_command        <- paste0("java jar ", in_df$astral_constrained, " -q ", in_df$PORI_ASTRAL_tree_path,  " -i ", in_df$MFP_gene_trees,
+                                                      " -t 2 -o ", in_df$qcf_dir, in_df$qcf_unconstrGenes_PORI_prefix, ".tre", " 2> ",
+                                                      in_df$qcf_dir, in_df$qcf_unconstrGenes_PORI_prefix, ".log")
+in_df$qcf_unconstrGenes_CTEN_PORI_command   <-paste0("java jar ", in_df$astral_constrained, " -q ", in_df$CTEN_PORI_ASTRAL_tree_path,  " -i ", in_df$MFP_gene_trees,
+                                                     " -t 2 -o ", in_df$qcf_dir, in_df$qcf_unconstrGenes_CTEN_PORI_prefix, ".tre", " 2> ",
+                                                     in_df$qcf_dir, in_df$qcf_unconstrGenes_CTEN_PORI_prefix, ".log")
+# Write the dataframe with command paths out as a csv
+command_csv_path <- paste0(output_csv_dir, "constrained_cf_command_lines.csv")
+write.csv(in_df, file = command_csv_path, row.names = FALSE)
 
-
+# Write commands for each concordance factor into separate files
+# gCF
+gcf_text <- c("# gCF CTEN constrained", in_df$gcf_constrGenes_CTEN_command, "", 
+              "# gCF PORI constrained", in_df$gcf_constrGenes_PORI_command, "", 
+              "# gCF CTEN PORI constrained", in_df$gcf_constrGenes_CTEN_PORI_command, "", 
+              "# gCF CTEN unconstrained", in_df$gcf_unconstrGenes_CTEN_command, "", 
+              "# gCF PORI unconstrained", in_df$gcf_unconstrGenes_PORI_command, "",
+              "# gCF CTEN PORI unconstrained", in_df$gcf_unconstrGenes_CTEN_PORI_command, "")
+gcf_path <- paste0(output_csv_dir, "constrained_gcf_command_lines.sh")
+write(gcf_text, file = gcf_path)
+# sCF
+scf_text <- c("# sCF CTEN", in_df$scf_CTEN_command, "", 
+              "# sCF PORI", in_df$scf_PORI_command, "", 
+              "# sCF CTEN PORI", in_df$scf_CTEN_PORI_command, "")
+scf_path <- paste0(output_csv_dir, "constrained_scf_command_lines.sh")
+write(scf_text, file = scf_path)
+# qCF
+qcf_text <- c("# qCF CTEN constrained", in_df$qcf_constrGenes_CTEN_command, "", 
+              "# qCF PORI constrained", in_df$qcf_constrGenes_PORI_command, "", 
+              "# qCF CTEN PORI constrained", in_df$qcf_constrGenes_CTEN_PORI_command, "",
+              "# qCF CTEN unconstrained", in_df$qcf_unconstrGenes_CTEN_command, 
+              "# qCF PORI unconstrained", in_df$qcf_unconstrGenes_PORI_command, "",
+              "# qCF CTEN PORI unconstrained", in_df$qcf_unconstrGenes_CTEN_PORI_command, "")
+qcf_path <- paste0(output_csv_dir, "constrained_qcf_command_lines.sh")
+write(qcf_text, file = qcf_path)
 
 
