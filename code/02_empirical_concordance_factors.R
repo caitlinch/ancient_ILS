@@ -125,7 +125,8 @@ if (control_parameters$output.command.lines == TRUE){
 
 
 
-#### 6. Run concordance factors for constrained species trees with constrained and unconstrained gene trees  ####
+#### 6. Create command lines for concordance factors run  ####
+# Command lines for constrained species trees with constrained and unconstrained gene trees
 # prefix = "constrained_cf"
 if (control_parameters$constrained.concordance.analysis == TRUE){
   
