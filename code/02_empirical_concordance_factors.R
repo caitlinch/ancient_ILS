@@ -23,31 +23,30 @@
 
 location = "local"
 if (location == "local"){
-  repo_dir            <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-  alignment_dir       <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_empirical_data/"
-  output_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_empirical_tree_estimation/"
-  iqtree2             <- "iqtree2"
-  iqtree2_num_threads  <- "AUTO"
-  astral              <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
+  repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
+  alignment_dir         <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_01_empirical_data/"
+  output_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_02_empirical_tree_estimation/"
+  output_csv_dir        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
+  iqtree2               <- "iqtree2"
+  iqtree2_num_threads   <- "AUTO"
+  astral                <- "/Users/caitlincherryh/Documents/Executables/ASTRAL-5.7.8-master/Astral/astral.5.7.8.jar"
   
-} else if (location == "dayhoff" | location == "rona" ){
-  if (location == "dayhoff"){
-    repo_dir <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
-  } else if (location == "rona"){
-    repo_dir <- "/home/caitlin/ancient_ILS/"
-  }
-  alignment_dir <- paste0(repo_dir, "data_all/")
-  output_dir <-  paste0(repo_dir, "output/")
-  iqtree2 <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
-  iqtree2_num_threads <- 20
-  astral <- paste0(repo_dir, "astral/Astral/astral.5.7.8.jar")
+} else if (location == "dayhoff"){
+  repo_dir              <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
+  alignment_dir         <- paste0(repo_dir, "data_all/")
+  output_dir            <-  paste0(repo_dir, "output/")
+  output_csv_dir        <- paste0(repo_dir, "output/")
+  iqtree2               <- paste0(repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
+  iqtree2_num_threads   <- 20
+  astral                <- paste0(repo_dir, "astral/Astral/astral.5.7.8.jar")
 }
 
 # Set control parameters
-control_parameters <- list(create.output.filepaths = FALSE,
-                           estimate.scf.gcf = FALSE,
-                           estimate.qs = FALSE,
-                           output.command.lines = FALSE)
+control_parameters      <- list(create.output.filepaths = FALSE,
+                                estimate.scf.gcf = FALSE,
+                                estimate.qs = FALSE,
+                                output.command.lines = FALSE,
+                                constrained.concordance.analysis = TRUE)
 
 
 
@@ -81,7 +80,6 @@ if (control_parameters$create.output.filepaths == TRUE | file.exists(precf_datas
 
 
 #### 3. Calculate site and gene concordance factors ####
-estimate.gcf.scf.wrapper(row_id, dataframe, constraint_tree_hypothesis, iqtree2_path, iqtree2_num_threads = "AUTO", estimate.trees = FALSE)
 if (control_parameters$estimate.scf.gcf == TRUE){
   # For CTEN-sister
   CTEN_cf_commands <- unlist(lapply(1:nrow(dataset_df), estimate.gcf.scf.wrapper, 
@@ -124,5 +122,12 @@ if (control_parameters$output.command.lines == TRUE){
   write.csv(dataset_df, file = cf_dataset_df_file, row.names = F)
   write.csv(dataset_df[13:24,], file = cf_dataset_df_trimmed_file, row.names = F)
 }
+
+
+
+#### 6. Run concordance factors for constrained species trees with constrained and unconstrained gene trees  ####
+
+
+
 
 
