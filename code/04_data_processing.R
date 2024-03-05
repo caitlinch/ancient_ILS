@@ -6,11 +6,14 @@
 
 #### 1. Input parameters ####
 ## Specify parameters:
+# location                    <- To run locally: location = "Local" 
+#                                   or to run on server: location = "Dayhoff"
 # repo_dir                    <- Location of caitlinch/metazoan-mixtures github repository
 # output_dir                  <- Directory for saving results files (csv and text)
 # hypothesis_tree_dir         <- Location of constrained ML and ASTRAL trees
 # hypothesis_gene_dir         <- Location of constrained ML gene trees
 
+location = "Local"
 repo_dir                <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 output_dir              <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
 hypothesis_tree_dir     <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_02_empirical_tree_estimation/03_hypothesis_trees/"
@@ -182,6 +185,62 @@ for (d in all_datasets){
 
 
 
-#### 8. Collate best model from each gene tree ####
-
+#### 8. Create dataframe for constrained concordance factors analysis ####
+if (location == "Dayhoff"){
+  # All Dayhoff paths
+  repo_dir              <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
+  alignment_dir         <- paste0(repo_dir, "data_all/")
+  constraint_tree_dir   <- paste0(repo_dir, "output/constraint_trees/")
+  collated_genes_dir    <- paste0(repo_dir, "cf_constrained/genes_collated/")
+  output_csv_dir        <- paste0(repo_dir, "cf_constrained/")
+  gcf_dir               <- paste0(repo_dir, "cf_constrained/gcf/")
+  scf_dir               <- paste0(repo_dir, "cf_constrained/scf/")
+  qcf_dir               <- paste0(repo_dir, "cf_constrained/qcf/")
+  # Extract alignment paths
+  remove_als                  <- "Simion2017.supermatrix_97sp_401632pos_1719genes|Hejnol2009.Hejnol_etal_2009_FixedNames|Laumer2019.nonbilateria_MARE_BMGE"
+  remove_als_partition        <- "Simion2017|Hejnol2009|Laumer2019"
+  all_dataset_files           <- list.files(alignment_dir)
+  alignment_files             <- paste0(alignment_dir, grep(remove_als, grep("aa.alignment", all_dataset_files, value = T), value = T, invert = T))
+  modelfinder_partition_files <- paste0(alignment_dir, grep(remove_als_partition, grep("\\.ModelFinder.partition.nex", all_dataset_files, value = T), value = T, invert = T))
+  original_partition_files    <- paste0(alignment_dir, grep(remove_als_partition, grep("_partitions_formatted.nex", all_dataset_files, value = T), value = T, invert = T))
+  # Extract constraint trees
+  all_constraint_trees        <- grep(remove_als, list.files(constraint_tree_dir), value = T, invert = T)
+  CTEN_constraint_trees       <- paste0(constraint_tree_dir, grep("constraint_tree_1.nex", all_constraint_trees, value = T))
+  CTEN_PORI_constraint_trees       <- paste0(constraint_tree_dir, grep("constraint_tree_2.nex", all_constraint_trees, value = T))
+  CTEN_PORI_constraint_trees  <- paste0(constraint_tree_dir, grep("constraint_tree_3.nex", all_constraint_trees, value = T))
+  # Extract gene trees
+  all_gene_collated_trees   <- grep(remove_als, list.files(collated_genes_dir), value = T, invert = T)
+  CTEN_gene_trees           <- paste0(collated_genes_dir, grep("\\.ModelFinder\\.CTEN\\.gene_trees\\.treefile", all_gene_collated_trees, value = T))
+  PORI_gene_trees           <- paste0(collated_genes_dir, grep("\\.ModelFinder\\.PORI\\.gene_trees\\.treefile", all_gene_collated_trees, value = T))
+  CTEN_PORI_gene_trees      <- paste0(collated_genes_dir, grep("\\.ModelFinder\\.CTEN_PORI\\.gene_trees\\.treefile", all_gene_collated_trees, value = T))
+  MFP_gene_trees            <- paste0(collated_genes_dir, grep("\\.ModelFinder\\.MFP\\.gene_trees\\.treefile", all_gene_collated_trees, value = T))
+  # Extract information about the datasets
+  dataset     <- unlist(lapply(strsplit(basename(alignment_files), "\\."), function(x){paste0(x[[1]])}))
+  matrix      <- unlist(lapply(strsplit(basename(alignment_files), "\\."), function(x){paste0(x[[2]])}))
+  dataset_id  <- unlist(lapply(strsplit(basename(alignment_files), "\\."), function(x){paste0(x[[1]], ".", x[[2]])}))
+  # Assemble all this information into a csv file
+  constrained_cf_df <- data.frame(dataset = dataset,
+                                  matrix = matrix,
+                                  dataset_id = dataset_id,
+                                  alignment_dir = alignment_dir,
+                                  alignment_path = alignment_files,
+                                  original_partition_path = original_partition_files, 
+                                  modelfinder_partition_path = modelfinder_partition_files,
+                                  constraint_tree_dir = constraint_tree_dir,
+                                  CTEN_constraint_tree_path = CTEN_constraint_trees,
+                                  PORI_constraint_tree_path = PORI_constraint_trees,
+                                  CTEN_PORI_constraint_tree_path = CTEN_PORI_constraint_trees,
+                                  collated_genes_dir = collated_genes_dir,
+                                  CTEN_gene_trees = CTEN_gene_trees,
+                                  PORI_gene_trees = PORI_gene_trees,
+                                  CTEN_PORI_gene_trees = CTEN_PORI_gene_trees,
+                                  MFP_gene_trees = MFP_gene_trees,
+                                  output_dir = output_csv_dir,
+                                  gcf_dir = gcf_dir,
+                                  scf_dir = scf_dir,
+                                  qcf_dir = qcf_dir)
+  # Save the csv file
+  constrained_cf_csv_path <- paste0(output_csv_dir, "constrained_cf_input.csv")
+  write.csv(constrained_cf_df, file = constrained_cf_csv_path)
+}
 
