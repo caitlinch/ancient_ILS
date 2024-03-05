@@ -9,11 +9,12 @@
 # repo_dir                    <- Location of caitlinch/metazoan-mixtures github repository
 # output_dir                  <- Directory for saving results files (csv and text)
 # hypothesis_tree_dir         <- Location of constrained ML and ASTRAL trees
+# hypothesis_gene_dir         <- Location of constrained ML gene trees
 
 repo_dir                <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 output_dir              <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
 hypothesis_tree_dir     <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/01_02_empirical_tree_estimation/03_hypothesis_trees/"
-
+hypothesis_gene_dir     <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_03_empirical_genes_constrained_trees/"
 
 
 #### 2. Prepare libraries and functions ####
@@ -133,5 +134,54 @@ for (id in dataset_id){
   write(astral_trees, file = collated_astral_tree_file)
   
 }
+
+
+
+#### 7. Collate constrained gene trees ####
+# List all files within the hypothesis_gene_dir
+all_datasets <- list.files(hypothesis_gene_dir)
+all_datasets <- grep("_hypothesis_trees|all_collated_constrained_gene_trees", all_datasets, value = TRUE, invert = TRUE)
+all_datasets <- grep("ModelFinder.CTEN.gene_trees|ModelFinder.PORI.gene_trees|ModelFinder.CTEN_PORI.gene_trees", all_datasets, value = TRUE, invert = TRUE)
+# Collate the unconstrained gene trees from each dataset
+for (d in all_datasets){
+  # List all files in the d folder
+  d_dir       <- paste0(hypothesis_gene_dir, d, "/")
+  d_all_files <- list.files(d_dir)
+  # Extract list of unconstrained gene trees
+  d_MFP_tree_files      <- grep("\\.MFP\\.treefile", d_all_files, value = TRUE)
+  # Open list of trees
+  d_MFP_trees      <- c(unlist(lapply(paste0(d_dir, d_MFP_tree_files), readLines)), "")
+  # Create output files for collated constrained gene trees
+  d_MFP_collated_file      <- paste0(hypothesis_gene_dir, d, ".ModelFinder.MFP.gene_trees.treefile")
+  # Save list of trees
+  write(d_MFP_trees, file = d_MFP_collated_file)
+}
+# Collate the constrained gene trees from each dataset
+for (d in all_datasets){
+  # List all files in the d folder
+  d_dir       <- paste0(hypothesis_gene_dir, d, "/")
+  d_all_files <- list.files(d_dir)
+  # Extract list of trees for each topology
+  d_CTEN_tree_files      <- grep("\\.CTEN_tree.treefile", d_all_files, value = TRUE)
+  d_PORI_tree_files      <- grep("\\.PORI_tree.treefile", d_all_files, value = TRUE)
+  d_CTEN_PORI_tree_files <- grep("\\.CTEN_PORI_tree.treefile", d_all_files, value = TRUE)
+  # Open list of trees
+  d_CTEN_trees      <- c(unlist(lapply(paste0(d_dir, d_CTEN_tree_files), readLines)), "")
+  d_PORI_trees      <- c(unlist(lapply(paste0(d_dir, d_PORI_tree_files), readLines)), "")
+  d_CTEN_PORI_trees <- c(unlist(lapply(paste0(d_dir, d_CTEN_PORI_tree_files), readLines)), "")
+  # Create output files for collated constrained gene trees
+  d_CTEN_collated_file      <- paste0(hypothesis_gene_dir, d, ".ModelFinder.CTEN.gene_trees.treefile")
+  d_PORI_collated_file      <- paste0(hypothesis_gene_dir, d, ".ModelFinder.PORI.gene_trees.treefile")
+  d_CTEN_PORI_collated_file <- paste0(hypothesis_gene_dir, d, ".ModelFinder.CTEN_PORI.gene_trees.treefile")
+  # Save list of trees
+  write(d_CTEN_trees, file = d_CTEN_collated_file)
+  write(d_PORI_trees, file = d_PORI_collated_file)
+  write(d_CTEN_PORI_trees, file = d_CTEN_PORI_collated_file)
+}
+
+
+
+
+#### 8. Collate best model from each gene tree ####
 
 
