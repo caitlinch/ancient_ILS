@@ -158,12 +158,12 @@ in_df$gcf_unconstrGenes_CTEN_PORI_command <- paste0(in_df$iqtree2, " -t ", in_df
 in_df$scf_CTEN_prefix       <- paste0(in_df$dataset_id, ".sCF.CTEN")
 in_df$scf_PORI_prefix       <- paste0(in_df$dataset_id, ".sCF.PORI")
 in_df$scf_CTEN_PORI_prefix  <- paste0(in_df$dataset_id, ".sCF.CTEN_PORI")
-in_df$scf_CTEN_command      <- paste0(in_df$iqtree2, " -te ", in_df$CTEN_ML_tree_path, " -s ",  in_df$alignment_path, " --scf 1000 ",
-                                      "-pre ", in_df$scf_dir, in_df$scf_CTEN_prefix, " -nt ", iqtree2_num_threads)
-in_df$scf_PORI_command      <- paste0(in_df$iqtree2, " -te ", in_df$PORI_ML_tree_path, " -s ",  in_df$alignment_path, " --scf 1000 ",
-                                      " -pre ", in_df$scf_dir, in_df$scf_PORI_prefix, " -nt ", iqtree2_num_threads)
-in_df$scf_CTEN_PORI_command <- paste0(in_df$iqtree2, " -te ", in_df$CTEN_PORI_ML_tree_path, " -s ",  in_df$alignment_path, " --scf 1000 ",
-                                      "-pre ", in_df$scf_dir, in_df$scf_CTEN_PORI_prefix, " -nt ", iqtree2_num_threads)
+in_df$scf_CTEN_command      <- paste0(in_df$iqtree2, " -te ", in_df$CTEN_ML_tree_path, " -s ",  in_df$alignment_path, " -p ", in_df$modelfinder_partition_path,
+                                      " -m 'MFP+MERGE' --scfl 1000 ", "-pre ", in_df$scf_dir, in_df$scf_CTEN_prefix, " -nt ", iqtree2_num_threads)
+in_df$scf_PORI_command      <- paste0(in_df$iqtree2, " -te ", in_df$PORI_ML_tree_path, " -s ",  in_df$alignment_path, " -p ", in_df$modelfinder_partition_path,
+                                      " -m 'MFP+MERGE' --scfl 1000 ", " -pre ", in_df$scf_dir, in_df$scf_PORI_prefix, " -nt ", iqtree2_num_threads)
+in_df$scf_CTEN_PORI_command <- paste0(in_df$iqtree2, " -te ", in_df$CTEN_PORI_ML_tree_path, " -s ",  in_df$alignment_path, " -p ", in_df$modelfinder_partition_path,
+                                      " -m 'MFP+MERGE' --scfl 1000 ", "-pre ", in_df$scf_dir, in_df$scf_CTEN_PORI_prefix, " -nt ", iqtree2_num_threads)
 # qCF: Create command lines for qCF with constrained ASTRAL tree and constrained gene trees
 in_df$qcf_constrGenes_CTEN_prefix         <- paste0(in_df$dataset_id, ".qCF.constrGenes.CTEN")
 in_df$qcf_constrGenes_PORI_prefix         <- paste0(in_df$dataset_id, ".qCF.constrGenes.PORI")
