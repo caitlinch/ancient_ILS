@@ -191,11 +191,15 @@ if (location == "Dayhoff"){
   repo_dir              <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
   alignment_dir         <- paste0(repo_dir, "data_all/")
   constraint_tree_dir   <- paste0(repo_dir, "output/constraint_trees/")
+  hypothesis_tree_dir   <- paste0(repo_dir, "output/hypothesis_trees/")
   collated_genes_dir    <- paste0(repo_dir, "cf_constrained/genes_collated/")
   output_csv_dir        <- paste0(repo_dir, "cf_constrained/")
   gcf_dir               <- paste0(repo_dir, "cf_constrained/gcf/")
   scf_dir               <- paste0(repo_dir, "cf_constrained/scf/")
   qcf_dir               <- paste0(repo_dir, "cf_constrained/qcf/")
+  # Add executable program paths
+  iqtree2 <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2"
+  ASTRAL  <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/astral/Astral/astral.5.7.8.jar"
   # Extract alignment paths
   remove_als                  <- "Simion2017.supermatrix_97sp_401632pos_1719genes|Hejnol2009.Hejnol_etal_2009_FixedNames|Laumer2019.nonbilateria_MARE_BMGE"
   remove_als_partition        <- "Simion2017|Hejnol2009|Laumer2019"
@@ -206,7 +210,7 @@ if (location == "Dayhoff"){
   # Extract constraint trees
   all_constraint_trees        <- grep(remove_als, list.files(constraint_tree_dir), value = T, invert = T)
   CTEN_constraint_trees       <- paste0(constraint_tree_dir, grep("constraint_tree_1.nex", all_constraint_trees, value = T))
-  CTEN_PORI_constraint_trees       <- paste0(constraint_tree_dir, grep("constraint_tree_2.nex", all_constraint_trees, value = T))
+  PORI_constraint_trees       <- paste0(constraint_tree_dir, grep("constraint_tree_2.nex", all_constraint_trees, value = T))
   CTEN_PORI_constraint_trees  <- paste0(constraint_tree_dir, grep("constraint_tree_3.nex", all_constraint_trees, value = T))
   # Extract gene trees
   all_gene_collated_trees   <- grep(remove_als, list.files(collated_genes_dir), value = T, invert = T)
@@ -218,10 +222,20 @@ if (location == "Dayhoff"){
   dataset     <- unlist(lapply(strsplit(basename(alignment_files), "\\."), function(x){paste0(x[[1]])}))
   matrix      <- unlist(lapply(strsplit(basename(alignment_files), "\\."), function(x){paste0(x[[2]])}))
   dataset_id  <- unlist(lapply(strsplit(basename(alignment_files), "\\."), function(x){paste0(x[[1]], ".", x[[2]])}))
+  # Extract hypothesis tree paths
+  all_h_trees                 <- grep(remove_als_partition, list.files(hypothesis_tree_dir), value = T, invert = T)
+  CTEN_ML_tree_path           <- paste0(hypothesis_tree_dir, grep("\\.CTEN_ML_tree\\.treefile", all_h_trees, value = T))
+  CTEN_ASTRAL_tree_path       <- paste0(hypothesis_tree_dir, grep("\\.CTEN_ASTRAL_tree\\.tre", all_h_trees, value = T))
+  PORI_ML_tree_path           <- paste0(hypothesis_tree_dir, grep("\\.PORI_ML_tree\\.treefile", all_h_trees, value = T))
+  PORI_ASTRAL_tree_path       <- paste0(hypothesis_tree_dir, grep("\\.PORI_ASTRAL_tree\\.tre", all_h_trees, value = T))
+  CTEN_PORI_ML_tree_path      <- paste0(hypothesis_tree_dir, grep("\\.CTEN_PORI_ML_tree\\.treefile", all_h_trees, value = T))
+  CTEN_PORI_ASTRAL_tree_path  <- paste0(hypothesis_tree_dir, grep("\\.CTEN_PORI_ASTRAL_tree\\.tre", all_h_trees, value = T))
   # Assemble all this information into a csv file
   constrained_cf_df <- data.frame(dataset = dataset,
                                   matrix = matrix,
                                   dataset_id = dataset_id,
+                                  iqtree2 = iqtree2,
+                                  astral = ASTRAL, 
                                   alignment_dir = alignment_dir,
                                   alignment_path = alignment_files,
                                   original_partition_path = original_partition_files, 
@@ -229,7 +243,14 @@ if (location == "Dayhoff"){
                                   constraint_tree_dir = constraint_tree_dir,
                                   CTEN_constraint_tree_path = CTEN_constraint_trees,
                                   PORI_constraint_tree_path = PORI_constraint_trees,
+                                  hypothesis_tree_dir = hypothesis_tree_dir,
                                   CTEN_PORI_constraint_tree_path = CTEN_PORI_constraint_trees,
+                                  CTEN_ML_tree_path = CTEN_ML_tree_path,
+                                  CTEN_ASTRAL_tree_path = CTEN_ASTRAL_tree_path,
+                                  PORI_ML_tree_path = PORI_ML_tree_path,
+                                  PORI_ASTRAL_tree_path = PORI_ASTRAL_tree_path,
+                                  CTEN_PORI_ML_tree_path = CTEN_PORI_ML_tree_path,
+                                  CTEN_PORI_ASTRAL_tree_path = CTEN_PORI_ASTRAL_tree_path,
                                   collated_genes_dir = collated_genes_dir,
                                   CTEN_gene_trees = CTEN_gene_trees,
                                   PORI_gene_trees = PORI_gene_trees,
