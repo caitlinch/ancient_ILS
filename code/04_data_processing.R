@@ -308,10 +308,11 @@ formatted_in_df <- rbind(raw_astral_df, raw_na_df)
 formatted_in_df <- formatted_in_df[order(formatted_in_df$dataset, formatted_in_df$matrix,
                                          formatted_in_df$hypothesis_tree, formatted_in_df$branch_num,
                                          formatted_in_df$branch_description, formatted_in_df$gene_type) , ]
+rownames(formatted_in_df) <- 1:nrow(formatted_in_df)
 # Rearrange column order
 formatted_in_df <- formatted_in_df[ , c(1:29, 32:42, 31)]
 # Write the nicely formatted csv out
-formatted_in_df_path <- paste0(output_dir, "constrained_unconstrained_cd_output_formatted.csv")
+formatted_in_df_path <- paste0(output_dir, "constrained_unconstrained_cf_output_formatted.csv")
 write.csv(formatted_in_df, file = formatted_in_df_path, row.names = FALSE)
 
 

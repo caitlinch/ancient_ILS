@@ -35,6 +35,9 @@ passfail_palette        <- c("Pass (p > 0.05)" = "#addd8e", "Fail (p \u2264 0.05
 
 
 ###### 3. Open and prepare csvs for plotting  ######
+# List all output files
+all_output_files <- list.files(output_dir)
+
 # Open gene csv results
 input_df        <- read.csv(paste0(repo_dir, "output/input_gene_files.csv"), stringsAsFactors = FALSE)
 ll_df           <- read.csv(paste0(repo_dir, "output/results_gene_tree_likelihood.csv"), stringsAsFactors = FALSE)
@@ -840,12 +843,62 @@ ggsave(filename = emp_tern_file_png, plot = quilt, width = 18, height = 12, unit
 
 ###### 14. CF + Key branch + 3 topologies + unconstrained gene trees ######
 # Key branch to extract:
-#   For CTEN-Tree: "All other animals"
-#   For PORI-Tree: "All other animals"
-#   For CTEN-PORI-Tree: "CTEN+PORI
-# Extract variables of interest
-emp_df <- species_scf_df
-emp_df <- emp_df[which(emp_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
+#   CF = CTEN-Tree, "All other animals"
+#   DF1 = PORI-Tree, "All other animals"
+#   DF2 = CTEN-PORI-Tree, "CTEN+PORI"
+
+# Open relevant csv
+cf_df <- read.csv(paste0(output_dir, grep("constrained_unconstrained_cd_output_formatted", all_output_files, value = T)), stringsAsFactors = F)
+
+# Extract unconstrained gene tree rows
+all_uncon_df <- cf_df[which(cf_df$gene_type == "Unconstrained"), ]
+# Extract the right branch for each tree topology
+filtered_uncon_df <- all_uncon_df[c(which(all_uncon_df$hypothesis_tree == "CTEN" & all_uncon_df$branch_description == "All_other_animals"),
+                                    which(all_uncon_df$hypothesis_tree == "PORI" & all_uncon_df$branch_description == "All_other_animals"),
+                                    which(all_uncon_df$hypothesis_tree == "CTEN_PORI" & all_uncon_df$branch_description == "CTEN_PORI")) , 
+                                  c(1:9, 17:21, 26:28, 30, 33, 36, 39, 40, 41)]
+row.names(filtered_uncon_df) <- 1:nrow(filtered_uncon_df)
+# Create the CF columns
+plot_uncon_df <- data.frame(dataset = filtered_uncon_df$dataset[1:12], 
+                            matrix = filtered_uncon_df$matrix[1:12], 
+                            gene_type = filtered_uncon_df$gene_type[1:12],
+                            gCF = filtered_uncon_df$gCF[1:12],
+                            gCF_N = filtered_uncon_df$gCF_N[1:12],
+                            gDF1 = filtered_uncon_df$gCF[13:24],
+                            gDF1_N = filtered_uncon_df$gCF_N[13:24],
+                            gDF2 = filtered_uncon_df$gCF[25:36],
+                            gDF2_N = filtered_uncon_df$gCF_N[25:36],
+                            sCF = filtered_uncon_df$sCF[1:12],
+                            sCF_N = filtered_uncon_df$sCF_N[1:12],
+                            sDF1 = filtered_uncon_df$sCF[13:24],
+                            sDF1_N = filtered_uncon_df$sCF_N[13:24],
+                            sDF2 = filtered_uncon_df$sCF[25:36],
+                            sDF2_N = filtered_uncon_df$sCF_N[25:36],
+                            q1 = filtered_uncon_df$q1[1:12],
+                            q2 = filtered_uncon_df$q1[13:24],
+                            q3 = filtered_uncon_df$q1[25:36],
+                            f1 = filtered_uncon_df$f1[1:12],
+                            f2 = filtered_uncon_df$f1[13:24],
+                            f3 = filtered_uncon_df$f1[25:36],
+                            pp1 = filtered_uncon_df$pp1[1:12],
+                            pp2 = filtered_uncon_df$pp1[13:24],
+                            pp3 = filtered_uncon_df$pp1[25:36],
+                            QC1 = filtered_uncon_df$QC[1:12],
+                            QC2 = filtered_uncon_df$QC[13:24],
+                            QC3 = filtered_uncon_df$QC[25:36],
+                            EN1 = filtered_uncon_df$EN[1:12],
+                            EN2 = filtered_uncon_df$EN[13:24],
+                            EN3 = filtered_uncon_df$EN[25:36])
+# Replace the incorrect values using the check_df
+# Replace the gDF2 and sDF2 for Chang 2015, to use the version of Metazoa without plac
+plot_uncon_df[which(plot_uncon_df$dataset == "Chang2015"), ]$gDF2 <- check_df[which(check_df$dataset == "Chang2015" & 
+                                                                                      check_df$branch_description == "Metazoa_noPlac" & 
+                                                                                      check_df$hypothesis_tree == "CTEN_PORI"),]$gCF
+plot_uncon_df[which(plot_uncon_df$dataset == "Chang2015"), ]$gDF2_N <- check_df[which(check_df$dataset == "Chang2015" & 
+                                                                                        check_df$branch_description == "Metazoa_noPlac" & 
+                                                                                        check_df$hypothesis_tree == "CTEN_PORI"),]$gCF_N
+
+
 # Add new columns
 emp_df$clade_formatted <- factor(emp_df$branch_to_clade,
                                  levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
@@ -913,6 +966,15 @@ ggsave(filename = emp_tern_file_png, plot = quilt, width = 18, height = 12, unit
 
 
 ###### 15.CF + Key branch + 3 topologies + constrained gene trees ######
+# Key branch to extract:
+#   For CTEN-Tree: "All other animals"
+#   For PORI-Tree: "All other animals"
+#   For CTEN-PORI-Tree: "CTEN+PORI
+
+# Open relevant csv
+cf_df <- read.csv(paste0(output_dir, grep("constrained_unconstrained_cd_output_formatted", all_output_files, value = T)), stringsAsFactors = F)
+# Extract constrained gene tree rows
+
 
 
 
