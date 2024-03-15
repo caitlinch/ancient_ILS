@@ -26,13 +26,13 @@ library(patchwork)
 # Identify output csv files
 empirical_cf_path <- paste0(repo_dir, "output/empirical_dataset_concordance_factors.csv")
 empirical_df <- read.csv(empirical_cf_path, stringsAsFactors = FALSE)
-# Remove unusual branaches
+# Remove unusual branches
 empirical_df <- empirical_df[(empirical_df$branch_description == "To_all_animals" | empirical_df$branch_description == "To_all_other_metazoans" |
                                 empirical_df$branch_description == "To_CTEN_clade" | empirical_df$branch_description == "To_PORI_clade"), ]
 # Add labels for branches and hypothesis trees
 empirical_df$branch_label <- factor(empirical_df$branch_description,
                                     levels = c("To_all_animals", "To_all_other_metazoans", "To_CTEN_clade", "To_PORI_clade"),
-                                    labels = c("All Animals", "Other Metazoans", "Ctenophora", "Porifera"),
+                                    labels = c("Metazoa", "All other animals", "Ctenophora", "Porifera"),
                                     ordered = T)
 empirical_df$hypothesis_label <- factor(empirical_df$hypothesis_tree,
                                         levels = c("CTEN", "PORI"),

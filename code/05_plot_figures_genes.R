@@ -377,7 +377,7 @@ if (control_parameters$plot.boxplots == TRUE){
     scale_fill_manual(values = bl_bars, name = "Gene sCF") +
     scale_color_manual(values = bl_points, name = "Concatenated sCF") +
     scale_shape_discrete(name = "Concatenated sCF") +
-    labs(title = "Clade: Metazoan") +
+    labs(title = "Clade: Metazoa") +
     theme_bw() +
     theme(plot.title = element_text(size = 22, hjust = 0.5),
           plot.subtitle = element_text(size = 18, hjust = 0.5),
@@ -619,10 +619,10 @@ if (control_parameters$plot.branch.lengths == TRUE){
   # Add new nicely formatted branch_to_clade
   long_bl_df$clade_formatted <- factor(long_bl_df$branch_to_clade,
                                        levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
-                                       labels = c("Metazoa", "Other animals", "Ctenophora", "Porifera"))
+                                       labels = c("Metazoa", "All other animals", "Ctenophora", "Porifera"))
   long_species_bl_df$clade_formatted <- factor(long_species_bl_df$branch_to_clade,
                                                levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
-                                               labels = c("Metazoa", "Other animals", "Ctenophora", "Porifera"))
+                                               labels = c("Metazoa", "All other animals", "Ctenophora", "Porifera"))
   # Plot branch lengths
   bl_plot <- ggplot(long_bl_df) +
     geom_boxplot(aes(x = tree_topology_formatted, y = value, fill = tree_topology_formatted), outlier.colour = "grey40", color = "grey40") +
@@ -661,7 +661,7 @@ sN_df <- scf_df
 # Add new columns
 sN_df$clade_formatted <- factor(sN_df$branch_to_clade,
                                 levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
-                                labels = c("Metazoa", "Other animals", "Ctenophora", "Porifera"))
+                                labels = c("Metazoa", "All other animals", "Ctenophora", "Porifera"))
 sN_df$percent_informative <- round(sN_df$sN/sN_df$gene_lengths*100, digits = 2)
 # Remove branches not present for certain topologies
 sN_df <- sN_df[which(is.na(sN_df$branch_length) == FALSE), ]
@@ -791,7 +791,7 @@ emp_df <- emp_df[which(emp_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_A
 # Add new columns
 emp_df$clade_formatted <- factor(emp_df$branch_to_clade,
                                  levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
-                                 labels = c("Metazoans", "All other animals", "Ctenophora", "Porifera"))
+                                 labels = c("Metazoa", "All other animals", "Ctenophora", "Porifera"))
 # Plot gCF
 emp_gcf <- ggtern(emp_df, aes(x = gDF1, y = gCF, z = gDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
   geom_point(size = 4, alpha = 0.6) +
