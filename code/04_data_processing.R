@@ -184,7 +184,6 @@ for (d in all_datasets){
 
 
 
-
 #### 8. Create dataframe for constrained concordance factors analysis ####
 if (location == "Dayhoff"){
   # All Dayhoff paths
@@ -264,4 +263,56 @@ if (location == "Dayhoff"){
   constrained_cf_csv_path <- paste0(output_csv_dir, "constrained_cf_input.csv")
   write.csv(constrained_cf_df, file = constrained_cf_csv_path, row.names = FALSE)
 }
+
+
+
+#### 9. Nicely format ASTRAL output for plotting ####
+# Open constrained_unconstrained_cf raw output
+raw_in_df_file <- paste0(output_dir, "constrained_unconstrained_cf_output_raw.csv")
+raw_in_df <- read.csv(raw_in_df_file, header = T, stringsAsFactors = F)
+raw_in_df <- raw_in_df[ , c(1:30,37)]
+# Separate into rows with and without NA for ASTRAL output
+raw_na_df <- raw_in_df[which(is.na(raw_in_df$raw_ASTRAL_branch_labels)), ]
+raw_astral_df <- raw_in_df[which(is.na(raw_in_df$raw_ASTRAL_branch_labels) == FALSE), ]
+# Separate raw ASTRAL output into columns
+raw_astral_df$raw_ASTRAL_branch_labels <- gsub("'", "", raw_astral_df$raw_ASTRAL_branch_label)
+raw_astral_df$raw_ASTRAL_branch_labels <- gsub("\\[", "", gsub("\\]", "", raw_astral_df$raw_ASTRAL_branch_labels))
+split_astral_vals <- strsplit(raw_astral_df$raw_ASTRAL_branch_labels, "\\;")
+# Create new columns for the ASTRAL output values
+raw_astral_df$q1  <- as.numeric(gsub("q1=", "", unlist(lapply(split_astral_vals, function(x){x[[1]]}))))
+raw_astral_df$q2  <- as.numeric(gsub("q2=", "", unlist(lapply(split_astral_vals, function(x){x[[2]]}))))
+raw_astral_df$q3  <- as.numeric(gsub("q3=", "", unlist(lapply(split_astral_vals, function(x){x[[3]]}))))
+raw_astral_df$f1  <- as.numeric(gsub("f1=", "", unlist(lapply(split_astral_vals, function(x){x[[4]]}))))
+raw_astral_df$f2  <- as.numeric(gsub("f2=", "", unlist(lapply(split_astral_vals, function(x){x[[5]]}))))
+raw_astral_df$f3  <- as.numeric(gsub("f3=", "", unlist(lapply(split_astral_vals, function(x){x[[6]]}))))
+raw_astral_df$pp1 <- as.numeric(gsub("pp1=", "", unlist(lapply(split_astral_vals, function(x){x[[7]]}))))
+raw_astral_df$pp2 <- as.numeric(gsub("pp2=", "", unlist(lapply(split_astral_vals, function(x){x[[8]]}))))
+raw_astral_df$pp3 <- as.numeric(gsub("pp3=", "", unlist(lapply(split_astral_vals, function(x){x[[9]]}))))
+raw_astral_df$QC  <- as.numeric(gsub("QC=", "", unlist(lapply(split_astral_vals, function(x){x[[10]]}))))
+raw_astral_df$EN  <- as.numeric(gsub("EN=", "", unlist(lapply(split_astral_vals, function(x){x[[11]]}))))
+# Create new columns for the NA rows with all NA for all ASTRAL output values
+raw_na_df$q1  <- NA
+raw_na_df$q2  <- NA
+raw_na_df$q3  <- NA
+raw_na_df$f1  <- NA
+raw_na_df$f2  <- NA
+raw_na_df$f3  <- NA
+raw_na_df$pp1 <- NA
+raw_na_df$pp2 <- NA
+raw_na_df$pp3 <- NA
+raw_na_df$QC  <- NA
+raw_na_df$EN  <- NA
+# Reassemble dataframes
+formatted_in_df <- rbind(raw_astral_df, raw_na_df)
+# Rearrange row order
+formatted_in_df <- formatted_in_df[order(formatted_in_df$dataset, formatted_in_df$matrix,
+                                         formatted_in_df$hypothesis_tree, formatted_in_df$branch_num,
+                                         formatted_in_df$branch_description, formatted_in_df$gene_type) , ]
+# Rearrange column order
+formatted_in_df <- formatted_in_df[ , c(1:29, 32:42, 31)]
+# Write the nicely formatted csv out
+formatted_in_df_path <- paste0(output_dir, "constrained_unconstrained_cd_output_formatted.csv")
+write.csv(formatted_in_df, file = formatted_in_df_path, row.names = FALSE)
+
+
 

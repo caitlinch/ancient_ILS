@@ -5,10 +5,10 @@
 ###### 1. Input parameters ######
 ## File paths
 # repo_dir                  <- location of caitlinch/ancient_ILS github repository
-# output_dir                <- output directory to save figures
+# output_dir                <- location of csv files
 
 repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/06_figures/"
+output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
 
 control_parameters <- list(add.extra.color.palettes = FALSE,
                            plot.ternary = TRUE,
@@ -28,25 +28,9 @@ library(ggpubr) # for adding regression line in sN~gene length plot
 
 # Specify colour palettes used within these plots
 metazoan_clade_palette  <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
-bl_bars                 <- c("Ctenophora" = "#2171b5", "Porifera" =  "#E69F00")
-bl_points               <- c("Ctenophora" = "black", "Porifera" =  "black")
+bl_bars                 <- c("Ctenophora" = "#2171b5", "Porifera" =  "#E69F00", "Ctenophora+Porifera" = "#009E73")
+bl_points               <- c("Ctenophora" = "black", "Porifera" =  "black", "Ctenophora+Porifera" = "black")
 passfail_palette        <- c("Pass (p > 0.05)" = "#addd8e", "Fail (p \u2264 0.05)" = "#005a32")
-
-# Extra colour palettes (unused)
-if (control_parameters$add.extra.color.palettes == TRUE){
-  cividis5          <- c("#FDE725FF", "#5DC863FF", "#21908CFF", "#3B528BFF", "#440154FF")
-  palette2          <- c("Ctenophora-sister" = "#fdb863", "Porifera-sister" = "#b2abd2")
-  qcf_type_palette  <- c(Actual = "#5ab4ac", Estimated = "#d8b365")
-  cbPalette         <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-  tree2_palette     <- c("#F0F921FF", "#0D0887FF")
-  tree5_palette     <- c("#e66101", "#fdb863", "#f7f7f7", "#b2abd2", "#5e3c99")
-  tree2_cividis     <- c(tree5_cividis[1], tree5_cividis[5])
-  tree2_tonal       <- c("#bdd7e7", "#2171b5")
-  model3_tonal      <- c("#980043", "#df65b0", "#d4b9da")
-  bp_bars           <- c("Ctenophora" = "#e7d4e8", "Porifera" =  "#d9f0d3")
-  bp_points         <- c("Ctenophora" = "#762a83", "Porifera" =  "#1b7837")
-  tonal_palette     <- c("Ctenophora" = "#bdd7e7", "Porifera" =  "#2171b5")
-}
 
 
 
@@ -784,7 +768,7 @@ percent_df <- data.frame(dataset_id = unique(au_df$dataset_id), tree1_percent, t
 
 
 
-###### 14. Empirical gCF, sCF and quartet values: All Other Metazoans ######
+###### 14. Empirical gCF, sCF and quartet values: All Other Metazoans, 2 Topologies ######
 # Extract variables of interest
 emp_df <- species_scf_df
 emp_df <- emp_df[which(emp_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
@@ -854,7 +838,85 @@ ggsave(filename = emp_tern_file_png, plot = quilt, width = 18, height = 12, unit
 
 
 
-###### 14. Log likelihoods ######
+###### 14. CF + Key branch + 3 topologies + unconstrained gene trees ######
+# Key branch to extract:
+#   For CTEN-Tree: "All other animals"
+#   For PORI-Tree: "All other animals"
+#   For CTEN-PORI-Tree: "CTEN+PORI
+# Extract variables of interest
+emp_df <- species_scf_df
+emp_df <- emp_df[which(emp_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
+# Add new columns
+emp_df$clade_formatted <- factor(emp_df$branch_to_clade,
+                                 levels = c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI"),
+                                 labels = c("Metazoa", "All other animals", "Ctenophora", "Porifera"))
+# Plot gCF
+emp_gcf <- ggtern(emp_df, aes(x = gDF1, y = gCF, z = gDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
+  geom_point(size = 4, alpha = 0.6) +
+  facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
+  labs(title = "a.") +
+  scale_color_manual(values = bl_bars, name = "Constrained\ntree topology") +
+  scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17), name = "Constrained\ntree topology") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 30),
+        strip.text = element_text(size = 20),
+        legend.title = element_text(size = 16),
+        legend.text = element_text(size = 14),
+        legend.key.size = unit(1.5, "lines"),
+        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 8),
+        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 8) ) +
+  guides( color = guide_legend(override.aes = list(size = 5)) )  
+# Plot sCF
+emp_scf <- ggtern(emp_df, aes(x = sDF1, y = sCF, z = sDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
+  geom_point(size = 4, alpha = 0.6) +
+  facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
+  labs(title = "b.") +
+  scale_color_manual(values = bl_bars, name = "Constrained\ntree topology") +
+  scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17), name = "Constrained\ntree topology") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 30),
+        strip.text = element_text(size = 20),
+        legend.title = element_text(size = 16),
+        legend.text = element_text(size = 14),
+        legend.key.size = unit(1.5, "lines"),
+        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 8),
+        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 8) ) +
+  guides( color = guide_legend(override.aes = list(size = 5)) ) 
+# Plot quartet scores
+emp_qs <- ggtern(emp_df, aes(x = q2, y = q1, z = q3, color = tree_topology_formatted, shape = tree_topology_formatted)) +
+  geom_point(size = 4, alpha = 0.6) +
+  facet_wrap(clade_formatted ~., nrow = 1, ncol = 4) +
+  labs(title = "c.") +
+  scale_color_manual(values = bl_bars, name = "Constrained\ntree topology") +
+  scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17), name = "Constrained\ntree topology") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 30),
+        strip.text = element_text(size = 20),
+        legend.title = element_text(size = 16),
+        legend.text = element_text(size = 14),
+        legend.key.size = unit(1.5, "lines"),
+        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 8),
+        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 8) ) +
+  guides( color = guide_legend(override.aes = list(size = 5)) ) +
+  Tlab("qCF") +
+  Llab("qDF1") +
+  Rlab("qDF2")
+# Assemble the three ternary plots using ggtern::grid.arrange 
+#     (as ternary plots have three axes, patchwork and ggplot::grid.arrange don't work cleanly here)
+quilt <- ggtern::grid.arrange(emp_gcf, emp_scf, emp_qs, nrow = 3, ncol = 1)
+# Save the quilt
+emp_tern_file <- paste0(repo_dir, "figures/", "constrained_cf_ternary_plots_coloured.pdf")
+ggsave(filename = emp_tern_file, plot = quilt, width = 18, height = 12, units = "in")
+emp_tern_file_png <- paste0(repo_dir, "figures/", "constrained_cf_ternary_plots_coloured.png")
+ggsave(filename = emp_tern_file_png, plot = quilt, width = 18, height = 12, units = "in")
+
+
+
+###### 15.CF + Key branch + 3 topologies + constrained gene trees ######
+
+
+
+###### 16. Log likelihoods ######
 # Possible log likelihood plot?
 
 
