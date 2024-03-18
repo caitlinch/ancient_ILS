@@ -185,15 +185,9 @@ emp3_df <- cf_df
 emp3_df <- emp3_df[which(emp3_df$hypothesis_tree == "CTEN" & emp3_df$branch_to_clade == "ALL_ANIMALS" |
                            emp3_df$hypothesis_tree == "PORI" & emp3_df$branch_to_clade == "ALL_ANIMALS" |
                            emp3_df$hypothesis_tree == "CTEN_PORI" & emp3_df$branch_to_clade == "CTEN_PORI"), ]
-# Convert to long format
-emp3_long_df <- rbind(emp3_df[ , c(1:3, 5:6, 41:48)], emp3_df[ , c(1:3, 5:6, 41:48)], emp3_df[ , c(1:3, 5:6, 41:48)])
-emp3_long_df$cf_type <- c(rep("gCF", nrow(emp3_df)), rep("sCF", nrow(emp3_df)), rep("qCF", nrow(emp3_df)))
-emp3_long_df$cf_type <- factor(emp3_long_df$cf_type, levels = c("gCF", "sCF", "qCF"), order = T)
-emp3_long_df$cf_val <- c(emp3_df$gCF, emp3_df$sCF, emp3_df$q1)
-emp3_long_df$df1_val <- c(emp3_df$gDF1, emp3_df$sDF1, emp3_df$q2)
-emp3_long_df$df2_val <- c(emp3_df$gDF2, emp3_df$sDF2, emp3_df$q3)
 # Plot gCF
 emp3_gcf <- ggtern(emp3_df, aes(x = gDF1, y = gCF, z = gDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
+  geom_mask() +  
   geom_point(size = 4, alpha = 0.6) +
   facet_wrap(gene_type_formatted ~., nrow = 1) +
   labs(title = "a.") +
@@ -206,8 +200,8 @@ emp3_gcf <- ggtern(emp3_df, aes(x = gDF1, y = gCF, z = gDF2, color = tree_topolo
         legend.title = element_text(size = 14),
         legend.text = element_text(size = 14),
         legend.key.size = unit(1.5, "lines"),
-        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 8),
-        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 8),
+        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 10),
+        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 10),
         legend.position = "none",
         panel.spacing = unit(1, "lines"),
         plot.margin = margin(-5, -5, -5, -5)) 
@@ -227,8 +221,8 @@ emp3_scf <- ggtern(emp3_unconstrained_df, aes(x = sDF1, y = sCF, z = sDF2, color
         legend.text = element_text(size = 16),
         legend.key.size = unit(1.5, "lines"),
         legend.margin = margin(l = 90, unit = "pt"),
-        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 8),
-        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 8),
+        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 10),
+        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 10),
         panel.spacing = unit(1, "lines"),
         plot.margin = margin(-5, -5, -5, -5)) +
   guides( color = guide_legend(override.aes = list(size = 5)) )  
@@ -246,8 +240,8 @@ emp3_qs <- ggtern(emp3_df, aes(x = q2, y = q1, z = q3, color = tree_topology_for
         legend.title = element_text(size = 14),
         legend.text = element_text(size = 14),
         legend.key.size = unit(1.5, "lines"),
-        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 8),
-        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 8),
+        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 10),
+        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 10),
         legend.position = "none",
         panel.spacing = unit(1, "lines"),
         plot.margin  =margin(-5, -5, -5, -5)) +
