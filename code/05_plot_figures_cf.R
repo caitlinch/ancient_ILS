@@ -26,6 +26,9 @@ library(ggplot2)
 library(ggtern) # for ternary plots of sCF
 library(patchwork) # for assembling ternary plots of emperical gCF, sCF and quartet scores
 
+# Source functions
+source(paste0(repo_dir, "code/func_plotting.R"))
+
 # Specify colour palettes used within these plots
 metazoan_clade_palette  <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
 clades_colours          <- c("Ctenophora" = "#2171b5", "Porifera" =  "#E69F00", "Ctenophora+Porifera" = "#009E73")
