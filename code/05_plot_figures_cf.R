@@ -1,6 +1,6 @@
 # ancient_ILS/code/05_plot_figures_cf.R
 ## This script plots result figures from simulation output
-# Caitlin Cherryh, 2023
+# Caitlin Cherryh, 2024
 
 ###### 1. Input parameters ######
 ## File paths
