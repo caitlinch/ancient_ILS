@@ -10,11 +10,6 @@
 repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
 
-control_parameters <- list(add.extra.color.palettes = FALSE,
-                           plot.ternary = TRUE,
-                           plot.boxplots = TRUE,
-                           plot.branch.lengths = TRUE)
-
 
 
 ###### 2. Open packages and functions ######
@@ -75,7 +70,7 @@ scf_df$ultrafast_bootstrap <- scf_df$ultafast_bootstrap # typo in column name
 
 
 
-###### 14. Empirical gCF, sCF and quartet values: All Other Metazoans, 2 Topologies ######
+###### 4. Empirical gCF, sCF and quartet values: All Other Metazoans, 2 Topologies ######
 # Extract variables of interest
 emp_df <- species_scf_df
 emp_df <- emp_df[which(emp_df$branch_to_clade %in% c("ALL_ANIMALS", "ALL_OTHER_ANIMALS", "CTEN", "PORI")), ]
@@ -145,7 +140,7 @@ ggsave(filename = emp_tern_file_png, plot = quilt, width = 18, height = 12, unit
 
 
 
-###### 14. CF + Key branch + 3 topologies + unconstrained gene trees ######
+###### 5. CF + Key branch + 3 topologies + unconstrained gene trees ######
 # Key branch to extract:
 #   CF = CTEN-Tree, "All other animals"
 #   DF1 = PORI-Tree, "All other animals"
@@ -231,7 +226,7 @@ ggsave(filename = emp_tern_file_png, plot = quilt, width = 18, height = 12, unit
 
 
 
-###### 15.CF + Key branch + 3 topologies + constrained gene trees ######
+###### 6.CF + Key branch + 3 topologies + constrained gene trees ######
 # Key branch to extract:
 #   For CTEN-Tree: "All other animals"
 #   For PORI-Tree: "All other animals"
@@ -248,9 +243,6 @@ row.names(filtered_con_df) <- 1:nrow(filtered_con_df)
 
 
 
-
-###### 16. Log likelihoods ######
-# Possible log likelihood plot?
 
 
 
