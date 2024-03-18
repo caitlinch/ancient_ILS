@@ -258,10 +258,10 @@ emp3_qs <- ggtern(emp3_df, aes(x = q2, y = q1, z = q3, color = tree_topology_for
 #     (as ternary plots have three axes, patchwork and ggplot::grid.arrange don't work cleanly here)
 quilt3 <- ggtern::grid.arrange(emp3_gcf, emp3_scf, emp3_qs, nrow = 3, ncol = 1)
 # Save the quilt
-emp_tern_file <- paste0(repo_dir, "figures/", "cf_constrained_unconstrained_ternary_coloured.pdf")
-ggsave(filename = emp_tern_file, plot = quilt3, width = 10, height = 12, units = "in")
-emp_tern_file_png <- paste0(repo_dir, "figures/", "cf_constrained_unconstrained_ternary_coloured.png")
-ggsave(filename = emp_tern_file_png, plot = quilt3, width = 10, height = 12, units = "in")
+emp3_tern_file <- paste0(repo_dir, "figures/", "cf_constrained_unconstrained_ternary_coloured.pdf")
+ggsave(filename = emp3_tern_file, plot = quilt3, width = 10, height = 12, units = "in")
+emp3_tern_file_png <- paste0(repo_dir, "figures/", "cf_constrained_unconstrained_ternary_coloured.png")
+ggsave(filename = emp3_tern_file_png, plot = quilt3, width = 10, height = 12, units = "in")
 
 
 
@@ -271,14 +271,11 @@ ggsave(filename = emp_tern_file_png, plot = quilt3, width = 10, height = 12, uni
 #   DF1 = PORI-Tree, "All other animals"
 #   DF2 = CTEN-PORI-Tree, "CTEN+PORI"
 
-# Open relevant csv
-cf_df <- read.csv(paste0(output_dir, grep("constrained_unconstrained_cf_output_PlacCorrected", all_output_files, value = T)), stringsAsFactors = F)
-
 # Extract unconstrained gene tree rows with the right branch for each tree topology
 filtered_uncon_df <- cf_df[c(which(cf_df$hypothesis_tree == "CTEN" & cf_df$branch_description == "All_other_animals" & cf_df$gene_type == "Unconstrained"),
                              which(cf_df$hypothesis_tree == "PORI" & cf_df$branch_description == "All_other_animals" & cf_df$gene_type == "Unconstrained"),
                              which(cf_df$hypothesis_tree == "CTEN_PORI" & cf_df$branch_description == "CTEN_PORI" & cf_df$gene_type == "Unconstrained")) , 
-                           c(1:9, 17:21, 26:28, 30, 33, 36, 39, 40, 41)]
+                           c(1:6, 41:48, 7:9, 16:18, 19:21, 26:28,29, 32, 35, 38:39)]
 row.names(filtered_uncon_df) <- 1:nrow(filtered_uncon_df)
 # Create the CF columns
 plot_uncon_df <- extract.correct.CF.values(df = filtered_uncon_df)
@@ -357,8 +354,6 @@ ggsave(filename = emp_tern_file_png, plot = quilt, width = 18, height = 12, unit
 #   For PORI-Tree: "All other animals"
 #   For CTEN-PORI-Tree: "CTEN+PORI
 
-# Open relevant csv
-cf_df <- read.csv(paste0(output_dir, grep("constrained_unconstrained_cf_output_PlacCorrected", all_output_files, value = T)), stringsAsFactors = F)
 # Extract constrained gene tree rows with the right branch for each tree topology
 filtered_con_df <- cf_df[c(which(cf_df$hypothesis_tree == "CTEN" & cf_df$branch_description == "All_other_animals" & cf_df$gene_type == "Constrained"),
                            which(cf_df$hypothesis_tree == "PORI" & cf_df$branch_description == "All_other_animals" & cf_df$gene_type == "Constrained"),
