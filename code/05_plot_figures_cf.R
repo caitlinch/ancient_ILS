@@ -319,8 +319,22 @@ ggsave(filename = emp_tern_file, plot = cf_tern, width = 16, height = 16, units 
 emp_tern_file_png <- paste0(repo_dir, "figures/", "cf_constrained_unconstrained_keyBranch_ternary.png")
 ggsave(filename = emp_tern_file_png, plot = cf_tern, width = 16, height = 16, units = "in")
 
-
-
-
+## Reformat the csv as a nice table in the manuscript
+# Remove unneeded columns
+op_plot_df <- rbind(extract.correct.CF.values(df = filtered_uncon_df), extract.correct.CF.values(df = filtered_con_df))
+output_df_raw_file <- paste0(output_dir, "constrained_unconstrained_cf_KeyBranch_raw.csv")
+write.csv(op_plot_df, file = output_df_raw_file, row.names = FALSE)
+# Reorder columns and rows
+op_plot_df <- op_plot_df[ , c(3, 8, 10:30, 31, 34)]
+op_plot_df$gene_type <- factor(op_plot_df$gene_type, levels = c("Unconstrained", "Constrained"), ordered = T)
+op_plot_df <- op_plot_df[order(op_plot_df$dataset, op_plot_df$gene_type), ]
+# Rename columns
+names(op_plot_df) <- c("Dataset", "Gene tree type", 
+                       "gCF", "gCF_N", "gDF1", "gDF1_N", "gDF2", "gDF2_N",
+                       "sCF", "sCF_N", "sDF1", "sDF1_N", "sDF2", "sDF2_N",
+                       "qCF", "qDF1", "qDF2", "qCF_f", "qDF1_f", "qDF2_f", "qCF_pp", "qDF1_pp", "qDF2_pp", "QC", "EN")
+# Save the csv as output
+output_df_file <- paste0(output_dir, "constrained_unconstrained_cf_KeyBranch.csv")
+write.csv(op_plot_df, file = output_df_file, row.names = FALSE)
 
 
