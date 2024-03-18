@@ -196,7 +196,7 @@ emp3_long_df$df2_val <- c(emp3_df$gDF2, emp3_df$sDF2, emp3_df$q3)
 emp3_gcf <- ggtern(emp3_df, aes(x = gDF1, y = gCF, z = gDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
   geom_point(size = 4, alpha = 0.6) +
   facet_wrap(gene_type_formatted ~., nrow = 1) +
-  labs(title = "a.", subtitle = "Gene concordance factors") +
+  labs(title = "a.") +
   scale_color_manual(values = clades_colours, name = "Constrained\ntree topology") +
   scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17, "Ctenophora+Porifera" = 15), name = "Constrained\ntree topology") +
   theme_bw() +
@@ -216,16 +216,17 @@ emp3_unconstrained_df <- emp3_df[which(emp3_df$gene_type == "Unconstrained"), ]
 emp3_scf <- ggtern(emp3_unconstrained_df, aes(x = sDF1, y = sCF, z = sDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
   geom_point(size = 4, alpha = 0.6) +
   facet_wrap(gene_type_formatted ~., nrow = 1) +
-  labs(title = "b.", subtitle = "Site concordance factors") +
+  labs(title = "b.") +
   scale_color_manual(values = clades_colours, name = "Constrained\ntree topology") +
   scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17, "Ctenophora+Porifera" = 15), name = "Constrained\ntree topology") +
   theme_bw() +
   theme(plot.title = element_text(size = 30),
         plot.subtitle = element_text(size = 16),
         strip.text = element_text(size = 16),
-        legend.title = element_text(size = 16),
-        legend.text = element_text(size = 14),
+        legend.title = element_text(size = 18),
+        legend.text = element_text(size = 16),
         legend.key.size = unit(1.5, "lines"),
+        legend.margin = margin(l = 90, unit = "pt"),
         tern.panel.grid.major = element_line(colour = "grey80", linewidth = 8),
         tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 8),
         panel.spacing = unit(1, "lines"),
@@ -235,7 +236,7 @@ emp3_scf <- ggtern(emp3_unconstrained_df, aes(x = sDF1, y = sCF, z = sDF2, color
 emp3_qs <- ggtern(emp3_df, aes(x = q2, y = q1, z = q3, color = tree_topology_formatted, shape = tree_topology_formatted)) +
   geom_point(size = 4, alpha = 0.6) +
   facet_wrap(gene_type_formatted ~., nrow = 1) +
-  labs(title = "c.", subtitle = "Quartet concordance factors") +
+  labs(title = "c.") +
   scale_color_manual(values = clades_colours, name = "Constrained\ntree topology") +
   scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17, "Ctenophora+Porifera" = 15), name = "Constrained\ntree topology") +
   theme_bw() +
