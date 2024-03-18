@@ -192,23 +192,6 @@ emp3_long_df$cf_type <- factor(emp3_long_df$cf_type, levels = c("gCF", "sCF", "q
 emp3_long_df$cf_val <- c(emp3_df$gCF, emp3_df$sCF, emp3_df$q1)
 emp3_long_df$df1_val <- c(emp3_df$gDF1, emp3_df$sDF1, emp3_df$q2)
 emp3_long_df$df2_val <- c(emp3_df$gDF2, emp3_df$sDF2, emp3_df$q3)
-# Plot all ternary CFs
-ggtern(emp3_long_df, aes(x = df1_val, y = cf_val, z = df2_val, color = tree_topology_formatted, shape = tree_topology_formatted)) +
-  geom_point(size = 4, alpha = 0.6) +
-  facet_grid(gene_type ~ cf_type) +
-  scale_color_manual(values = clades_colours, name = "Constrained\ntree topology") +
-  scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17, "Ctenophora+Porifera" = 15), name = "Constrained\ntree topology") +
-  theme_bw() +
-  theme(plot.title = element_text(size = 30),
-        strip.text = element_text(size = 20),
-        legend.title = element_text(size = 16),
-        legend.text = element_text(size = 14),
-        legend.key.size = unit(1.5, "lines"),
-        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 8),
-        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 8) ) +
-  guides( color = guide_legend(override.aes = list(size = 5)) )  
-
-
 # Plot gCF
 emp3_gcf <- ggtern(emp3_df, aes(x = gDF1, y = gCF, z = gDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
   geom_point(size = 4, alpha = 0.6) +
