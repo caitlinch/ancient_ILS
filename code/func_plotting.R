@@ -49,3 +49,18 @@ extract.correct.CF.values <- function(df){
   # Return the new dataframe
   return(new_df)
 }
+
+
+convert.to.long.format <- function(df){
+  # Reformat dataframe into long format
+  new_df <- rbind(df[1:12, 1:9], df[1:12, 1:9], df[1:12, 1:9])
+  # Add new columns
+  new_df$cf_type <- c(rep("gCF" , 12), rep("sCF" , 12), rep("qCF" , 12))
+  new_df$cf_val <- c(df$gCF, df$sCF, df$q1)
+  new_df$df1_val <- c(df$gDF1, df$sDF1, df$q2)
+  new_df$df2_val <- c(df$gDF2, df$sDF2, df$q3)
+  # Return the new dataframe
+  return(new_df)
+}
+
+
