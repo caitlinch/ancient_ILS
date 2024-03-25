@@ -1097,3 +1097,33 @@ update.directory.paths <- function(any_dataframe, location = "dayhoff"){
   return(any_dataframe)
 }
 
+
+
+update.C60.directory.paths <- function(any_dataframe, location = "dayhoff"){
+  ## Quickly update file paths for running on server
+  
+  if (tolower(location) == "local"){
+    new_repo_dir                <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
+    new_gene_al_dir             <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_01_empirical_genes/"
+    new_gene_tree_dir           <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/02_02_C60_empirical_genes_initial_tree_estimation/"
+    new_iqtree2                 <- "iqtree2"
+    new_iqtree2_num_threads     <- 3
+  } else if (tolower(location) == "dayhoff"){
+    new_repo_dir                <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/"
+    new_gene_al_dir             <- paste0(new_repo_dir, "genes/")
+    new_gene_tree_dir           <- paste0(new_repo_dir, "C60_gene_trees/")
+    new_iqtree2                 <- paste0(new_repo_dir, "iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2")
+    new_iqtree2_num_threads     <- 30
+  }
+  
+  # Update dataframe
+  any_dataframe$repo_dir            <- new_repo_dir
+  any_dataframe$gene_directory      <- paste0(new_gene_al_dir, basename(any_dataframe$dataset_id), "/")
+  any_dataframe$iqtree_path         <- new_iqtree2
+  any_dataframe$iqtree_num_threads  <- new_iqtree2_num_threads
+  any_dataframe$gene_tree_directory <- paste0(new_gene_tree_dir, basename(any_dataframe$dataset_id), "/")
+  
+  # Return the updated dataframe
+  return(any_dataframe)
+}
+
