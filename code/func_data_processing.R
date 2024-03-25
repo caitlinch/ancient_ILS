@@ -72,7 +72,30 @@ extract.C60.alias <- function(iqtree_log, iqtree_file){
     alias_line_split <- strsplit(best_model_alias_line, " is alias for ")[[1]]
     alias_model <- alias_line_split[2]
     alias_split <- strsplit(alias_model, "\\+")[[1]]
-    fmix_term <- grep("FMIX", alias_split, value = T)
+    fmix_term_raw <- grep("FMIX", alias_split, value = T)
+    
+    ## Extract table with rates and weights for C60 model
+    table_start <- intersect(intersect(grep("Component", iq_lines), grep("Rate", iq_lines)), 
+                             intersect(grep("Weight", iq_lines), grep("Parameters", iq_lines)))
+    table_end   <- which(iq_lines == "")[which(which(iq_lines == "") > table_start)][1] - 1
+    table_lines <- iq_lines[table_start:table_end]
+    table_split <- strsplit(table_lines, " ")
+    table_split_filtered <- lapply(table_split[2:length(table_split)], function(x){x[which(x != "")]})
+    table_df    <- as.data.frame(do.call(rbind, table_split_filtered))
+    names(table_df) <- table_split[[1]][which(table_split[[1]] != "")]
+    # Replace any 0 weights with 0.0001 weights
+    replace_weights <- which(as.numeric(table_df$Weight) == 0)
+    table_df$Weight[replace_weights] <- "0.0001"
+    # Create MIX argument sections
+    single_model <- strsplit(table_df[1,]$Component, "\\+")[[1]][1]
+    table_df$component_formatted <- c(single_model,
+                                      paste0(single_model, "+", gsub("F", "", unlist(lapply(strsplit(table_df[2:nrow(table_df),]$Component, "\\+"), function(x){x[[2]]})))) )
+    table_df$component_op <- gsub("1.0000", "1", paste0(table_df$component_formatted, ":", table_df$Rate, ":", table_df$Weight))
+    table_df$pi_component <- c("", gsub("F", "", unlist(lapply(strsplit(table_df[2:nrow(table_df),]$Component, "\\+"), function(x){x[[2]]}))))
+    table_df$pi_component_weight <- gsub("1.0000", "1", paste0(table_df$pi_component, ":", table_df$Rate, ":", table_df$Weight))
+    all_pi_components <- grep("pi", table_df$pi_component_weight, value = T)
+    # Paste FMIX arguments together
+    fmix_term <- paste0("FMIX{", paste(all_pi_components, collapse = ","), "}")
     
     ## Extract rates and weights
     rhas_lines  <- grep("Site proportion and rates", log_lines, value = TRUE)
