@@ -115,7 +115,7 @@ gene_file_df$model <- c(rep(gene_models[1], length(which(gene_file_df$dataset_id
 gene_file_df$c60_id <- paste0(gene_file_df$gene_id, ".C60")
 # Create iqtree2 command lines
 gene_file_df$iqtree2_call <- paste0(gene_file_df$iqtree_path, " -s ", gene_file_df$gene_directory, gene_file_df$gene_file, " -m '", gene_file_df$model, "' ",
-                                    "-p ", gene_file_df$gene_tree_directory, gene_file_df$c60_id, " -nt ", gene_file_df$iqtree_num_threads)
+                                    "-pre ", gene_file_df$gene_tree_directory, gene_file_df$c60_id, " -nt ", gene_file_df$iqtree_num_threads)
 # Write out df as csv
 write.csv(gene_file_df, file = paste0(output_dir, "c60_gene_tree_estimation_input.csv"))
 
@@ -130,7 +130,7 @@ for (i in 1:max_i){
   i_start_row     <- start_seq[i]
   i_end_row       <- end_seq[i]
   # Extract the rows for this file
-  i_rows          <- gene_file_df$unconstrained_tree_iqtree2_call[i_start_row:i_end_row]
+  i_rows          <- gene_file_df$iqtree2_call[i_start_row:i_end_row]
   # Make the slurm file
   i_slurm_id_line <- paste0(slurm_id_line, "c60_", i)
   i_slurm_txt     <- c(slurm_start_lines,
@@ -141,6 +141,5 @@ for (i in 1:max_i){
   i_op_file <- paste0(filepath_start, i, ".sh")
   write(i_slurm_txt, i_op_file)
 }
-
 
 
