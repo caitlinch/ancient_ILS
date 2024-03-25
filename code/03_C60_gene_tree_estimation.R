@@ -94,8 +94,22 @@ gene_models <- unlist(lapply( 1:length(c60_log), function(i){ extract.C60.alias(
 #### 4. Create command lines to estimate gene trees with C60 models ####
 # Open csv file with alignment information
 gene_file_df <- read.csv(paste0(repo_dir, "output/input_gene_files.csv"), stringsAsFactors = F)
-# Update the files for Dayhoff
-
+gene_file_df <- gene_file_df[which(gene_file_df$dataset != "Simion2017" & gene_file_df$dataset != "Hejnol2009"), ]
+# Update the files for Dayhoff paths
+gene_file_df <- update.C60.directory.paths(gene_file_df, location = "dayhoff")
+# Add model of evolution to the gene_file_df
+gene_file_df$model <- c(rep(gene_models[1], length(which(gene_file_df$dataset_id == "Borowiec2015.Best108"))), 
+                        rep(gene_models[2], length(which(gene_file_df$dataset_id == "Chang2015.Chang_AA"))),
+                        rep(gene_models[3], length(which(gene_file_df$dataset_id == "Dunn2008.Dunn2008_FixedNames"))),
+                        rep(gene_models[4], length(which(gene_file_df$dataset_id == "Laumer2018.Tplx_BUSCOeuk"))),
+                        rep(gene_models[5], length(which(gene_file_df$dataset_id == "Moroz2014.ED3d"))),
+                        rep(gene_models[6], length(which(gene_file_df$dataset_id == "Nosenko2013.nonribosomal_9187_smatrix"))),
+                        rep(gene_models[7], length(which(gene_file_df$dataset_id == "Nosenko2013.ribosomal_14615_smatrix"))),
+                        rep(gene_models[8], length(which(gene_file_df$dataset_id == "Philippe2009.Philippe_etal_superalignment_FixedNames"))),
+                        rep(gene_models[9], length(which(gene_file_df$dataset_id == "Philippe2011.UPDUNN_MB_FixedNames"))),
+                        rep(gene_models[10], length(which(gene_file_df$dataset_id == "Ryan2013.REA_EST_includingXenoturbella"))),
+                        rep(gene_models[11], length(which(gene_file_df$dataset_id == "Whelan2015.Dataset10"))),
+                        rep(gene_models[12], length(which(gene_file_df$dataset_id == "Whelan2017.Metazoa_Choano_RCFV_strict"))) )
 
 
 #### 5. Estimate unconstrained gene trees ####
