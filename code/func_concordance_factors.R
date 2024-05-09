@@ -67,7 +67,7 @@ extract.qcf.wrapper <- function(i, qcf_df,
   qcf_extracted <- extract.qcf(dataset = row_dataset, matrix_name = row$matrix_name, topology = row$tree_topology,
                                tree_file = row$qcf_tree_file, constraint_clades = constraint_clades)
   
-  ## Return the qCF values for this tree
+  ## Return the qCF values for this tree along with the tree parameters
   return(qcf_extracted)
 }
 
@@ -182,8 +182,8 @@ extract.qcf <- function(dataset, matrix_name, topology,
   # Assemble output vector
   qcf_output <- c(met_branch_length, met_node_value, key_branch_length, key_node_value, 
                   cten_branch_length, cten_node_value, pori_branch_length, pori_node_value)
-  names(qcf_output) <- c("MET_branch_length", "MET_node_value", "KEY_branch_length", "KEY_branch_value",
-                         "CTEN_branch_length", "CTEN_node_value", "PORI_branch_length", "PORI_branch_value")
+  names(qcf_output) <- c("MET_branch_length", "MET_node_value", "KEY_branch_length", "KEY_node_value",
+                         "CTEN_branch_length", "CTEN_node_value", "PORI_branch_length", "PORI_node_value")
   return(qcf_output)
 }
 
