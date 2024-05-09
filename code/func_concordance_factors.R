@@ -108,6 +108,7 @@ extract.qcf <- function(dataset, matrix_name, topology,
   met_branch_length <- q_rooted$edge.length[met_branch_id]
   # Extract node value 
   met_node_value <- q_edge_table[which(q_edge_table$parent == met_pn & q_edge_table$child == met_cn), ]$chi.name
+  met_node_value <- gsub("\\[|\\]|'", "",  met_node_value)
   
   ## Key branch (leading to ALL OTHER ANIMALS aka PLAC+CNID+BILAT)
   # Identify tips in this group - do not include PLAC when identifying MRCA, 
@@ -131,6 +132,7 @@ extract.qcf <- function(dataset, matrix_name, topology,
     key_branch_length <- q_rooted$edge.length[key_branch_id]
     # Extract node value
     key_node_value <- q_edge_table[which(q_edge_table$parent == key_pn & q_edge_table$child == key_cn), ]$chi.name
+    key_node_value <- gsub("\\[|\\]|'", "",  key_node_value)
   } else {
     # Assign NA if only 1 tip
     key_branch_length  <- NA
@@ -150,6 +152,7 @@ extract.qcf <- function(dataset, matrix_name, topology,
     cten_branch_length <- q_rooted$edge.length[cten_branch_id]
     # Extract node value
     cten_node_value <- q_edge_table[which(q_edge_table$parent == cten_pn & q_edge_table$child == cten_cn), ]$chi.name
+    cten_node_value <- gsub("\\[|\\]|'", "",  cten_node_value)
   } else {
     # Assign NA if only 1 tip
     cten_branch_length  <- NA
@@ -169,6 +172,7 @@ extract.qcf <- function(dataset, matrix_name, topology,
     pori_branch_length <- q_rooted$edge.length[pori_branch_id]
     # Extract node value
     pori_node_value <- q_edge_table[which(q_edge_table$parent == pori_pn & q_edge_table$child == pori_cn), ]$chi.name
+    pori_node_value <- gsub("\\[|\\]|'", "",  pori_node_value)
   } else {
     # Assign NA if only 1 tip
     pori_branch_length  <- NA
