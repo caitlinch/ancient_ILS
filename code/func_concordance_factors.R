@@ -419,6 +419,7 @@ extract.qcf <- function(dataset, matrix_name, topology,
   # Identify tips in this group - do not include PLAC when identifying MRCA, 
   #     as sometimes PLAC placement is sister to PORI which will result in 
   #     extracting the wrong branch
+  ### FIX CODE NOTE: THIS WORKS FOR CTEN AND PORI topologies. This DOES NOTE WORK for the CTEN_PORI topology.
   if (topology == "CTEN"){
     key_taxa <- c(constraint_clades$Porifera, constraint_clades$Cnidaria, constraint_clades$Bilateria)
   } else if (topology == "PORI"){
