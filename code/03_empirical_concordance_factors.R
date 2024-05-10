@@ -180,8 +180,6 @@ if (control$extract.qcf == TRUE){
     gcf_df <- read.csv(gcf_df_file, stringsAsFactors = TRUE)
   }
   
-  # i = 11,12,10
-  i = 10
   ## Extract gCF values
   gcf_output_list <- lapply(1:nrow(gcf_df), extract.gcf.wrapper, gcf_df = gcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
@@ -195,7 +193,6 @@ if (control$extract.qcf == TRUE){
   ## Save output
   gcf_collated_df_file <- paste0(output_csv_dir, "gCF_values.csv")
   write.csv(gcf_collated_df, file = gcf_collated_df_file, row.names = FALSE)
-  
 }
 
 

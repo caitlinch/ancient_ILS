@@ -164,7 +164,7 @@ extract.gcf <- function(dataset, matrix_name, topology,
   key_table_id <- potential_key_branch_id[which(round(potential_key_branch_lengths, digits = 5) == round(actual_key_branch_length, digits = 5))]
   # Extract the row from the stat table for this key_table_id
   key_values <- g_table[which(g_table$ID == key_table_id), ]
-  names(key_values) <- paste0("KEY_", names(cten_values))
+  names(key_values) <- paste0("KEY_", names(key_values))
   
   ## CTEN (leading to CTEN branch)
   # Identify tips in this group
@@ -213,7 +213,7 @@ extract.gcf <- function(dataset, matrix_name, topology,
     pori_table_id <- potential_pori_branch_id[which(round(potential_pori_branch_lengths, digits = 5) == round(actual_pori_branch_length, digits = 5))]
     # Extract the row from the stat table for this pori_table_id
     pori_values <- g_table[which(g_table$ID == pori_table_id), ]
-    names(pori_values) <- paste0("PORI_", names(cten_values))
+    names(pori_values) <- paste0("PORI_", names(pori_values))
   } else {
     # Assign NA if only 1 tip
     pori_values <- rep(NA, 11)
