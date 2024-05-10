@@ -395,6 +395,32 @@ extract.qcf <- function(dataset, matrix_name, topology,
   # Extract MRCA
   met_cn <- getMRCA(q_rooted, met_taxa) # child node
   met_pn <- q_rooted$edge[which(q_rooted$edge[,2] == met_cn), 1] # parent_node
+  # Extract the q_edge_table row
+  met_q_edge_row <- q_edge_table[which(q_edge_table$parent == met_pn & q_edge_table$child == met_cn),]
+  # Extract parent and child annotation from tree
+  met_pn_lab <- q_rooted$node.label[(met_pn-Ntip(q_rooted))]
+  met_cn_lab <- q_rooted$node.label[(met_cn-Ntip(q_rooted))]
+  # Extract parent and child nodes
+  clade_pn <- extract.clade(q_rooted, met_pn)
+  clade_cn <- extract.clade(q_rooted, met_cn)
+  
+  #### gcf code
+  # Potential branch ids
+  potential_met_branch_id <- as.numeric(c(q_edge_table[which(q_edge_table$parent == met_pn & q_edge_table$child == met_cn), ]$par.name,
+                                          q_edge_table[which(q_edge_table$parent == met_pn & q_edge_table$child == met_cn), ]$chi.name))
+  # Potential branch branch lengths
+  potential_met_branch_lengths <- g_table$Length[c(which(g_table$ID == potential_met_branch_id[1]),
+                                                   which(g_table$ID == potential_met_branch_id[2]))]
+  # Length of actual branch
+  actual_met_branch          <- which(g_rooted$edge[,1] == met_pn & g_rooted$edge[,2] == met_cn)
+  actual_met_branch_length  <- g_rooted$edge.length[actual_met_branch]
+  # Identify the met_table_id (g_table "ID" column value) by length
+  met_table_id <- potential_met_branch_id[which(round(potential_met_branch_lengths, digits = 5) == round(actual_met_branch_length, digits = 5))]
+  # Extract the row from the stat table for this met_table_id
+  met_values <- g_table[which(g_table$ID == met_table_id), ]
+  names(met_values) <- paste0("MET_", names(met_values))
+  
+  ##### old qcf code
   # Extract branch id
   met_branch_id <- which(q_rooted$edge[,1] == met_pn & q_rooted$edge[,2] == met_cn)
   # Extract branch length
@@ -439,13 +465,25 @@ extract.qcf <- function(dataset, matrix_name, topology,
     # Extract MRCA
     cten_cn <- getMRCA(q_rooted, cten_taxa) # child node
     cten_pn <- q_rooted$edge[which(q_rooted$edge[,2] == cten_cn), 1] # parent node
-    # Extract branch id
-    cten_branch_id <- which(q_rooted$edge[,1] == cten_pn & q_rooted$edge[,2] == cten_cn)
+    # Extract the q_edge_table row
+    cten_q_edge_row <- q_edge_table[which(q_edge_table$parent == cten_pn & q_edge_table$child == cten_cn),]
+    # Extract parent and child nodes
+    clade_cten_pn <- extract.clade(q_rooted, cten_pn)
+    clade_cten_cn <- extract.clade(q_rooted, cten_cn)
+    # Check which clade has the right tips and use that node
+    if (setequal(clade_cten_cn$tip.label, cten_taxa) == TRUE){
+      # Extract child annotation from tree
+      cten_cn_lab <- q_rooted$node.label[(cten_cn-Ntip(q_rooted))]
+      # Clean string
+      cten_node_value <- gsub("\\[|\\]|'", "",  cten_cn_lab)
+    } else if (setequal(clade_cten_pn$tip.label, cten_taxa) == TRUE){
+      # Extract parent annotation from tree
+      cten_pn_lab <- q_rooted$node.label[(cten_pn-Ntip(q_rooted))]
+      # Clean string
+      cten_node_value <- gsub("\\[|\\]|'", "",  cten_pn_lab)
+    }
     # Extract branch length
-    cten_branch_length <- q_rooted$edge.length[cten_branch_id]
-    # Extract node value
-    cten_node_value <- q_edge_table[which(q_edge_table$parent == cten_pn & q_edge_table$child == cten_cn), ]$chi.name
-    cten_node_value <- gsub("\\[|\\]|'", "",  cten_node_value)
+    cten_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == cten_pn & q_rooted$edge[,2] == cten_cn)]
   } else {
     # Assign NA if only 1 tip
     cten_branch_length  <- NA

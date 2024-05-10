@@ -153,7 +153,7 @@ if (control$extract.qcf == TRUE){
   # Specify gCF parameters df
   gcf_df_file <- paste0(output_csv_dir, "gCF_tree_files.csv")
   # Open gCF parameters dataframe
-  if (file.exists(gcf_df_file)){
+  if (file.exists(gcf_df_file) == FALSE){
     # Extract files from cf_analyses folder
     all_files <- list.files(cf_dir, recursive = TRUE)
     # Extract only gCF files
@@ -203,7 +203,7 @@ if (control$extract.qcf == TRUE){
   # Specify qCF parameters df
   qcf_df_file <- paste0(output_csv_dir, "qCF_tree_files.csv")
   # Open qCF parameters dataframe
-  if (file.exists(qcf_df_file)){
+  if (file.exists(qcf_df_file) == FALSE){
     # Extract files from cf_analyses folder
     all_files <- list.files(cf_dir, recursive = TRUE)
     # Extract only gCF files
@@ -223,10 +223,12 @@ if (control$extract.qcf == TRUE){
     # Write qCF_df
     write.csv(qcf_df, file = qcf_df_file, row.names = FALSE)
   } else {
-    qcf_df <- read.csv(qcf_df_file, stringsAsFactors = TRUE)
+    qcf_df <- read.csv(qcf_df_file, stringsAsFactors = FALSE)
   }
   
   ## Extract qCF values
+  # i = 11,12,10
+  i = 11
   qcf_output_list <- lapply(1:nrow(qcf_df), extract.qcf.wrapper, qcf_df = qcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)
