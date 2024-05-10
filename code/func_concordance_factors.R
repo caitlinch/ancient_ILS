@@ -395,14 +395,25 @@ extract.qcf <- function(dataset, matrix_name, topology,
   # Extract MRCA
   met_cn <- getMRCA(q_rooted, met_taxa) # child node
   met_pn <- q_rooted$edge[which(q_rooted$edge[,2] == met_cn), 1] # parent_node
-  # Extract the q_edge_table row
-  met_q_edge_row <- q_edge_table[which(q_edge_table$parent == met_pn & q_edge_table$child == met_cn),]
-  # Extract parent and child annotation from tree
-  met_pn_lab <- q_rooted$node.label[(met_pn-Ntip(q_rooted))]
-  met_cn_lab <- q_rooted$node.label[(met_cn-Ntip(q_rooted))]
-  # Extract parent and child nodes
-  clade_cn <- extract.clade(q_rooted, met_cn)
-  clade_pn <- extract.clade(q_rooted, met_pn)
+  met_og <- getMRCA(q_rooted, constraint_clades$Outgroup) # Outgroup node
+  # Extract the node that's identical to the outgroup node
+  if (met_cn == met_og){
+    # Extract child annotation from tree
+    met_cn_lab <- q_rooted$node.label[(met_cn-Ntip(q_rooted))]
+    # Clean string
+    met_node_value <- gsub("\\[|\\]|'", "",  met_cn_lab)
+    # Feed in the parent node to the KEY check below
+    key_check_node <- met_pn
+  } else if (met_pn == met_og){
+    # Extract parent annotation from tree
+    met_pn_lab <- q_rooted$node.label[(met_pn-Ntip(q_rooted))]
+    # Clean string
+    met_node_value <- gsub("\\[|\\]|'", "",  met_pn_lab)
+    # Feed in the child node to the KEY check below
+    key_check_node <- met_cn
+  }
+  # Extract branch length
+  met_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == met_pn & q_rooted$edge[,2] == met_cn)]
   
   #### gcf code
   # Potential branch ids
