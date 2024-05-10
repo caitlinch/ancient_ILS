@@ -431,6 +431,10 @@ extract.qcf <- function(dataset, matrix_name, topology,
     # Extract MRCA
     key_cn <- getMRCA(q_rooted, key_taxa) # child node
     key_pn <- q_rooted$edge[which(q_rooted$edge[,2] == key_cn), 1] # parent node
+    
+    
+    
+    ## Old code
     # Extract the q_edge_table row
     key_q_edge_row <- q_edge_table[which(q_edge_table$parent == key_pn & q_edge_table$child == key_cn),]
     # Extract parent and child nodes
