@@ -75,7 +75,7 @@ extract.qcf.wrapper <- function(i, qcf_df,
 
 extract.qcf <- function(dataset, matrix_name, topology, 
                         tree_file, constraint_clades){
-  # Function to extract qCF for CTEN tree or PORI tree
+  # Function to extract qCF for any constrained tree topology (CTEN, PORI, CTEN_PORI)
   
   ## Open tree with qCF annotation
   q_tree <- read.tree(tree_file)
