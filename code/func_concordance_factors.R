@@ -119,44 +119,52 @@ extract.gcf <- function(dataset, matrix_name, topology,
   # Extract MRCA
   met_cn <- getMRCA(g_rooted, met_taxa) # child node
   met_pn <- g_rooted$edge[which(g_rooted$edge[,2] == met_cn), 1] # parent_node
-  # Extract branch_id from the node.label 
-  met_branch_id <- as.numeric(g_edge_table[which(g_edge_table$parent == met_pn & g_edge_table$child == met_cn), ]$par.name)
-  # Extract the row from the stat table for this branch_id
-  met_values <- g_table[which(g_table$ID == met_branch_id), ]
+  # Potential branch ids
+  potential_met_branch_id <- as.numeric(c(g_edge_table[which(g_edge_table$parent == met_pn & g_edge_table$child == met_cn), ]$par.name,
+                                          g_edge_table[which(g_edge_table$parent == met_pn & g_edge_table$child == met_cn), ]$chi.name))
+  # Potential branch branch lengths
+  potential_met_branch_lengths <- g_table$Length[c(which(g_table$ID == potential_met_branch_id[1]),
+                                                   which(g_table$ID == potential_met_branch_id[2]))]
+  # Length of actual branch
+  actual_met_branch          <- which(g_rooted$edge[,1] == met_pn & g_rooted$edge[,2] == met_cn)
+  actual_met_branch_length  <- g_rooted$edge.length[actual_met_branch]
+  # Identify the met_table_id (g_table "ID" column value) by length
+  met_table_id <- potential_met_branch_id[which(round(potential_met_branch_lengths, digits = 5) == round(actual_met_branch_length, digits = 5))]
+  # Extract the row from the stat table for this met_table_id
+  met_values <- g_table[which(g_table$ID == met_table_id), ]
   names(met_values) <- paste0("MET_", names(met_values))
   
   ## Key branch (leading to ALL OTHER ANIMALS aka PLAC+CNID+BILAT)
   # Identify tips in this group - do not include PLAC when identifying MRCA, 
   #     as sometimes PLAC placement is sister to PORI which will result in 
   #     extracting the wrong branch
-  if (topology == "CTEN" | topology == "PORI"){
-    if (topology == "CTEN"){
-      # Extract taxa
-      key_taxa <- c(constraint_clades$Porifera, constraint_clades$Cnidaria, constraint_clades$Bilateria)
-    } else if (topology == "PORI"){
-      # Extract taxa
-      key_taxa <- c(constraint_clades$Ctenophora, constraint_clades$Cnidaria, constraint_clades$Bilateria)
-    }
-    # Extract MRCA
-    key_cn <- getMRCA(g_rooted, key_taxa) # child node
-    key_pn <- g_rooted$edge[which(g_rooted$edge[,2] == key_cn), 1] # parent node
-    # Extract branch_id from the node.label 
-    key_branch_id <- as.numeric(g_edge_table[which(g_edge_table$parent == key_pn & g_edge_table$child == key_cn), ]$par.name)
-    # Extract the row from the stat table for this branch_id
-    key_values <- g_table[which(g_table$ID == key_branch_id), ]
-    names(key_values) <- paste0("KEY_", names(key_values))
+  if (topology == "CTEN"){
+    # Extract taxa
+    key_taxa <- c(constraint_clades$Porifera, constraint_clades$Cnidaria, constraint_clades$Bilateria)
+  } else if (topology == "PORI"){
+    # Extract taxa
+    key_taxa <- c(constraint_clades$Ctenophora, constraint_clades$Cnidaria, constraint_clades$Bilateria)
   } else if (topology == "CTEN_PORI" | topology == "CTEN.PORI"){
     # Extract taxa
     key_taxa <- c(constraint_clades$Ctenophora, constraint_clades$Porifera)
-    # Extract MRCA
-    key_cn <- getMRCA(g_rooted, key_taxa) # child node
-    key_pn <- g_rooted$edge[which(g_rooted$edge[,2] == key_cn), 1] # parent node
-    # Extract branch_id from the node.label 
-    key_branch_id <- as.numeric(g_edge_table[which(g_edge_table$parent == key_pn & g_edge_table$child == key_cn), ]$chi.name)
-    # Extract the row from the stat table for this branch_id
-    key_values <- g_table[which(g_table$ID == key_branch_id), ]
-    names(key_values) <- paste0("KEY_", names(key_values))
   }
+  # Extract MRCA
+  key_cn <- getMRCA(g_rooted, key_taxa) # child node
+  key_pn <- g_rooted$edge[which(g_rooted$edge[,2] == key_cn), 1] # parent node
+  # Potential branch ids
+  potential_key_branch_id <- as.numeric(c(g_edge_table[which(g_edge_table$parent == key_pn & g_edge_table$child == key_cn), ]$par.name,
+                                          g_edge_table[which(g_edge_table$parent == key_pn & g_edge_table$child == key_cn), ]$chi.name))
+  # Potential branch branch lengths
+  potential_key_branch_lengths <- g_table$Length[c(which(g_table$ID == potential_key_branch_id[1]),
+                                                   which(g_table$ID == potential_key_branch_id[2]))]
+  # Length of actual branch
+  actual_key_branch          <- which(g_rooted$edge[,1] == key_pn & g_rooted$edge[,2] == key_cn)
+  actual_key_branch_length  <- g_rooted$edge.length[actual_key_branch]
+  # Identify the key_table_id (g_table "ID" column value) by length
+  key_table_id <- potential_key_branch_id[which(round(potential_key_branch_lengths, digits = 5) == round(actual_key_branch_length, digits = 5))]
+  # Extract the row from the stat table for this key_table_id
+  key_values <- g_table[which(g_table$ID == key_table_id), ]
+  names(key_values) <- paste0("KEY_", names(cten_values))
   
   ## CTEN (leading to CTEN branch)
   # Identify tips in this group
@@ -165,10 +173,19 @@ extract.gcf <- function(dataset, matrix_name, topology,
     # Extract MRCA
     cten_cn <- getMRCA(g_rooted, cten_taxa) # child node
     cten_pn <- g_rooted$edge[which(g_rooted$edge[,2] == cten_cn), 1] # parent node
-    # Extract branch_id from the node.label 
-    cten_branch_id <- as.numeric(g_edge_table[which(g_edge_table$parent == cten_pn & g_edge_table$child == cten_cn), ]$chi.name)
-    # Extract the row from the stat table for this branch_id
-    cten_values <- g_table[which(g_table$ID == cten_branch_id), ]
+    # Potential branch ids
+    potential_cten_branch_id <- as.numeric(c(g_edge_table[which(g_edge_table$parent == cten_pn & g_edge_table$child == cten_cn), ]$par.name,
+                                             g_edge_table[which(g_edge_table$parent == cten_pn & g_edge_table$child == cten_cn), ]$chi.name))
+    # Potential branch branch lengths
+    potential_cten_branch_lengths <- g_table$Length[c(which(g_table$ID == potential_cten_branch_id[1]),
+                                                      which(g_table$ID == potential_cten_branch_id[2]))]
+    # Length of actual branch
+    actual_cten_branch          <- which(g_rooted$edge[,1] == cten_pn & g_rooted$edge[,2] == cten_cn)
+    actual_cten_branch_length  <- g_rooted$edge.length[actual_cten_branch]
+    # Identify the cten_table_id (g_table "ID" column value) by length
+    cten_table_id <- potential_cten_branch_id[which(round(potential_cten_branch_lengths, digits = 5) == round(actual_cten_branch_length, digits = 5))]
+    # Extract the row from the stat table for this cten_table_id
+    cten_values <- g_table[which(g_table$ID == cten_table_id), ]
     names(cten_values) <- paste0("CTEN_", names(cten_values))
   } else {
     # Assign NA if only 1 tip
@@ -183,11 +200,20 @@ extract.gcf <- function(dataset, matrix_name, topology,
     # Extract MRCA
     pori_cn <- getMRCA(g_rooted, pori_taxa) # child node
     pori_pn <- g_rooted$edge[which(g_rooted$edge[,2] == pori_cn), 1] # parent node
-    # Extract branch_id from the node.label 
-    pori_branch_id <- as.numeric(g_edge_table[which(g_edge_table$parent == pori_pn & g_edge_table$child == pori_cn), ]$chi.name)
-    # Extract the row from the stat table for this branch_id
-    pori_values <- g_table[which(g_table$ID == pori_branch_id), ]
-    names(pori_values) <- paste0("PORI_", names(pori_values))
+    # Potential branch ids
+    potential_pori_branch_id <- as.numeric(c(g_edge_table[which(g_edge_table$parent == pori_pn & g_edge_table$child == pori_cn), ]$par.name,
+                                             g_edge_table[which(g_edge_table$parent == pori_pn & g_edge_table$child == pori_cn), ]$chi.name))
+    # Potential branch branch lengths
+    potential_pori_branch_lengths <- g_table$Length[c(which(g_table$ID == potential_pori_branch_id[1]),
+                                                      which(g_table$ID == potential_pori_branch_id[2]))]
+    # Length of actual branch
+    actual_pori_branch          <- which(g_rooted$edge[,1] == pori_pn & g_rooted$edge[,2] == pori_cn)
+    actual_pori_branch_length  <- g_rooted$edge.length[actual_pori_branch]
+    # Identify the pori_table_id (g_table "ID" column value) by length
+    pori_table_id <- potential_pori_branch_id[which(round(potential_pori_branch_lengths, digits = 5) == round(actual_pori_branch_length, digits = 5))]
+    # Extract the row from the stat table for this pori_table_id
+    pori_values <- g_table[which(g_table$ID == pori_table_id), ]
+    names(pori_values) <- paste0("PORI_", names(cten_values))
   } else {
     # Assign NA if only 1 tip
     pori_values <- rep(NA, 11)

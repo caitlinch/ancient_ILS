@@ -180,6 +180,8 @@ if (control$extract.qcf == TRUE){
     gcf_df <- read.csv(gcf_df_file, stringsAsFactors = TRUE)
   }
   
+  # i = 11,12,10
+  i = 10
   ## Extract gCF values
   gcf_output_list <- lapply(1:nrow(gcf_df), extract.gcf.wrapper, gcf_df = gcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
