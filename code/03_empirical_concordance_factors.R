@@ -284,8 +284,7 @@ if (control$reformat.dataframes == TRUE){
   write.csv(gcf_clean_df, file = gcf_clean_df_file, row.names = FALSE)
   # New dataframe to check values
   check_gcf_df <- data.frame(id = gcf_clean_df$id, 
-                             sum_gcf = (gcf_clean_df$CTEN.KEY_gCF + gcf_clean_df$PORI.KEY_gCF + gcf_clean_df$CTENPORI.KEY_gCF + gcf_clean_df$CTEN.KEY_gDFP) 
-                             )
+                             sum_gcf = (gcf_clean_df$CTEN.KEY_gCF + gcf_clean_df$PORI.KEY_gCF + gcf_clean_df$CTENPORI.KEY_gCF + gcf_clean_df$CTEN.KEY_gDFP) )
   
   ## Reformat qCF df
   # Call function to reformat dataframe
@@ -293,4 +292,8 @@ if (control$reformat.dataframes == TRUE){
   # Save reformatted dataframe
   qcf_clean_df_file  <- paste0(output_csv_dir, "qCF_values_formatted.csv")
   write.csv(qcf_clean_df, file = qcf_clean_df_file, row.names = FALSE)
+  # New dataframe to check values
+  check_qcf_df <- data.frame(id = qcf_clean_df$id, 
+                             sum_q = (qcf_clean_df$CTEN.KEY_quartet_support + qcf_clean_df$PORI.KEY_quartet_support + qcf_clean_df$CTENPORI.KEY_quartet_support),
+                             sum_f = (qcf_clean_df$CTEN.KEY_quartet_tree_freq + qcf_clean_df$PORI.KEY_quartet_tree_freq + qcf_clean_df$CTENPORI.KEY_quartet_tree_freq) )
 }
