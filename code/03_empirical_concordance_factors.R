@@ -25,7 +25,8 @@ astral_server         <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/astral/Ast
 # Control commands
 control <- list(run.cf.analyses = FALSE,
                 extract.gcf = FALSE,
-                extract.qcf = FALSE)
+                extract.qcf = FALSE,
+                reformat.dataframes = FALSE)
 
 
 
@@ -267,6 +268,29 @@ if (control$extract.qcf == TRUE){
 
 
 
-
-
-
+#### 7. Reformat gCF and qCF dataframes ####
+if (control$reformat.dataframes == TRUE){
+  ## Open dataframes
+  gcf_collated_df_file  <- paste0(output_csv_dir, "gCF_values.csv")
+  gcf_collated_df       <- read.csv(gcf_collated_df_file, stringsAsFactors = FALSE)
+  qcf_collated_df_file  <- paste0(output_csv_dir, "qCF_values.csv")
+  qcf_collated_df       <- read.csv(qcf_collated_df_file, stringsAsFactors = FALSE)
+  
+  ## Reformat gCF df
+  # Call function to reformat dataframe
+  gcf_clean_df <- reformat.gCF.df(input_df = gcf_collated_df)
+  # Save reformatted dataframe
+  gcf_clean_df_file  <- paste0(output_csv_dir, "gCF_values_formatted.csv")
+  write.csv(gcf_clean_df, file = gcf_clean_df_file, row.names = FALSE)
+  # New dataframe to check values
+  check_gcf_df <- data.frame(id = gcf_clean_df$id, 
+                             sum_gcf = (gcf_clean_df$CTEN.KEY_gCF + gcf_clean_df$PORI.KEY_gCF + gcf_clean_df$CTENPORI.KEY_gCF + gcf_clean_df$CTEN.KEY_gDFP) 
+                             )
+  
+  ## Reformat qCF df
+  # Call function to reformat dataframe
+  qcf_clean_df <- reformat.qCF.df(input_df = qcf_collated_df)
+  # Save reformatted dataframe
+  qcf_clean_df_file  <- paste0(output_csv_dir, "qCF_values_formatted.csv")
+  write.csv(qcf_clean_df, file = qcf_clean_df_file, row.names = FALSE)
+}

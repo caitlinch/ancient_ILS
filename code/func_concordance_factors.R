@@ -202,6 +202,86 @@ extract.gcf <- function(dataset, matrix_name, topology,
 
 
 
+#### Reformat gCF dataframe ####
+reformat.gCF.df <- function(input_df){
+  ## Reformat the gCF dataframe into wide format
+  
+  # Identify rows for each topology
+  cten_rows <- which(input_df$tree_topology == "CTEN")
+  pori_rows <- which(input_df$tree_topology == "PORI")
+  ctenpori_rows <- which(input_df$tree_topology == "CTEN_PORI")
+  # Create new dataframe with columns for each topology
+  new_df <- data.frame(id = unlist(lapply(strsplit(gcf_collated_df$id[c(T,F,F)], "\\."), function(x){paste0(x[[1]], ".", x[[2]], ".", x[[3]])})),
+                       dataset = input_df$dataset[c(T,F,F)],
+                       matrix_name = input_df$matrix_name[c(T,F,F)],
+                       dataset_id = input_df$dataset_id[c(T,F,F)],
+                       model = input_df$model[c(T,F,F)],
+                       CTEN.MET_gCF = input_df$MET_gCF[cten_rows],
+                       PORI.MET_gCF = input_df$MET_gCF[pori_rows],
+                       CTENPORI.MET_gCF = input_df$MET_gCF[ctenpori_rows],
+                       CTEN.MET_gCF_N = input_df$MET_gCF_N[cten_rows],
+                       PORI.MET_gCF_N = input_df$MET_gCF_N[pori_rows],
+                       CTENPORI.MET_gCF_N = input_df$MET_gCF_N[ctenpori_rows],
+                       CTEN.MET_gDFP = input_df$MET_gDFP[cten_rows],
+                       PORI.MET_gDFP = input_df$MET_gDFP[pori_rows],
+                       CTENPORI.MET_gDFP = input_df$MET_gDFP[ctenpori_rows],
+                       CTEN.MET_gDFP_N = input_df$MET_gDFP_N[cten_rows],
+                       PORI.MET_gDFP_N = input_df$MET_gDFP_N[pori_rows],
+                       CTENPORI.MET_gDFP_N = input_df$MET_gDFP_N[ctenpori_rows],
+                       CTEN.MET_Length = input_df$MET_Length[cten_rows],
+                       PORI.MET_Length = input_df$MET_Length[pori_rows],
+                       CTENPORI.MET_Length = input_df$MET_Length[ctenpori_rows],
+                       CTEN.KEY_gCF = input_df$KEY_gCF[cten_rows],
+                       PORI.KEY_gCF = input_df$KEY_gCF[pori_rows],
+                       CTENPORI.KEY_gCF = input_df$KEY_gCF[ctenpori_rows],
+                       CTEN.KEY_gCF_N = input_df$KEY_gCF_N[cten_rows],
+                       PORI.KEY_gCF_N = input_df$KEY_gCF_N[pori_rows],
+                       CTENPORI.KEY_gCF_N = input_df$KEY_gCF_N[ctenpori_rows],
+                       CTEN.KEY_gDFP = input_df$KEY_gDFP[cten_rows],
+                       PORI.KEY_gDFP = input_df$KEY_gDFP[pori_rows],
+                       CTENPORI.KEY_gDFP = input_df$KEY_gDFP[ctenpori_rows],
+                       CTEN.KEY_gDFP_N = input_df$KEY_gDFP_N[cten_rows],
+                       PORI.KEY_gDFP_N = input_df$KEY_gDFP_N[pori_rows],
+                       CTENPORI.KEY_gDFP_N = input_df$KEY_gDFP_N[ctenpori_rows],
+                       CTEN.KEY_Length = input_df$KEY_Length[cten_rows],
+                       PORI.KEY_Length = input_df$KEY_Length[pori_rows],
+                       CTENPORI.KEY_Length = input_df$KEY_Length[ctenpori_rows],
+                       CTEN.CTEN_gCF = input_df$CTEN_gCF[cten_rows],
+                       PORI.CTEN_gCF = input_df$CTEN_gCF[pori_rows],
+                       CTENPORI.CTEN_gCF = input_df$CTEN_gCF[ctenpori_rows],
+                       CTEN.CTEN_gCF_N = input_df$CTEN_gCF_N[cten_rows],
+                       PORI.CTEN_gCF_N = input_df$CTEN_gCF_N[pori_rows],
+                       CTENPORI.CTEN_gCF_N = input_df$CTEN_gCF_N[ctenpori_rows],
+                       CTEN.CTEN_gDFP = input_df$CTEN_gDFP[cten_rows],
+                       PORI.CTEN_gDFP = input_df$CTEN_gDFP[pori_rows],
+                       CTENPORI.CTEN_gDFP = input_df$CTEN_gDFP[ctenpori_rows],
+                       CTEN.CTEN_gDFP_N = input_df$CTEN_gDFP_N[cten_rows],
+                       PORI.CTEN_gDFP_N = input_df$CTEN_gDFP_N[pori_rows],
+                       CTENPORI.CTEN_gDFP_N = input_df$CTEN_gDFP_N[ctenpori_rows],
+                       CTEN.CTEN_Length = input_df$CTEN_Length[cten_rows],
+                       PORI.CTEN_Length = input_df$CTEN_Length[pori_rows],
+                       CTENPORI.CTEN_Length = input_df$CTEN_Length[ctenpori_rows],
+                       CTEN.PORI_gCF = input_df$PORI_gCF[cten_rows],
+                       PORI.PORI_gCF = input_df$PORI_gCF[pori_rows],
+                       CTENPORI.PORI_gCF = input_df$PORI_gCF[ctenpori_rows],
+                       CTEN.PORI_gCF_N = input_df$PORI_gCF_N[cten_rows],
+                       PORI.PORI_gCF_N = input_df$PORI_gCF_N[pori_rows],
+                       CTENPORI.PORI_gCF_N = input_df$PORI_gCF_N[ctenpori_rows],
+                       CTEN.PORI_gDFP = input_df$PORI_gDFP[cten_rows],
+                       PORI.PORI_gDFP = input_df$PORI_gDFP[pori_rows],
+                       CTENPORI.PORI_gDFP = input_df$PORI_gDFP[ctenpori_rows],
+                       CTEN.PORI_gDFP_N = input_df$PORI_gDFP_N[cten_rows],
+                       PORI.PORI_gDFP_N = input_df$PORI_gDFP_N[pori_rows],
+                       CTENPORI.PORI_gDFP_N = input_df$PORI_gDFP_N[ctenpori_rows],
+                       CTEN.PORI_Length = input_df$PORI_Length[cten_rows],
+                       PORI.PORI_Length = input_df$PORI_Length[pori_rows],
+                       CTENPORI.PORI_Length = input_df$PORI_Length[ctenpori_rows] )
+  # Return the reformatted dataframe
+  return(new_df)
+}
+
+
+
 #### Extract qCF ####
 extract.qcf.wrapper <- function(i, qcf_df, 
                                 matrix_taxa = matrix_taxa, all_datasets = all_datasets, alignment_taxa_df = alignment_taxa_df){
@@ -373,6 +453,99 @@ extract.qcf <- function(dataset, matrix_name, topology,
                          "CTEN_branch_length", "CTEN_node_value", "PORI_branch_length", "PORI_node_value")
   return(qcf_output)
 }
+
+
+
+#### Reformat qCF dataframe ####
+reformat.qCF.df <- function(input_df){
+  ## Reformat the qCF dataframe into wide format
+  
+  # Identify rows for each topology
+  cten_rows <- which(input_df$tree_topology == "CTEN")
+  pori_rows <- which(input_df$tree_topology == "PORI")
+  ctenpori_rows <- which(input_df$tree_topology == "CTEN_PORI")
+  # Create new dataframe with columns for each topology
+  new_df <- data.frame(id = unlist(lapply(strsplit(gcf_collated_df$id[c(T,F,F)], "\\."), function(x){paste0(x[[1]], ".", x[[2]], ".", x[[3]])})),
+                       dataset = input_df$dataset[c(T,F,F)],
+                       matrix_name = input_df$matrix_name[c(T,F,F)],
+                       dataset_id = input_df$dataset_id[c(T,F,F)],
+                       model = input_df$model[c(T,F,F)],
+                       CTEN.MET_quartet_support = input_df$MET_quartet_support[cten_rows],
+                       PORI.MET_quartet_support = input_df$MET_quartet_support[pori_rows],
+                       CTENPORI.MET_quartet_support = input_df$MET_quartet_support[ctenpori_rows],
+                       CTEN.MET_quartet_tree_freq = input_df$MET_quartet_tree_freq[cten_rows],
+                       PORI.MET_quartet_tree_freq = input_df$MET_quartet_tree_freq[pori_rows],
+                       CTENPORI.MET_quartet_tree_freq = input_df$MET_quartet_tree_freq[ctenpori_rows],
+                       CTEN.MET_lpp = input_df$MET_lpp[cten_rows],
+                       PORI.MET_lpp = input_df$MET_lpp[pori_rows],
+                       CTENPORI.MET_lpp = input_df$MET_lpp[ctenpori_rows],
+                       CTEN.MET_QC = input_df$MET_QC[cten_rows],
+                       PORI.MET_QC = input_df$MET_QC[pori_rows],
+                       CTENPORI.MET_QC = input_df$MET_QC[ctenpori_rows],
+                       CTEN.MET_EN = input_df$MET_EN[cten_rows],
+                       PORI.MET_EN = input_df$MET_EN[pori_rows],
+                       CTENPORI.MET_EN = input_df$MET_EN[ctenpori_rows],
+                       CTEN.MET_branch_length = input_df$MET_branch_length[cten_rows],
+                       PORI.MET_branch_length = input_df$MET_branch_length[pori_rows],
+                       CTENPORI.MET_branch_length = input_df$MET_branch_length[ctenpori_rows],
+                       CTEN.KEY_quartet_support = input_df$KEY_quartet_support[cten_rows],
+                       PORI.KEY_quartet_support = input_df$KEY_quartet_support[pori_rows],
+                       CTENPORI.KEY_quartet_support = input_df$KEY_quartet_support[ctenpori_rows],
+                       CTEN.KEY_quartet_tree_freq = input_df$KEY_quartet_tree_freq[cten_rows],
+                       PORI.KEY_quartet_tree_freq = input_df$KEY_quartet_tree_freq[pori_rows],
+                       CTENPORI.KEY_quartet_tree_freq = input_df$KEY_quartet_tree_freq[ctenpori_rows],
+                       CTEN.KEY_lpp = input_df$KEY_lpp[cten_rows],
+                       PORI.KEY_lpp = input_df$KEY_lpp[pori_rows],
+                       CTENPORI.KEY_lpp = input_df$KEY_lpp[ctenpori_rows],
+                       CTEN.KEY_QC = input_df$KEY_QC[cten_rows],
+                       PORI.KEY_QC = input_df$KEY_QC[pori_rows],
+                       CTENPORI.KEY_QC = input_df$KEY_QC[ctenpori_rows],
+                       CTEN.KEY_EN = input_df$KEY_EN[cten_rows],
+                       PORI.KEY_EN = input_df$KEY_EN[pori_rows],
+                       CTENPORI.KEY_EN = input_df$KEY_EN[ctenpori_rows],
+                       CTEN.KEY_branch_length = input_df$KEY_branch_length[cten_rows],
+                       PORI.KEY_branch_length = input_df$KEY_branch_length[pori_rows],
+                       CTENPORI.KEY_branch_length = input_df$KEY_branch_length[ctenpori_rows],
+                       CTEN.CTEN_quartet_support = input_df$CTEN_quartet_support[cten_rows],
+                       PORI.CTEN_quartet_support = input_df$CTEN_quartet_support[pori_rows],
+                       CTENPORI.CTEN_quartet_support = input_df$CTEN_quartet_support[ctenpori_rows],
+                       CTEN.CTEN_quartet_tree_freq = input_df$CTEN_quartet_tree_freq[cten_rows],
+                       PORI.CTEN_quartet_tree_freq = input_df$CTEN_quartet_tree_freq[pori_rows],
+                       CTENPORI.CTEN_quartet_tree_freq = input_df$CTEN_quartet_tree_freq[ctenpori_rows],
+                       CTEN.CTEN_lpp = input_df$CTEN_lpp[cten_rows],
+                       PORI.CTEN_lpp = input_df$CTEN_lpp[pori_rows],
+                       CTENPORI.CTEN_lpp = input_df$CTEN_lpp[ctenpori_rows],
+                       CTEN.CTEN_QC = input_df$CTEN_QC[cten_rows],
+                       PORI.CTEN_QC = input_df$CTEN_QC[pori_rows],
+                       CTENPORI.CTEN_QC = input_df$CTEN_QC[ctenpori_rows],
+                       CTEN.CTEN_EN = input_df$CTEN_EN[cten_rows],
+                       PORI.CTEN_EN = input_df$CTEN_EN[pori_rows],
+                       CTENPORI.CTEN_EN = input_df$CTEN_EN[ctenpori_rows],
+                       CTEN.CTEN_branch_length = input_df$CTEN_branch_length[cten_rows],
+                       PORI.CTEN_branch_length = input_df$CTEN_branch_length[pori_rows],
+                       CTENPORI.CTEN_branch_length = input_df$CTEN_branch_length[ctenpori_rows],
+                       CTEN.PORI_quartet_support = input_df$PORI_quartet_support[cten_rows],
+                       PORI.PORI_quartet_support = input_df$PORI_quartet_support[pori_rows],
+                       CTENPORI.PORI_quartet_support = input_df$PORI_quartet_support[ctenpori_rows],
+                       CTEN.PORI_quartet_tree_freq = input_df$PORI_quartet_tree_freq[cten_rows],
+                       PORI.PORI_quartet_tree_freq = input_df$PORI_quartet_tree_freq[pori_rows],
+                       CTENPORI.PORI_quartet_tree_freq = input_df$PORI_quartet_tree_freq[ctenpori_rows],
+                       CTEN.PORI_lpp = input_df$PORI_lpp[cten_rows],
+                       PORI.PORI_lpp = input_df$PORI_lpp[pori_rows],
+                       CTENPORI.PORI_lpp = input_df$PORI_lpp[ctenpori_rows],
+                       CTEN.PORI_QC = input_df$PORI_QC[cten_rows],
+                       PORI.PORI_QC = input_df$PORI_QC[pori_rows],
+                       CTENPORI.PORI_QC = input_df$PORI_QC[ctenpori_rows],
+                       CTEN.PORI_EN = input_df$PORI_EN[cten_rows],
+                       PORI.PORI_EN = input_df$PORI_EN[pori_rows],
+                       CTENPORI.PORI_EN = input_df$PORI_EN[ctenpori_rows],
+                       CTEN.PORI_branch_length = input_df$PORI_branch_length[cten_rows],
+                       PORI.PORI_branch_length = input_df$PORI_branch_length[pori_rows],
+                       CTENPORI.PORI_branch_length = input_df$PORI_branch_length[ctenpori_rows] )
+  # Return the reformatted dataframe
+  return(new_df)
+}
+
 
 
 
