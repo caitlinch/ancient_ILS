@@ -187,7 +187,7 @@ if (control$extract.qcf == TRUE){
 }
 
 # test 11, 12, 10
-i = 11
+i = 10
 
 extract.gcf.wrapper <- function(i, gcf_df, 
                                 matrix_taxa = matrix_taxa, all_datasets = all_datasets, alignment_taxa_df = alignment_taxa_df){
