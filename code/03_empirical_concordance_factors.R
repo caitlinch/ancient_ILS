@@ -184,65 +184,15 @@ if (control$extract.qcf == TRUE){
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)
   
-}
-
-# test 11, 12, 10
-i = 10
-
-extract.gcf.wrapper <- function(i, gcf_df, 
-                                matrix_taxa = matrix_taxa, all_datasets = all_datasets, alignment_taxa_df = alignment_taxa_df){
-  ## Extract the single row from the qCF dataframe
-  row <- gcf_df[i, ]
+  ## Format and output qCF dataframe
+  gcf_output_df <- as.data.frame(do.call(rbind, gcf_output_list), stringsAsFactors = FALSE)
+  # Cbind to the parameters dataframe
+  gcf_collated_df <- cbind(gcf_df, gcf_output_df)
   
-  ## Extract the relevant list of taxa for this dataframe
-  # First, check whether this matrix is included in the keys of the matrix_taxa list
-  row_dataset <- row$dataset
-  row_key <- paste0(row$dataset, ".", row$matrix_name, ".", "aa")
-  list_keys <- names(matrix_taxa)
-  # Check if row_key in list_key
-  if ((row_key %in% list_keys) == FALSE){
-    # If row key is not in list key, then all taxa for this dataset have the same names
-    # Extract the object containing those taxa names
-    constraint_clades <- all_datasets[[row_dataset]]
-  } else if ((row_key %in% list_keys) == TRUE){
-    # First, identify the list of taxa in this matrix
-    keep_taxa <- matrix_taxa[[row_key]]
-    # Secondly, extract the taxa clades for this dataset
-    dataset_taxa_clades <- all_datasets[[row_dataset]]
-    # Make a copy of the clades object
-    constraint_clades <- dataset_taxa_clades
-    # Lastly, remove any taxa that is NOT in the keep_taxa from the constraint clades
-    #   i.e., remove any taxa from this dataset that are NOT present in this matrix
-    #   (as some datasets have multiple matrices, with different taxon sampling or different taxon naming conventions)
-    constraint_clades$Bilateria <- dataset_taxa_clades$Bilateria[which(dataset_taxa_clades$Bilateria %in% keep_taxa)]
-    constraint_clades$Cnidaria <- dataset_taxa_clades$Cnidaria[which(dataset_taxa_clades$Cnidaria %in% keep_taxa)]
-    constraint_clades$Placozoa <- dataset_taxa_clades$Placozoa[which(dataset_taxa_clades$Placozoa %in% keep_taxa)]
-    constraint_clades$Porifera <- dataset_taxa_clades$Porifera[which(dataset_taxa_clades$Porifera %in% keep_taxa)]
-    constraint_clades$Ctenophora <- dataset_taxa_clades$Ctenophora[which(dataset_taxa_clades$Ctenophora %in% keep_taxa)]
-    constraint_clades$Outgroup <- dataset_taxa_clades$Outgroup[which(dataset_taxa_clades$Outgroup %in% keep_taxa)]
-  }
+  ## Save output
+  gcf_collated_df_file <- paste0(output_csv_dir, "gCF_values.csv")
+  write.csv(gcf_collated_df, file = gcf_collated_df_file, row.names = FALSE)
   
-  ## Remove any taxa from the constraint_clades that are not included in the ML tree for the alignment
-  # Extract the column of tip labels from the relevant unique_id column of the alignment_taxa_df
-  al_col_key <- paste0(row$dataset, ".", row$matrix_name)
-  tree_tips_raw <- alignment_taxa_df[[c(al_col_key)]]
-  tree_tips_cleaned <- na.omit(tree_tips_raw)
-  tree_tips <- as.character(tree_tips_cleaned)
-  # Check each of the clades and remove any tips not in the list of tree tips
-  constraint_clades$Bilateria <- constraint_clades$Bilateria[(constraint_clades$Bilateria %in% tree_tips)]
-  constraint_clades$Cnidaria <- constraint_clades$Cnidaria[(constraint_clades$Cnidaria %in% tree_tips)]
-  constraint_clades$Placozoa <- constraint_clades$Placozoa[(constraint_clades$Placozoa %in% tree_tips)]
-  constraint_clades$Porifera <- constraint_clades$Porifera[(constraint_clades$Porifera %in% tree_tips)]
-  constraint_clades$Ctenophora <- constraint_clades$Ctenophora[(constraint_clades$Ctenophora %in% tree_tips)]
-  constraint_clades$Outgroup <- constraint_clades$Outgroup[(constraint_clades$Outgroup %in% tree_tips)]
-  
-  ## Extract qCF depending on topology
-  gcf_extracted <- extract.gcf(dataset = row_dataset, matrix_name = row$matrix_name, topology = row$tree_topology,
-                               tree_file = row$gcf_branch_files, table_file = row$gcf_stat_files,
-                               constraint_clades = constraint_clades)
-  
-  ## Return the qCF values for this tree along with the tree parameters
-  return(gcf_extracted)
 }
 
 
@@ -311,8 +261,8 @@ if (control$extract.qcf == TRUE){
   qcf_collated_df <- cbind(qcf_df, qcf_output_df)
   
   ## Save output
-  qCF_collated_df_file <- paste0(output_csv_dir, "qCF_values.csv")
-  write.csv(qcf_collated_df, file = qCF_collated_df_file, row.names = FALSE)
+  qcf_collated_df_file <- paste0(output_csv_dir, "qCF_values.csv")
+  write.csv(qcf_collated_df, file = qcf_collated_df_file, row.names = FALSE)
 }
 
 
