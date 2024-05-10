@@ -38,17 +38,17 @@ source(paste0(repo_dir, "code/func_empirical_tree_estimation.R"))
 source(paste0(repo_dir, "code/data_dataset_info.R"))
 
 # Remove unneeded dataset information
-rm(all_taxa, borowiec2015_list, chang2015_list, dunn2008_list, hejnol2009_list, laumer2018_list, laumer2019_list,
-   models_list, moroz2014_list, nosenko2013_list, philippe2009_list, philippe2011_list, pick2010_list, ryan2013_list,
-   simion2017_list, whelan2015_list, whelan2017_list)
-
-# Open the required dataframe with dataset information
-input_df <- read.csv(paste0(output_csv_dir, "cf_analysis_input_paths.csv"), stringsAsFactors = FALSE)
+rm(all_taxa, all_models, models_list, borowiec2015_list, chang2015_list, dunn2008_list, hejnol2009_list, 
+   laumer2018_list, laumer2019_list, moroz2014_list, nosenko2013_list, philippe2009_list, philippe2011_list,
+   pick2010_list, ryan2013_list, simion2017_list, whelan2015_list, whelan2017_list)
 
 
 
 #### 3. Create command lines for calculating gCF and qCF ####
 if (control$run.cf.analyses == TRUE){
+  # Open the required dataframe with dataset information
+  input_df <- read.csv(paste0(output_csv_dir, "cf_analysis_input_paths.csv"), stringsAsFactors = FALSE)
+  
   # Add C60 gCF commands
   # $ iqtree2 -t concat.treefile --gcf loci.treefile --prefix concord
   input_df$c60_cten_gcf_command <- paste0(iqtree2_server, " -te ", input_df$C60_CTEN_tree,
@@ -147,11 +147,32 @@ if (control$run.cf.analyses == TRUE){
 
 
 #### 4. Extract gCF values from key clades  ####
+# Specify qCF parameters df
+gcf_df_file <- paste0(output_csv_dir, "gCF_tree_files.csv")
+
 # Extract files from cf_analyses folder
 all_files <- list.files(cf_dir, recursive = TRUE)
 # Extract only gCF files
-gCF_files <- grep("gcf", all_files, value = T)
-# Extract 
+gcf_files <- grep("gcf", all_files, value = T)
+# Extract cf.branch and cf.stat files
+cf_stat_files <- grep("cf.stat", gcf_files, value = T)
+cf_branch_files <- grep("cf.branch", gcf_files, value = T)
+# Extract gCF files into a dataframe
+gcf_df <- data.frame(gcf_stat_files = paste0(cf_dir, cf_stat_files),
+                     gcf_branch_files = paste0(cf_dir, cf_stat_files))
+# Add other required columns to dataframe
+gcf_df$id             <- gsub(".gcf.cf.stat", "", basename(gcf_df$gcf_stat_files))
+split_id              <- strsplit(gcf_df$id, "\\.")
+gcf_df$dataset        <- unlist(lapply(split_id, function(x){x[[1]]}))
+gcf_df$matrix_name    <- unlist(lapply(split_id, function(x){x[[2]]}))
+gcf_df$dataset_id     <- paste0(gcf_df$dataset, ".", gcf_df$matrix_name)
+gcf_df$model          <- unlist(lapply(split_id, function(x){x[[3]]}))
+gcf_df$tree_topology  <- unlist(lapply(split_id, function(x){x[[4]]}))
+# Rearrange order of columns
+gcf_df <- gcf_df[, c("id", "dataset", "matrix_name", "dataset_id", "model", "tree_topology", "gcf_branch_files", "gcf_stat_files")]
+# Write qCF_df
+write.csv(gcf_df, file = gcf_df_file, row.names = FALSE)
+
 
 
 
