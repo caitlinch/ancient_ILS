@@ -431,25 +431,13 @@ extract.qcf <- function(dataset, matrix_name, topology,
     # Extract MRCA
     key_cn <- getMRCA(q_rooted, key_taxa) # child node
     key_pn <- q_rooted$edge[which(q_rooted$edge[,2] == key_cn), 1] # parent node
-    
-    
-    
-    ## Old code
-    # Extract the q_edge_table row
-    key_q_edge_row <- q_edge_table[which(q_edge_table$parent == key_pn & q_edge_table$child == key_cn),]
-    # Extract parent and child nodes
-    clade_key_cn <- extract.clade(q_rooted, key_cn)
-    clade_key_pn <- extract.clade(q_rooted, key_pn)
-    # Remove PLAC taxa from consideration
-    clade_key_cn_check_taxa <- clade_key_cn$tip.label[ which(! (clade_key_cn$tip.label %in% constraint_clades$Placozoa) ) ]
-    clade_key_pn_check_taxa <- clade_key_pn$tip.label[ which(! (clade_key_pn$tip.label %in% constraint_clades$Placozoa) ) ]
-    # Check which clade has the right tips and use that node
-    if (setequal(clade_key_cn_check_taxa, key_taxa) == TRUE){
+    # Extract the node that's identical to the key_check_node (i.e., the node that connects to the MET node)
+    if (key_cn == key_check_node){
       # Extract child annotation from tree
       key_cn_lab <- q_rooted$node.label[(key_cn-Ntip(q_rooted))]
       # Clean string
       key_node_value <- gsub("\\[|\\]|'", "",  key_cn_lab)
-    } else if (setequal(clade_key_pn_check_taxa, key_taxa) == TRUE){
+    } else if (key_pn == key_check_node){
       # Extract parent annotation from tree
       key_pn_lab <- q_rooted$node.label[(key_pn-Ntip(q_rooted))]
       # Clean string
@@ -457,16 +445,6 @@ extract.qcf <- function(dataset, matrix_name, topology,
     }
     # Extract branch length
     key_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == key_pn & q_rooted$edge[,2] == key_cn)]
-    
-    
-    
-    # Extract branch id
-    key_branch_id <- which(q_rooted$edge[,1] == key_pn & q_rooted$edge[,2] == key_cn)
-    # Extract branch length
-    key_branch_length <- q_rooted$edge.length[key_branch_id]
-    # Extract node value
-    key_node_value <- q_edge_table[which(q_edge_table$parent == key_pn & q_edge_table$child == key_cn), ]$chi.name
-    key_node_value <- gsub("\\[|\\]|'", "",  key_node_value)
   } else {
     # Assign NA if only 1 tip
     key_branch_length  <- NA
