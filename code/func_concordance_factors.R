@@ -415,31 +415,6 @@ extract.qcf <- function(dataset, matrix_name, topology,
   # Extract branch length
   met_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == met_pn & q_rooted$edge[,2] == met_cn)]
   
-  #### gcf code
-  # Potential branch ids
-  potential_met_branch_id <- as.numeric(c(q_edge_table[which(q_edge_table$parent == met_pn & q_edge_table$child == met_cn), ]$par.name,
-                                          q_edge_table[which(q_edge_table$parent == met_pn & q_edge_table$child == met_cn), ]$chi.name))
-  # Potential branch branch lengths
-  potential_met_branch_lengths <- g_table$Length[c(which(g_table$ID == potential_met_branch_id[1]),
-                                                   which(g_table$ID == potential_met_branch_id[2]))]
-  # Length of actual branch
-  actual_met_branch          <- which(g_rooted$edge[,1] == met_pn & g_rooted$edge[,2] == met_cn)
-  actual_met_branch_length  <- g_rooted$edge.length[actual_met_branch]
-  # Identify the met_table_id (g_table "ID" column value) by length
-  met_table_id <- potential_met_branch_id[which(round(potential_met_branch_lengths, digits = 5) == round(actual_met_branch_length, digits = 5))]
-  # Extract the row from the stat table for this met_table_id
-  met_values <- g_table[which(g_table$ID == met_table_id), ]
-  names(met_values) <- paste0("MET_", names(met_values))
-  
-  ##### old qcf code
-  # Extract branch id
-  met_branch_id <- which(q_rooted$edge[,1] == met_pn & q_rooted$edge[,2] == met_cn)
-  # Extract branch length
-  met_branch_length <- q_rooted$edge.length[met_branch_id]
-  # Extract node value 
-  met_node_value <- q_edge_table[which(q_edge_table$parent == met_pn & q_edge_table$child == met_cn), ]$chi.name
-  met_node_value <- gsub("\\[|\\]|'", "",  met_node_value)
-  
   ## Key branch (leading to ALL OTHER ANIMALS aka PLAC+CNID+BILAT)
   # Identify tips in this group - do not include PLAC when identifying MRCA, 
   #     as sometimes PLAC placement is sister to PORI which will result in 
