@@ -187,6 +187,10 @@ extract.gcf <- function(dataset, matrix_name, topology,
       actual_cten_branch_length  <- g_rooted$edge.length[actual_cten_branch]
       # Identify the cten_table_id (g_table "ID" column value) by length
       cten_table_id <- potential_cten_branch_id[which(round(potential_cten_branch_lengths, digits = 5) == round(actual_cten_branch_length, digits = 5))]
+      # Check again with 1 less digit if no identical branch lengths
+      if (length(cten_table_id) == 0){
+        cten_table_id <- potential_cten_branch_id[which(round(potential_cten_branch_lengths, digits = 4) == round(actual_cten_branch_length, digits = 4))]
+      }
       # Extract the row from the stat table for this cten_table_id
       cten_values <- g_table[which(g_table$ID == cten_table_id), ]
       names(cten_values) <- paste0("CTEN_", names(cten_values))
@@ -225,6 +229,10 @@ extract.gcf <- function(dataset, matrix_name, topology,
       actual_pori_branch_length  <- g_rooted$edge.length[actual_pori_branch]
       # Identify the pori_table_id (g_table "ID" column value) by length
       pori_table_id <- potential_pori_branch_id[which(round(potential_pori_branch_lengths, digits = 5) == round(actual_pori_branch_length, digits = 5))]
+      # Check again with 1 less digit if no identical branch lengths
+      if (length(pori_table_id) == 0){
+        pori_table_id <- potential_pori_branch_id[which(round(potential_pori_branch_lengths, digits = 4) == round(actual_pori_branch_length, digits = 4))]
+      }
       # Extract the row from the stat table for this pori_table_id
       pori_values <- g_table[which(g_table$ID == pori_table_id), ]
       names(pori_values) <- paste0("PORI_", names(pori_values))
