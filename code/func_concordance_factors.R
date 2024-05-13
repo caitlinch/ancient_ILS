@@ -169,60 +169,82 @@ extract.gcf <- function(dataset, matrix_name, topology,
   ## CTEN (leading to CTEN branch)
   # Identify tips in this group
   cten_taxa <- c(constraint_clades$Ctenophora)
+  # Check more than one tip present
   if (length(cten_taxa) > 1){
-    # Extract MRCA
-    cten_cn <- getMRCA(g_rooted, cten_taxa) # child node
-    cten_pn <- g_rooted$edge[which(g_rooted$edge[,2] == cten_cn), 1] # parent node
-    # Potential branch ids
-    potential_cten_branch_id <- as.numeric(c(g_edge_table[which(g_edge_table$parent == cten_pn & g_edge_table$child == cten_cn), ]$par.name,
-                                             g_edge_table[which(g_edge_table$parent == cten_pn & g_edge_table$child == cten_cn), ]$chi.name))
-    # Potential branch branch lengths
-    potential_cten_branch_lengths <- g_table$Length[c(which(g_table$ID == potential_cten_branch_id[1]),
-                                                      which(g_table$ID == potential_cten_branch_id[2]))]
-    # Length of actual branch
-    actual_cten_branch          <- which(g_rooted$edge[,1] == cten_pn & g_rooted$edge[,2] == cten_cn)
-    actual_cten_branch_length  <- g_rooted$edge.length[actual_cten_branch]
-    # Identify the cten_table_id (g_table "ID" column value) by length
-    cten_table_id <- potential_cten_branch_id[which(round(potential_cten_branch_lengths, digits = 5) == round(actual_cten_branch_length, digits = 5))]
-    # Extract the row from the stat table for this cten_table_id
-    cten_values <- g_table[which(g_table$ID == cten_table_id), ]
-    names(cten_values) <- paste0("CTEN_", names(cten_values))
+    # Check monophyly
+    if (is.monophyletic(q_rooted, cten_taxa) == TRUE){
+      # Extract MRCA
+      cten_cn <- getMRCA(g_rooted, cten_taxa) # child node
+      cten_pn <- g_rooted$edge[which(g_rooted$edge[,2] == cten_cn), 1] # parent node
+      # Potential branch ids
+      potential_cten_branch_id <- as.numeric(c(g_edge_table[which(g_edge_table$parent == cten_pn & g_edge_table$child == cten_cn), ]$par.name,
+                                               g_edge_table[which(g_edge_table$parent == cten_pn & g_edge_table$child == cten_cn), ]$chi.name))
+      # Potential branch branch lengths
+      potential_cten_branch_lengths <- g_table$Length[c(which(g_table$ID == potential_cten_branch_id[1]),
+                                                        which(g_table$ID == potential_cten_branch_id[2]))]
+      # Length of actual branch
+      actual_cten_branch          <- which(g_rooted$edge[,1] == cten_pn & g_rooted$edge[,2] == cten_cn)
+      actual_cten_branch_length  <- g_rooted$edge.length[actual_cten_branch]
+      # Identify the cten_table_id (g_table "ID" column value) by length
+      cten_table_id <- potential_cten_branch_id[which(round(potential_cten_branch_lengths, digits = 5) == round(actual_cten_branch_length, digits = 5))]
+      # Extract the row from the stat table for this cten_table_id
+      cten_values <- g_table[which(g_table$ID == cten_table_id), ]
+      names(cten_values) <- paste0("CTEN_", names(cten_values))
+      cten_clade_monophyly <- "Monophyletic"
+    } else {
+      # Assign NA if paraphyletic
+      cten_values <- rep(NA, 11)
+      names(cten_values) <- paste0("CTEN_", names(g_table))
+      cten_clade_monophyly <- "Paraphyletic"
+    }
   } else {
     # Assign NA if only 1 tip
     cten_values <- rep(NA, 11)
     names(cten_values) <- paste0("CTEN_", names(g_table))
+    cten_clade_monophyly <- "Paraphyletic"
   }
   
   ## PORI (leading to PORI branch)
   # Identify tips in this group
   pori_taxa <- c(constraint_clades$Porifera)
+  # Check more than one tip present
   if (length(pori_taxa) > 1){
-    # Extract MRCA
-    pori_cn <- getMRCA(g_rooted, pori_taxa) # child node
-    pori_pn <- g_rooted$edge[which(g_rooted$edge[,2] == pori_cn), 1] # parent node
-    # Potential branch ids
-    potential_pori_branch_id <- as.numeric(c(g_edge_table[which(g_edge_table$parent == pori_pn & g_edge_table$child == pori_cn), ]$par.name,
-                                             g_edge_table[which(g_edge_table$parent == pori_pn & g_edge_table$child == pori_cn), ]$chi.name))
-    # Potential branch branch lengths
-    potential_pori_branch_lengths <- g_table$Length[c(which(g_table$ID == potential_pori_branch_id[1]),
-                                                      which(g_table$ID == potential_pori_branch_id[2]))]
-    # Length of actual branch
-    actual_pori_branch          <- which(g_rooted$edge[,1] == pori_pn & g_rooted$edge[,2] == pori_cn)
-    actual_pori_branch_length  <- g_rooted$edge.length[actual_pori_branch]
-    # Identify the pori_table_id (g_table "ID" column value) by length
-    pori_table_id <- potential_pori_branch_id[which(round(potential_pori_branch_lengths, digits = 5) == round(actual_pori_branch_length, digits = 5))]
-    # Extract the row from the stat table for this pori_table_id
-    pori_values <- g_table[which(g_table$ID == pori_table_id), ]
-    names(pori_values) <- paste0("PORI_", names(pori_values))
+    # Check monophyly
+    if (is.monophyletic(q_rooted, pori_taxa) == TRUE){
+      # Extract MRCA
+      pori_cn <- getMRCA(g_rooted, pori_taxa) # child node
+      pori_pn <- g_rooted$edge[which(g_rooted$edge[,2] == pori_cn), 1] # parent node
+      # Potential branch ids
+      potential_pori_branch_id <- as.numeric(c(g_edge_table[which(g_edge_table$parent == pori_pn & g_edge_table$child == pori_cn), ]$par.name,
+                                               g_edge_table[which(g_edge_table$parent == pori_pn & g_edge_table$child == pori_cn), ]$chi.name))
+      # Potential branch branch lengths
+      potential_pori_branch_lengths <- g_table$Length[c(which(g_table$ID == potential_pori_branch_id[1]),
+                                                        which(g_table$ID == potential_pori_branch_id[2]))]
+      # Length of actual branch
+      actual_pori_branch          <- which(g_rooted$edge[,1] == pori_pn & g_rooted$edge[,2] == pori_cn)
+      actual_pori_branch_length  <- g_rooted$edge.length[actual_pori_branch]
+      # Identify the pori_table_id (g_table "ID" column value) by length
+      pori_table_id <- potential_pori_branch_id[which(round(potential_pori_branch_lengths, digits = 5) == round(actual_pori_branch_length, digits = 5))]
+      # Extract the row from the stat table for this pori_table_id
+      pori_values <- g_table[which(g_table$ID == pori_table_id), ]
+      names(pori_values) <- paste0("PORI_", names(pori_values))
+      pori_clade_monophyly <- "Monophyletic"
+    } else {
+      # Assign NA if paraphyletic
+      pori_values <- rep(NA, 11)
+      names(pori_values) <- paste0("PORI_", names(g_table))
+      pori_clade_monophyly <- "Paraphyletic"
+    }
   } else {
     # Assign NA if only 1 tip
     pori_values <- rep(NA, 11)
     names(pori_values) <- paste0("PORI_", names(g_table))
+    pori_clade_monophyly <- "Single_tip"
   }
   
   # Assemble output vector
-  gcf_output <- as.character(c(met_values, key_values, cten_values, pori_values))
-  names(gcf_output) <- c(names(met_values), names(key_values), names(cten_values), names(pori_values))
+  gcf_output <- as.character(c(met_values, key_values, cten_values, cten_clade_monophyly, pori_values, pori_clade_monophyly))
+  names(gcf_output) <- c(names(met_values), names(key_values), names(cten_values), "CTEN_monophyly", names(pori_values), "PORI_monophyly")
   return(gcf_output)
 }
 
@@ -503,72 +525,100 @@ extract.qcf <- function(dataset, matrix_name, topology,
   ## CTEN (leading to CTEN branch)
   # Identify tips in this group
   cten_taxa <- c(constraint_clades$Ctenophora)
+  # Check that more than one taxa is present
   if (length(cten_taxa) > 1){
-    # Extract MRCA
-    cten_cn <- getMRCA(q_rooted, cten_taxa) # child node
-    cten_pn <- q_rooted$edge[which(q_rooted$edge[,2] == cten_cn), 1] # parent node
-    # Extract the q_edge_table row
-    cten_q_edge_row <- q_edge_table[which(q_edge_table$parent == cten_pn & q_edge_table$child == cten_cn),]
-    # Extract parent and child nodes
-    clade_cten_cn <- extract.clade(q_rooted, cten_cn)
-    clade_cten_pn <- extract.clade(q_rooted, cten_pn)
-    # Check which clade has the right tips and use that node
-    if (setequal(clade_cten_cn$tip.label, cten_taxa) == TRUE){
-      # Extract child annotation from tree
-      cten_cn_lab <- q_rooted$node.label[(cten_cn-Ntip(q_rooted))]
-      # Clean string
-      cten_node_value <- gsub("\\[|\\]|'", "",  cten_cn_lab)
-    } else if (setequal(clade_cten_pn$tip.label, cten_taxa) == TRUE){
-      # Extract parent annotation from tree
-      cten_pn_lab <- q_rooted$node.label[(cten_pn-Ntip(q_rooted))]
-      # Clean string
-      cten_node_value <- gsub("\\[|\\]|'", "",  cten_pn_lab)
-    }
-    # Extract branch length
-    cten_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == cten_pn & q_rooted$edge[,2] == cten_cn)]
+    # Check monophyly
+    if (is.monophyletic(q_rooted, cten_taxa) == TRUE){
+      # Extract MRCA
+      cten_cn <- getMRCA(q_rooted, cten_taxa) # child node
+      cten_pn <- q_rooted$edge[which(q_rooted$edge[,2] == cten_cn), 1] # parent node
+      # Extract the q_edge_table row
+      cten_q_edge_row <- q_edge_table[which(q_edge_table$parent == cten_pn & q_edge_table$child == cten_cn),]
+      # Extract parent and child nodes
+      clade_cten_cn <- extract.clade(q_rooted, cten_cn)
+      clade_cten_pn <- extract.clade(q_rooted, cten_pn)
+      # Check which clade has the right tips and use that node
+      if (setequal(clade_cten_cn$tip.label, cten_taxa) == TRUE){
+        # Extract child annotation from tree
+        cten_cn_lab <- q_rooted$node.label[(cten_cn-Ntip(q_rooted))]
+        # Clean string
+        cten_node_value <- gsub("\\[|\\]|'", "",  cten_cn_lab)
+      } else if (setequal(clade_cten_pn$tip.label, cten_taxa) == TRUE){
+        # Extract parent annotation from tree
+        cten_pn_lab <- q_rooted$node.label[(cten_pn-Ntip(q_rooted))]
+        # Clean string
+        cten_node_value <- gsub("\\[|\\]|'", "",  cten_pn_lab)
+      } # END: if (setequal(clade_cten_cn$tip.label, cten_taxa) == TRUE){
+      # Extract branch length
+      cten_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == cten_pn & q_rooted$edge[,2] == cten_cn)]
+      # Add description of clade
+      cten_clade_monophyly    <- "Monophyletic"
+    } else {
+      # Assign NA if not monophyletic
+      cten_branch_length      <- NA
+      cten_node_value         <- NA
+      cten_clade_monophyly    <- "Paraphyletic"
+    } # END: if (is.monophyletic(q_rooted, cten_taxa) == TRUE){
   } else {
     # Assign NA if only 1 tip
     cten_branch_length  <- NA
     cten_node_value     <- NA
+    cten_clade_monophyly    <- "Single_tip"
   }
   
   ## PORI (leading to PORI branch)
   # Identify tips in this group
   pori_taxa <- c(constraint_clades$Porifera)
+  # Check number of taxa > 1
   if (length(pori_taxa) > 1){
-    # Extract MRCA
-    pori_cn <- getMRCA(q_rooted, pori_taxa) # child node
-    pori_pn <- q_rooted$edge[which(q_rooted$edge[,2] == pori_cn), 1] # parent node
-    # Extract the q_edge_table row
-    pori_q_edge_row <- q_edge_table[which(q_edge_table$parent == pori_pn & q_edge_table$child == pori_cn),]
-    # Extract parent and child nodes
-    clade_pori_cn <- extract.clade(q_rooted, pori_cn)
-    clade_pori_pn <- extract.clade(q_rooted, pori_pn)
-    # Check which clade has the right tips and use that node
-    if (setequal(clade_pori_cn$tip.label, pori_taxa) == TRUE){
-      # Extract child annotation from tree
-      pori_cn_lab <- q_rooted$node.label[(pori_cn-Ntip(q_rooted))]
-      # Clean string
-      pori_node_value <- gsub("\\[|\\]|'", "",  pori_cn_lab)
-    } else if (setequal(clade_pori_pn$tip.label, pori_taxa) == TRUE){
-      # Extract parent annotation from tree
-      pori_pn_lab <- q_rooted$node.label[(pori_pn-Ntip(q_rooted))]
-      # Clean string
-      pori_node_value <- gsub("\\[|\\]|'", "",  pori_pn_lab)
-    }
-    # Extract branch length
-    pori_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == pori_pn & q_rooted$edge[,2] == pori_cn)]
+    # Check monophyly
+    if (is.monophyletic(q_rooted, pori_taxa) == TRUE){
+      # Extract MRCA
+      pori_cn <- getMRCA(q_rooted, pori_taxa) # child node
+      pori_pn <- q_rooted$edge[which(q_rooted$edge[,2] == pori_cn), 1] # parent node
+      # Extract the q_edge_table row
+      pori_q_edge_row <- q_edge_table[which(q_edge_table$parent == pori_pn & q_edge_table$child == pori_cn),]
+      # Extract parent and child nodes
+      clade_pori_cn <- extract.clade(q_rooted, pori_cn)
+      clade_pori_pn <- extract.clade(q_rooted, pori_pn)
+      # Check which clade has the right tips and use that node
+      if (setequal(clade_pori_cn$tip.label, pori_taxa) == TRUE){
+        # Extract child annotation from tree
+        pori_cn_lab <- q_rooted$node.label[(pori_cn-Ntip(q_rooted))]
+        # Clean string
+        pori_node_value <- gsub("\\[|\\]|'", "",  pori_cn_lab)
+      } else if (setequal(clade_pori_pn$tip.label, pori_taxa) == TRUE){
+        # Extract parent annotation from tree
+        pori_pn_lab <- q_rooted$node.label[(pori_pn-Ntip(q_rooted))]
+        # Clean string
+        pori_node_value <- gsub("\\[|\\]|'", "",  pori_pn_lab)
+      } # END: if (setequal(clade_pori_cn$tip.label, pori_taxa) == TRUE){
+      # Extract branch length
+      pori_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == pori_pn & q_rooted$edge[,2] == pori_cn)]
+      # Add description of clade
+      pori_clade_monophyly    <- "Monophyletic"
+    } else {
+      # Assign NA if not monophyletic
+      pori_branch_length      <- NA
+      pori_node_value         <- NA
+      pori_clade_monophyly    <- "Paraphyletic"
+    } # END: if (is.monophyletic(q_rooted, pori_taxa) == TRUE){
   } else {
     # Assign NA if only 1 tip
-    pori_branch_length  <- NA
-    pori_node_value     <- NA
-  }
+    pori_branch_length      <- NA
+    pori_node_value         <- NA
+    pori_clade_monophyly    <- "Single_tip"
+  } # END:   if (length(pori_taxa) > 1){
   
   # Assemble output vector
-  qcf_output <- c(met_branch_length, met_node_value, key_branch_length, key_node_value, 
-                  cten_branch_length, cten_node_value, pori_branch_length, pori_node_value)
-  names(qcf_output) <- c("MET_branch_length", "MET_node_value", "KEY_branch_length", "KEY_node_value",
-                         "CTEN_branch_length", "CTEN_node_value", "PORI_branch_length", "PORI_node_value")
+  qcf_output <- c(met_branch_length, met_node_value, 
+                  key_branch_length, key_node_value, 
+                  cten_branch_length, cten_clade_monophyly, cten_node_value, 
+                  pori_branch_length, pori_clade_monophyly,  pori_node_value)
+  names(qcf_output) <- c("MET_branch_length", "MET_node_value", 
+                         "KEY_branch_length", "KEY_node_value",
+                         "CTEN_branch_length", "CTEN_monophyly", "CTEN_node_value", 
+                         "PORI_branch_length", "PORI_monophyly", "PORI_node_value")
   return(qcf_output)
 }
 
