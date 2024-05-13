@@ -633,7 +633,7 @@ reformat.qCF.df <- function(input_df){
   pori_rows <- which(input_df$tree_topology == "PORI")
   ctenpori_rows <- which(input_df$tree_topology == "CTEN_PORI")
   # Create new dataframe with columns for each topology
-  new_df <- data.frame(id = unlist(lapply(strsplit(gcf_collated_df$id[c(T,F,F)], "\\."), function(x){paste0(x[[1]], ".", x[[2]], ".", x[[3]])})),
+  new_df <- data.frame(id = unlist(lapply(strsplit(input_df$id[c(T,F,F)], "\\."), function(x){paste0(x[[1]], ".", x[[2]], ".", x[[3]])})),
                        dataset = input_df$dataset[c(T,F,F)],
                        matrix_name = input_df$matrix_name[c(T,F,F)],
                        dataset_id = input_df$dataset_id[c(T,F,F)],
