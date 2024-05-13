@@ -130,6 +130,10 @@ extract.gcf <- function(dataset, matrix_name, topology,
   actual_met_branch_length  <- g_rooted$edge.length[actual_met_branch]
   # Identify the met_table_id (g_table "ID" column value) by length
   met_table_id <- potential_met_branch_id[which(round(potential_met_branch_lengths, digits = 5) == round(actual_met_branch_length, digits = 5))]
+  # Check again with 1 less digit if no identical branch lengths
+  if (length(met_table_id) == 0){
+    met_table_id <- potential_met_branch_id[which(round(potential_met_branch_lengths, digits = 4) == round(actual_met_branch_length, digits = 4))]
+  }
   # Extract the row from the stat table for this met_table_id
   met_values <- g_table[which(g_table$ID == met_table_id), ]
   names(met_values) <- paste0("MET_", names(met_values))
@@ -162,6 +166,10 @@ extract.gcf <- function(dataset, matrix_name, topology,
   actual_key_branch_length  <- g_rooted$edge.length[actual_key_branch]
   # Identify the key_table_id (g_table "ID" column value) by length
   key_table_id <- potential_key_branch_id[which(round(potential_key_branch_lengths, digits = 5) == round(actual_key_branch_length, digits = 5))]
+  # Check again with 1 less digit if no identical branch lengths
+  if (length(key_table_id) == 0){
+    key_table_id <- potential_key_branch_id[which(round(potential_key_branch_lengths, digits = 4) == round(actual_key_branch_length, digits = 4))]
+  }
   # Extract the row from the stat table for this key_table_id
   key_values <- g_table[which(g_table$ID == key_table_id), ]
   names(key_values) <- paste0("KEY_", names(key_values))
