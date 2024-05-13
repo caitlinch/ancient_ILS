@@ -283,7 +283,13 @@ if (control$reformat.dataframes == TRUE){
   write.csv(gcf_clean_df, file = gcf_clean_df_file, row.names = FALSE)
   # New dataframe to check values
   check_gcf_df <- data.frame(id = gcf_clean_df$id, 
-                             sum_gcf = (gcf_clean_df$CTEN.KEY_gCF + gcf_clean_df$PORI.KEY_gCF + gcf_clean_df$CTENPORI.KEY_gCF + gcf_clean_df$CTEN.KEY_gDFP) )
+                             sum_gcf = (as.numeric(gcf_clean_df$CTEN.KEY_gCF) + 
+                                          as.numeric(gcf_clean_df$PORI.KEY_gCF) + 
+                                          as.numeric(gcf_clean_df$CTENPORI.KEY_gCF) + 
+                                          as.numeric(gcf_clean_df$CTEN.KEY_gDFP) ) )
+  # Save check dataframe
+  check_gcf_df_file  <- paste0(output_csv_dir, "gCF_check.csv")
+  write.csv(check_gcf_df, file = check_gcf_df_file, row.names = FALSE)
   
   ## Reformat qCF df
   # Call function to reformat dataframe
