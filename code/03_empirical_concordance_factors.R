@@ -181,7 +181,6 @@ if (control$extract.qcf == TRUE){
   }
   
   ## Extract gCF values
-  # Issues: 4:10
   gcf_output_list <- lapply(1:nrow(gcf_df), extract.gcf.wrapper, gcf_df = gcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)

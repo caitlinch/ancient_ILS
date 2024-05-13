@@ -172,7 +172,7 @@ extract.gcf <- function(dataset, matrix_name, topology,
   # Check more than one tip present
   if (length(cten_taxa) > 1){
     # Check monophyly
-    if (is.monophyletic(q_rooted, cten_taxa) == TRUE){
+    if (is.monophyletic(g_rooted, cten_taxa) == TRUE){
       # Extract MRCA
       cten_cn <- getMRCA(g_rooted, cten_taxa) # child node
       cten_pn <- g_rooted$edge[which(g_rooted$edge[,2] == cten_cn), 1] # parent node
@@ -201,7 +201,7 @@ extract.gcf <- function(dataset, matrix_name, topology,
     # Assign NA if only 1 tip
     cten_values <- rep(NA, 11)
     names(cten_values) <- paste0("CTEN_", names(g_table))
-    cten_clade_monophyly <- "Paraphyletic"
+    cten_clade_monophyly <- "Single_tip"
   }
   
   ## PORI (leading to PORI branch)
@@ -210,7 +210,7 @@ extract.gcf <- function(dataset, matrix_name, topology,
   # Check more than one tip present
   if (length(pori_taxa) > 1){
     # Check monophyly
-    if (is.monophyletic(q_rooted, pori_taxa) == TRUE){
+    if (is.monophyletic(g_rooted, pori_taxa) == TRUE){
       # Extract MRCA
       pori_cn <- getMRCA(g_rooted, pori_taxa) # child node
       pori_pn <- g_rooted$edge[which(g_rooted$edge[,2] == pori_cn), 1] # parent node
