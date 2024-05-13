@@ -225,8 +225,17 @@ if (control$extract.qcf == TRUE){
   } else {
     qcf_df <- read.csv(qcf_df_file, stringsAsFactors = FALSE)
   }
+
+  ## FIX ROWS:
+  #Chang2015 C60, Philippe2011 C60, Ryan2013 C60, Whelan2017 C60, Chang2015 Partition, Laumer2018 Partition, Philippe2011 Partition, Ryan2013 Partition
+  i_fix <- c(4:6, 25:27, 28:30,34:36, 40:42, 46:48, 61:63, 64:66)
+  
+  ## CHECK ROWS:
+  # Nosenko2013 ribosomal Partition, Philippe2009 Partition, Whelan2015 Partition
+  i_check <- c(55:57, 58:60, 67:69)
   
   ## Extract qCF values
+  i = 4
   qcf_output_list <- lapply(1:nrow(qcf_df), extract.qcf.wrapper, qcf_df = qcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)
