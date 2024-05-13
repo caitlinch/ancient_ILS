@@ -1,5 +1,5 @@
 # ancient_ILS/code/05_plot_figures_cf.R
-## This script plots result figures from simulation output
+## This script plots result figures from concordance factors output
 # Caitlin Cherryh, 2024
 
 ## These plots focus on the key branch, i.e., the branch with different rearrangements of the four clades
@@ -10,12 +10,14 @@
 #   For CTEN-PORI-Tree: "CTEN+PORI
 
 ###### 1. Input parameters ######
-## File paths
-# repo_dir                  <- location of caitlinch/ancient_ILS github repository
-# output_dir                <- location of csv files
+## Specify parameters:
+# repo_dir          <- Location of caitlinch/metazoan-mixtures github repository
+# output_csv_dir    <- Location of csv input/output/results files
+# plot_dir          <- Location to save plots
 
-repo_dir                    <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
-output_dir                  <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/05_output_files/"
+repo_dir          <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
+output_csv_dir    <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/07_output_files/"
+plot_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/08_figures/"
 
 
 
