@@ -228,7 +228,7 @@ if (control$extract.qcf == TRUE){
   
   ## Extract qCF values
   # i = 11,12,10
-  i = 11
+  i = 10
   qcf_output_list <- lapply(1:nrow(qcf_df), extract.qcf.wrapper, qcf_df = qcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)
