@@ -227,14 +227,6 @@ if (control$extract.qcf == TRUE){
   }
   
   ## Extract qCF values
-  ### FIX CODE NOTE: THIS WORKS FOR CTEN AND PORI topologies. This DOES NOTE WORK for the CTEN_PORI topology.
-  # Test dataset: Laumer2018.Tplx_BUSCOeuk.C60
-  # row 10: CTEN_PORI q1 = 0.2890
-  # row 11: CTEN q1 = 0.4089
-  # row 12: PORI q1 = 0.3021
-  # rows 10-12 sum to 1
-  # i = 11,12,10
-  i = 10
   qcf_output_list <- lapply(1:nrow(qcf_df), extract.qcf.wrapper, qcf_df = qcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)
