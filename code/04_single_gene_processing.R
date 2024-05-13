@@ -1,5 +1,5 @@
-## caitlinch/ancient_ILS/code/04_data_processing.R
-# This script estimates maximum likelihood trees under different models of substitution for 14 empirical data sets
+## caitlinch/ancient_ILS/code/04_single_gene_processing.R
+# This script processes results from the single-gene runs where each gene was constrained to the three possible topologies
 # Caitlin Cherryh 2023
 
 
