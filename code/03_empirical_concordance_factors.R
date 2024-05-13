@@ -177,10 +177,11 @@ if (control$extract.qcf == TRUE){
     # Write qCF_df
     write.csv(gcf_df, file = gcf_df_file, row.names = FALSE)
   } else {
-    gcf_df <- read.csv(gcf_df_file, stringsAsFactors = TRUE)
+    gcf_df <- read.csv(gcf_df_file, stringsAsFactors = FALSE)
   }
   
   ## Extract gCF values
+  # Issues: 4:10
   gcf_output_list <- lapply(1:nrow(gcf_df), extract.gcf.wrapper, gcf_df = gcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)
@@ -293,6 +294,10 @@ if (control$reformat.dataframes == TRUE){
   write.csv(qcf_clean_df, file = qcf_clean_df_file, row.names = FALSE)
   # New dataframe to check values
   check_qcf_df <- data.frame(id = qcf_clean_df$id, 
-                             sum_q = (qcf_clean_df$CTEN.KEY_quartet_support + qcf_clean_df$PORI.KEY_quartet_support + qcf_clean_df$CTENPORI.KEY_quartet_support),
-                             sum_f = (qcf_clean_df$CTEN.KEY_quartet_tree_freq + qcf_clean_df$PORI.KEY_quartet_tree_freq + qcf_clean_df$CTENPORI.KEY_quartet_tree_freq) )
+                             sum_q = (as.numeric(qcf_clean_df$CTEN.KEY_quartet_support) + 
+                                        as.numeric(qcf_clean_df$PORI.KEY_quartet_support) + 
+                                        as.numeric(qcf_clean_df$CTENPORI.KEY_quartet_support)) )
+  # Save check dataframe
+  check_qcf_df_file  <- paste0(output_csv_dir, "qCF_check.csv")
+  write.csv(check_qcf_df, file = check_qcf_df_file, row.names = FALSE)
 }
