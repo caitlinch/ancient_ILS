@@ -225,17 +225,13 @@ if (control$extract.qcf == TRUE){
   } else {
     qcf_df <- read.csv(qcf_df_file, stringsAsFactors = FALSE)
   }
-
-  ## FIX ROWS:
-  # C60: Chang2015, Philippe2011, Ryan2013, Whelan2017
-  # Partition: Dunn2008, Laumer2018, Moroz2014, Nosenko2013 Nonribo, Nosenko2013 Ribo. Philippe2009, Ryan2013, Whelan2015, Whelan2017
-  i_fix <- c(25:27, 28:30, 34:36, 40:42, 43:45, 46:48, 49:51, 52:54, 55:57, 58:60, 64:66, 67:69, 70:72)
   
   ## Extract qCF values
   qcf_df$analysis_id <- paste0(qcf_df$dataset_id, ".", qcf_df$model)
   qcf_params <- unique(qcf_df$analysis_id)
-  i <- qcf_params[1]
-  qcf_output_list <- lapply(qcf_params, extract.qcf.wrapper, qcf_df = qcf_df, 
+  # Errors: i = 8, 10, 12, 14, 16, 19, 20, 22, 23
+  i = qcf_params[10]
+  qcf_output_list <- lapply(i, extract.qcf.wrapper, qcf_df = qcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)
   
