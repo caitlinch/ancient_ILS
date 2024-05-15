@@ -228,10 +228,10 @@ if (control$extract.qcf == TRUE){
 
   ## FIX ROWS:
   # C60: Chang2015, Philippe2011, Ryan2013, Whelan2017
-  # Partition: Chang2015, Dunn2008, Laumer2018, Moroz2014, Nosenko2013 Nonribo, Nosenko2013 Ribo. Philippe2009, Ryan2013, Whelan2015, Whelan2017
-  i_fix <- c(4:6, 25:27, 28:30, 34:36, 40:42, 43:45, 46:48, 49:51, 52:54, 55:57, 58:60, 64:66, 67:69, 70:72)
-  # Chang2015 C60: 5, 6 ,4
-  i = 6
+  # Partition: Dunn2008, Laumer2018, Moroz2014, Nosenko2013 Nonribo, Nosenko2013 Ribo. Philippe2009, Ryan2013, Whelan2015, Whelan2017
+  i_fix <- c(25:27, 28:30, 34:36, 40:42, 43:45, 46:48, 49:51, 52:54, 55:57, 58:60, 64:66, 67:69, 70:72)
+  # Dunn2008 C60: 26, 27, 25
+  i = 26
   
   ## Extract qCF values
   qcf_output_list <- lapply(1:nrow(qcf_df), extract.qcf.wrapper, qcf_df = qcf_df, 

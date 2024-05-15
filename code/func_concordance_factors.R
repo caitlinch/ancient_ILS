@@ -492,7 +492,6 @@ extract.qcf <- function(dataset, matrix_name, topology,
   #     as sometimes PLAC placement is sister to PORI which will result in 
   #     extracting the wrong branch
   if (topology == "CTEN" | topology == "PORI"){
-    print("check topology")
     # Specify key taxa
     if (topology == "CTEN"){
       key_taxa <- c(constraint_clades$Porifera, constraint_clades$Cnidaria, constraint_clades$Bilateria)
@@ -501,31 +500,26 @@ extract.qcf <- function(dataset, matrix_name, topology,
     } 
     # Extract node value, if there's more than 1 taxon in the key_taxa clade
     if (length(key_taxa) > 1){
-      print(">1 key taxa")
       # Extract MRCA
       key_cn <- getMRCA(q_rooted, key_taxa) # child node
       key_pn <- q_rooted$edge[which(q_rooted$edge[,2] == key_cn), 1] # parent node
       # Extract the node that's identical to the key_check_node (i.e., the node that connects to the MET node)
       if (key_cn == key_check_node){
-        print("key_cn == key_check_node")
         # If the key_check_node and the child node are identical, then we want to extract values from the parent node
         # Extract child annotation from tree
         key_pn_lab <- q_rooted$node.label[(key_pn-Ntip(q_rooted))]
         # Clean string
         key_node_value <- gsub("\\[|\\]|'", "",  key_pn_lab)
       } else if (key_pn == key_check_node){
-        print("key_pn == key_check_node")
         # If the key_check_node and the parent node are identical, then we want to extract values from the child node
         # Extract parent annotation from tree
         key_cn_lab <- q_rooted$node.label[(key_cn-Ntip(q_rooted))]
         # Clean string
         key_node_value <- gsub("\\[|\\]|'", "",  key_cn_lab)
       }
-      print("branch length")
       # Extract branch length
       key_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == key_pn & q_rooted$edge[,2] == key_cn)]
     } else {
-      print("one tip")
       # Assign NA if only 1 tip
       key_branch_length  <- NA
       key_node_value     <- NA
