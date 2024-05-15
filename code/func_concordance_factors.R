@@ -404,8 +404,8 @@ extract.qcf.wrapper <- function(i, qcf_df,
                                        constraint_clades)
   # Extract QC and EN values
   ctenpori_node_split <- strsplit(ctenpori_qcf[["KEY_node_value"]], "\\;")[[1]]
-  ctenpori_qc <- gsub("QC=", "", grep("QC", ctenpori_node_split, value = T))
-  ctenpori_en <- gsub("EN=", "", grep("EN", ctenpori_node_split, value = T))
+  ctenpori_qc <- grep("QC", ctenpori_node_split, value = T)
+  ctenpori_en <- grep("EN", ctenpori_node_split, value = T)
   
   ## Extract qCF depending on topology
   cten_qcf <- extract.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "CTEN",
@@ -450,9 +450,24 @@ extract.qcf <- function(dataset, matrix_name, topology,
   )
   
   ## Branches to extract length and node values:
-  
-  
   ## Key branch (leading to ALL OTHER ANIMALS aka PLAC+CNID+BILAT)
+  # Extract KEY node value
+  key_node_search <- grep(ctenpori_en, grep(ctenpori_qc, q_rooted$node.label, value = T), value = T)
+  key_node_value <- gsub("\\[|\\]|'", "",  key_node_search) # remove punctuation
+  if (length(key_node_value) > 1){
+    # Print error statement if >1 nodes match the regex
+    print(paste0("ERROR - TOO MANY NODES: ", dataset, ", ", matrix_name, ", ", topology))
+  }
+  # Extract KEY branch length
+  if (topology == "CTEN"){
+    key_taxa <- c(constraint_clades$Porifera, constraint_clades$Cnidaria, constraint_clades$Bilateria)
+  } else if (topology == "PORI"){
+    key_taxa <- c(constraint_clades$Ctenophora, constraint_clades$Cnidaria, constraint_clades$Bilateria)
+  } 
+  key_cn <- getMRCA(q_rooted, key_taxa) # child node
+  key_pn <- q_rooted$edge[which(q_rooted$edge[,2] == key_cn), 1] # parent node
+  key_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == key_pn & q_rooted$edge[,2] == key_cn)]
+  
   # Identify tips in this group - do not include PLAC when identifying MRCA, 
   #     as sometimes PLAC placement is sister to PORI which will result in 
   #     extracting the wrong branch
