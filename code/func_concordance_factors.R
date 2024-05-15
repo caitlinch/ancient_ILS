@@ -721,22 +721,7 @@ extract.CTENPORI.qcf <- function(dataset, matrix_name, topology,
                         tree = q_rooted)
   )
   
-  # ## For the CTEN_PORI clade, identify key_check_node using the METAZOA clade
-  # # Extract outgroup
-  # og_clade <- keep.tip(q_rooted, c(constraint_clades$Outgroup, constraint_clades$Porifera, constraint_clades$Cnidaria))
-  # # Extract the nodes from the MRCA, using the different clades
-  # cnidpori_mrca <- getMRCA(og_clade, c(constraint_clades$Porifera, constraint_clades$Cnidaria))
-  # og_mrca <- getMRCA(og_clade, constraint_clades$Outgroup)
-  # # Extract the node values from the highest node in the outgroup
-  # og_branch <- which(og_clade$edge[,1] == og_mrca & og_clade$edge[,2] == cnidpori_mrca)
-  # # Extract the MET node value
-  # og_node_label <- og_clade$node.label[(cnidpori_mrca-Ntip(og_clade))]
-  # # Clean string
-  # met_node_value <- gsub("\\[|\\]|'", "",  og_node_label)
-  # # Extract branch length
-  # met_branch_length <- og_clade$edge.length[og_branch]
-  
-  # Feed in the child node to the KEY check below
+  ## For the CTEN_PORI clade, identify key_check_node within the METAZOA clade
   key_check_node <- getMRCA(q_rooted, c(constraint_clades$Porifera, constraint_clades$Cnidaria))
 
   ## Key branch (leading to ALL OTHER ANIMALS aka PLAC+CNID+BILAT)
