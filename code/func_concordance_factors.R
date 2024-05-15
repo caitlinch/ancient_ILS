@@ -557,12 +557,10 @@ extract.qcf <- function(dataset, matrix_name, topology,
   } # END:   if (length(pori_taxa) > 1){
   
   # Assemble output vector
-  qcf_output <- c(met_branch_length, met_node_value, 
-                  key_branch_length, key_node_value, 
+  qcf_output <- c(key_branch_length, key_node_value, 
                   cten_branch_length, cten_clade_monophyly, cten_node_value, 
                   pori_branch_length, pori_clade_monophyly,  pori_node_value)
-  names(qcf_output) <- c("MET_branch_length", "MET_node_value", 
-                         "KEY_branch_length", "KEY_node_value",
+  names(qcf_output) <- c("KEY_branch_length", "KEY_node_value",
                          "CTEN_branch_length", "CTEN_monophyly", "CTEN_node_value", 
                          "PORI_branch_length", "PORI_monophyly", "PORI_node_value")
   return(qcf_output)
@@ -625,17 +623,17 @@ extract.CTENPORI.qcf <- function(dataset, matrix_name, topology,
       key_check_nodes <- key_check_nodes[which(key_check_nodes > Ntip(q_rooted))] # Remove external branches. Keep internal nodes.
       # Iterate and test the nodes
       key_node <- c()
-      for (i in 1:length(key_check_nodes)){
+      for (j in 1:length(key_check_nodes)){
         # Extract the tips in the clade defined by this node
-        i_node          <- key_check_nodes[i]
-        i_clade         <- extract.clade(q_rooted, i_node)
-        i_tips          <- i_clade$tip.label
-        i_tips_noPlac   <- i_tips[ which( ! (i_tips %in% constraint_clades$Placozoa) ) ]
+        j_node          <- key_check_nodes[j]
+        j_clade         <- extract.clade(q_rooted, j_node)
+        j_tips          <- j_clade$tip.label
+        j_tips_noPlac   <- j_tips[ which( ! (j_tips %in% constraint_clades$Placozoa) ) ]
         # Check whether the tips in this clade are the same as the tips in the CTEN_PORI clade
-        if (setequal(i_tips_noPlac, key_taxa) == TRUE){
-          key_node <- c(i_node)
-        } # end: if (setequal(i_tips_noPlac, key_taxa) == TRUE){
-      } # end: for (i in 1:length(key_check_nodes)){
+        if (setequal(j_tips_noPlac, key_taxa) == TRUE){
+          key_node <- c(j_node)
+        } # end: if (setequal(j_tips_noPlac, key_taxa) == TRUE){
+      } # end: for (j in 1:length(key_check_nodes)){
       # Extract node annotation from tree
       key_lab <- q_rooted$node.label[(key_node-Ntip(q_rooted))]
       # Clean string
