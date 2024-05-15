@@ -342,8 +342,14 @@ extract.qcf.wrapper <- function(i, qcf_df,
                           ctenpori_QC = ctenpori_QC, ctenpori_EN = ctenpori_EN,
                           constraint_clades = constraint_clades)
   
+  ## Create a nice dataset
+  qcf_output <- as.data.frame(rbind(as.character(c(i_rows[which(i_rows$tree_topology == "CTEN_PORI"), ], ctenpori_qcf)), 
+                                    as.character(c(i_rows[which(i_rows$tree_topology == "CTEN"), ], cten_qcf)), 
+                                    as.character(c(i_rows[which(i_rows$tree_topology == "PORI"), ], pori_qcf))))
+  names(qcf_output) <- c(names(i_rows), names(ctenpori_qcf))
+  
   ## Return the qCF values for this tree along with the tree parameters
-  return(qcf_extracted)
+  return(qcf_output)
 }
 
 
