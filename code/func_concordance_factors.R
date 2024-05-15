@@ -329,17 +329,17 @@ extract.qcf.wrapper <- function(i, qcf_df,
                                        constraint_clades)
   # Extract QC and EN values
   ctenpori_node_split <- strsplit(ctenpori_qcf[["KEY_node_value"]], "\\;")[[1]]
-  ctenpori_qc <- grep("QC", ctenpori_node_split, value = T)
-  ctenpori_en <- grep("EN", ctenpori_node_split, value = T)
+  ctenpori_QC <- grep("QC", ctenpori_node_split, value = T)
+  ctenpori_EN <- grep("EN", ctenpori_node_split, value = T)
   
   ## Extract qCF depending on topology
   cten_qcf <- extract.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "CTEN",
                           tree_file = i_rows[which(i_rows$tree_topology == "CTEN"), "qcf_tree_file"], 
-                          ctenpori_qc = ctenpori_qc, ctenpori_en = ctenpori_en,
+                          ctenpori_QC = ctenpori_QC, ctenpori_EN = ctenpori_EN,
                           constraint_clades = constraint_clades)
   pori_qcf <- extract.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "PORI",
                           tree_file = i_rows[which(i_rows$tree_topology == "PORI"), "qcf_tree_file"], 
-                          ctenpori_qc = ctenpori_qc, ctenpori_en = ctenpori_en,
+                          ctenpori_QC = ctenpori_QC, ctenpori_EN = ctenpori_EN,
                           constraint_clades = constraint_clades)
   
   ## Return the qCF values for this tree along with the tree parameters
@@ -349,7 +349,7 @@ extract.qcf.wrapper <- function(i, qcf_df,
 
 
 extract.qcf <- function(dataset, matrix_name, topology, 
-                        ctenpori_qc, ctenpori_en, 
+                        ctenpori_QC, ctenpori_EN, 
                         tree_file, constraint_clades){
   # Function to extract qCF for CTEN or PORI constrained tree topologies
   
@@ -377,7 +377,7 @@ extract.qcf <- function(dataset, matrix_name, topology,
   ## Branches to extract length and node values:
   ## Key branch (leading to ALL OTHER ANIMALS aka PLAC+CNID+BILAT)
   # Extract KEY node value
-  key_node_search <- grep(ctenpori_en, grep(ctenpori_qc, q_rooted$node.label, value = T), value = T)
+  key_node_search <- grep(ctenpori_EN, grep(ctenpori_QC, q_rooted$node.label, value = T), value = T)
   key_node_value <- gsub("\\[|\\]|'", "",  key_node_search) # remove punctuation
   if (length(key_node_value) > 1){
     # Print error statement if >1 nodes match the regex
