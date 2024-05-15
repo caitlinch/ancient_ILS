@@ -412,6 +412,10 @@ extract.qcf <- function(dataset, matrix_name, topology,
   q_tree <- read.tree(tree_file)
   # Root tree at outgroup
   q_rooted <- root(q_tree, constraint_clades$Outgroup)
+  # Drop Placozoa taxa
+  if (length(constraint_clades$Placozoa) > 0){
+    q_rooted <- drop.tip(q_rooted, constraint_clades$Placozoa)
+  }
   
   ## Make an edge table with nodes and node labels
   q_edge_table <- data.frame(
@@ -430,34 +434,74 @@ extract.qcf <- function(dataset, matrix_name, topology,
   # Identify tips in this group
   met_taxa <- c(constraint_clades$Bilateria, constraint_clades$Cnidaria, constraint_clades$Placozoa, 
                 constraint_clades$Porifera, constraint_clades$Ctenophora)
-  # Extract MRCA
-  met_cn <- getMRCA(q_rooted, met_taxa) # child node
-  met_pn <- q_rooted$edge[which(q_rooted$edge[,2] == met_cn), 1] # parent_node
-  met_og <- getMRCA(q_rooted, constraint_clades$Outgroup) # Outgroup node
-  # Extract the node that's identical to the outgroup node
-  if (met_cn == met_og){
-    # Extract child annotation from tree
-    met_cn_lab <- q_rooted$node.label[(met_cn-Ntip(q_rooted))]
+  if (topology == "CTEN"){
+    ## For CTEN topology
+    # Extract outgroup
+    og_clade <- keep.tip(q_rooted, c(constraint_clades$Outgroup, constraint_clades$Ctenophora, constraint_clades$Porifera))
+    # Extract the nodes from the MRCA, using the different clades
+    ctenpori_mrca <- getMRCA(og_clade, c(constraint_clades$Ctenophora, constraint_clades$Porifera))
+    og_mrca <- getMRCA(og_clade, constraint_clades$Outgroup)
+    # Extract the node values from the highest node in the outgroup
+    og_branch <- which(og_clade$edge[,1] == og_mrca & og_clade$edge[,2] == ctenpori_mrca)
+    # Extract the MET node value
+    og_node_label <- og_clade$node.label[(ctenpori_mrca-Ntip(og_clade))]
     # Clean string
-    met_node_value <- gsub("\\[|\\]|'", "",  met_cn_lab)
-    # Feed in the parent node to the KEY check below
-    key_check_node <- met_pn
-  } else if (met_pn == met_og){
-    # Extract parent annotation from tree
-    met_pn_lab <- q_rooted$node.label[(met_pn-Ntip(q_rooted))]
-    # Clean string
-    met_node_value <- gsub("\\[|\\]|'", "",  met_pn_lab)
+    met_node_value <- gsub("\\[|\\]|'", "",  og_node_label)
     # Feed in the child node to the KEY check below
-    key_check_node <- met_cn
+    key_check_node <- getMRCA(q_rooted, c(constraint_clades$Ctenophora, constraint_clades$Porifera))
+    # Extract branch length
+    met_branch_length <- og_clade$edge.length[og_branch]
+  } else if (topology == "PORI"){
+    ## For CTEN topology
+    # Extract outgroup
+    og_clade <- keep.tip(q_rooted, c(constraint_clades$Outgroup, constraint_clades$Porifera, constraint_clades$Ctenophora))
+    # Extract the nodes from the MRCA, using the different clades
+    ctenpori_mrca <- getMRCA(og_clade, c(constraint_clades$Porifera, constraint_clades$Ctenophora, ))
+    og_mrca <- getMRCA(og_clade, constraint_clades$Outgroup)
+    # Extract the node values from the highest node in the outgroup
+    og_branch <- which(og_clade$edge[,1] == og_mrca & og_clade$edge[,2] == ctenpori_mrca)
+    # Extract the MET node value
+    og_node_label <- og_clade$node.label[(ctenpori_mrca-Ntip(og_clade))]
+    # Clean string
+    met_node_value <- gsub("\\[|\\]|'", "",  og_node_label)
+    # Feed in the child node to the KEY check below
+    key_check_node <- getMRCA(q_rooted, c(constraint_clades$Porifera, constraint_clades$Ctenophora))
+    # Extract branch length
+    met_branch_length <- og_clade$edge.length[og_branch]
+  } else if (topology == "CTEN_PORI" | topology == "CTEN.PORI"){
+    ## For CTEN_PORI topology
+    # Extract MRCA
+    met_cn <- getMRCA(q_rooted, met_taxa) # child node
+    met_pn <- q_rooted$edge[which(q_rooted$edge[,2] == met_cn), 1] # parent_node
+    met_og <- getMRCA(q_rooted, constraint_clades$Outgroup) # Outgroup node
+    # Extract outgroup
+    og_clade <- keep.tip(q_rooted, constraint_clades$Outgroup)
+    # Extract the node that's identical to the outgroup node
+    if (met_cn == met_og){
+      # Extract child annotation from tree
+      met_cn_lab <- q_rooted$node.label[(met_cn-Ntip(q_rooted))]
+      # Clean string
+      met_node_value <- gsub("\\[|\\]|'", "",  met_cn_lab)
+      # Feed in the parent node to the KEY check below
+      key_check_node <- met_pn
+    } else if (met_pn == met_og){
+      # Extract parent annotation from tree
+      met_pn_lab <- q_rooted$node.label[(met_pn-Ntip(q_rooted))]
+      # Clean string
+      met_node_value <- gsub("\\[|\\]|'", "",  met_pn_lab)
+      # Feed in the child node to the KEY check below
+      key_check_node <- met_cn
+    }
+    # Extract branch length
+    met_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == met_pn & q_rooted$edge[,2] == met_cn)]
   }
-  # Extract branch length
-  met_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == met_pn & q_rooted$edge[,2] == met_cn)]
   
   ## Key branch (leading to ALL OTHER ANIMALS aka PLAC+CNID+BILAT)
   # Identify tips in this group - do not include PLAC when identifying MRCA, 
   #     as sometimes PLAC placement is sister to PORI which will result in 
   #     extracting the wrong branch
   if (topology == "CTEN" | topology == "PORI"){
+    print("check topology")
     # Specify key taxa
     if (topology == "CTEN"){
       key_taxa <- c(constraint_clades$Porifera, constraint_clades$Cnidaria, constraint_clades$Bilateria)
@@ -465,25 +509,32 @@ extract.qcf <- function(dataset, matrix_name, topology,
       key_taxa <- c(constraint_clades$Ctenophora, constraint_clades$Cnidaria, constraint_clades$Bilateria)
     } 
     # Extract node value, if there's more than 1 taxon in the key_taxa clade
-    if (length(key_taxa > 1)){
+    if (length(key_taxa) > 1){
+      print(">1 key taxa")
       # Extract MRCA
       key_cn <- getMRCA(q_rooted, key_taxa) # child node
       key_pn <- q_rooted$edge[which(q_rooted$edge[,2] == key_cn), 1] # parent node
       # Extract the node that's identical to the key_check_node (i.e., the node that connects to the MET node)
       if (key_cn == key_check_node){
+        print("key_cn == key_check_node")
+        # If the key_check_node and the child node are identical, then we want to extract values from the parent node
         # Extract child annotation from tree
-        key_cn_lab <- q_rooted$node.label[(key_cn-Ntip(q_rooted))]
-        # Clean string
-        key_node_value <- gsub("\\[|\\]|'", "",  key_cn_lab)
-      } else if (key_pn == key_check_node){
-        # Extract parent annotation from tree
         key_pn_lab <- q_rooted$node.label[(key_pn-Ntip(q_rooted))]
         # Clean string
         key_node_value <- gsub("\\[|\\]|'", "",  key_pn_lab)
+      } else if (key_pn == key_check_node){
+        print("key_pn == key_check_node")
+        # If the key_check_node and the parent node are identical, then we want to extract values from the child node
+        # Extract parent annotation from tree
+        key_cn_lab <- q_rooted$node.label[(key_cn-Ntip(q_rooted))]
+        # Clean string
+        key_node_value <- gsub("\\[|\\]|'", "",  key_cn_lab)
       }
+      print("branch length")
       # Extract branch length
       key_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == key_pn & q_rooted$edge[,2] == key_cn)]
     } else {
+      print("one tip")
       # Assign NA if only 1 tip
       key_branch_length  <- NA
       key_node_value     <- NA
