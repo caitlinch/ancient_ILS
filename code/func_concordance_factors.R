@@ -23,47 +23,9 @@ extract.gcf.wrapper <- function(i, gcf_df,
   ## Extract the single row from the qCF dataframe
   row <- gcf_df[i, ]
   
-  ## Extract the relevant list of taxa for this dataframe
-  # First, check whether this matrix is included in the keys of the matrix_taxa list
-  row_dataset <- row$dataset
-  row_key <- paste0(row$dataset, ".", row$matrix_name, ".", "aa")
-  list_keys <- names(matrix_taxa)
-  # Check if row_key in list_key
-  if ((row_key %in% list_keys) == FALSE){
-    # If row key is not in list key, then all taxa for this dataset have the same names
-    # Extract the object containing those taxa names
-    constraint_clades <- all_datasets[[row_dataset]]
-  } else if ((row_key %in% list_keys) == TRUE){
-    # First, identify the list of taxa in this matrix
-    keep_taxa <- matrix_taxa[[row_key]]
-    # Secondly, extract the taxa clades for this dataset
-    dataset_taxa_clades <- all_datasets[[row_dataset]]
-    # Make a copy of the clades object
-    constraint_clades <- dataset_taxa_clades
-    # Lastly, remove any taxa that is NOT in the keep_taxa from the constraint clades
-    #   i.e., remove any taxa from this dataset that are NOT present in this matrix
-    #   (as some datasets have multiple matrices, with different taxon sampling or different taxon naming conventions)
-    constraint_clades$Bilateria <- dataset_taxa_clades$Bilateria[which(dataset_taxa_clades$Bilateria %in% keep_taxa)]
-    constraint_clades$Cnidaria <- dataset_taxa_clades$Cnidaria[which(dataset_taxa_clades$Cnidaria %in% keep_taxa)]
-    constraint_clades$Placozoa <- dataset_taxa_clades$Placozoa[which(dataset_taxa_clades$Placozoa %in% keep_taxa)]
-    constraint_clades$Porifera <- dataset_taxa_clades$Porifera[which(dataset_taxa_clades$Porifera %in% keep_taxa)]
-    constraint_clades$Ctenophora <- dataset_taxa_clades$Ctenophora[which(dataset_taxa_clades$Ctenophora %in% keep_taxa)]
-    constraint_clades$Outgroup <- dataset_taxa_clades$Outgroup[which(dataset_taxa_clades$Outgroup %in% keep_taxa)]
-  }
-  
-  ## Remove any taxa from the constraint_clades that are not included in the ML tree for the alignment
-  # Extract the column of tip labels from the relevant unique_id column of the alignment_taxa_df
-  al_col_key <- paste0(row$dataset, ".", row$matrix_name)
-  tree_tips_raw <- alignment_taxa_df[[c(al_col_key)]]
-  tree_tips_cleaned <- na.omit(tree_tips_raw)
-  tree_tips <- as.character(tree_tips_cleaned)
-  # Check each of the clades and remove any tips not in the list of tree tips
-  constraint_clades$Bilateria <- constraint_clades$Bilateria[(constraint_clades$Bilateria %in% tree_tips)]
-  constraint_clades$Cnidaria <- constraint_clades$Cnidaria[(constraint_clades$Cnidaria %in% tree_tips)]
-  constraint_clades$Placozoa <- constraint_clades$Placozoa[(constraint_clades$Placozoa %in% tree_tips)]
-  constraint_clades$Porifera <- constraint_clades$Porifera[(constraint_clades$Porifera %in% tree_tips)]
-  constraint_clades$Ctenophora <- constraint_clades$Ctenophora[(constraint_clades$Ctenophora %in% tree_tips)]
-  constraint_clades$Outgroup <- constraint_clades$Outgroup[(constraint_clades$Outgroup %in% tree_tips)]
+  ## Extract the list of taxa in this dataset
+  constraint_clades <- set.taxa(dataset_name = row_dataset, matrix_name = row$matrix_name,
+                                all_datasets = all_datasets, matrix_taxa = matrix_taxa, alignment_taxa_df = alignment_taxa_df)
   
   ## Extract qCF depending on topology
   gcf_extracted <- extract.gcf(dataset = row_dataset, matrix_name = row$matrix_name, topology = row$tree_topology,
@@ -357,46 +319,9 @@ extract.qcf.wrapper <- function(i, qcf_df,
   i_model     <- i_split[[3]]
   i_rows      <- qcf_df[which(qcf_df$dataset == i_dataset & qcf_df$matrix_name == i_matrix & qcf_df$model == i_model), ]
   
-  ## Extract the relevant list of taxa for this dataframe
-  # First, check whether this matrix is included in the keys of the matrix_taxa list
-  row_key   <- paste0(i_dataset, ".", i_matrix, ".", "aa")
-  list_keys <- names(matrix_taxa)
-  # Check if row_key in list_key
-  if ((row_key %in% list_keys) == FALSE){
-    # If row key is not in list key, then all taxa for this dataset have the same names
-    # Extract the object containing those taxa names
-    constraint_clades   <- all_datasets[[i_dataset]]
-  } else if ((row_key %in% list_keys) == TRUE){
-    # First, identify the list of taxa in this matrix
-    keep_taxa           <- matrix_taxa[[row_key]]
-    # Secondly, extract the taxa clades for this dataset
-    dataset_taxa_clades <- all_datasets[[i_dataset]]
-    # Make a copy of the clades object
-    constraint_clades   <- dataset_taxa_clades
-    # Lastly, remove any taxa that is NOT in the keep_taxa from the constraint clades
-    #   i.e., remove any taxa from this dataset that are NOT present in this matrix
-    #   (as some datasets have multiple matrices, with different taxon sampling or different taxon naming conventions)
-    constraint_clades$Bilateria   <- dataset_taxa_clades$Bilateria[which(dataset_taxa_clades$Bilateria %in% keep_taxa)]
-    constraint_clades$Cnidaria    <- dataset_taxa_clades$Cnidaria[which(dataset_taxa_clades$Cnidaria %in% keep_taxa)]
-    constraint_clades$Placozoa    <- dataset_taxa_clades$Placozoa[which(dataset_taxa_clades$Placozoa %in% keep_taxa)]
-    constraint_clades$Porifera    <- dataset_taxa_clades$Porifera[which(dataset_taxa_clades$Porifera %in% keep_taxa)]
-    constraint_clades$Ctenophora  <- dataset_taxa_clades$Ctenophora[which(dataset_taxa_clades$Ctenophora %in% keep_taxa)]
-    constraint_clades$Outgroup    <- dataset_taxa_clades$Outgroup[which(dataset_taxa_clades$Outgroup %in% keep_taxa)]
-  }
-  
-  ## Remove any taxa from the constraint_clades that are not included in the ML tree for the alignment
-  # Extract the column of tip labels from the relevant unique_id column of the alignment_taxa_df
-  al_col_key        <- paste0(i_dataset, ".", i_matrix)
-  tree_tips_raw     <- alignment_taxa_df[[c(al_col_key)]]
-  tree_tips_cleaned <- na.omit(tree_tips_raw)
-  tree_tips         <- as.character(tree_tips_cleaned)
-  # Check each of the clades and remove any tips not in the list of tree tips
-  constraint_clades$Bilateria   <- constraint_clades$Bilateria[(constraint_clades$Bilateria %in% tree_tips)]
-  constraint_clades$Cnidaria    <- constraint_clades$Cnidaria[(constraint_clades$Cnidaria %in% tree_tips)]
-  constraint_clades$Placozoa    <- constraint_clades$Placozoa[(constraint_clades$Placozoa %in% tree_tips)]
-  constraint_clades$Porifera    <- constraint_clades$Porifera[(constraint_clades$Porifera %in% tree_tips)]
-  constraint_clades$Ctenophora  <- constraint_clades$Ctenophora[(constraint_clades$Ctenophora %in% tree_tips)]
-  constraint_clades$Outgroup    <- constraint_clades$Outgroup[(constraint_clades$Outgroup %in% tree_tips)]
+  ## Extract the list of taxa in this dataset
+  constraint_clades <- set.taxa(dataset_name = i_dataset, matrix_name = i_matrix,
+                                all_datasets = all_datasets, matrix_taxa = matrix_taxa, alignment_taxa_df = alignment_taxa_df)
   
   ## Extract CTEN_PORI clade values
   ctenpori_qcf <- extract.CTENPORI.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "CTEN_PORI", 
