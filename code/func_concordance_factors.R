@@ -424,8 +424,9 @@ extract.qcf.wrapper <- function(i, qcf_df,
 
 
 extract.qcf <- function(dataset, matrix_name, topology, 
+                        ctenpori_qc, ctenpori_en, 
                         tree_file, constraint_clades){
-  # Function to extract qCF for any constrained tree topology (CTEN, PORI, CTEN_PORI)
+  # Function to extract qCF for CTEN or PORI constrained tree topologies
   
   ## Open tree with qCF annotation
   q_tree <- read.tree(tree_file)
@@ -449,62 +450,7 @@ extract.qcf <- function(dataset, matrix_name, topology,
   )
   
   ## Branches to extract length and node values:
-  ## All animals (CTEN+PORI+CNID+BILAT+PLAC)
-  # Identify tips in this group
-  met_taxa <- c(constraint_clades$Bilateria, constraint_clades$Cnidaria, constraint_clades$Placozoa, 
-                constraint_clades$Porifera, constraint_clades$Ctenophora)
-  if (topology == "CTEN"){
-    ## For CTEN topology
-    # Extract outgroup
-    og_clade <- keep.tip(q_rooted, c(constraint_clades$Outgroup, constraint_clades$Ctenophora, constraint_clades$Porifera))
-    # Extract the nodes from the MRCA, using the different clades
-    ctenpori_mrca <- getMRCA(og_clade, c(constraint_clades$Ctenophora, constraint_clades$Porifera))
-    og_mrca <- getMRCA(og_clade, constraint_clades$Outgroup)
-    # Extract the node values from the highest node in the outgroup
-    og_branch <- which(og_clade$edge[,1] == og_mrca & og_clade$edge[,2] == ctenpori_mrca)
-    # Extract the MET node value
-    og_node_label <- og_clade$node.label[(ctenpori_mrca-Ntip(og_clade))]
-    # Clean string
-    met_node_value <- gsub("\\[|\\]|'", "",  og_node_label)
-    # Feed in the child node to the KEY check below
-    key_check_node <- getMRCA(q_rooted, c(constraint_clades$Ctenophora, constraint_clades$Porifera))
-    # Extract branch length
-    met_branch_length <- og_clade$edge.length[og_branch]
-  } else if (topology == "PORI"){
-    ## For PORI topology
-    # Extract outgroup
-    og_clade <- keep.tip(q_rooted, c(constraint_clades$Outgroup, constraint_clades$Porifera, constraint_clades$Ctenophora))
-    # Extract the nodes from the MRCA, using the different clades
-    ctenpori_mrca <- getMRCA(og_clade, c(constraint_clades$Porifera, constraint_clades$Ctenophora))
-    og_mrca <- getMRCA(og_clade, constraint_clades$Outgroup)
-    # Extract the node values from the highest node in the outgroup
-    og_branch <- which(og_clade$edge[,1] == og_mrca & og_clade$edge[,2] == ctenpori_mrca)
-    # Extract the MET node value
-    og_node_label <- og_clade$node.label[(ctenpori_mrca-Ntip(og_clade))]
-    # Clean string
-    met_node_value <- gsub("\\[|\\]|'", "",  og_node_label)
-    # Feed in the child node to the KEY check below
-    key_check_node <- getMRCA(q_rooted, c(constraint_clades$Porifera, constraint_clades$Ctenophora))
-    # Extract branch length
-    met_branch_length <- og_clade$edge.length[og_branch]
-  } else if (topology == "CTEN_PORI" | topology == "CTEN.PORI"){
-    ## For CTEN_PORI topology
-    # Extract outgroup
-    og_clade <- keep.tip(q_rooted, c(constraint_clades$Outgroup, constraint_clades$Porifera, constraint_clades$Cnidaria))
-    # Extract the nodes from the MRCA, using the different clades
-    cnidpori_mrca <- getMRCA(og_clade, c(constraint_clades$Porifera, constraint_clades$Cnidaria))
-    og_mrca <- getMRCA(og_clade, constraint_clades$Outgroup)
-    # Extract the node values from the highest node in the outgroup
-    og_branch <- which(og_clade$edge[,1] == og_mrca & og_clade$edge[,2] == cnidpori_mrca)
-    # Extract the MET node value
-    og_node_label <- og_clade$node.label[(cnidpori_mrca-Ntip(og_clade))]
-    # Clean string
-    met_node_value <- gsub("\\[|\\]|'", "",  og_node_label)
-    # Feed in the child node to the KEY check below
-    key_check_node <- getMRCA(q_rooted, c(constraint_clades$Porifera, constraint_clades$Cnidaria))
-    # Extract branch length
-    met_branch_length <- og_clade$edge.length[og_branch]
-  } # END: if (topology == "CTEN")
+  
   
   ## Key branch (leading to ALL OTHER ANIMALS aka PLAC+CNID+BILAT)
   # Identify tips in this group - do not include PLAC when identifying MRCA, 
@@ -696,7 +642,6 @@ extract.qcf <- function(dataset, matrix_name, topology,
 
 
 extract.CTENPORI.qcf <- function(dataset, matrix_name, topology, 
-                                 ctenpori_qc, ctenpori_en, 
                                  tree_file, constraint_clades){
   # Function to extract qCF for any constrained tree topology (CTEN, PORI, CTEN_PORI)
   
@@ -873,7 +818,6 @@ extract.CTENPORI.qcf <- function(dataset, matrix_name, topology,
 
 
 
-
 #### Reformat qCF dataframe ####
 reformat.qCF.df <- function(input_df){
   ## Reformat the qCF dataframe into wide format
@@ -945,9 +889,5 @@ reformat.qCF.df <- function(input_df){
   # Return the reformatted dataframe
   return(new_df)
 }
-
-
-
-
 
 
