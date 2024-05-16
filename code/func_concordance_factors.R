@@ -935,18 +935,22 @@ tree.remove.Plac <- function(tree_file,
   
   ## Remove Plac tips from tree
   full_tree             <- read.tree(tree_file)
-  full_tree_rooted      <- root(full_tree, constraint_clades$Outgroup)
   if (length(constraint_clades$Placozoa) > 0){
     # Trim internal branches in drop.tip function - otherwise will get NA nodes when multiple PLAC taxa are removed
-    noPlac_tree         <- drop.tip(full_tree_rooted, constraint_clades$Placozoa, trim.internal = TRUE)
+    noPlac_tree         <- drop.tip(full_tree, constraint_clades$Placozoa, trim.internal = TRUE)
   } else {
-    noPlac_tree         <- full_tree_rooted
+    noPlac_tree         <- full_tree
   }
   
   ## Remove node labels in case they get distorted by moving branches around
   noPlac_tree$node.label <- NULL
   
-  ## Save updated tree
+  ## Root tree and save
+  noPlac_tree_rooted      <- root(noPlac_tree, constraint_clades$Outgroup)
+  noPlac_tree_rooted_file_path   <- gsub("\\.treefile", ".noPlac_rooted.treefile", tree_file)
+  write.tree(noPlac_tree_rooted, file = noPlac_tree_rooted_file_path)
+  
+  ## Save and return unrooted noPlac tree
   new_file_path   <- gsub("\\.treefile", ".noPlac.treefile", tree_file)
   write.tree(noPlac_tree, file = new_file_path)
   return(new_file_path)
