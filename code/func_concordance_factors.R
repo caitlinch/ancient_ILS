@@ -333,14 +333,15 @@ extract.qcf.wrapper <- function(i, qcf_df,
   ctenpori_EN <- grep("EN", ctenpori_node_split, value = T)
   
   ## Extract qCF depending on topology
-  cten_qcf <- extract.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "CTEN",
-                          tree_file = i_rows[which(i_rows$tree_topology == "CTEN"), "qcf_tree_file"], 
-                          ctenpori_QC = ctenpori_QC, ctenpori_EN = ctenpori_EN,
-                          constraint_clades = constraint_clades)
-  pori_qcf <- extract.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "PORI",
-                          tree_file = i_rows[which(i_rows$tree_topology == "PORI"), "qcf_tree_file"], 
-                          ctenpori_QC = ctenpori_QC, ctenpori_EN = ctenpori_EN,
-                          constraint_clades = constraint_clades)
+  cten_qcf      <- extract.CTEN.PORI.clade.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "CTEN",
+                                               tree_file = i_rows[which(i_rows$tree_topology == "CTEN"), "qcf_tree_file"], 
+                                               constraint_clades = constraint_clades)
+  pori_qcf      <- extract.CTEN.PORI.clade.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "PORI",
+                                               tree_file = i_rows[which(i_rows$tree_topology == "PORI"), "qcf_tree_file"], 
+                                               constraint_clades = constraint_clades)
+  ctenpori_qcf  <- extract.CTEN.PORI.clade.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "CTEN_PORI",
+                                               tree_file = i_rows[which(i_rows$tree_topology == "CTEN_PORI"), "qcf_tree_file"], 
+                                               constraint_clades = constraint_clades)
   
   ## Create a nice dataset
   qcf_output <- as.data.frame(rbind(as.character(c(i_rows[which(i_rows$tree_topology == "CTEN_PORI"), ], ctenpori_qcf)), 
@@ -354,225 +355,11 @@ extract.qcf.wrapper <- function(i, qcf_df,
 
 
 
-extract.qcf <- function(dataset, matrix_name, topology, 
-                        ctenpori_QC, ctenpori_EN, 
-                        tree_file, constraint_clades){
-  # Function to extract qCF for CTEN or PORI constrained tree topologies
-  
-  ## Open tree with qCF annotation
-  q_tree <- read.tree(tree_file)
-  # Root tree at outgroup
-  q_rooted <- root(q_tree, constraint_clades$Outgroup)
-  # Drop Placozoa taxa
-  if (length(constraint_clades$Placozoa) > 0){
-    q_rooted <- drop.tip(q_rooted, constraint_clades$Placozoa)
-  }
-  
-  ## Make an edge table with nodes and node labels
-  q_edge_table <- data.frame(
-    "parent" = q_rooted$edge[,1],
-    "par.name" = sapply(q_rooted$edge[,1],
-                        select.tip.or.node,
-                        tree = q_rooted),
-    "child" = q_rooted$edge[,2],
-    "chi.name" = sapply(q_rooted$edge[,2],
-                        select.tip.or.node,
-                        tree = q_rooted)
-  )
-  
-  ## Branches to extract length and node values:
-  if (dataset == "Ryan2013" & matrix_name == "REA_EST_includingXenoturbella" & model == "C60"){
-    if (topology == "CTEN"){
-      manual_QC = ""
-      manual_EN = ""
-    } else if (topology == "PORI"){
-      manual_QC = ""
-      manual_EN = ""
-    }
-    key_node_value <- gsub("\\[|\\]|'", "",  grep(manual_EN, grep(manual_QC, q_rooted$node.label, value = T), value = T))
-    manual_check = TRUE
-  } else if (dataset == "Whelan2017" & matrix_name == "Metazoa_Choano_RCFV_strict" & model == "C60"){
-    if (topology == "CTEN"){
-      manual_QC = ""
-      manual_EN = ""
-    } else if (topology == "PORI"){
-      manual_QC = ""
-      manual_EN = ""
-    }
-    key_node_value <- gsub("\\[|\\]|'", "",  grep(manual_EN, grep(manual_QC, q_rooted$node.label, value = T), value = T))
-    manual_check = TRUE
-  } else if (dataset == "Chang2015" & matrix_name == "Chang_AA" & model == "Partition"){
-    if (topology == "CTEN"){
-      manual_QC = "29520"
-      manual_EN = "200"
-    } else if (topology == "PORI"){
-      manual_QC = "34398"
-      manual_EN = "200"
-    }
-    key_node_value <- gsub("\\[|\\]|'", "",  grep(manual_EN, grep(manual_QC, q_rooted$node.label, value = T), value = T))
-    manual_check = TRUE
-  } else if (dataset == "Laumer2018" & matrix_name == "Tplx_BUSCOeuk" & model == "Partition"){
-    if (topology == "CTEN"){
-      manual_QC = ""
-      manual_EN = ""
-    } else if (topology == "PORI"){
-      manual_QC = ""
-      manual_EN = ""
-    }
-    key_node_value <- gsub("\\[|\\]|'", "",  grep(manual_EN, grep(manual_QC, q_rooted$node.label, value = T), value = T))
-    manual_check = TRUE
-  } else if (dataset == "Nosenko2013" & matrix_name == "ribosomal_14615_smatrix" & model == "Partition"){
-    if (topology == "CTEN"){
-      manual_QC = ""
-      manual_EN = ""
-    } else if (topology == "PORI"){
-      manual_QC = ""
-      manual_EN = ""
-    }
-    key_node_value <- gsub("\\[|\\]|'", "",  grep(manual_EN, grep(manual_QC, q_rooted$node.label, value = T), value = T))
-    manual_check = TRUE
-  } else if (dataset == "Philippe2009" & matrix_name == "Philippe_etal_superalignment_FixedNames" & model == "Partition"){
-    if (topology == "CTEN"){
-      manual_QC = ""
-      manual_EN = ""
-    } else if (topology == "PORI"){
-      manual_QC = ""
-      manual_EN = ""
-    }
-    key_node_value <- gsub("\\[|\\]|'", "",  grep(manual_EN, grep(manual_QC, q_rooted$node.label, value = T), value = T))
-    manual_check = TRUE
-  } else if (dataset == "Ryan2013" & matrix_name == "REA_EST_includingXenoturbella" & model == "Partition"){
-    if (topology == "CTEN"){
-      manual_QC = ""
-      manual_EN = ""
-    } else if (topology == "PORI"){
-      manual_QC = ""
-      manual_EN = ""
-    }
-    key_node_value <- gsub("\\[|\\]|'", "",  grep(manual_EN, grep(manual_QC, q_rooted$node.label, value = T), value = T))
-    manual_check = TRUE
-  } else {
-    # No manual check - look up
-    manual_check = FALSE
-    key_node_search <- grep(ctenpori_EN, grep(ctenpori_QC, q_rooted$node.label, value = T), value = T)
-    key_node_value <- gsub("\\[|\\]|'", "",  key_node_search) # remove punctuation
-    if (length(key_node_value) > 1 ){
-      # Print error statement if >1 nodes match the regex
-      print(paste0("ERROR - TOO MANY NODES: ", dataset, ", ", matrix_name, ", ", topology))
-    } else if (identical(key_node_value, character(0))){
-      # Print error statement if >1 nodes match the regex
-      print(paste0("ERROR - MISSING NODES: ", dataset, ", ", matrix_name, ", ", topology))
-    }
-    # Extract KEY branch length
-    if (topology == "CTEN"){
-      key_taxa <- c(constraint_clades$Porifera, constraint_clades$Cnidaria, constraint_clades$Bilateria)
-    } else if (topology == "PORI"){
-      key_taxa <- c(constraint_clades$Ctenophora, constraint_clades$Cnidaria, constraint_clades$Bilateria)
-    } 
-    key_cn <- getMRCA(q_rooted, key_taxa) # child node
-    key_pn <- q_rooted$edge[which(q_rooted$edge[,2] == key_cn), 1] # parent node
-    key_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == key_pn & q_rooted$edge[,2] == key_cn)]
-  }
-  
-  
-  ## CTEN (leading to CTEN branch)
-  # Identify tips in this group
-  cten_taxa <- c(constraint_clades$Ctenophora)
-  # Check that more than one taxa is present
-  if (length(cten_taxa) > 1){
-    # Check monophyly
-    if (is.monophyletic(q_rooted, cten_taxa) == TRUE){
-      # Extract MRCA
-      cten_cn <- getMRCA(q_rooted, cten_taxa) # child node
-      cten_pn <- q_rooted$edge[which(q_rooted$edge[,2] == cten_cn), 1] # parent node
-      # Extract the q_edge_table row
-      cten_q_edge_row <- q_edge_table[which(q_edge_table$parent == cten_pn & q_edge_table$child == cten_cn),]
-      # Extract parent and child nodes
-      clade_cten_cn <- extract.clade(q_rooted, cten_cn)
-      clade_cten_pn <- extract.clade(q_rooted, cten_pn)
-      # Check which clade has the right tips and use that node
-      if (setequal(clade_cten_cn$tip.label, cten_taxa) == TRUE){
-        # Extract child annotation from tree
-        cten_cn_lab <- q_rooted$node.label[(cten_cn-Ntip(q_rooted))]
-        # Clean string
-        cten_node_value <- gsub("\\[|\\]|'", "",  cten_cn_lab)
-      } else if (setequal(clade_cten_pn$tip.label, cten_taxa) == TRUE){
-        # Extract parent annotation from tree
-        cten_pn_lab <- q_rooted$node.label[(cten_pn-Ntip(q_rooted))]
-        # Clean string
-        cten_node_value <- gsub("\\[|\\]|'", "",  cten_pn_lab)
-      } # END: if (setequal(clade_cten_cn$tip.label, cten_taxa) == TRUE){
-      # Extract branch length
-      cten_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == cten_pn & q_rooted$edge[,2] == cten_cn)]
-      # Add description of clade
-      cten_clade_monophyly    <- "Monophyletic"
-    } else {
-      # Assign NA if not monophyletic
-      cten_branch_length      <- NA
-      cten_node_value         <- NA
-      cten_clade_monophyly    <- "Paraphyletic"
-    } # END: if (is.monophyletic(q_rooted, cten_taxa) == TRUE){
-  } else {
-    # Assign NA if only 1 tip
-    cten_branch_length  <- NA
-    cten_node_value     <- NA
-    cten_clade_monophyly    <- "Single_tip"
-  }
-  
-  ## PORI (leading to PORI branch)
-  # Identify tips in this group
-  pori_taxa <- c(constraint_clades$Porifera)
-  # Check number of taxa > 1
-  if (length(pori_taxa) > 1){
-    # Check monophyly
-    if (is.monophyletic(q_rooted, pori_taxa) == TRUE){
-      # Extract MRCA
-      pori_cn <- getMRCA(q_rooted, pori_taxa) # child node
-      pori_pn <- q_rooted$edge[which(q_rooted$edge[,2] == pori_cn), 1] # parent node
-      # Extract the q_edge_table row
-      pori_q_edge_row <- q_edge_table[which(q_edge_table$parent == pori_pn & q_edge_table$child == pori_cn),]
-      # Extract parent and child nodes
-      clade_pori_cn <- extract.clade(q_rooted, pori_cn)
-      clade_pori_pn <- extract.clade(q_rooted, pori_pn)
-      # Check which clade has the right tips and use that node
-      if (setequal(clade_pori_cn$tip.label, pori_taxa) == TRUE){
-        # Extract child annotation from tree
-        pori_cn_lab <- q_rooted$node.label[(pori_cn-Ntip(q_rooted))]
-        # Clean string
-        pori_node_value <- gsub("\\[|\\]|'", "",  pori_cn_lab)
-      } else if (setequal(clade_pori_pn$tip.label, pori_taxa) == TRUE){
-        # Extract parent annotation from tree
-        pori_pn_lab <- q_rooted$node.label[(pori_pn-Ntip(q_rooted))]
-        # Clean string
-        pori_node_value <- gsub("\\[|\\]|'", "",  pori_pn_lab)
-      } # END: if (setequal(clade_pori_cn$tip.label, pori_taxa) == TRUE){
-      # Extract branch length
-      pori_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == pori_pn & q_rooted$edge[,2] == pori_cn)]
-      # Add description of clade
-      pori_clade_monophyly    <- "Monophyletic"
-    } else {
-      # Assign NA if not monophyletic
-      pori_branch_length      <- NA
-      pori_node_value         <- NA
-      pori_clade_monophyly    <- "Paraphyletic"
-    } # END: if (is.monophyletic(q_rooted, pori_taxa) == TRUE){
-  } else {
-    # Assign NA if only 1 tip
-    pori_branch_length      <- NA
-    pori_node_value         <- NA
-    pori_clade_monophyly    <- "Single_tip"
-  } # END:   if (length(pori_taxa) > 1){
-  
-  # Assemble output vector
-  qcf_output <- c(key_branch_length, key_node_value, 
-                  cten_branch_length, cten_clade_monophyly, cten_node_value, 
-                  pori_branch_length, pori_clade_monophyly,  pori_node_value)
-  names(qcf_output) <- c("KEY_branch_length", "KEY_node_value",
-                         "CTEN_branch_length", "CTEN_monophyly", "CTEN_node_value", 
-                         "PORI_branch_length", "PORI_monophyly", "PORI_node_value")
-  return(qcf_output)
+extract.key.qcf <- function(dataset, matrix_name, 
+                            cten_tree_file, pori_tree_file, ctenpori_tree_file, 
+                            constraint_clades){
+  # Function to extract the qCF for the key branches of the three topologies
 }
-
 
 
 extract.CTEN.PORI.clade.qcf <- function(dataset, matrix_name, topology, model, 
