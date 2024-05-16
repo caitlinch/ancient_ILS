@@ -648,7 +648,7 @@ extract.CTENPORI.qcf <- function(dataset, matrix_name, topology, model,
   # Specify key taxa
   key_taxa <- c(constraint_clades$Ctenophora, constraint_clades$Porifera)
   # Extract node value, if there's more than 1 taxon in the key_taxa clade
-  if (length(key_taxa) > 1 & manual_check = FALSE){
+  if (length(key_taxa) > 1 & manual_check == FALSE){
     # Extract MRCA
     key_cn <- getMRCA(q_rooted, key_taxa) # child node
     key_pn <- q_rooted$edge[which(q_rooted$edge[,2] == key_cn), 1] # parent nodes
@@ -660,7 +660,7 @@ extract.CTENPORI.qcf <- function(dataset, matrix_name, topology, model,
       key_cn_lab <- q_rooted$node.label[(key_cn-Ntip(q_rooted))]
       # Clean string
       key_node_value <- gsub("\\[|\\]|'", "",  key_cn_lab)
-    } else if (manual_check = FALSE){
+    } else if (manual_check == FALSE){
       # Extract the edges with the same key_pn (KEY parent node)
       key_edge_nodes  <- q_rooted$edge[c(which(q_rooted$edge[,1] == key_pn), which(q_rooted$edge[,2] == key_pn)), ]
       # Identify the possible child nodes
