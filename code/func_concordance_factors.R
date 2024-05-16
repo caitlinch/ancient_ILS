@@ -3,6 +3,7 @@
 # Caitlin Cherryh, 2023
 
 library(ape)
+library(dplyr)
 
 
 
@@ -324,42 +325,180 @@ extract.qcf.wrapper <- function(i, qcf_df,
                                 all_datasets = all_datasets, matrix_taxa = matrix_taxa, alignment_taxa_df = alignment_taxa_df)
   
   ## Extract CTEN_PORI clade values
-  ctenpori_qcf <- extract.CTENPORI.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "CTEN_PORI", model = i_rows[which(i_rows$tree_topology == "CTEN"), "model"],
-                                       tree_file = i_rows[which(i_rows$tree_topology == "CTEN_PORI"), "qcf_tree_file"], 
-                                       constraint_clades)
-  # Extract QC and EN values
-  ctenpori_node_split <- strsplit(ctenpori_qcf[["KEY_node_value"]], "\\;")[[1]]
-  ctenpori_QC <- grep("QC", ctenpori_node_split, value = T)
-  ctenpori_EN <- grep("EN", ctenpori_node_split, value = T)
+  key_qcf <- extract.key.qcf(dataset = i_dataset, matrix_name = i_matrix, model = i_model, 
+                                  cten_tree_file = i_rows[which(i_rows$tree_topology == "CTEN"), "qcf_tree_file"], 
+                                  pori_tree_file = i_rows[which(i_rows$tree_topology == "PORI"), "qcf_tree_file"], 
+                                  ctenpori_tree_file = i_rows[which(i_rows$tree_topology == "CTEN_PORI"), "qcf_tree_file"], 
+                                  constraint_clades = constraint_clades)
   
   ## Extract qCF depending on topology
-  cten_qcf      <- extract.CTEN.PORI.clade.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "CTEN",
+  cten_qcf          <- extract.CTEN.PORI.clade.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "CTEN",
                                                tree_file = i_rows[which(i_rows$tree_topology == "CTEN"), "qcf_tree_file"], 
                                                constraint_clades = constraint_clades)
-  pori_qcf      <- extract.CTEN.PORI.clade.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "PORI",
+  cten_qcf_values     <- format.CTEN.PORI.clade.qcf(cten_qcf)
+  pori_qcf            <- extract.CTEN.PORI.clade.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "PORI",
                                                tree_file = i_rows[which(i_rows$tree_topology == "PORI"), "qcf_tree_file"], 
                                                constraint_clades = constraint_clades)
-  ctenpori_qcf  <- extract.CTEN.PORI.clade.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "CTEN_PORI",
+  pori_qcf_values     <- format.CTEN.PORI.clade.qcf(pori_qcf)
+  ctenpori_qcf        <- extract.CTEN.PORI.clade.qcf(dataset = i_dataset, matrix_name = i_matrix, topology = "CTEN_PORI",
                                                tree_file = i_rows[which(i_rows$tree_topology == "CTEN_PORI"), "qcf_tree_file"], 
                                                constraint_clades = constraint_clades)
+  ctenpori_qcf_values <- format.CTEN.PORI.clade.qcf(ctenpori_qcf)
+  # Collate into a separate dataframe
+  all_clade_qcf_df <- as.data.frame(matrix(data = c(cten_qcf_values, pori_qcf_values, ctenpori_qcf_values), nrow = 3, ncol = 14, byrow = TRUE))
+  colnames(all_clade_qcf_df) <- names(ctenpori_qcf_values)
   
-  ## Create a nice dataset
-  qcf_output <- as.data.frame(rbind(as.character(c(i_rows[which(i_rows$tree_topology == "CTEN_PORI"), ], ctenpori_qcf)), 
-                                    as.character(c(i_rows[which(i_rows$tree_topology == "CTEN"), ], cten_qcf)), 
-                                    as.character(c(i_rows[which(i_rows$tree_topology == "PORI"), ], pori_qcf))))
-  names(qcf_output) <- c(names(i_rows), names(ctenpori_qcf))
+  ## Collate the KEY node dataframe with the CTEN/PORI node dataframe
+  collated_output_df <- cbind(key_qcf, all_clade_qcf_df)
   
   ## Return the qCF values for this tree along with the tree parameters
-  return(qcf_output)
+  return(collated_output_df)
 }
 
 
 
-extract.key.qcf <- function(dataset, matrix_name, 
+extract.key.qcf <- function(dataset, matrix_name, model,
                             cten_tree_file, pori_tree_file, ctenpori_tree_file, 
                             constraint_clades){
   # Function to extract the qCF for the key branches of the three topologies
+  
+  ## Open each tree and turn the nodes into a dataframe
+  # Extract CTEN node labels
+  cten_tree <- root(read.tree(cten_tree_file), constraint_clades$Outgroup)
+  cten_output <- extract.node.details(in_tree = cten_tree, topology = "CTEN")
+  cten_node_df <- cten_output$node_df[which(cten_output$node_df$node %in% cten_output$possible_nodes), ]
+  cten_node_df$topology <- "CTEN"
+  # Extract PORI node labels
+  pori_tree <- root(read.tree(pori_tree_file), constraint_clades$Outgroup)
+  pori_output <- extract.node.details(in_tree = pori_tree, topology = "PORI")
+  pori_node_df <- pori_output$node_df[which(pori_output$node_df$node %in% pori_output$possible_nodes), ]
+  pori_node_df$topology <- "PORI"
+  # Extract CTEN_PORI node labels
+  ctenpori_tree <- root(read.tree(ctenpori_tree_file), constraint_clades$Outgroup)
+  ctenpori_output <- extract.node.details(in_tree = ctenpori_tree, topology = "CTEN_PORI")
+  ctenpori_node_df <- ctenpori_output$node_df[which(ctenpori_output$node_df$node %in% ctenpori_output$possible_nodes), ]
+  ctenpori_node_df$topology <- "CTEN_PORI"
+  # Bind dataframes
+  nodes_all           <- bind_rows(cten_node_df, pori_node_df, ctenpori_node_df)
+  nodes_all$QC_EN_id  <- paste0(nodes_all$QC, ":", nodes_all$EN)
+  # Extract any rows that have 3 identical QC and EN values
+  candidate_QC_EN_id <- names(which(sort(table(nodes_all$QC_EN_id)) == 3))
+  if (length(candidate_QC_EN_id) > 1){
+    # Check all nodes with 3 matching QC/EN values to find the correct one by summing q1 values
+    for (j in candidate_QC_EN_id){
+      j_df <- nodes_all[which(nodes_all$QC_EN_id == j), ]
+      j_qcf_sum <- sum(j_df$q1)
+      if (round(j_qcf_sum, 2) == 1.00){
+        j_node <- j
+      }
+    }
+    # Extract the correct node
+    key_node_df <- nodes_all[which(nodes_all$QC_EN_id == j_node), ]
+  } else if (length(candidate_QC_EN_id) == 1){
+    # Extract the correct node
+    key_node_df <- nodes_all[which(nodes_all$QC_EN_id == candidate_QC_EN_id), ]
+  } else if (length(candidate_QC_EN_id) == 0){
+    # Print error value as no correct node found
+    print(paste0("ERROR: ", dataset, " - ", matrix_name, " has no matching QC/EN nodes across all 3 topologies"))
+  }
+  # Format the dataframe
+  key_node_output_df               <- key_node_df[c(which(key_node_df$topology == "CTEN"), 
+                                                    which(key_node_df$topology == "PORI"), 
+                                                    which(key_node_df$topology == "CTEN_PORI")), ]
+  key_node_output_df$dataset        <- dataset
+  key_node_output_df$matrix_name    <- matrix_name
+  key_node_output_df$dataset_id     <- paste0(dataset, ".", matrix_name)
+  key_node_output_df$model          <- model
+  key_node_output_df$id             <- paste0(dataset, ".", matrix_name, ".", model, ".",  key_node_df$topolog)
+  key_node_output_df$branch_length  <- c(cten_output$key_branch_length, pori_output$key_branch_length, ctenpori_output$key_branch_length)
+  key_node_output_df                <- key_node_output_df[ , c("dataset", "matrix_name", "dataset_id", "model", "id", "topology", 
+                                                               "node", "q1", "f1", "pp1", "QC", "EN", "branch_length")]
+  names(key_node_output_df)         <- c("dataset", "matrix_name", "dataset_id", "model", "id", "topology",
+                                         "KEY_node", "KEY_q1", "KEY_f1", "KEY_pp1", "KEY_QC", "KEY_EN", "KEY_branch_length")
+  # Return the dataframe
+  return(key_node_output_df)
 }
+
+
+
+extract.node.details <- function(in_tree, topology){
+  # Extract all nodes and node labels in the tree
+  node_df <- data.frame("node" = c(in_tree$edge[,1], in_tree$edge[,2]), 
+                        "node.lab" = c(sapply(in_tree$edge[,1],
+                                              select.tip.or.node,
+                                              tree = in_tree),
+                                       sapply(in_tree$edge[,2],
+                                              select.tip.or.node,
+                                              tree = in_tree) ) )
+  node_df <- unique(node_df) # Remove duplicate rows
+  node_df <- node_df[grep("q1=", node_df$node.lab),] # Get internal nodes
+  node_df$node.lab <- gsub("\\[|\\]|'", "",  node_df$node.lab) # Remove extra punctuation
+  # Break out values into separate columns
+  split_labs <- strsplit(node_df$node.lab, ";")
+  node_df$q1   <- as.numeric(unlist(lapply(strsplit(unlist(lapply(split_labs, function(x){x[[1]]})), "\\="), function(x){x[[2]]})))
+  node_df$f1   <- as.numeric(unlist(lapply(strsplit(unlist(lapply(split_labs, function(x){x[[4]]})), "\\="), function(x){x[[2]]})))
+  node_df$pp1  <- as.numeric(unlist(lapply(strsplit(unlist(lapply(split_labs, function(x){x[[7]]})), "\\="), function(x){x[[2]]})))
+  node_df$QC   <- as.numeric(unlist(lapply(strsplit(unlist(lapply(split_labs, function(x){x[[10]]})), "\\="), function(x){x[[2]]})))
+  node_df$EN   <- as.numeric(unlist(lapply(strsplit(unlist(lapply(split_labs, function(x){x[[11]]})), "\\="), function(x){x[[2]]})))
+  # Extract all edges 
+  edge_df <- data.frame("parent" = in_tree$edge[,1],
+                        "par.name" = sapply(in_tree$edge[,1],
+                                            select.tip.or.node,
+                                            tree = in_tree),
+                        "child" = in_tree$edge[,2],
+                        "chi.name" = sapply(in_tree$edge[,2],
+                                            select.tip.or.node,
+                                            tree = in_tree) )
+  edge_df <- edge_df[sort(c(grep("q1=", edge_df$chi.name), which(edge_df$chi.name == ""))),] # Get internal parent nodes 
+  edge_df$par.name <- gsub("\\[|\\]|'", "",  edge_df$par.name) # Remove extra punctuation in parent node label
+  edge_df$chi.name <- gsub("\\[|\\]|'", "",  edge_df$chi.name) # Remove extra punctuation in child node label
+  
+  # Test for which nodes to exclude
+  if (topology == "CTEN"){
+    key_taxa <- c(constraint_clades$Porifera, constraint_clades$Cnidaria, constraint_clades$Bilateria)
+  } else if (topology == "PORI"){
+    key_taxa <- c(constraint_clades$Ctenophora, constraint_clades$Cnidaria, constraint_clades$Bilateria)
+  } else if (topology == "CTEN_PORI"){
+    key_taxa <- c(constraint_clades$Ctenophora, constraint_clades$Porifera)
+  }
+  # Get the MRCA for the key taxa
+  key_node <- getMRCA(in_tree, key_taxa)
+  # Get nodes attached to the key node
+  key_branch <- which(in_tree$edge[,2] == key_node)
+  key_branch_length <- in_tree$edge.length[key_branch]
+  # Extract possible nodes
+  possible_nodes <- unique(as.numeric(in_tree$edge[which(in_tree$edge[,1] == key_node | in_tree$edge[,2] == key_node),]))
+  # Construct output
+  output <- list("node_df" = node_df,
+                 "edge_df" = edge_df,
+                 "possible_nodes" = possible_nodes,
+                 "key_branch_length" = key_branch_length)
+  # Return the node df
+  return(output)
+}
+
+
+format.CTEN.PORI.clade.qcf <- function(output_string){
+  # Reformat extract.CTEN.PORI.clade.qcf output
+  
+  # Split up the vector
+  cten_clade_lab  <- output_string[["CTEN_node_value"]]
+  cten_split      <- strsplit(cten_clade_lab, ";")[[1]]
+  pori_clade_lab  <- output_string[["PORI_node_value"]]
+  pori_split      <- strsplit(pori_clade_lab, ";")[[1]]
+  # Create the output vector
+  output_vector <- c(gsub("q1=", "", cten_split[[1]]), gsub("f1=", "", cten_split[[4]]), gsub("pp1=", "", cten_split[[7]]),
+                     gsub("QC=", "", cten_split[[10]]), gsub("EN=", "", cten_split[[11]]), output_string[["CTEN_branch_length"]], 
+                     output_string[["CTEN_monophyly"]],
+                     gsub("q1=", "", pori_split[[1]]), gsub("f1=", "", pori_split[[4]]), gsub("pp1=", "", pori_split[[7]]),
+                     gsub("QC=", "", pori_split[[10]]), gsub("EN=", "", pori_split[[11]]), output_string[["PORI_branch_length"]], 
+                     output_string[["PORI_monophyly"]])
+  names(output_vector) <- c("CTEN_q1", "CTEN_f1", "CTEN_pp1", "CTEN_QC", "CTEN_EN", "CTEN_branch_length", "CTEN_monophyly",
+                            "PORI_q1", "PORI_f1", "PORI_pp1", "PORI_QC", "PORI_EN", "PORI_branch_length", "PORI_monophyly")
+  # Return the output vector
+  return(output_vector)
+}
+
 
 
 extract.CTEN.PORI.clade.qcf <- function(dataset, matrix_name, topology, model, 
