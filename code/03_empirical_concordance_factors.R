@@ -16,6 +16,7 @@
 repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 output_csv_dir        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/07_output_files/"
 cf_dir                <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/06_cf_analyses/"
+noPlac_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/06_cf_analyses_noPlac/"
 
 # Server file paths to run qCF/gCF analyses
 iqtree2_server        <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2"
@@ -23,7 +24,9 @@ iqtree2_num_threads   <- 30
 astral_server         <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/astral/Astral/astral.5.7.8.jar"
 
 # Control commands
-control <- list(run.cf.analyses = FALSE,
+control <- list(remove.Plac = TRUE,
+                run.noPlac.analyses = TRUE,
+                run.cf.analyses = FALSE,
                 extract.gcf = FALSE,
                 extract.qcf = FALSE,
                 reformat.dataframes = FALSE)
@@ -45,10 +48,55 @@ rm(all_taxa, all_models, models_list, borowiec2015_list, chang2015_list, dunn200
 
 
 
-#### 3. Create command lines for calculating gCF and qCF ####
-if (control$run.cf.analyses == TRUE){
+#### 4. Copy data but remove Placozoa taxa ####
+if (control$remove.Plac == TRUE){
   # Open the required dataframe with dataset information
   input_df <- read.csv(paste0(output_csv_dir, "cf_analysis_input_paths.csv"), stringsAsFactors = FALSE)
+  # Identify files to remove Placozoa
+  all_files   <- list.files(noPlac_dir, recursive = T)
+  all_files   <- grep("Hejnol2009|Simion2017", all_files, value = T, invert = T) # Remove unused datasets
+  all_files   <- grep("noPlac", all_files, value = T, invert = T) # Remove files with Plac already removed
+  gene_files  <- paste0(noPlac_dir, grep("gene_trees", all_files, value = T)) # Identify gene tree files
+  tree_files  <- paste0(noPlac_dir, grep("ML_tree.treefile", all_files, value = T)) # Identify ML tree files
+  
+  gene_tree_file <- gene_files[6]
+  tree_file <- tree_files[16]
+  
+  # Remove PLAC from gene tree files
+  gene_files <- gene_files[which(file.exists(gsub("\\.treefile", ".noPlac.treefile", gene_files)) == FALSE)]
+  if (length(gene_files) > 0){
+    new_gene_tree_files <- lapply(gene_files, gene.trees.remove.Plac, 
+                                  all_datasets, matrix_taxa, alignment_taxa_df)
+  }
+  # Remove PLAC from tree files
+  tree_files <- tree_files[which(file.exists(gsub("\\.treefile", ".noPlac.treefile", tree_files)) == FALSE)]
+  if (length(tree_files) > 0){
+    new_tree_files <- lapply(tree_files, tree.remove.Plac,
+                             all_datasets, matrix_taxa, alignment_taxa_df)
+  }
+  
+  ## Update the input df for noPlac
+  # Update filepaths in the input_df
+  cols_to_update <- names(input_df)[4:length(names(input_df))]
+  for (x in cols_to_update){
+    input_df[[x]] <- gsub("cf_main", "cf_main_noPlac", input_df[[x]])
+  }
+  # Save the updated input file
+  noPlac_input_df_file <- paste0(output_csv_dir, "cf_analysis_input_paths_noPlac.csv")
+  write.csv(input_df, file = noPlac_input_df_file, row.names = F)
+}
+
+
+#### 3. Create command lines for calculating gCF and qCF ####
+if (control$run.cf.analyses == TRUE){
+  if (control$run.noPlac.analyses == TRUE){
+    input_df <- read.csv(paste0(output_csv_dir, "cf_analysis_input_paths_noPlac.csv"), stringsAsFactors = FALSE)
+    outid <- "_noPlac"
+  } else if (control$run.noPlac.analyses == FALSE){
+    # Open the required dataframe with dataset information
+    input_df <- read.csv(paste0(output_csv_dir, "cf_analysis_input_paths.csv"), stringsAsFactors = FALSE)
+    outid <- ""
+  }
   
   # Add C60 gCF commands
   # $ iqtree2 -t concat.treefile --gcf loci.treefile --prefix concord
@@ -135,14 +183,15 @@ if (control$run.cf.analyses == TRUE){
   input_df$partition_CTEN_PORI_qcf_log <- paste0(input_df$partition_qcf_output_dir, input_df$dataset_id, ".Partition.CTEN_PORI.qcf.log")
   
   # Write out command lines to text files
-  write(c(input_df$c60_cten_gcf_command, input_df$c60_pori_gcf_command, input_df$c60_cten_pori_gcf_command), 
-        file = paste0(output_csv_dir, "c60_gcf_commands.txt"))
-  write(c(input_df$c60_cten_qcf_command, input_df$c60_pori_qcf_command, input_df$c60_cten_pori_qcf_command), 
-        file = paste0(output_csv_dir, "c60_qcf_commands.txt"))
-  write(c(input_df$partition_cten_gcf_command, input_df$partition_pori_gcf_command, input_df$partition_cten_pori_gcf_command), 
-        file = paste0(output_csv_dir, "partition_gcf_commands.txt"))
-  write(c(input_df$partition_cten_qcf_command, input_df$partition_pori_qcf_command, input_df$partition_cten_pori_qcf_command), 
-        file = paste0(output_csv_dir, "partition_qcf_commands.txt"))
+  write(c(input_df$c60_cten_gcf_command, input_df$c60_pori_gcf_command, input_df$c60_cten_pori_gcf_command,
+          input_df$partition_cten_gcf_command, input_df$partition_pori_gcf_command, input_df$partition_cten_pori_gcf_command), 
+        file = paste0(output_csv_dir, "gcf_commands", outid, ".txt"))
+  write(c(input_df$c60_cten_qcf_command, input_df$c60_pori_qcf_command, input_df$c60_cten_pori_qcf_command,
+          input_df$partition_cten_qcf_command, input_df$partition_pori_qcf_command, input_df$partition_cten_pori_qcf_command), 
+        file = paste0(output_csv_dir, "qcf_commands", outid, ".txt"))
+  
+  # Save commands in the csv file
+  write.csv(input_df, file = paste0(output_csv_dir, "cf_analysis_commands", outid, ".csv"), row.names = FALSE)
 }
 
 

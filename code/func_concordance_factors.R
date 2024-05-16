@@ -473,7 +473,7 @@ extract.qcf <- function(dataset, matrix_name, topology,
     key_pn <- q_rooted$edge[which(q_rooted$edge[,2] == key_cn), 1] # parent node
     key_branch_length <- q_rooted$edge.length[which(q_rooted$edge[,1] == key_pn & q_rooted$edge[,2] == key_cn)]
   }
-
+  
   
   ## CTEN (leading to CTEN branch)
   # Identify tips in this group
@@ -866,7 +866,7 @@ reformat.qCF.df <- function(input_df){
 
 
 
-### Extract list of taxa within the dataset
+#### Extract list of taxa within the dataset ####
 set.taxa <- function(dataset_name, matrix_name,
                      all_datasets, matrix_taxa, alignment_taxa_df){
   ## Identify the taxa in each clade using details about the dataset
@@ -916,5 +916,97 @@ set.taxa <- function(dataset_name, matrix_name,
   ## Return the constraint clades
   return(constraint_clades)
 }
+
+
+
+#### Remove Placozoa taxa ####
+tree.remove.Plac <- function(tree_file, 
+                             all_datasets, matrix_taxa, alignment_taxa_df){
+  # Remove Plac taxa from a single ML tree
+  
+  ## Extract details about the alignment
+  file_split      <- strsplit(basename(tree_file), "\\.")[[1]]
+  file_dataset    <- file_split[[1]]
+  file_matrix     <- file_split[[2]]
+  
+  ## Extract tips within the tree
+  constraint_clades <- set.taxa(dataset_name = file_dataset, matrix_name = file_matrix,
+                                all_datasets = all_datasets, matrix_taxa = matrix_taxa, alignment_taxa_df = alignment_taxa_df)
+  
+  ## Remove Plac tips from tree
+  full_tree             <- read.tree(tree_file)
+  full_tree_rooted      <- root(full_tree, constraint_clades$Outgroup)
+  if (length(constraint_clades$Placozoa) > 0){
+    # Trim internal branches in drop.tip function - otherwise will get NA nodes when multiple PLAC taxa are removed
+    noPlac_tree         <- drop.tip(full_tree_rooted, constraint_clades$Placozoa, trim.internal = TRUE)
+  } else {
+    noPlac_tree         <- full_tree_rooted
+  }
+  
+  ## Remove node labels in case they get distorted by moving branches around
+  noPlac_tree$node.label <- NULL
+  
+  ## Save updated tree
+  new_file_path   <- gsub("\\.treefile", ".noPlac.treefile", tree_file)
+  write.tree(noPlac_tree, file = new_file_path)
+  return(new_file_path)
+}
+
+
+
+gene.trees.remove.Plac <- function(gene_tree_file, 
+                                   all_datasets, matrix_taxa, alignment_taxa_df){
+  # Remove Plac taxa from a single ML tree
+  
+  ## Extract details about the alignment
+  file_split      <- strsplit(basename(gene_tree_file), "\\.")[[1]]
+  file_dataset    <- file_split[[1]]
+  file_matrix     <- file_split[[2]]
+  
+  ## Extract tips within the tree
+  constraint_clades <- set.taxa(dataset_name = file_dataset, matrix_name = file_matrix,
+                                all_datasets = all_datasets, matrix_taxa = matrix_taxa, alignment_taxa_df = alignment_taxa_df)
+  
+  ## Remove Plac tips from tree
+  full_multiphylo         <- read.tree(gene_tree_file)
+  # Trim internal branches in drop.tip function - otherwise will get NA nodes when multiple PLAC taxa are removed
+  full_multiphylo_noPlac  <- lapply(1:length(full_multiphylo), 
+                                    function(x){noPlac.gene.trees(full_multiphylo[[x]], constraint_clades)})
+  # Change class from list (result of lapply) to multiPhylo
+  class(full_multiphylo_noPlac) <- "multiPhylo"
+  
+  ## Save updated tree
+  new_file_path   <- gsub("\\.treefile", ".noPlac.treefile", gene_tree_file)
+  write.tree(full_multiphylo_noPlac, file = new_file_path)
+  return(new_file_path)
+}
+
+
+noPlac.gene.trees <- function(gene_tree, constraint_clades){
+  # Remove PLAC from gene trees
+  
+  # Check if any PLAC present in gene tree
+  if (length(constraint_clades$Placozoa) > 0){
+    # Identify which PLAC taxa present in gene tree
+    gene_tree_taxa <- gene_tree$tip.label
+    plac_to_remove <- constraint_clades$Placozoa[which(constraint_clades$Placozoa %in% gene_tree_taxa)]
+    if (length(plac_to_remove) > 0){
+      # Remove Placazoa taxa
+      # Trim internal branches in drop.tip function - otherwise will get NA nodes when multiple PLAC taxa are removed
+      noPlac_gene_tree <- drop.tip(gene_tree, plac_to_remove, trim.internal = TRUE)
+    } else {
+      # No Placazoa taxa in this gene tree- return unchanged
+      noPlac_gene_tree = gene_tree
+    }
+  } else {
+    # No Placozoa in dataset - return unchanged
+    noPlac_gene_tree = gene_tree
+  }
+  
+  # Return the gene tree
+  return(noPlac_gene_tree)
+}
+
+
 
 
