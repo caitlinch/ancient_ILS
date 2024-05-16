@@ -24,8 +24,8 @@ iqtree2_num_threads   <- 30
 astral_server         <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/astral/Astral/astral.5.7.8.jar"
 
 # Control commands
-control <- list(remove.Plac = TRUE,
-                run.noPlac.analyses = TRUE,
+control <- list(remove.Plac = FALSE,
+                run.noPlac.analyses = FALSE,
                 run.cf.analyses = FALSE,
                 extract.gcf = FALSE,
                 extract.qcf = FALSE,
@@ -278,8 +278,7 @@ if (control$extract.qcf == TRUE){
   ## Extract qCF values
   qcf_df$analysis_id <- paste0(qcf_df$dataset_id, ".", qcf_df$model)
   qcf_params <- unique(qcf_df$analysis_id)
-  # Errors: i = 8, 10, 12, 14, 16, 19, 20, 22, 23
-  i = qcf_params[10]
+  i = qcf_params[4]
   qcf_output_list <- lapply(i, extract.qcf.wrapper, qcf_df = qcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)
