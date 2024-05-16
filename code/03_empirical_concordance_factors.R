@@ -284,33 +284,7 @@ if (control$extract.qcf == TRUE){
                             alignment_taxa_df = alignment_taxa_df)
   
   ## Format and output qCF dataframe
-  qcf_output_df <- as.data.frame(do.call(rbind, qcf_output_list), stringsAsFactors = FALSE)
-  # Break down MET node values column
-  qcf_output_df$MET_quartet_support <- gsub("q1=", "", unlist(lapply(strsplit(qcf_output_df$MET_node_value, ";"), function(x){x[[1]]})))
-  qcf_output_df$MET_quartet_tree_freq <- gsub("f1=", "", unlist(lapply(strsplit(qcf_output_df$MET_node_value, ";"), function(x){x[[4]]})))
-  qcf_output_df$MET_lpp <- gsub("pp1=", "", unlist(lapply(strsplit(qcf_output_df$MET_node_value, ";"), function(x){x[[7]]})))
-  qcf_output_df$MET_QC <- gsub("QC=", "", unlist(lapply(strsplit(qcf_output_df$MET_node_value, ";"), function(x){x[[10]]})))
-  qcf_output_df$MET_EN <- gsub("EN=", "", unlist(lapply(strsplit(qcf_output_df$MET_node_value, ";"), function(x){x[[11]]})))
-  # Break down KEY node values column
-  qcf_output_df$KEY_quartet_support <- gsub("q1=", "", unlist(lapply(strsplit(qcf_output_df$KEY_node_value, ";"), function(x){x[[1]]})))
-  qcf_output_df$KEY_quartet_tree_freq <- gsub("f1=", "", unlist(lapply(strsplit(qcf_output_df$KEY_node_value, ";"), function(x){x[[4]]})))
-  qcf_output_df$KEY_lpp <- gsub("pp1=", "", unlist(lapply(strsplit(qcf_output_df$KEY_node_value, ";"), function(x){x[[7]]})))
-  qcf_output_df$KEY_QC <- gsub("QC=", "", unlist(lapply(strsplit(qcf_output_df$KEY_node_value, ";"), function(x){x[[10]]})))
-  qcf_output_df$KEY_EN <- gsub("EN=", "", unlist(lapply(strsplit(qcf_output_df$KEY_node_value, ";"), function(x){x[[11]]})))
-  # Break down CTEN node values column
-  qcf_output_df$CTEN_quartet_support <- gsub("q1=", "", unlist(lapply(strsplit(qcf_output_df$CTEN_node_value, ";"), function(x){x[[1]]})))
-  qcf_output_df$CTEN_quartet_tree_freq <- gsub("f1=", "", unlist(lapply(strsplit(qcf_output_df$CTEN_node_value, ";"), function(x){ifelse((length(x)>1), x[[4]], NA)})))
-  qcf_output_df$CTEN_lpp <- gsub("pp1=", "", unlist(lapply(strsplit(qcf_output_df$CTEN_node_value, ";"), function(x){ifelse((length(x)>1), x[[7]], NA)})))
-  qcf_output_df$CTEN_QC <- gsub("QC=", "", unlist(lapply(strsplit(qcf_output_df$CTEN_node_value, ";"), function(x){ifelse((length(x)>1), x[[10]], NA)})))
-  qcf_output_df$CTEN_EN <- gsub("EN=", "", unlist(lapply(strsplit(qcf_output_df$CTEN_node_value, ";"), function(x){ifelse((length(x)>1), x[[11]], NA)})))
-  # Break down PORI node values column
-  qcf_output_df$PORI_quartet_support <- gsub("q1=", "", unlist(lapply(strsplit(qcf_output_df$PORI_node_value, ";"), function(x){x[[1]]})))
-  qcf_output_df$PORI_quartet_tree_freq <- gsub("f1=", "", unlist(lapply(strsplit(qcf_output_df$PORI_node_value, ";"), function(x){ifelse((length(x)>1), x[[4]], NA)})))
-  qcf_output_df$PORI_lpp <- gsub("pp1=", "", unlist(lapply(strsplit(qcf_output_df$PORI_node_value, ";"), function(x){ifelse((length(x)>1), x[[7]], NA)})))
-  qcf_output_df$PORI_QC <- gsub("QC=", "", unlist(lapply(strsplit(qcf_output_df$PORI_node_value, ";"), function(x){ifelse((length(x)>1), x[[10]], NA)})))
-  qcf_output_df$PORI_EN <- gsub("EN=", "", unlist(lapply(strsplit(qcf_output_df$PORI_node_value, ";"), function(x){ifelse((length(x)>1), x[[11]], NA)})))
-  # Cbind to the parameters dataframe
-  qcf_collated_df <- cbind(qcf_df, qcf_output_df)
+  qcf_output_test_df <- as.data.frame(do.call(rbind, qcf_output_list), stringsAsFactors = FALSE)
   
   ## Save output
   qcf_collated_df_file <- paste0(output_csv_dir, "qCF_values.csv")
