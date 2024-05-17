@@ -33,6 +33,7 @@ noPlac_dataset_ids <- c("Chang2015.Chang_AA", "Laumer2018.Tplx_BUSCOeuk", "Nosen
 control <- list(remove.Plac = FALSE,
                 run.noPlac.analyses = FALSE,
                 run.cf.analyses = FALSE,
+                call.executables = FALSE,
                 extract.gcf = FALSE,
                 extract.qcf = FALSE,
                 reformat.dataframes = FALSE)
@@ -148,6 +149,14 @@ if (control$run.cf.analyses == TRUE){
         file = paste0(output_csv_dir, "gcf_commands_noPlac.txt"))
   write(c(input_df$cten_qcf_command, input_df$pori_qcf_command, input_df$cten_pori_qcf_command), 
         file = paste0(output_csv_dir, "qcf_commands_noPlac.txt"))
+  
+  # Call executables, if desired
+  if (control$call.executables == TRUE){
+    # Run gCF calculation, and save screen output as an object to assess for errors
+    gcf_run_log <- lapply(c(input_df$cten_gcf_command, input_df$pori_gcf_command, input_df$cten_pori_gcf_command), system, intern = TRUE)
+    # Run qCF calculation, and save screen output as an object to assess for errors
+    qcf_run_log <- lapply(c(input_df$cten_qcf_command, input_df$pori_qcf_command, input_df$cten_pori_qcf_command), system, intern = TRUE)
+  }
   
   # Save commands in the csv file
   write.csv(input_df, file = paste0(output_csv_dir, "cf_analysis_commands_noPlac.csv"), row.names = FALSE)
