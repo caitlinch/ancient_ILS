@@ -4,6 +4,7 @@
 
 library(ape)
 library(dplyr)
+library(TreeTools)
 
 
 
@@ -850,8 +851,11 @@ noPlac.gene.trees <- function(gene_tree, constraint_clades){
     plac_to_remove <- constraint_clades$Placozoa[which(constraint_clades$Placozoa %in% gene_tree_taxa)]
     if (length(plac_to_remove) > 0){
       # Remove Placazoa taxa
-      # Trim internal branches in ape::drop.tip function - otherwise will get NA nodes when multiple PLAC taxa are removed
-      noPlac_gene_tree <- ape::drop.tip(gene_tree, plac_to_remove, trim.internal = TRUE)
+      # # Trim internal branches in ape::drop.tip function - otherwise will get NA nodes when multiple PLAC taxa are removed
+      # noPlac_gene_tree <- ape::drop.tip(gene_tree, plac_to_remove, trim.internal = TRUE)
+      # Use TreeTools::DropTip
+      # This function differs from ape::drop.tip(), which roots unrooted trees, and which can crash when trees’ internal numbering follows unexpected schema.
+      noPlac_gene_tree <- TreeTools::DropTip(gene_tree, plac_to_remove)
     } else {
       # No Placazoa taxa in this gene tree- return unchanged
       noPlac_gene_tree = gene_tree
