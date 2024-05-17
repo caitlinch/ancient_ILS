@@ -103,7 +103,7 @@ if (control$run.cf.analyses == TRUE){
   input_df$Plac_id[noPlac_rows] <- "noPlac."
   
   # Add gCF commands
-  # $ iqtree2 -t concat.treefile --gcf loci.treefile --prefix concord
+  # $ iqtree2 -te concat.treefile --gcf loci.treefile --prefix concord
   input_df$cten_gcf_prefix  <- paste0(input_df$partition_gcf_output_dir, input_df$dataset_id, ".", input_df$model, ".CTEN.gcf")
   input_df$cten_gcf_command <- paste0(iqtree2_server, " -te ", input_df$partition_CTEN_tree,
                                       " --gcf ", input_df$mfp_gene_trees, 
@@ -199,6 +199,10 @@ if (control$extract.qcf == TRUE){
   
   ## Extract gCF values
   # Problem children: Chang2015 Partition, Laumer2018 Partition, Nosenko2013 ribosomal Partition, Whelan2015 Partition
+  # Fixed log: Chang2015 Partition, 
+  # Error with other problem children: ERROR: Trees have different number of taxa, ERROR: Taxon not found in full tree: __root__
+  
+  # Extract all gCF
   gcf_output_list <- lapply(1:nrow(gcf_df), extract.gcf.wrapper, gcf_df = gcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)

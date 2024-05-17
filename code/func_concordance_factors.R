@@ -4,6 +4,7 @@
 
 library(ape)
 library(dplyr)
+library(treeio)
 
 
 
@@ -525,7 +526,7 @@ extract.CTEN.PORI.clade.qcf <- function(dataset, matrix_name, topology, model,
   q_rooted <- root(q_tree, constraint_clades$Outgroup)
   # Drop Placozoa taxa
   if (length(constraint_clades$Placozoa) > 0){
-    q_rooted <- drop.tip(q_rooted, constraint_clades$Placozoa)
+    q_rooted <- ape::drop.tip(q_rooted, constraint_clades$Placozoa)
   }
   
   ## Make an edge table with nodes and node labels
@@ -790,8 +791,8 @@ tree.remove.Plac <- function(tree_file,
   ## Remove Plac tips from tree
   full_tree             <- read.tree(tree_file)
   if (length(constraint_clades$Placozoa) > 0){
-    # Trim internal branches in drop.tip function - otherwise will get NA nodes when multiple PLAC taxa are removed
-    noPlac_tree         <- drop.tip(full_tree, constraint_clades$Placozoa, trim.internal = TRUE)
+    # Trim internal branches in ape::drop.tip function - otherwise will get NA nodes when multiple PLAC taxa are removed
+    noPlac_tree         <- ape::drop.tip(full_tree, constraint_clades$Placozoa, trim.internal = TRUE)
   } else {
     noPlac_tree         <- full_tree
   }
@@ -827,7 +828,7 @@ gene.trees.remove.Plac <- function(gene_tree_file,
   
   ## Remove Plac tips from tree
   full_multiphylo         <- read.tree(gene_tree_file)
-  # Trim internal branches in drop.tip function - otherwise will get NA nodes when multiple PLAC taxa are removed
+  # Trim internal branches in ape::drop.tip function - otherwise will get NA nodes when multiple PLAC taxa are removed
   full_multiphylo_noPlac  <- lapply(1:length(full_multiphylo), 
                                     function(x){noPlac.gene.trees(full_multiphylo[[x]], constraint_clades)})
   # Change class from list (result of lapply) to multiPhylo
@@ -850,8 +851,8 @@ noPlac.gene.trees <- function(gene_tree, constraint_clades){
     plac_to_remove <- constraint_clades$Placozoa[which(constraint_clades$Placozoa %in% gene_tree_taxa)]
     if (length(plac_to_remove) > 0){
       # Remove Placazoa taxa
-      # Trim internal branches in drop.tip function - otherwise will get NA nodes when multiple PLAC taxa are removed
-      noPlac_gene_tree <- drop.tip(gene_tree, plac_to_remove, trim.internal = TRUE)
+      # Trim internal branches in ape::drop.tip function - otherwise will get NA nodes when multiple PLAC taxa are removed
+      noPlac_gene_tree <- ape::drop.tip(gene_tree, plac_to_remove, trim.internal = TRUE)
     } else {
       # No Placazoa taxa in this gene tree- return unchanged
       noPlac_gene_tree = gene_tree
