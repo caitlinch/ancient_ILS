@@ -643,9 +643,9 @@ reformat.qCF.df <- function(input_df){
   ## Reformat the qCF dataframe into wide format
   
   # Identify rows for each topology
-  cten_rows <- which(input_df$tree_topology == "CTEN")
-  pori_rows <- which(input_df$tree_topology == "PORI")
-  ctenpori_rows <- which(input_df$tree_topology == "CTEN_PORI")
+  cten_rows <- which(input_df$topology == "CTEN")
+  pori_rows <- which(input_df$topology == "PORI")
+  ctenpori_rows <- which(input_df$topology == "CTEN_PORI")
   # Create new dataframe with columns for each topology
   new_df <- data.frame(id = unlist(lapply(strsplit(input_df$id[c(T,F,F)], "\\."), function(x){paste0(x[[1]], ".", x[[2]], ".", x[[3]])})),
                        dataset = input_df$dataset[c(T,F,F)],

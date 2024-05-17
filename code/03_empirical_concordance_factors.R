@@ -268,6 +268,9 @@ if (control$extract.qcf == TRUE){
                             alignment_taxa_df = alignment_taxa_df)
   # Format and output qCF dataframe
   qcf_collated_df <- as.data.frame(do.call(rbind, qcf_output_list), stringsAsFactors = FALSE)
+  # Add note of whether Placozoa is present
+  qcf_collated_df$Plac_present <- "Plac"
+  qcf_collated_df$Plac_present[which(qcf_collated_df$dataset_id %in% noPlac_dataset_ids & qcf_collated_df$model == "Partition")] <- "noPlac"
   
   ## Save output
   qcf_collated_df_file <- paste0(output_csv_dir, "qCF_values.csv")
@@ -301,11 +304,19 @@ if (control$reformat.dataframes == TRUE){
   write.csv(check_gcf_df, file = check_gcf_df_file, row.names = FALSE)
   
   ## Check qCF values
+  # Call function to reformat dataframe
+  qcf_clean_df <- reformat.qCF.df(input_df = qcf_collated_df)
+  # Add note of whether Placozoa is present
+  qcf_clean_df$Plac_present <- "Plac"
+  qcf_clean_df$Plac_present[which(qcf_clean_df$dataset_id %in% noPlac_dataset_ids & qcf_clean_df$model == "Partition")] <- "noPlac"
+  # Save reformatted dataframe
+  qcf_clean_df_file  <- paste0(output_csv_dir, "qCF_values_formatted.csv")
+  write.csv(qcf_clean_df, file = qcf_clean_df_file, row.names = FALSE)
   # CTEN_q1 + PORI_q1 + CTEN_PORI_q1 = 1
-  check_qcf_df <- data.frame(id = qcf_collated_df$id, 
-                             sum_q = (as.numeric(qcf_collated_df$CTEN.KEY_quartet_support) + 
-                                        as.numeric(qcf_collated_df$PORI.KEY_quartet_support) + 
-                                        as.numeric(qcf_collated_df$CTENPORI.KEY_quartet_support)) )
+  check_qcf_df <- data.frame(id = qcf_clean_df$id, 
+                             sum_q = (as.numeric(qcf_clean_df$CTEN.KEY_q1) + 
+                                        as.numeric(qcf_clean_df$PORI.KEY_q1) + 
+                                        as.numeric(qcf_clean_df$CTENPORI.KEY_q1)) )
   # Save check dataframe
   check_qcf_df_file  <- paste0(output_csv_dir, "qCF_check.csv")
   write.csv(check_qcf_df, file = check_qcf_df_file, row.names = FALSE)
