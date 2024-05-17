@@ -16,7 +16,6 @@
 repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 output_csv_dir        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/07_output_files/"
 cf_dir                <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/06_cf_analyses/"
-noPlac_dir            <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/06_cf_analyses_noPlac/"
 
 # Server file paths to run qCF/gCF analyses
 iqtree2_server        <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2"
@@ -52,6 +51,37 @@ rm(all_taxa, all_models, models_list, borowiec2015_list, chang2015_list, dunn200
 if (control$remove.Plac == TRUE){
   # Open the required dataframe with dataset information
   input_df <- read.csv(paste0(output_csv_dir, "cf_analysis_input_paths.csv"), stringsAsFactors = FALSE)
+  # Duplicate df and add model
+  input_df <- rbind(input_df, input_df)
+  input_df$model <- c(rep("C60", (nrow(input_df)/2)), rep("Partition", (nrow(input_df)/2)) )
+  # Identify which files to update
+  noPlac_dataset_ids <- c("Chang2015.Chang_AA", "Laumer2018.Tplx_BUSCOeuk", "Nosenko2013.ribosomal_14615_smatrix",
+                          "Philippe2009.Philippe_etal_superalignment_FixedNames", "Whelan2015.Dataset10")
+  noPlac_rows <- which(input_df$dataset_id %in% noPlac_dataset_ids & input_df$model == "Partition")
+  # Remove Placozoa taxa from these dataset (ML tree and gene trees) and update file path to "noPlac" path
+  input_df$c60_gene_trees[noPlac_rows] <- unlist(lapply(input_df$c60_gene_trees[noPlac_rows], gene.trees.remove.Plac, 
+                                                        all_datasets = all_datasets, matrix_taxa = matrix_taxa, alignment_taxa_df = alignment_taxa_df))
+  input_df$C60_CTEN_tree[noPlac_rows] <- unlist(lapply(input_df$C60_CTEN_tree[noPlac_rows], tree.remove.Plac, 
+                                                       all_datasets = all_datasets, matrix_taxa = matrix_taxa, alignment_taxa_df = alignment_taxa_df))
+  input_df$C60_PORI_tree[noPlac_rows] <- unlist(lapply(input_df$C60_PORI_tree[noPlac_rows], tree.remove.Plac, 
+                                                       all_datasets = all_datasets, matrix_taxa = matrix_taxa, alignment_taxa_df = alignment_taxa_df))
+  input_df$C60_CTEN_PORI_tree[noPlac_rows] <- unlist(lapply(input_df$C60_CTEN_PORI_tree[noPlac_rows], tree.remove.Plac, 
+                                                            all_datasets = all_datasets, matrix_taxa = matrix_taxa, alignment_taxa_df = alignment_taxa_df))
+  input_df$mfp_gene_trees[noPlac_rows] <- unlist(lapply(input_df$mfp_gene_trees[noPlac_rows], gene.trees.remove.Plac, 
+                                                        all_datasets = all_datasets, matrix_taxa = matrix_taxa, alignment_taxa_df = alignment_taxa_df))
+  input_df$partition_CTEN_tree[noPlac_rows] <- unlist(lapply(input_df$partition_CTEN_tree[noPlac_rows], tree.remove.Plac, 
+                                                             all_datasets = all_datasets, matrix_taxa = matrix_taxa, alignment_taxa_df = alignment_taxa_df))
+  input_df$partition_PORI_tree[noPlac_rows] <- unlist(lapply(input_df$partition_PORI_tree[noPlac_rows], tree.remove.Plac, 
+                                                             all_datasets = all_datasets, matrix_taxa = matrix_taxa, alignment_taxa_df = alignment_taxa_df))
+  input_df$partition_CTEN_PORI_tree[noPlac_rows] <- unlist(lapply(input_df$partition_CTEN_PORI_tree[noPlac_rows], tree.remove.Plac, 
+                                                                  all_datasets = all_datasets, matrix_taxa = matrix_taxa, alignment_taxa_df = alignment_taxa_df))
+  # Update output paths
+  input_df$partition_gcf_output_dir <- paste0(dirname(input_df$partition_gcf_output_dir), "/gcf_", tolower(input_df$model), "/")
+  input_df$partition_qcf_output_dir <- paste0(dirname(input_df$partition_qcf_output_dir), "/gcf_", tolower(input_df$model), "/")
+
+  
+  
+  
   # Identify files to remove Placozoa
   all_files   <- list.files(noPlac_dir, recursive = T)
   all_files   <- grep("Hejnol2009|Simion2017", all_files, value = T, invert = T) # Remove unused datasets
