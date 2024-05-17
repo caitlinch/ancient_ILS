@@ -4,7 +4,7 @@
 
 library(ape)
 library(dplyr)
-library(TreeTools)
+library(TreeTools) # Use TreeTools for internal tree manipulations, especially DropTip
 
 
 
