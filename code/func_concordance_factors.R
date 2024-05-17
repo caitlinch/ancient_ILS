@@ -23,14 +23,13 @@ extract.gcf.wrapper <- function(i, gcf_df,
                                 matrix_taxa = matrix_taxa, all_datasets = all_datasets, alignment_taxa_df = alignment_taxa_df){
   ## Extract the single row from the qCF dataframe
   row <- gcf_df[i, ]
-  row_dataset <- row$dataset
   
   ## Extract the list of taxa in this dataset
-  constraint_clades <- set.taxa(dataset_name = row_dataset, matrix_name = row$matrix_name,
+  constraint_clades <- set.taxa(dataset_name = row$dataset, matrix_name = row$matrix_name,
                                 all_datasets = all_datasets, matrix_taxa = matrix_taxa, alignment_taxa_df = alignment_taxa_df)
   
   ## Extract qCF depending on topology
-  gcf_extracted <- extract.gcf(dataset = row_dataset, matrix_name = row$matrix_name, topology = row$tree_topology,
+  gcf_extracted <- extract.gcf(dataset = row$dataset, matrix_name = row$matrix_name, topology = row$tree_topology,
                                tree_file = row$gcf_branch_files, table_file = row$gcf_stat_files,
                                constraint_clades = constraint_clades)
   
