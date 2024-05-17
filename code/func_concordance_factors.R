@@ -362,19 +362,22 @@ extract.key.qcf <- function(dataset, matrix_name, model,
                             constraint_clades){
   # Function to extract the qCF for the key branches of the three topologies
   
-  ## Open each tree and turn the nodes into a dataframe
-  # Extract CTEN node labels
+  ## Prepare trees
+  # Open trees
   cten_tree <- root(read.tree(cten_tree_file), constraint_clades$Outgroup)
+  pori_tree <- root(read.tree(pori_tree_file), constraint_clades$Outgroup)
+  ctenpori_tree <- root(read.tree(ctenpori_tree_file), constraint_clades$Outgroup)
+  
+  ## Turn the nodes into a dataframe
+  # Extract CTEN node labels
   cten_output <- extract.node.details(in_tree = cten_tree, topology = "CTEN", constraint_clades = constraint_clades)
   cten_node_df <- cten_output$node_df[which(cten_output$node_df$node %in% cten_output$possible_nodes), ]
   cten_node_df$topology <- "CTEN"
   # Extract PORI node labels
-  pori_tree <- root(read.tree(pori_tree_file), constraint_clades$Outgroup)
   pori_output <- extract.node.details(in_tree = pori_tree, topology = "PORI", constraint_clades = constraint_clades)
   pori_node_df <- pori_output$node_df[which(pori_output$node_df$node %in% pori_output$possible_nodes), ]
   pori_node_df$topology <- "PORI"
   # Extract CTEN_PORI node labels
-  ctenpori_tree <- root(read.tree(ctenpori_tree_file), constraint_clades$Outgroup)
   ctenpori_output <- extract.node.details(in_tree = ctenpori_tree, topology = "CTEN_PORI", constraint_clades = constraint_clades)
   ctenpori_node_df <- ctenpori_output$node_df[which(ctenpori_output$node_df$node %in% ctenpori_output$possible_nodes), ]
   ctenpori_node_df$topology <- "CTEN_PORI"
