@@ -23,6 +23,7 @@ extract.gcf.wrapper <- function(i, gcf_df,
                                 matrix_taxa = matrix_taxa, all_datasets = all_datasets, alignment_taxa_df = alignment_taxa_df){
   ## Extract the single row from the qCF dataframe
   row <- gcf_df[i, ]
+  row_dataset <- row$dataset
   
   ## Extract the list of taxa in this dataset
   constraint_clades <- set.taxa(dataset_name = row_dataset, matrix_name = row$matrix_name,
