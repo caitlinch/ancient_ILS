@@ -278,10 +278,11 @@ if (control$extract.qcf == TRUE){
   ## Extract qCF values
   qcf_df$analysis_id <- paste0(qcf_df$dataset_id, ".", qcf_df$model)
   qcf_params <- unique(qcf_df$analysis_id)
-  i = qcf_params[4]
-  qcf_output_test <- lapply(i, extract.qcf.wrapper, qcf_df = qcf_df, 
+  i = qcf_params[1]
+  qcf_output_test <- lapply(qcf_params[1], extract.qcf.wrapper, qcf_df = qcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)
+  sum(qcf_output_test[[1]]$KEY_q1)
   
   ## Format and output qCF dataframe
   qcf_output_test_df <- as.data.frame(do.call(rbind, qcf_output_list), stringsAsFactors = FALSE)
