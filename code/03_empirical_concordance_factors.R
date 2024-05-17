@@ -12,6 +12,8 @@
 # iqtree2_server              <- Location of IQ-Tree2 executable
 # iqtree2_num_threads         <- Number of parallel threads for IQ-Tree to use. Can be a set number (e.g. 2) or "AUTO"
 # astral_server               <- Location of ASTRAL executable
+# noPlac_dataset_ids          <- datasets to remove Placozoa tips from trees before calculating qCF for Partition models 
+#                                   (constrained trees have different Placozoa placement, which throws out quartet comparisons)
 
 repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 output_csv_dir        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/07_output_files/"
@@ -21,6 +23,11 @@ cf_dir                <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/06_cf_a
 iqtree2_server        <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/iqtree2/iqtree-2.2.2.6-Linux/bin/iqtree2"
 iqtree2_num_threads   <- 30
 astral_server         <- "/mnt/data/dayhoff/home/u5348329/ancient_ILS/astral/Astral/astral.5.7.8.jar"
+
+# Specify datasets to remove Placozoa before calculating qCF for Partition models 
+#     (due to alternative placements of the Placozoa taxa in the different constrained tree topologies)
+noPlac_dataset_ids <- c("Chang2015.Chang_AA", "Laumer2018.Tplx_BUSCOeuk", "Nosenko2013.ribosomal_14615_smatrix",
+                        "Philippe2009.Philippe_etal_superalignment_FixedNames", "Whelan2015.Dataset10")
 
 # Control commands
 control <- list(remove.Plac = FALSE,
@@ -55,8 +62,6 @@ if (control$remove.Plac == TRUE){
   input_df <- rbind(input_df, input_df)
   input_df$model <- c(rep("C60", (nrow(input_df)/2)), rep("Partition", (nrow(input_df)/2)) )
   # Identify which files to update
-  noPlac_dataset_ids <- c("Chang2015.Chang_AA", "Laumer2018.Tplx_BUSCOeuk", "Nosenko2013.ribosomal_14615_smatrix",
-                          "Philippe2009.Philippe_etal_superalignment_FixedNames", "Whelan2015.Dataset10")
   noPlac_rows <- which(input_df$dataset_id %in% noPlac_dataset_ids & input_df$model == "Partition")
   # Remove Placozoa taxa from these dataset (ML tree and gene trees) and update file path to "noPlac" path
   input_df$c60_gene_trees[noPlac_rows] <- unlist(lapply(input_df$c60_gene_trees[noPlac_rows], gene.trees.remove.Plac, 
@@ -78,39 +83,6 @@ if (control$remove.Plac == TRUE){
   # Update output paths
   input_df$partition_gcf_output_dir <- paste0(dirname(input_df$partition_gcf_output_dir), "/gcf_", tolower(input_df$model), "/")
   input_df$partition_qcf_output_dir <- paste0(dirname(input_df$partition_qcf_output_dir), "/gcf_", tolower(input_df$model), "/")
-
-  
-  
-  
-  # Identify files to remove Placozoa
-  all_files   <- list.files(noPlac_dir, recursive = T)
-  all_files   <- grep("Hejnol2009|Simion2017", all_files, value = T, invert = T) # Remove unused datasets
-  all_files   <- grep("noPlac", all_files, value = T, invert = T) # Remove files with Plac already removed
-  gene_files  <- paste0(noPlac_dir, grep("gene_trees", all_files, value = T)) # Identify gene tree files
-  tree_files  <- paste0(noPlac_dir, grep("ML_tree.treefile", all_files, value = T)) # Identify ML tree files
-  
-  gene_tree_file <- gene_files[6]
-  tree_file <- tree_files[16]
-  
-  # Remove PLAC from gene tree files
-  gene_files <- gene_files[which(file.exists(gsub("\\.treefile", ".noPlac.treefile", gene_files)) == FALSE)]
-  if (length(gene_files) > 0){
-    new_gene_tree_files <- lapply(gene_files, gene.trees.remove.Plac, 
-                                  all_datasets, matrix_taxa, alignment_taxa_df)
-  }
-  # Remove PLAC from tree files
-  tree_files <- tree_files[which(file.exists(gsub("\\.treefile", ".noPlac.treefile", tree_files)) == FALSE)]
-  if (length(tree_files) > 0){
-    new_tree_files <- lapply(tree_files, tree.remove.Plac,
-                             all_datasets, matrix_taxa, alignment_taxa_df)
-  }
-  
-  ## Update the input df for noPlac
-  # Update filepaths in the input_df
-  cols_to_update <- names(input_df)[4:length(names(input_df))]
-  for (x in cols_to_update){
-    input_df[[x]] <- gsub("cf_main", "cf_main_noPlac", input_df[[x]])
-  }
   # Save the updated input file
   noPlac_input_df_file <- paste0(output_csv_dir, "cf_analysis_input_paths_noPlac.csv")
   write.csv(input_df, file = noPlac_input_df_file, row.names = F)
@@ -119,109 +91,66 @@ if (control$remove.Plac == TRUE){
 
 #### 3. Create command lines for calculating gCF and qCF ####
 if (control$run.cf.analyses == TRUE){
-  if (control$run.noPlac.analyses == TRUE){
-    input_df <- read.csv(paste0(output_csv_dir, "cf_analysis_input_paths_noPlac.csv"), stringsAsFactors = FALSE)
-    outid <- "_noPlac"
-  } else if (control$run.noPlac.analyses == FALSE){
-    # Open the required dataframe with dataset information
-    input_df <- read.csv(paste0(output_csv_dir, "cf_analysis_input_paths.csv"), stringsAsFactors = FALSE)
-    outid <- ""
-  }
+  # Open the dataframe to set command lines
+  noPlac_input_df_file <- paste0(output_csv_dir, "cf_analysis_input_paths_noPlac.csv")
+  input_df <- read.csv(noPlac_input_df_file, stringsAsFactors = FALSE)
   
-  # Add C60 gCF commands
+  # Identify which rows to update with "noPlac" marker
+  noPlac_rows <- which(input_df$dataset_id %in% noPlac_dataset_ids & input_df$model == "Partition")
+  # Add column to dictate output file note for noPlac runs
+  input_df$Plac_id <- ""
+  input_df$Plac_id[noPlac_rows] <- "noPlac."
+  
+  # Add gCF commands
   # $ iqtree2 -t concat.treefile --gcf loci.treefile --prefix concord
-  input_df$c60_cten_gcf_command <- paste0(iqtree2_server, " -te ", input_df$C60_CTEN_tree,
-                                          " --gcf ", input_df$c60_gene_trees, 
-                                          " -pre ", input_df$c60_gcf_output_dir, input_df$dataset_id, ".C60.CTEN.gcf",
-                                          " -nt ", iqtree2_num_threads)
-  input_df$c60_cten_gcf_prefix <- paste0(input_df$c60_gcf_output_dir, input_df$dataset_id, ".C60.CTEN.gcf")
-  input_df$c60_pori_gcf_command <- paste0(iqtree2_server, " -te ", input_df$C60_PORI_tree,
-                                          " --gcf ", input_df$c60_gene_trees, 
-                                          " -pre ", input_df$c60_gcf_output_dir, input_df$dataset_id, ".C60.PORI.gcf",
-                                          " -nt ", iqtree2_num_threads)
-  input_df$c60_pori_gcf_prefix <- paste0(input_df$c60_gcf_output_dir, input_df$dataset_id, ".C60.PORI.gcf")
-  input_df$c60_cten_pori_gcf_command <- paste0(iqtree2_server, " -te ", input_df$C60_CTEN_PORI_tree,
-                                               " --gcf ", input_df$c60_gene_trees, 
-                                               " -pre ", input_df$c60_gcf_output_dir, input_df$dataset_id, ".C60.CTEN_PORI.gcf",
-                                               " -nt ", iqtree2_num_threads)
-  input_df$c60_cten_pori_gcf_prefix <- paste0(input_df$c60_gcf_output_dir, input_df$dataset_id, ".C60.CTEN_PORI.gcf")
+  input_df$cten_gcf_prefix  <- paste0(input_df$partition_gcf_output_dir, input_df$dataset_id, ".", input_df$model, ".CTEN.gcf")
+  input_df$cten_gcf_command <- paste0(iqtree2_server, " -te ", input_df$partition_CTEN_tree,
+                                      " --gcf ", input_df$mfp_gene_trees, 
+                                      " -pre ", input_df$cten_gcf_prefix,
+                                      " -nt ", iqtree2_num_threads)
+  input_df$pori_gcf_prefix  <- paste0(input_df$partition_gcf_output_dir, input_df$dataset_id, ".", input_df$model, ".PORI.gcf")
+  input_df$pori_gcf_command <- paste0(iqtree2_server, " -te ", input_df$partition_PORI_tree,
+                                      " --gcf ", input_df$mfp_gene_trees, 
+                                      " -pre ", input_df$pori_gcf_prefix,
+                                      " -nt ", iqtree2_num_threads)
+  input_df$cten_pori_gcf_prefix   <- paste0(input_df$partition_gcf_output_dir, input_df$dataset_id, ".", input_df$model, ".CTEN_PORI.gcf")
+  input_df$cten_pori_gcf_command  <- paste0(iqtree2_server, " -te ", input_df$partition_CTEN_PORI_tree,
+                                            " --gcf ", input_df$mfp_gene_trees, 
+                                            " -pre ", input_df$cten_pori_gcf_prefix,
+                                            " -nt ", iqtree2_num_threads)
   
-  # Add C60 qCF commands
+  # Add qCF commands
   # $ java -jar astral.5.7.8.jar -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 2 -o test_data/1kp-scored-t2.tre
-  input_df$c60_cten_qcf_command <- paste0("java -jar ", astral_server, 
-                                          " -q ", input_df$C60_CTEN_tree, 
-                                          " -i ", input_df$c60_gene_trees, " -t 2 ",
-                                          " -o ", input_df$c60_qcf_output_dir, input_df$dataset_id, ".C60.CTEN.qcf.tre", 
-                                          " 2> ", input_df$c60_qcf_output_dir, input_df$dataset_id, ".C60.CTEN.qcf.log")
-  input_df$c60_CTEN_qcf_tree <- paste0(input_df$c60_qcf_output_dir, input_df$dataset_id, ".C60.CTEN.qcf.tre")
-  input_df$c60_CTEN_qcf_log <- paste0(input_df$c60_qcf_output_dir, input_df$dataset_id, ".C60.CTEN.qcf.log")
-  input_df$c60_pori_qcf_command <- paste0("java -jar ", astral_server, 
-                                          " -q ", input_df$C60_PORI_tree, 
-                                          " -i ", input_df$c60_gene_trees, " -t 2 ",
-                                          " -o ", input_df$c60_qcf_output_dir, input_df$dataset_id, ".C60.PORI.qcf.tre", 
-                                          " 2> ", input_df$c60_qcf_output_dir, input_df$dataset_id, ".C60.PORI.qcf.log")
-  input_df$c60_PORI_qcf_tree <- paste0(input_df$c60_qcf_output_dir, input_df$dataset_id, ".C60.CTEN.qcf.tre")
-  input_df$c60_PORI_qcf_log <- paste0(input_df$c60_qcf_output_dir, input_df$dataset_id, ".C60.CTEN.qcf.log")
-  input_df$c60_cten_pori_qcf_command <- paste0("java -jar ", astral_server, 
-                                               " -q ", input_df$C60_CTEN_PORI_tree, 
-                                               " -i ", input_df$c60_gene_trees, " -t 2 ",
-                                               " -o ", input_df$c60_qcf_output_dir, input_df$dataset_id, ".C60.CTEN_PORI.qcf.tre", 
-                                               " 2> ", input_df$c60_qcf_output_dir, input_df$dataset_id, ".C60.CTEN_PORI.qcf.log")
-  input_df$c60_CTEN_PORI_qcf_tree <- paste0(input_df$c60_qcf_output_dir, input_df$dataset_id, ".C60.CTEN_PORI.qcf.tre")
-  input_df$c60_CTEN_PORI_qcf_log <- paste0(input_df$c60_qcf_output_dir, input_df$dataset_id, ".C60.CTEN_PORI.qcf.log")
-  
-  # Add Partitioned gCF commands
-  # $ iqtree2 -t concat.treefile --gcf loci.treefile --prefix concord
-  input_df$partition_cten_gcf_command <- paste0(iqtree2_server, " -te ", input_df$partition_CTEN_tree,
-                                                " --gcf ", input_df$mfp_gene_trees, 
-                                                " -pre ", input_df$partition_gcf_output_dir, input_df$dataset_id, ".Partition.CTEN.gcf",
-                                                " -nt ", iqtree2_num_threads)
-  input_df$partition_cten_gcf_prefix <- paste0(input_df$partition_gcf_output_dir, input_df$dataset_id, ".Partition.CTEN.gcf")
-  input_df$partition_pori_gcf_command <- paste0(iqtree2_server, " -te ", input_df$partition_PORI_tree,
-                                                " --gcf ", input_df$mfp_gene_trees, 
-                                                " -pre ", input_df$partition_gcf_output_dir, input_df$dataset_id, ".Partition.PORI.gcf",
-                                                " -nt ", iqtree2_num_threads)
-  input_df$partition_pori_gcf_prefix <- paste0(input_df$partition_gcf_output_dir, input_df$dataset_id, ".Partition.PORI.gcf")
-  input_df$partition_cten_pori_gcf_command <- paste0(iqtree2_server, " -te ", input_df$partition_CTEN_PORI_tree,
-                                                     " --gcf ", input_df$mfp_gene_trees, 
-                                                     " -pre ", input_df$partition_gcf_output_dir, input_df$dataset_id, ".Partition.CTEN_PORI.gcf",
-                                                     " -nt ", iqtree2_num_threads)
-  input_df$partition_pori_gcf_prefix <- paste0(input_df$partition_gcf_output_dir, input_df$dataset_id, ".Partition.CTEN_PORI.gcf")
-  
-  # Add Partitioned qCF commands
-  # $ java -jar astral.5.7.8.jar -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 2 -o test_data/1kp-scored-t2.tre
-  input_df$partition_cten_qcf_command <- paste0("java -jar ", astral_server, 
-                                                " -q ", input_df$partition_CTEN_tree, 
-                                                " -i ", input_df$mfp_gene_trees, " -t 2 ",
-                                                " -o ", input_df$partition_qcf_output_dir, input_df$dataset_id, ".Partition.CTEN.qcf.tre", 
-                                                " 2> ", input_df$partition_qcf_output_dir, input_df$dataset_id, ".Partition.CTEN.qcf.log")
-  input_df$partition_CTEN_qcf_tree <- paste0(input_df$partition_qcf_output_dir, input_df$dataset_id, ".Partition.CTEN.qcf.tre")
-  input_df$partition_CTEN_qcf_log <- paste0(input_df$partition_qcf_output_dir, input_df$dataset_id, ".Partition.CTEN.qcf.log")
-  input_df$partition_pori_qcf_command <- paste0("java -jar ", astral_server, 
-                                                " -q ", input_df$partition_PORI_tree, 
-                                                " -i ", input_df$mfp_gene_trees, " -t 2 ",
-                                                " -o ", input_df$partition_qcf_output_dir, input_df$dataset_id, ".Partition.PORI.qcf.tre", 
-                                                " 2> ", input_df$partition_qcf_output_dir, input_df$dataset_id, ".Partition.PORI.qcf.log")
-  input_df$partition_PORI_qcf_tree <- paste0(input_df$partition_qcf_output_dir, input_df$dataset_id, ".Partition.PORI.qcf.tre")
-  input_df$partition_PORI_qcf_log <- paste0(input_df$partition_qcf_output_dir, input_df$dataset_id, ".Partition.PORI.qcf.log")
-  input_df$partition_cten_pori_qcf_command <- paste0("java -jar ", astral_server, 
-                                                     " -q ", input_df$partition_CTEN_PORI_tree, 
-                                                     " -i ", input_df$mfp_gene_trees, " -t 2 ",
-                                                     " -o ", input_df$partition_qcf_output_dir, input_df$dataset_id, ".Partition.CTEN_PORI.qcf.tre", 
-                                                     " 2> ", input_df$partition_qcf_output_dir, input_df$dataset_id, ".Partition.CTEN_PORI.qcf.log")
-  input_df$partition_CTEN_PORI_qcf_tree <- paste0(input_df$partition_qcf_output_dir, input_df$dataset_id, ".Partition.CTEN_PORI.qcf.tre")
-  input_df$partition_CTEN_PORI_qcf_log <- paste0(input_df$partition_qcf_output_dir, input_df$dataset_id, ".Partition.CTEN_PORI.qcf.log")
+  input_df$CTEN_qcf_tree    <- paste0(input_df$partition_qcf_output_dir, input_df$dataset_id, ".", input_df$model, ".CTEN.", input_df$Plac_id, "qcf.tre")
+  input_df$CTEN_qcf_log     <- paste0(input_df$partition_qcf_output_dir, input_df$dataset_id, ".", input_df$model, ".CTEN.", input_df$Plac_id, "qcf.log")
+  input_df$cten_qcf_command <- paste0("java -jar ", astral_server, 
+                                      " -q ", input_df$partition_CTEN_tree, 
+                                      " -i ", input_df$mfp_gene_trees, " -t 2 ",
+                                      " -o ", input_df$CTEN_qcf_tree,
+                                      " 2> ", input_df$CTEN_qcf_log)
+  input_df$PORI_qcf_tree    <- paste0(input_df$partition_qcf_output_dir, input_df$dataset_id, ".", input_df$model, ".PORI.", input_df$Plac_id, "qcf.tre")
+  input_df$PORI_qcf_log     <- paste0(input_df$partition_qcf_output_dir, input_df$dataset_id, ".", input_df$model, ".PORI.", input_df$Plac_id, "qcf.log")
+  input_df$pori_qcf_command <- paste0("java -jar ", astral_server, 
+                                      " -q ", input_df$partition_PORI_tree, 
+                                      " -i ", input_df$mfp_gene_trees, " -t 2 ",
+                                      " -o ", input_df$PORI_qcf_tree,
+                                      " 2> ", input_df$PORI_qcf_log)
+  input_df$CTEN_PORI_qcf_tree     <- paste0(input_df$partition_qcf_output_dir, input_df$dataset_id, ".", input_df$model, ".CTEN_PORI.", input_df$Plac_id, "qcf.tre")
+  input_df$CTEN_PORI_qcf_log      <- paste0(input_df$partition_qcf_output_dir, input_df$dataset_id, ".", input_df$model, ".CTEN_PORI.", input_df$Plac_id, "qcf.log")
+  input_df$cten_pori_qcf_command  <- paste0("java -jar ", astral_server, 
+                                            " -q ", input_df$partition_CTEN_PORI_tree, 
+                                            " -i ", input_df$mfp_gene_trees, " -t 2 ",
+                                            " -o ", input_df$CTEN_PORI_qcf_tree,
+                                            " 2> ", input_df$CTEN_PORI_qcf_log)
   
   # Write out command lines to text files
-  write(c(input_df$c60_cten_gcf_command, input_df$c60_pori_gcf_command, input_df$c60_cten_pori_gcf_command,
-          input_df$partition_cten_gcf_command, input_df$partition_pori_gcf_command, input_df$partition_cten_pori_gcf_command), 
-        file = paste0(output_csv_dir, "gcf_commands", outid, ".txt"))
-  write(c(input_df$c60_cten_qcf_command, input_df$c60_pori_qcf_command, input_df$c60_cten_pori_qcf_command,
-          input_df$partition_cten_qcf_command, input_df$partition_pori_qcf_command, input_df$partition_cten_pori_qcf_command), 
-        file = paste0(output_csv_dir, "qcf_commands", outid, ".txt"))
+  write(c(input_df$cten_gcf_command, input_df$pori_gcf_command, input_df$cten_pori_gcf_command), 
+        file = paste0(output_csv_dir, "gcf_commands_noPlac.txt"))
+  write(c(input_df$cten_qcf_command, input_df$pori_qcf_command, input_df$cten_pori_qcf_command), 
+        file = paste0(output_csv_dir, "qcf_commands_noPlac.txt"))
   
   # Save commands in the csv file
-  write.csv(input_df, file = paste0(output_csv_dir, "cf_analysis_commands", outid, ".csv"), row.names = FALSE)
+  write.csv(input_df, file = paste0(output_csv_dir, "cf_analysis_commands_noPlac.csv"), row.names = FALSE)
 }
 
 
