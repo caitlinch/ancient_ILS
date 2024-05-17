@@ -279,7 +279,8 @@ if (control$extract.qcf == TRUE){
   qcf_df$analysis_id <- paste0(qcf_df$dataset_id, ".", qcf_df$model)
   qcf_params <- unique(qcf_df$analysis_id)
   i = qcf_params[1]
-  qcf_output_test <- lapply(qcf_params[1], extract.qcf.wrapper, qcf_df = qcf_df, 
+  # Issue i: 2, 4, 5, 6, 7, 8
+  qcf_output_test <- lapply(qcf_params[2], extract.qcf.wrapper, qcf_df = qcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)
   sum(qcf_output_test[[1]]$KEY_q1)

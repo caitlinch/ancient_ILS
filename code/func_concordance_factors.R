@@ -491,16 +491,16 @@ format.CTEN.PORI.clade.qcf <- function(output_string){
     cten_output_vector <- c(rep(NA, 5), output_string[["CTEN_branch_length"]], output_string[["CTEN_monophyly"]])
   } else {
     cten_output_vector <- c(gsub("q1=", "", cten_split[[1]]), gsub("f1=", "", cten_split[[4]]), gsub("pp1=", "", cten_split[[7]]),
-                            gsub("QC=", "", cten_split[[10]]), gsub("EN=", "", cten_split[[11]]), output_string[["CTEN_branch_length"]], 
-                            output_string[["CTEN_monophyly"]])
+                            gsub("QC=", "", cten_split[[10]]), gsub("EN=", "", cten_split[[11]]), 
+                            output_string[["CTEN_branch_length"]], output_string[["CTEN_monophyly"]])
   }
   # Create the output vectors for PORI cladess if there is more than one taxon in the clade
   if (is.na(output_string[["PORI_node_value"]]) == TRUE){
     pori_output_vector <- c(rep(NA, 5), output_string[["PORI_branch_length"]], output_string[["PORI_monophyly"]])
   } else {
     pori_output_vector <- c(gsub("q1=", "", pori_split[[1]]), gsub("f1=", "", pori_split[[4]]), gsub("pp1=", "", pori_split[[7]]),
-                            gsub("QC=", "", pori_split[[10]]), gsub("EN=", "", pori_split[[11]]), pori_split[["PORI_branch_length"]], 
-                            output_string[["PORI_monophyly"]])
+                            gsub("QC=", "", pori_split[[10]]), gsub("EN=", "", pori_split[[11]]), 
+                            output_string[["PORI_branch_length"]], output_string[["PORI_monophyly"]])
   }
   # Assemble the output vector
   node_value_names <- c("q1", "f1", "pp1", "QC", "EN", "branch_length", "monophyly")
