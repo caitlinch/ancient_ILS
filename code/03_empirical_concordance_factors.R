@@ -198,6 +198,7 @@ if (control$extract.qcf == TRUE){
   }
   
   ## Extract gCF values
+  # Problem children: Chang2015 Partition, Laumer2018 Partition, Nosenko2013 ribosomal Partition, Whelan2015 Partition
   gcf_output_list <- lapply(1:nrow(gcf_df), extract.gcf.wrapper, gcf_df = gcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)
@@ -235,8 +236,12 @@ if (control$extract.qcf == TRUE){
     qcf_df$dataset_id     <- paste0(qcf_df$dataset, ".", qcf_df$matrix_name)
     qcf_df$model          <- unlist(lapply(split_id, function(x){x[[3]]}))
     qcf_df$tree_topology  <- unlist(lapply(split_id, function(x){x[[4]]}))
+    # Add note of whether Placozoa is present
+    qcf_df$Plac_present <- "Plac"
+    qcf_df$Plac_present[grep("noPlac", qcf_df$qcf_tree_file)] <- "noPlac"
+    qcf_df <- qcf_df[which( ! (qcf_df$dataset_id %in% noPlac_dataset_ids & qcf_df$model == "Partition" & qcf_df$Plac_present == "Plac") ), ]
     # Rearrange order of columns
-    qcf_df <- qcf_df[, c("id", "dataset", "matrix_name", "dataset_id", "model", "tree_topology", "qcf_tree_file")]
+    qcf_df <- qcf_df[, c("id", "dataset", "matrix_name", "dataset_id", "model", "tree_topology", "Plac_present", "qcf_tree_file")]
     # Write qCF_df
     write.csv(qcf_df, file = qcf_df_file, row.names = FALSE)
   } else {
@@ -247,22 +252,22 @@ if (control$extract.qcf == TRUE){
   # Construct id for iterating over analyses
   qcf_df$analysis_id <- paste0(qcf_df$dataset_id, ".", qcf_df$model)
   qcf_params <- unique(qcf_df$analysis_id)
-  # Working and issue datasets
-  issue_rows <- c(14, 16, 19, 20, 23)
-  working_rows <- setdiff(1:24, issue_rows)
-  issue_params <- qcf_params[issue_rows]
-  analysis_id = qcf_params[issue_rows[2]]
-  # Test run
-  qcf_output_test <- lapply(i, extract.qcf.wrapper, qcf_df = qcf_df, 
-                            matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
-                            alignment_taxa_df = alignment_taxa_df)
+  # # Working and issue datasets
+  # issue_rows <- c(14, 16, 19, 20, 23)
+  # working_rows <- setdiff(1:24, issue_rows)
+  # issue_params <- qcf_params[issue_rows]
+  # analysis_id = qcf_params[issue_rows[2]]
+  # # Test run
+  # qcf_output_test <- lapply(i, extract.qcf.wrapper, qcf_df = qcf_df, 
+  #                           matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
+  #                           alignment_taxa_df = alignment_taxa_df)
   # Extract qCF for all datasets
-  qcf_output_test <- lapply(qcf_params, extract.qcf.wrapper, qcf_df = qcf_df, 
+  # Call function to extract qCF from files
+  qcf_output_list <- lapply(qcf_params, extract.qcf.wrapper, qcf_df = qcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)
-  
-  ## Format and output qCF dataframe
-  qcf_output_test_df <- as.data.frame(do.call(rbind, qcf_output_list), stringsAsFactors = FALSE)
+  # Format and output qCF dataframe
+  qcf_collated_df <- as.data.frame(do.call(rbind, qcf_output_list), stringsAsFactors = FALSE)
   
   ## Save output
   qcf_collated_df_file <- paste0(output_csv_dir, "qCF_values.csv")
@@ -295,17 +300,12 @@ if (control$reformat.dataframes == TRUE){
   check_gcf_df_file  <- paste0(output_csv_dir, "gCF_check.csv")
   write.csv(check_gcf_df, file = check_gcf_df_file, row.names = FALSE)
   
-  ## Reformat qCF df
-  # Call function to reformat dataframe
-  qcf_clean_df <- reformat.qCF.df(input_df = qcf_collated_df)
-  # Save reformatted dataframe
-  qcf_clean_df_file  <- paste0(output_csv_dir, "qCF_values_formatted.csv")
-  write.csv(qcf_clean_df, file = qcf_clean_df_file, row.names = FALSE)
-  # New dataframe to check values
-  check_qcf_df <- data.frame(id = qcf_clean_df$id, 
-                             sum_q = (as.numeric(qcf_clean_df$CTEN.KEY_quartet_support) + 
-                                        as.numeric(qcf_clean_df$PORI.KEY_quartet_support) + 
-                                        as.numeric(qcf_clean_df$CTENPORI.KEY_quartet_support)) )
+  ## Check qCF values
+  # CTEN_q1 + PORI_q1 + CTEN_PORI_q1 = 1
+  check_qcf_df <- data.frame(id = qcf_collated_df$id, 
+                             sum_q = (as.numeric(qcf_collated_df$CTEN.KEY_quartet_support) + 
+                                        as.numeric(qcf_collated_df$PORI.KEY_quartet_support) + 
+                                        as.numeric(qcf_collated_df$CTENPORI.KEY_quartet_support)) )
   # Save check dataframe
   check_qcf_df_file  <- paste0(output_csv_dir, "qCF_check.csv")
   write.csv(check_qcf_df, file = check_qcf_df_file, row.names = FALSE)

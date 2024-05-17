@@ -238,7 +238,7 @@ reformat.gCF.df <- function(input_df){
   pori_rows <- which(input_df$tree_topology == "PORI")
   ctenpori_rows <- which(input_df$tree_topology == "CTEN_PORI")
   # Create new dataframe with columns for each topology
-  new_df <- data.frame(id = unlist(lapply(strsplit(gcf_collated_df$id[c(T,F,F)], "\\."), function(x){paste0(x[[1]], ".", x[[2]], ".", x[[3]])})),
+  new_df <- data.frame(id = unlist(lapply(strsplit(input_df$id[c(T,F,F)], "\\."), function(x){paste0(x[[1]], ".", x[[2]], ".", x[[3]])})),
                        dataset = input_df$dataset[c(T,F,F)],
                        matrix_name = input_df$matrix_name[c(T,F,F)],
                        dataset_id = input_df$dataset_id[c(T,F,F)],
@@ -638,7 +638,7 @@ extract.CTEN.PORI.clade.qcf <- function(dataset, matrix_name, topology, model,
 
 
 
-#### Reformat qCF dataframe ####
+#### Reformat qCF ####
 reformat.qCF.df <- function(input_df){
   ## Reformat the qCF dataframe into wide format
   
@@ -652,15 +652,15 @@ reformat.qCF.df <- function(input_df){
                        matrix_name = input_df$matrix_name[c(T,F,F)],
                        dataset_id = input_df$dataset_id[c(T,F,F)],
                        model = input_df$model[c(T,F,F)],
-                       CTEN.KEY_quartet_support = input_df$KEY_quartet_support[cten_rows],
-                       PORI.KEY_quartet_support = input_df$KEY_quartet_support[pori_rows],
-                       CTENPORI.KEY_quartet_support = input_df$KEY_quartet_support[ctenpori_rows],
-                       CTEN.KEY_quartet_tree_freq = input_df$KEY_quartet_tree_freq[cten_rows],
-                       PORI.KEY_quartet_tree_freq = input_df$KEY_quartet_tree_freq[pori_rows],
-                       CTENPORI.KEY_quartet_tree_freq = input_df$KEY_quartet_tree_freq[ctenpori_rows],
-                       CTEN.KEY_lpp = input_df$KEY_lpp[cten_rows],
-                       PORI.KEY_lpp = input_df$KEY_lpp[pori_rows],
-                       CTENPORI.KEY_lpp = input_df$KEY_lpp[ctenpori_rows],
+                       CTEN.KEY_q1 = input_df$KEY_q1[cten_rows],
+                       PORI.KEY_q1 = input_df$KEY_q1[pori_rows],
+                       CTENPORI.KEY_q1 = input_df$KEY_q1[ctenpori_rows],
+                       CTEN.KEY_f1 = input_df$KEY_f1[cten_rows],
+                       PORI.KEY_f1 = input_df$KEY_f1[pori_rows],
+                       CTENPORI.KEY_f1 = input_df$KEY_f1[ctenpori_rows],
+                       CTEN.KEY_pp1 = input_df$KEY_pp1[cten_rows],
+                       PORI.KEY_pp1 = input_df$KEY_pp1[pori_rows],
+                       CTENPORI.KEY_pp1 = input_df$KEY_pp1[ctenpori_rows],
                        CTEN.KEY_QC = input_df$KEY_QC[cten_rows],
                        PORI.KEY_QC = input_df$KEY_QC[pori_rows],
                        CTENPORI.KEY_QC = input_df$KEY_QC[ctenpori_rows],
@@ -670,15 +670,16 @@ reformat.qCF.df <- function(input_df){
                        CTEN.KEY_branch_length = input_df$KEY_branch_length[cten_rows],
                        PORI.KEY_branch_length = input_df$KEY_branch_length[pori_rows],
                        CTENPORI.KEY_branch_length = input_df$KEY_branch_length[ctenpori_rows],
-                       CTEN.CTEN_quartet_support = input_df$CTEN_quartet_support[cten_rows],
-                       PORI.CTEN_quartet_support = input_df$CTEN_quartet_support[pori_rows],
-                       CTENPORI.CTEN_quartet_support = input_df$CTEN_quartet_support[ctenpori_rows],
-                       CTEN.CTEN_quartet_tree_freq = input_df$CTEN_quartet_tree_freq[cten_rows],
-                       PORI.CTEN_quartet_tree_freq = input_df$CTEN_quartet_tree_freq[pori_rows],
-                       CTENPORI.CTEN_quartet_tree_freq = input_df$CTEN_quartet_tree_freq[ctenpori_rows],
-                       CTEN.CTEN_lpp = input_df$CTEN_lpp[cten_rows],
-                       PORI.CTEN_lpp = input_df$CTEN_lpp[pori_rows],
-                       CTENPORI.CTEN_lpp = input_df$CTEN_lpp[ctenpori_rows],
+                       
+                       CTEN.CTEN_q1 = input_df$CTEN_q1[cten_rows],
+                       PORI.CTEN_q1 = input_df$CTEN_q1[pori_rows],
+                       CTENPORI.CTEN_q1 = input_df$CTEN_q1[ctenpori_rows],
+                       CTEN.CTEN_f1 = input_df$CTEN_f1[cten_rows],
+                       PORI.CTEN_f1 = input_df$CTEN_f1[pori_rows],
+                       CTENPORI.CTEN_f1 = input_df$CTEN_f1[ctenpori_rows],
+                       CTEN.CTEN_pp1 = input_df$CTEN_pp1[cten_rows],
+                       PORI.CTEN_pp1 = input_df$CTEN_pp1[pori_rows],
+                       CTENPORI.CTEN_pp1 = input_df$CTEN_pp1[ctenpori_rows],
                        CTEN.CTEN_QC = input_df$CTEN_QC[cten_rows],
                        PORI.CTEN_QC = input_df$CTEN_QC[pori_rows],
                        CTENPORI.CTEN_QC = input_df$CTEN_QC[ctenpori_rows],
@@ -688,15 +689,19 @@ reformat.qCF.df <- function(input_df){
                        CTEN.CTEN_branch_length = input_df$CTEN_branch_length[cten_rows],
                        PORI.CTEN_branch_length = input_df$CTEN_branch_length[pori_rows],
                        CTENPORI.CTEN_branch_length = input_df$CTEN_branch_length[ctenpori_rows],
-                       CTEN.PORI_quartet_support = input_df$PORI_quartet_support[cten_rows],
-                       PORI.PORI_quartet_support = input_df$PORI_quartet_support[pori_rows],
-                       CTENPORI.PORI_quartet_support = input_df$PORI_quartet_support[ctenpori_rows],
-                       CTEN.PORI_quartet_tree_freq = input_df$PORI_quartet_tree_freq[cten_rows],
-                       PORI.PORI_quartet_tree_freq = input_df$PORI_quartet_tree_freq[pori_rows],
-                       CTENPORI.PORI_quartet_tree_freq = input_df$PORI_quartet_tree_freq[ctenpori_rows],
-                       CTEN.PORI_lpp = input_df$PORI_lpp[cten_rows],
-                       PORI.PORI_lpp = input_df$PORI_lpp[pori_rows],
-                       CTENPORI.PORI_lpp = input_df$PORI_lpp[ctenpori_rows],
+                       CTEN.CTEN_monophyly = input_df$CTEN_monophyly[cten_rows],
+                       PORI.CTEN_monophyly = input_df$CTEN_monophyly[pori_rows],
+                       CTENPORI.CTEN_monophyly = input_df$CTEN_monophyly[ctenpori_rows],
+                       
+                       CTEN.PORI_q1 = input_df$PORI_q1[cten_rows],
+                       PORI.PORI_q1 = input_df$PORI_q1[pori_rows],
+                       CTENPORI.PORI_q1 = input_df$PORI_q1[ctenpori_rows],
+                       CTEN.PORI_f1 = input_df$PORI_f1[cten_rows],
+                       PORI.PORI_f1 = input_df$PORI_f1[pori_rows],
+                       CTENPORI.PORI_f1 = input_df$PORI_f1[ctenpori_rows],
+                       CTEN.PORI_pp1 = input_df$PORI_pp1[cten_rows],
+                       PORI.PORI_pp1 = input_df$PORI_pp1[pori_rows],
+                       CTENPORI.PORI_pp1 = input_df$PORI_pp1[ctenpori_rows],
                        CTEN.PORI_QC = input_df$PORI_QC[cten_rows],
                        PORI.PORI_QC = input_df$PORI_QC[pori_rows],
                        CTENPORI.PORI_QC = input_df$PORI_QC[ctenpori_rows],
@@ -705,7 +710,10 @@ reformat.qCF.df <- function(input_df){
                        CTENPORI.PORI_EN = input_df$PORI_EN[ctenpori_rows],
                        CTEN.PORI_branch_length = input_df$PORI_branch_length[cten_rows],
                        PORI.PORI_branch_length = input_df$PORI_branch_length[pori_rows],
-                       CTENPORI.PORI_branch_length = input_df$PORI_branch_length[ctenpori_rows] )
+                       CTENPORI.PORI_branch_length = input_df$PORI_branch_length[ctenpori_rows],
+                       CTEN.PORI_monophyly = input_df$PORI_monophyly[cten_rows],
+                       PORI.PORI_monophyly = input_df$PORI_monophyly[pori_rows],
+                       CTENPORI.PORI_monophyly = input_df$PORI_monophyly[ctenpori_rows])
   # Return the reformatted dataframe
   return(new_df)
 }
