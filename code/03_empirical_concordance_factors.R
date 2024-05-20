@@ -14,6 +14,7 @@
 # astral_server               <- Location of ASTRAL executable
 # noPlac_dataset_ids          <- datasets to remove Placozoa tips from trees before calculating qCF for Partition models 
 #                                   (constrained trees have different Placozoa placement, which throws out quartet comparisons)
+# control                     <- Control which sections of the code run
 
 repo_dir              <- "/Users/caitlincherryh/Documents/Repositories/ancient_ILS/"
 output_csv_dir        <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/07_output_files/"
@@ -31,7 +32,6 @@ noPlac_dataset_ids <- c("Chang2015.Chang_AA", "Laumer2018.Tplx_BUSCOeuk", "Nosen
 
 # Control commands
 control <- list(remove.Plac = FALSE,
-                run.noPlac.analyses = FALSE,
                 run.cf.analyses = FALSE,
                 call.executables = FALSE,
                 extract.gcf = FALSE,
@@ -55,7 +55,7 @@ rm(all_taxa, all_models, models_list, borowiec2015_list, chang2015_list, dunn200
 
 
 
-#### 4. Copy data but remove Placozoa taxa ####
+#### 4. Copy data but remove Placozoa taxa for the problem datasets with inconsistent PLAC placement ####
 if (control$remove.Plac == TRUE){
   # Open the required dataframe with dataset information
   input_df <- read.csv(paste0(output_csv_dir, "cf_analysis_input_paths.csv"), stringsAsFactors = FALSE)
