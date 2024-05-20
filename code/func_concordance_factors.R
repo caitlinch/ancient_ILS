@@ -424,9 +424,9 @@ extract.key.qcf <- function(dataset, matrix_name, model,
   key_node_output_df$id             <- paste0(dataset, ".", matrix_name, ".", model, ".",  key_node_df$topolog)
   key_node_output_df$branch_length  <- c(cten_output$key_branch_length, pori_output$key_branch_length, ctenpori_output$key_branch_length)
   key_node_output_df                <- key_node_output_df[ , c("dataset", "matrix_name", "dataset_id", "model", "id", "topology", 
-                                                               "node", "q1", "f1", "pp1", "QC", "EN", "branch_length")]
+                                                               "node", "q1", "q2", "q3", "f1", "pp1", "QC", "EN", "branch_length")]
   names(key_node_output_df)         <- c("dataset", "matrix_name", "dataset_id", "model", "id", "topology",
-                                         "KEY_node", "KEY_q1", "KEY_f1", "KEY_pp1", "KEY_QC", "KEY_EN", "KEY_branch_length")
+                                         "KEY_node", "KEY_q1", "KEY_q2", "KEY_q3", "KEY_f1", "KEY_pp1", "KEY_QC", "KEY_EN", "KEY_branch_length")
   # Return the dataframe
   return(key_node_output_df)
 }
@@ -448,6 +448,8 @@ extract.node.details <- function(in_tree, topology, constraint_clades){
   # Break out values into separate columns
   split_labs <- strsplit(node_df$node.lab, ";")
   node_df$q1   <- as.numeric(unlist(lapply(strsplit(unlist(lapply(split_labs, function(x){x[[1]]})), "\\="), function(x){x[[2]]})))
+  node_df$q2   <- as.numeric(unlist(lapply(strsplit(unlist(lapply(split_labs, function(x){x[[2]]})), "\\="), function(x){x[[2]]})))
+  node_df$q3   <- as.numeric(unlist(lapply(strsplit(unlist(lapply(split_labs, function(x){x[[3]]})), "\\="), function(x){x[[2]]})))
   node_df$f1   <- as.numeric(unlist(lapply(strsplit(unlist(lapply(split_labs, function(x){x[[4]]})), "\\="), function(x){x[[2]]})))
   node_df$pp1  <- as.numeric(unlist(lapply(strsplit(unlist(lapply(split_labs, function(x){x[[7]]})), "\\="), function(x){x[[2]]})))
   node_df$QC   <- as.numeric(unlist(lapply(strsplit(unlist(lapply(split_labs, function(x){x[[10]]})), "\\="), function(x){x[[2]]})))
@@ -666,6 +668,15 @@ reformat.qCF.df <- function(input_df){
                        CTEN.KEY_q1 = input_df$KEY_q1[cten_rows],
                        PORI.KEY_q1 = input_df$KEY_q1[pori_rows],
                        CTENPORI.KEY_q1 = input_df$KEY_q1[ctenpori_rows],
+                       
+                       CTEN.KEY_q2 = input_df$KEY_q2[cten_rows],
+                       PORI.KEY_q2 = input_df$KEY_q2[pori_rows],
+                       CTENPORI.KEY_q2 = input_df$KEY_q2[ctenpori_rows],
+                       
+                       CTEN.KEY_q3 = input_df$KEY_q3[cten_rows],
+                       PORI.KEY_q3 = input_df$KEY_q3[pori_rows],
+                       CTENPORI.KEY_q3 = input_df$KEY_q3[ctenpori_rows],
+                       
                        CTEN.KEY_f1 = input_df$KEY_f1[cten_rows],
                        PORI.KEY_f1 = input_df$KEY_f1[pori_rows],
                        CTENPORI.KEY_f1 = input_df$KEY_f1[ctenpori_rows],

@@ -104,13 +104,13 @@ qcf_long$analysis <- "qCF"
 # labs: L = CTEN, T = PORI, R = CTENPORI
 qcf_tern <- ""
 ggtern(qcf_long, mapping = aes(x = CTEN.KEY_q1, y = PORI.KEY_q1, z = CTENPORI.KEY_q1)) +
-  geom_point() +
-  scale_L_continuous(name = "CTEN", breaks = seq(0, 1, 0.1), labels = seq(0, 1, 0.1), limits = c(0,1)) +
-  scale_T_continuous(name = "PORI", breaks = seq(0, 1, 0.1), labels = seq(0, 1, 0.1), limits = c(0,1)) +
-  scale_R_continuous(name = "CTEN \u002B\nPORI", breaks = seq(0, 1, 0.1), labels = seq(0, 1, 0.1), limits = c(0,1)) +
+  geom_point(size = 4, alpha = 0.6) +
+  scale_L_continuous(name = "CTEN", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
+  scale_T_continuous(name = "PORI", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
+  scale_R_continuous(name = "CTEN \u002B\nPORI", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
   theme_bw() +
-  theme(tern.panel.grid.major = element_line(colour = "skyblue"),
-        tern.panel.grid.minor = element_line(colour = "hotpink")) +theme_showgrid()
+  theme(tern.panel.grid.major = element_line(colour = "darkgrey", linewidth = 0.6),
+        tern.panel.grid.minor = element_line(colour = "darkgrey", linewidth = 0.3))
 
 
   theme(strip.clip = "off",
