@@ -189,8 +189,12 @@ if (control$extract.qcf == TRUE){
     gcf_df$dataset_id     <- paste0(gcf_df$dataset, ".", gcf_df$matrix_name)
     gcf_df$model          <- unlist(lapply(split_id, function(x){x[[3]]}))
     gcf_df$tree_topology  <- unlist(lapply(split_id, function(x){x[[4]]}))
+    # Add note of whether Placozoa is present
+    gcf_df$Plac_present <- "Plac"
+    gcf_df$Plac_present[grep("noPlac", gcf_df$gcf_stat_files)] <- "noPlac"
+    gcf_df <- gcf_df[which( ! (gcf_df$dataset_id %in% noPlac_dataset_ids & gcf_df$model == "Partition" & gcf_df$Plac_present == "Plac") ), ] # Did not run - test of both PLAC/NoPLAC
     # Rearrange order of columns
-    gcf_df <- gcf_df[, c("id", "dataset", "matrix_name", "dataset_id", "model", "tree_topology", "gcf_branch_files", "gcf_stat_files")]
+    gcf_df <- gcf_df[, c("id", "dataset", "matrix_name", "dataset_id", "model", "tree_topology", "Plac_present", "gcf_branch_files", "gcf_stat_files")]
     # Write qCF_df
     write.csv(gcf_df, file = gcf_df_file, row.names = FALSE)
   } else {
@@ -198,9 +202,25 @@ if (control$extract.qcf == TRUE){
   }
   
   ## Extract gCF values
-  # Problem children: Chang2015 Partition, Laumer2018 Partition, Nosenko2013 ribosomal Partition, Whelan2015 Partition
-  # Fixed log: Chang2015 Partition, 
-  # Error with other problem children: ERROR: Trees have different number of taxa, ERROR: Taxon not found in full tree: __root__
+  # Problem children: Chang2015 Partition, Laumer2018 Partition, Nosenko2013 ribosomal Partition, Philippe 2009 Partition, Whelan2015 Partition
+  
+  # Test: extract gCF for noPlac only
+  noplac_df <- gcf_df[which(gcf_df$Plac_present == "noPlac"), ]
+  noplac_op_list <- lapply(1:nrow(noplac_df), extract.gcf.wrapper, gcf_df = noplac_df, 
+                            matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
+                            alignment_taxa_df = alignment_taxa_df)
+  i = 1
+  noplac_op_df <- as.data.frame(do.call(rbind, noplac_op_list), stringsAsFactors = FALSE)
+  noplac_op_df <- cbind(noplac_df, noplac_op_df)
+  
+  
+  # Test: extract gCF for Plac only
+  plac_df <- gcf_df[which(gcf_df$Plac_present != "noPlac"), ]
+  plac_op_list <- lapply(1:nrow(plac_df), extract.gcf.wrapper, gcf_df = plac_df, 
+                            matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
+                            alignment_taxa_df = alignment_taxa_df)
+  plac_op_df <- as.data.frame(do.call(rbind, plac_list), stringsAsFactors = FALSE)
+  plac_op_df <- cbind(plac_df, plac_op_df)
   
   # Extract all gCF
   gcf_output_list <- lapply(1:nrow(gcf_df), extract.gcf.wrapper, gcf_df = gcf_df, 

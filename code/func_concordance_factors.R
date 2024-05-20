@@ -77,10 +77,17 @@ extract.gcf <- function(dataset, matrix_name, topology,
   
   ## Branches to extract length and node values:
   ## All animals (CTEN+PORI+CNID+BILAT+PLAC)
-  # Identify tips in this group
-  met_taxa <- c(constraint_clades$Bilateria, constraint_clades$Cnidaria, constraint_clades$Placozoa, 
-                constraint_clades$Porifera, constraint_clades$Ctenophora)
-  # Extract MRCA
+  # Check whether PLAC tips are included in this run:
+  if (grepl("noPlac", tree_file) & grepl("noPlac", table_file)){
+    # Identify tips in Metazoa clade: (CTEN+PORI+CNID+BILAT)
+    met_taxa <- c(constraint_clades$Bilateria, constraint_clades$Cnidaria,
+                  constraint_clades$Porifera, constraint_clades$Ctenophora)
+  } else {
+    # Identify tips in Metazoa clade: (CTEN+PORI+CNID+BILAT+PLAC)
+    met_taxa <- c(constraint_clades$Bilateria, constraint_clades$Cnidaria, constraint_clades$Placozoa, 
+                  constraint_clades$Porifera, constraint_clades$Ctenophora)
+  }
+  # Extract MRCA for MET clade
   met_cn <- getMRCA(g_rooted, met_taxa) # child node
   met_pn <- g_rooted$edge[which(g_rooted$edge[,2] == met_cn), 1] # parent_node
   # Potential branch ids
