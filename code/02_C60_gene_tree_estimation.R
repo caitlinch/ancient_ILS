@@ -1,6 +1,6 @@
 ## caitlinch/ancient_ILS/code/02_C60_gene_tree_estimation.R
 # This script estimates maximum likelihood trees under different models of substitution for 14 empirical data sets
-# Caitlin Cherryh 2023
+# Caitlin Cherryh 2024
 
 
 

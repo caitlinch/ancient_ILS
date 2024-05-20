@@ -1,6 +1,6 @@
 # ancient_ILS/code/05_plot_figures_cf.R
 ## This script plots result figures from concordance factors output
-# Caitlin Cherryh, 2024
+# Caitlin Cherryh 2024
 
 ## These plots focus on the key branch, i.e., the branch with different rearrangements of the four clades
 #     (Ctenophora), (Porifera), (Outgroup), and (Cnidaria+Bilateria)

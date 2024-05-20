@@ -1,6 +1,6 @@
 ## caitlinch/ancient_ILS/code/func_constraint_trees.R
 # This script estimates maximum likelihood trees under different models of substitution for 14 empirical data sets
-# Caitlin Cherryh 2023
+# Caitlin Cherryh 2024
 
 
 constraint.tree.wrapper <- function(i, output_directory, dataset_info, matrix_taxa_info, 

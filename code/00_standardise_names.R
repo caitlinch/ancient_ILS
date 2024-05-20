@@ -1,6 +1,6 @@
 ## caitlinch/ancient_ILS/code/00_standardise_names.R
-# This script standardises the names for all species for all datasets
-# Caitlin Cherryh 2023
+# This script standardise the names for all species for all datasets
+# Caitlin Cherryh 2024
 
 # For this script, you will need the naming csv from Li et. al. (2021)
 #     Available from the data repository: https://figshare.com/articles/dataset/Rooting_the_animal_tree_of_life/13122881

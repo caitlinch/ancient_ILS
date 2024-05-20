@@ -1,6 +1,6 @@
 # ancient_ILS/code/func_prepare_trees.R
 ## This script includes functions for formatting and preparing hypothesis trees
-# Caitlin Cherryh, 2023
+# Caitlin Cherryh 2024
 
 library(castor)
 library(ape)

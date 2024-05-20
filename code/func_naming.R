@@ -1,6 +1,6 @@
 ## caitlinch/ancient_ILS/code/func_naming.R
 # Functions for updating and renaming taxa
-# Caitlin Cherryh 2023
+# Caitlin Cherryh 2024
 
 
 library(ape)

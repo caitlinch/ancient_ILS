@@ -1,6 +1,6 @@
 # ancient_ILS/code/func_concordance_factors.R
 ## This script includes functions to extract concordance factors for different datasets
-# Caitlin Cherryh, 2023
+# Caitlin Cherryh 2024
 
 library(ape)
 library(dplyr)

@@ -1,6 +1,6 @@
 # ancient_ILS/code/func_data_processing.R
 ## This script includes functions to analyse concordance factors, quartet scores, and phylogenetic trees
-# Caitlin Cherryh, 2023
+# Caitlin Cherryh 2024
 
 library(stringr)
 

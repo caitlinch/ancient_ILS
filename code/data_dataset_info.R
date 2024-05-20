@@ -1,6 +1,6 @@
-## caitlinch/metazoan-mixtures/code/data_taxa_names.R
+## caitlinch/metazoan-mixtures/code/data_dataset_info.R
 # File to store the taxa names, clade classifications, and models of sequence evolution for the Metazoan datasets used for analysis
-# Caitlin Cherryh 2023
+# Caitlin Cherryh 2024
 
 
 #### FUNCTIONS ####
