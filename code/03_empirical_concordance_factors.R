@@ -293,7 +293,13 @@ if (control$reformat.dataframes == TRUE){
                              sum_gcf = (as.numeric(gcf_clean_df$CTEN.KEY_gCF) + 
                                           as.numeric(gcf_clean_df$PORI.KEY_gCF) + 
                                           as.numeric(gcf_clean_df$CTENPORI.KEY_gCF) + 
-                                          as.numeric(gcf_clean_df$CTEN.KEY_gDFP) ) )
+                                          as.numeric(gcf_clean_df$CTEN.KEY_gDFP) ),
+                             cten_key_gDFP = gcf_clean_df$CTEN.KEY_gDFP,
+                             pori_key_gDFP = gcf_clean_df$PORI.KEY_gDFP,
+                             ctenpori_key_gDFP = gcf_clean_df$CTENPORI.KEY_gDFP,
+                             key_gDFP_identical = ((gcf_clean_df$CTEN.KEY_gDFP == gcf_clean_df$PORI.KEY_gDFP) & 
+                                                     (gcf_clean_df$CTEN.KEY_gDFP == gcf_clean_df$CTENPORI.KEY_gDFP) & 
+                                                     (gcf_clean_df$PORI.KEY_gDFP == gcf_clean_df$CTENPORI.KEY_gDFP)) )
   # Save check dataframe
   check_gcf_df_file  <- paste0(output_csv_dir, "gCF_check.csv")
   write.csv(check_gcf_df, file = check_gcf_df_file, row.names = FALSE)

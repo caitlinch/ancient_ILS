@@ -533,7 +533,7 @@ extract.CTEN.PORI.clade.qcf <- function(dataset, matrix_name, topology, model,
   # Root tree at outgroup
   q_rooted <- root(q_tree, constraint_clades$Outgroup)
   # Drop Placozoa taxa
-  if (length(constraint_clades$Placozoa) > 0){
+  if ( (length(constraint_clades$Placozoa) > 0) & (grepl("noPlac", tree_file) == FALSE) ){
     q_rooted <- TreeTools::DropTip(q_rooted, constraint_clades$Placozoa)
   }
   
