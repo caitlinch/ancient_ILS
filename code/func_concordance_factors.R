@@ -251,6 +251,7 @@ reformat.gCF.df <- function(input_df){
                        matrix_name = input_df$matrix_name[c(T,F,F)],
                        dataset_id = input_df$dataset_id[c(T,F,F)],
                        model = input_df$model[c(T,F,F)],
+                       Plac_present = input_df$Plac_present[c(T,F,F)], 
                        CTEN.MET_gCF = input_df$MET_gCF[cten_rows],
                        PORI.MET_gCF = input_df$MET_gCF[pori_rows],
                        CTENPORI.MET_gCF = input_df$MET_gCF[ctenpori_rows],
@@ -660,6 +661,8 @@ reformat.qCF.df <- function(input_df){
                        matrix_name = input_df$matrix_name[c(T,F,F)],
                        dataset_id = input_df$dataset_id[c(T,F,F)],
                        model = input_df$model[c(T,F,F)],
+                       Plac_present = input_df$Plac_present[c(T,F,F)], 
+                       
                        CTEN.KEY_q1 = input_df$KEY_q1[cten_rows],
                        PORI.KEY_q1 = input_df$KEY_q1[pori_rows],
                        CTENPORI.KEY_q1 = input_df$KEY_q1[ctenpori_rows],

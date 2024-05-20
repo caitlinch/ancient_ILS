@@ -1,6 +1,7 @@
 ## caitlinch/ancient_ILS/code/03_empirical_concordance_factors.R
 # This script estimates gene, and quartet concordance factors for empirical gene trees and constrained hypothesis trees.
-# Caitlin Cherryh 2023
+# Caitlin Cherryh 2024
+
 
 
 #### 1. Input parameters ####
@@ -88,6 +89,7 @@ if (control$remove.Plac == TRUE){
   noPlac_input_df_file <- paste0(output_csv_dir, "cf_analysis_input_paths_noPlac.csv")
   write.csv(input_df, file = noPlac_input_df_file, row.names = F)
 }
+
 
 
 #### 3. Create command lines for calculating gCF and qCF ####
@@ -299,9 +301,6 @@ if (control$reformat.dataframes == TRUE){
   ## Check qCF values
   # Call function to reformat dataframe
   qcf_clean_df <- reformat.qCF.df(input_df = qcf_collated_df)
-  # Add note of whether Placozoa is present
-  qcf_clean_df$Plac_present <- "Plac"
-  qcf_clean_df$Plac_present[which(qcf_clean_df$dataset_id %in% noPlac_dataset_ids & qcf_clean_df$model == "Partition")] <- "noPlac"
   # Save reformatted dataframe
   qcf_clean_df_file  <- paste0(output_csv_dir, "qCF_values_formatted.csv")
   write.csv(qcf_clean_df, file = qcf_clean_df_file, row.names = FALSE)
@@ -314,3 +313,6 @@ if (control$reformat.dataframes == TRUE){
   check_qcf_df_file  <- paste0(output_csv_dir, "qCF_check.csv")
   write.csv(check_qcf_df, file = check_qcf_df_file, row.names = FALSE)
 }
+
+
+
