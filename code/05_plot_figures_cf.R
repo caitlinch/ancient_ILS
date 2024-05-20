@@ -59,8 +59,8 @@ qcf_long  <- read.csv(grep("qCF_values_formatted.csv", all_output_files, value =
 
 
 
-##### 4. Update and format dataframes for plots #####
-## Add nicely formatted dataset labels to the dataframes
+##### 4. Update and format data frames for plots #####
+## Add nicely formatted dataset labels to the data frames
 dataset_labels                <- c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
                                    "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix", "Ryan2013.REA_EST_includingXenoturbella", 
                                    "Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
@@ -74,7 +74,7 @@ gcf_long$dataset_id_formatted <- factor(gcf_long$dataset_id, levels =  dataset_l
 qcf_df$dataset_id_formatted   <- factor(qcf_df$dataset_id, levels =  dataset_labels, labels = dataset_labels_formatted, ordered = TRUE)
 qcf_long$dataset_id_formatted <- factor(qcf_long$dataset_id, levels =  dataset_labels, labels = dataset_labels_formatted, ordered = TRUE)
 
-## Add nicely formatted topology labels to the dataframes
+## Add nicely formatted topology labels to the data frames
 topology_labels                   <- c("CTEN", "PORI", "CTEN_PORI")
 topology_labels_formatted         <- c("Ctenophora", "Porifera", "Ctenophora+Porifera")
 topology_labels_short             <- c("CTEN", "PORI", "CTEN+PORI")
@@ -83,7 +83,15 @@ qcf_df$tree_topology_formatted    <- factor(qcf_df$topology, levels =  topology_
 gcf_df$tree_topology_short        <- factor(gcf_df$tree_topology, levels =  topology_labels, labels = topology_labels_short, ordered = TRUE)
 qcf_df$tree_topology_short        <- factor(qcf_df$topology, levels =  topology_labels, labels = topology_labels_short, ordered = TRUE)
 
-## Add nicely formatted PLACOZOA label to the dataframes
+## Add nicely formatted model labels to the data frames
+models                    <- c("Partition", "C60")
+models_formatted          <- c("Partition", "C60")
+gcf_df$model_formatted    <- factor(gcf_df$model, levels =  models, labels = models_formatted, ordered = TRUE)
+gcf_long$model_formatted  <- factor(gcf_long$model, levels =  models, labels = models_formatted, ordered = TRUE)
+qcf_df$model_formatted    <- factor(qcf_df$model, levels =  models, labels = models_formatted, ordered = TRUE)
+qcf_long$model_formatted  <- factor(qcf_long$model, levels =  models, labels = models_formatted, ordered = TRUE)
+
+## Add nicely formatted PLACOZOA label to the data frames
 Plac_labels                     <- c("Plac", "noPlac")
 Plac_labels_formatted           <- c("Present", "Removed")
 gcf_df$Plac_present_formatted   <- factor(gcf_df$Plac_present, levels =  Plac_labels, labels = Plac_labels_formatted, ordered = TRUE)
@@ -91,7 +99,7 @@ gcf_long$Plac_present_formatted <- factor(gcf_long$Plac_present, levels =  Plac_
 qcf_df$Plac_present_formatted   <- factor(qcf_df$Plac_present, levels =  Plac_labels, labels = Plac_labels_formatted, ordered = TRUE)
 qcf_long$Plac_present_formatted <- factor(qcf_long$Plac_present, levels =  Plac_labels, labels = Plac_labels_formatted, ordered = TRUE)
 
-## Add nicely formatted column describing analysis
+## Add nicely formatted column describing concordance factor type to the data frames
 gcf_df$analysis   <- "gCF"
 gcf_long$analysis <- "gCF"
 qcf_df$analysis   <- "qCF"
@@ -100,6 +108,26 @@ qcf_long$analysis <- "qCF"
 
 
 ##### 5. gene concordance factors (gCF) ternary plots #####
+## gCF values: Plot gCF (CTEN), gCF (PORI), and gCF (CTEN+PORI) as bars for each dataset
+check_df <- gcf_df[c("dataset_id_formatted", "KEY_gCF", "tree_topology_short")]
+gcf_topology_bars <- ggplot(data = gcf_df, aes(x = tree_topology_short, y = KEY_gCF, fill = tree_topology_short)) +
+  geom_bar(stat="identity") +
+  facet_wrap(~dataset_id_formatted) +
+  scale_x_discrete(name = "Constrained topology") +
+  scale_y_continuous(name = "gCF value") +
+  scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73")) +
+  labs(title = "gCF") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 25, hjust = 0.5, vjust = 0.5, margin = margin(t=0, r=0, b=15, l=0, unit="pt")),
+        strip.text = element_text(size = 18),
+        axis.title.x = element_text(size = 22, margin = margin(t=10, r=0, b=0, l=0, unit="pt")),
+        axis.text.x = element_text(size = 18, angle = 45, vjust = 1, hjust = 1),
+        axis.title.y = element_text(size = 22, margin = margin(t=0, r=10, b=0, l=0, unit="pt")),
+        axis.text.y = element_text(size = 18),
+        legend.title = element_text(size = 22, margin = margin(t=0, r=0, b=5, l=0, unit="pt")),
+        legend.text = element_text(size = 18))
+ggsave(filename = paste0(plot_dir, "cf_gcf_topology_bar.pdf"), plot = gcf_topology_bars, width = 10, height = 10, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_gcf_topology_bar.png"), plot = gcf_topology_bars, width = 10, height = 10, units = "in")
 
 
 
@@ -109,9 +137,9 @@ qcf_long$analysis <- "qCF"
 # aes: x = CTEN, y = PORI, z = CTENPORI
 # labs: L = CTEN, T = PORI, R = CTENPORI
 qcf_tern <- ggtern(qcf_long, mapping = aes(x = CTEN.KEY_q1, y = PORI.KEY_q1, z = CTENPORI.KEY_q1)) +
-  geom_Lline(Lintercept = 0.3, color = "black", linetype = "dashed") +
-  geom_Tline(Tintercept = 0.3, color = "black", linetype = "dashed") +
-  geom_Rline(Rintercept = 0.3, color = "black", linetype = "dashed") +
+  geom_Lline(Lintercept = 0.33, color = "black", linetype = "dashed") +
+  geom_Tline(Tintercept = 0.33, color = "black", linetype = "dashed") +
+  geom_Rline(Rintercept = 0.33, color = "black", linetype = "dashed") +
   geom_point(size = 5, alpha = 0.6, color = mako_palette[2]) +
   scale_L_continuous(name = "CTEN", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
   scale_T_continuous(name = "PORI", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
@@ -130,9 +158,9 @@ ggsave(filename = paste0(plot_dir, "cf_qcf_ternary.png"), plot = qcf_tern, width
 
 ## qCF values for each constrained tree topology (3 points per dataset)
 qcf_topology_tern <- ggtern(qcf_df, mapping = aes(x = KEY_q2, y = KEY_q1, z = KEY_q3, color = tree_topology_short)) +
-  geom_Lline(Lintercept = 0.3, color = "black", linetype = "dashed") +
-  geom_Tline(Tintercept = 0.3, color = "black", linetype = "dashed") +
-  geom_Rline(Rintercept = 0.3, color = "black", linetype = "dashed") +
+  geom_Lline(Lintercept = 0.33, color = "black", linetype = "dashed") +
+  geom_Tline(Tintercept = 0.33, color = "black", linetype = "dashed") +
+  geom_Rline(Rintercept = 0.33, color = "black", linetype = "dashed") +
   geom_point(size = 6, alpha = 0.6) +
   scale_L_continuous(name = "qDF1", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
   scale_T_continuous(name = "qCF", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
