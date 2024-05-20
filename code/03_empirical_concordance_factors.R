@@ -214,7 +214,7 @@ if (control$extract.qcf == TRUE){
   gcf_collated_df <- cbind(gcf_df, gcf_output_df)
   
   ## Save output
-  gcf_collated_df_file <- paste0(output_csv_dir, "gCF_values.csv")
+  gcf_collated_df_file <- paste0(output_csv_dir, "results_cf_gCF_values.csv")
   write.csv(gcf_collated_df, file = gcf_collated_df_file, row.names = FALSE)
 }
 
@@ -268,7 +268,7 @@ if (control$extract.qcf == TRUE){
   qcf_collated_df$Plac_present[which(qcf_collated_df$dataset_id %in% noPlac_dataset_ids & qcf_collated_df$model == "Partition")] <- "noPlac"
   
   ## Save output
-  qcf_collated_df_file <- paste0(output_csv_dir, "qCF_values.csv")
+  qcf_collated_df_file <- paste0(output_csv_dir, "results_cf_qCF_values.csv")
   write.csv(qcf_collated_df, file = qcf_collated_df_file, row.names = FALSE)
 }
 
@@ -277,16 +277,16 @@ if (control$extract.qcf == TRUE){
 #### 7. Reformat gCF and qCF dataframes ####
 if (control$reformat.dataframes == TRUE){
   ## Open dataframes
-  gcf_collated_df_file  <- paste0(output_csv_dir, "gCF_values.csv")
+  gcf_collated_df_file  <- paste0(output_csv_dir, "results_cf_gCF_values.csv")
   gcf_collated_df       <- read.csv(gcf_collated_df_file, stringsAsFactors = FALSE)
-  qcf_collated_df_file  <- paste0(output_csv_dir, "qCF_values.csv")
+  qcf_collated_df_file  <- paste0(output_csv_dir, "results_cf_qCF_values.csv")
   qcf_collated_df       <- read.csv(qcf_collated_df_file, stringsAsFactors = FALSE)
   
   ## Reformat gCF df
   # Call function to reformat dataframe
   gcf_clean_df <- reformat.gCF.df(input_df = gcf_collated_df)
   # Save reformatted dataframe
-  gcf_clean_df_file  <- paste0(output_csv_dir, "gCF_values_formatted.csv")
+  gcf_clean_df_file  <- paste0(output_csv_dir, "results_cf_gCF_values_formatted.csv")
   write.csv(gcf_clean_df, file = gcf_clean_df_file, row.names = FALSE)
   # New dataframe to check values
   check_gcf_df <- data.frame(id = gcf_clean_df$id, 
@@ -308,7 +308,7 @@ if (control$reformat.dataframes == TRUE){
   # Call function to reformat dataframe
   qcf_clean_df <- reformat.qCF.df(input_df = qcf_collated_df)
   # Save reformatted dataframe
-  qcf_clean_df_file  <- paste0(output_csv_dir, "qCF_values_formatted.csv")
+  qcf_clean_df_file  <- paste0(output_csv_dir, "results_cf_qCF_values_formatted.csv")
   write.csv(qcf_clean_df, file = qcf_clean_df_file, row.names = FALSE)
   # CTEN_q1 + PORI_q1 + CTEN_PORI_q1 = 1
   check_qcf_df <- data.frame(id = qcf_clean_df$id, 
