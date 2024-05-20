@@ -29,15 +29,21 @@ library(reshape2)
 library(ggplot2)
 library(ggtern) # for ternary plots of sCF
 library(patchwork) # for assembling ternary plots of emperical gCF, sCF and quartet scores
+library(grDevices) # for hcl.colors(), palette.colors()
 
 ## Source functions
 source(paste0(repo_dir, "code/func_plotting.R"))
 
 ## Specify colour palettes used within these plots
+# Color palettes for variables
 metazoan_clade_palette  <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
 clades_colours          <- c("Ctenophora" = "#2171b5", "Porifera" =  "#E69F00", "Ctenophora+Porifera" = "#009E73")
 clades_black            <- c("Ctenophora" = "black", "Porifera" =  "black", "Ctenophora+Porifera" = "black")
 passfail_palette        <- c("Pass (p > 0.05)" = "#addd8e", "Fail (p \u2264 0.05)" = "#005a32")
+# Inbuilt color palettes
+R4_palette              <- palette.colors(n = 8, palette = "R4")
+plasma_palette          <- hcl.colors(n = 5, palette = "Plasma")
+mako_palette            <- hcl.colors(n = 5, palette = "Mako")
 
 
 
@@ -99,29 +105,50 @@ qcf_long$analysis <- "qCF"
 
 
 ##### 6. quartet concordance factors (qCF) ternary plots #####
-## Create a ternary plot of all qCF values
+## Create a ternary plot of all qCF values (1 point per dataset)
 # aes: x = CTEN, y = PORI, z = CTENPORI
 # labs: L = CTEN, T = PORI, R = CTENPORI
-qcf_tern <- ""
-ggtern(qcf_long, mapping = aes(x = CTEN.KEY_q1, y = PORI.KEY_q1, z = CTENPORI.KEY_q1)) +
-  geom_point(size = 4, alpha = 0.6) +
+qcf_tern <- ggtern(qcf_long, mapping = aes(x = CTEN.KEY_q1, y = PORI.KEY_q1, z = CTENPORI.KEY_q1)) +
+  geom_Lline(Lintercept = 0.3, color = "black", linetype = "dashed") +
+  geom_Tline(Tintercept = 0.3, color = "black", linetype = "dashed") +
+  geom_Rline(Rintercept = 0.3, color = "black", linetype = "dashed") +
+  geom_point(size = 5, alpha = 0.6, color = mako_palette[2]) +
   scale_L_continuous(name = "CTEN", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
   scale_T_continuous(name = "PORI", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
-  scale_R_continuous(name = "CTEN \u002B\nPORI", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
+  scale_R_continuous(name = "CTEN\u002B\nPORI", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
+  labs(title = "qCF") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 25, hjust = 0.5, face = "bold"),
+        tern.panel.grid.major = element_line(colour = "darkgrey", linewidth = 0.6),
+        tern.panel.grid.minor = element_line(colour = "darkgrey", linewidth = 0.3),
+        tern.axis.title.L = element_text(size = 22, hjust = 0, vjust = 2),
+        tern.axis.title.T = element_text(size = 22, hjust = 0.5, vjust = -0.5),
+        tern.axis.title.R = element_text(size = 22, hjust = 0.5, vjust = 1),
+        tern.axis.text = element_text(size = 18) )
+ggsave(filename = paste0(plot_dir, "cf_qcf_ternary.pdf"), plot = qcf_tern, width = 10, height = 10, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_qcf_ternary.png"), plot = qcf_tern, width = 10, height = 10, units = "in")
+
+## qCF values for each constrained tree topology (3 points per dataset)
+qcf_topology_tern <- ggtern(qcf_df, mapping = aes(x = KEY_q2, y = KEY_q1, z = KEY_q3, color = tree_topology_short)) +
+  geom_Lline(Lintercept = 0.3, color = "black", linetype = "dashed") +
+  geom_Tline(Tintercept = 0.3, color = "black", linetype = "dashed") +
+  geom_Rline(Rintercept = 0.3, color = "black", linetype = "dashed") +
+  geom_point(size = 6, alpha = 0.6) +
+  scale_L_continuous(name = "qDF1", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
+  scale_T_continuous(name = "qCF", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
+  scale_R_continuous(name = "qDF2", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
+  scale_color_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73")) +
   theme_bw() +
   theme(tern.panel.grid.major = element_line(colour = "darkgrey", linewidth = 0.6),
-        tern.panel.grid.minor = element_line(colour = "darkgrey", linewidth = 0.3))
-
-
-  theme(strip.clip = "off",
-        strip.text = element_text(size = 30),
-        axis.title = element_text(size = 16),
-        axis.text = element_text(size = 14),
-        tern.panel.grid.major = element_line(colour = "black", linewidth = 12),
-        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 12),) +
-  Llab("CTEN") +
-  Tlab("PORI") +
-  Rlab("CTEN \u002B\nPORI")
+        tern.panel.grid.minor = element_line(colour = "darkgrey", linewidth = 0.3),
+        tern.axis.title.L = element_text(size = 22, hjust = 0, vjust = 2),
+        tern.axis.title.T = element_text(size = 22, vjust = -0.5),
+        tern.axis.title.R = element_text(size = 22, hjust = 0.6, vjust = 2),
+        tern.axis.text = element_text(size = 18),
+        legend.title = element_text(size = 22),
+        legend.text = element_text(size = 18))
+ggsave(filename = paste0(plot_dir, "cf_qcf_topology_ternary.pdf"), plot = qcf_topology_tern, width = 10, height = 10, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_qcf_topology_ternary.png"), plot = qcf_topology_tern, width = 10, height = 10, units = "in")
 
 
 
