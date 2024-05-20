@@ -189,10 +189,10 @@ if (control$extract.qcf == TRUE){
     gcf_df$dataset_id     <- paste0(gcf_df$dataset, ".", gcf_df$matrix_name)
     gcf_df$model          <- unlist(lapply(split_id, function(x){x[[3]]}))
     gcf_df$tree_topology  <- unlist(lapply(split_id, function(x){x[[4]]}))
-    # Add note of whether Placozoa is present
+    # Add note of whether Placozoa is present and remove the rows with inconsistent Placozoa placement
     gcf_df$Plac_present <- "Plac"
     gcf_df$Plac_present[grep("noPlac", gcf_df$gcf_stat_files)] <- "noPlac"
-    gcf_df <- gcf_df[which( ! (gcf_df$dataset_id %in% noPlac_dataset_ids & gcf_df$model == "Partition" & gcf_df$Plac_present == "Plac") ), ] # Did not run - test of both PLAC/NoPLAC
+    gcf_df <- gcf_df[which( ! (gcf_df$dataset_id %in% noPlac_dataset_ids & gcf_df$model == "Partition" & gcf_df$Plac_present == "Plac") ), ]
     # Rearrange order of columns
     gcf_df <- gcf_df[, c("id", "dataset", "matrix_name", "dataset_id", "model", "tree_topology", "Plac_present", "gcf_branch_files", "gcf_stat_files")]
     # Write qCF_df
@@ -202,32 +202,11 @@ if (control$extract.qcf == TRUE){
   }
   
   ## Extract gCF values
-  # Problem children: Chang2015 Partition, Laumer2018 Partition, Nosenko2013 ribosomal Partition, Philippe 2009 Partition, Whelan2015 Partition
-  
-  # Test: extract gCF for noPlac only
-  noplac_df <- gcf_df[which(gcf_df$Plac_present == "noPlac"), ]
-  noplac_op_list <- lapply(1:nrow(noplac_df), extract.gcf.wrapper, gcf_df = noplac_df, 
-                            matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
-                            alignment_taxa_df = alignment_taxa_df)
-  i = 1
-  noplac_op_df <- as.data.frame(do.call(rbind, noplac_op_list), stringsAsFactors = FALSE)
-  noplac_op_df <- cbind(noplac_df, noplac_op_df)
-  
-  
-  # Test: extract gCF for Plac only
-  plac_df <- gcf_df[which(gcf_df$Plac_present != "noPlac"), ]
-  plac_op_list <- lapply(1:nrow(plac_df), extract.gcf.wrapper, gcf_df = plac_df, 
-                            matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
-                            alignment_taxa_df = alignment_taxa_df)
-  plac_op_df <- as.data.frame(do.call(rbind, plac_list), stringsAsFactors = FALSE)
-  plac_op_df <- cbind(plac_df, plac_op_df)
-  
-  # Extract all gCF
+  # Extract all gCF values
   gcf_output_list <- lapply(1:nrow(gcf_df), extract.gcf.wrapper, gcf_df = gcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)
-  
-  ## Format and output qCF dataframe
+  # Format and output qCF dataframe
   gcf_output_df <- as.data.frame(do.call(rbind, gcf_output_list), stringsAsFactors = FALSE)
   # Cbind to the parameters dataframe
   gcf_collated_df <- cbind(gcf_df, gcf_output_df)
@@ -276,17 +255,7 @@ if (control$extract.qcf == TRUE){
   # Construct id for iterating over analyses
   qcf_df$analysis_id <- paste0(qcf_df$dataset_id, ".", qcf_df$model)
   qcf_params <- unique(qcf_df$analysis_id)
-  # # Working and issue datasets
-  # issue_rows <- c(14, 16, 19, 20, 23)
-  # working_rows <- setdiff(1:24, issue_rows)
-  # issue_params <- qcf_params[issue_rows]
-  # analysis_id = qcf_params[issue_rows[2]]
-  # # Test run
-  # qcf_output_test <- lapply(i, extract.qcf.wrapper, qcf_df = qcf_df, 
-  #                           matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
-  #                           alignment_taxa_df = alignment_taxa_df)
   # Extract qCF for all datasets
-  # Call function to extract qCF from files
   qcf_output_list <- lapply(qcf_params, extract.qcf.wrapper, qcf_df = qcf_df, 
                             matrix_taxa = matrix_taxa, all_datasets = all_datasets, 
                             alignment_taxa_df = alignment_taxa_df)
