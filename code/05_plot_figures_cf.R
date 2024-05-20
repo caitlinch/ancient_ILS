@@ -99,7 +99,29 @@ qcf_long$analysis <- "qCF"
 
 
 ##### 6. quartet concordance factors (qCF) ternary plots #####
+## Create a ternary plot of all qCF values
+# aes: x = CTEN, y = PORI, z = CTENPORI
+# labs: L = CTEN, T = PORI, R = CTENPORI
+qcf_tern <- ""
+ggtern(qcf_long, mapping = aes(x = CTEN.KEY_q1, y = PORI.KEY_q1, z = CTENPORI.KEY_q1)) +
+  geom_point() +
+  scale_L_continuous(name = "CTEN", breaks = seq(0, 1, 0.1), labels = seq(0, 1, 0.1), limits = c(0,1)) +
+  scale_T_continuous(name = "PORI", breaks = seq(0, 1, 0.1), labels = seq(0, 1, 0.1), limits = c(0,1)) +
+  scale_R_continuous(name = "CTEN \u002B\nPORI", breaks = seq(0, 1, 0.1), labels = seq(0, 1, 0.1), limits = c(0,1)) +
+  theme_bw() +
+  theme(tern.panel.grid.major = element_line(colour = "skyblue"),
+        tern.panel.grid.minor = element_line(colour = "hotpink")) +theme_showgrid()
 
+
+  theme(strip.clip = "off",
+        strip.text = element_text(size = 30),
+        axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14),
+        tern.panel.grid.major = element_line(colour = "black", linewidth = 12),
+        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 12),) +
+  Llab("CTEN") +
+  Tlab("PORI") +
+  Rlab("CTEN \u002B\nPORI")
 
 
 
