@@ -1,5 +1,5 @@
 ## caitlinch/ancient_ILS/code/03_empirical_concordance_factors.R
-# This script estimates gene, and quartet concordance factors for empirical gene trees and constrained hypothesis trees.
+# This script estimates gene, and quartet concordance factors for constrained hypothesis trees.
 # Caitlin Cherryh 2024
 
 
