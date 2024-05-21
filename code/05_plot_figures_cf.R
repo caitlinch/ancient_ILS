@@ -9,6 +9,13 @@
 #   For PORI-Tree: "All other animals"
 #   For CTEN-PORI-Tree: "CTEN+PORI
 
+# Code snippets for patchwork:
+# Add title: 
+#   plot_annotation(title = "gCF", theme = theme(plot.title = element_text(size = 25, vjust = 0.5, hjust = 0.5)))
+# Add panel labels:
+#   plot_annotation(tag_levels = 'a', tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+# Add both: 
+#   plot_annotation(title = "gCF", tag_levels = 'a', tag_suffix = ".", theme = theme(plot.title = element_text(size = 25, vjust = 0.5, hjust = 0.5))) & theme(plot.tag = element_text(size = 30))
 
 
 ##### 1. Input parameters #####
@@ -115,71 +122,29 @@ dataset_group_2 <- c("Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_
 
 
 ##### 5. gene concordance factors (gCF) ternary plots #####
-## gCF values: Plot gCF (CTEN), gCF (PORI), and gCF (CTEN+PORI) as bars for each dataset
-# Group 1:
-gcf_topology_bars1 <- ggplot(data = gcf_df[which(gcf_df$dataset_id %in% dataset_group_1), ], 
-                            aes(x = tree_topology_short, y = KEY_gCF, fill = tree_topology_short)) +
-  geom_bar(stat="identity") +
-  facet_grid(model_formatted~dataset_id_formatted) +
-  scale_x_discrete(name = "Constrained topology") +
-  scale_y_continuous(name = "gCF value", breaks = seq(0,20,5), labels = seq(0,20,5), minor_breaks = seq(0,20,2.5), limits = c(0,20)) +
-  scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73")) +
-  labs(title = "gCF") +
-  theme_bw() +
-  theme(plot.title = element_text(size = 25, hjust = 0.5, vjust = 0.5, margin = margin(t=0, r=0, b=15, l=0, unit="pt")),
-        strip.text = element_text(size = 18),
-        axis.title.x = element_text(size = 22, margin = margin(t=10, r=0, b=0, l=0, unit="pt")),
-        axis.text.x = element_text(size = 18, angle = 45, vjust = 1, hjust = 1),
-        axis.title.y = element_text(size = 22, margin = margin(t=0, r=10, b=0, l=0, unit="pt")),
-        axis.text.y = element_text(size = 18),
-        legend.title = element_text(size = 22, margin = margin(t=0, r=0, b=5, l=0, unit="pt")),
-        legend.text = element_text(size = 18))
-ggsave(filename = paste0(plot_dir, "cf_gcf_topology_bar_group1.pdf"), plot = gcf_topology_bars1, width = 14, height = 6, units = "in")
-ggsave(filename = paste0(plot_dir, "cf_gcf_topology_bar_group1.png"), plot = gcf_topology_bars1, width = 12, height = 6, units = "in")
-
-# Group 2:
-gcf_topology_bars2 <- ggplot(data = gcf_df[which(gcf_df$dataset_id %in% dataset_group_2), ], 
-                            aes(x = tree_topology_short, y = KEY_gCF, fill = tree_topology_short)) +
-  geom_bar(stat="identity") +
-  facet_grid(model_formatted~dataset_id_formatted) +
-  scale_x_discrete(name = "Constrained topology") +
-  scale_y_continuous(name = "gCF value", breaks = seq(0,20,5), labels = seq(0,20,5), minor_breaks = seq(0,20,2.5), limits = c(0,20)) +
-  scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73")) +
-  labs(title = "gCF") +
-  theme_bw() +
-  theme(plot.title = element_text(size = 25, hjust = 0.5, vjust = 0.5, margin = margin(t=0, r=0, b=15, l=0, unit="pt")),
-        strip.text = element_text(size = 18),
-        axis.title.x = element_text(size = 22, margin = margin(t=10, r=0, b=0, l=0, unit="pt")),
-        axis.text.x = element_text(size = 18, angle = 45, vjust = 1, hjust = 1),
-        axis.title.y = element_text(size = 22, margin = margin(t=0, r=10, b=0, l=0, unit="pt")),
-        axis.text.y = element_text(size = 18),
-        legend.title = element_text(size = 22, margin = margin(t=0, r=0, b=5, l=0, unit="pt")),
-        legend.text = element_text(size = 18))
-ggsave(filename = paste0(plot_dir, "cf_gcf_topology_bar_group2.pdf"), plot = gcf_topology_bars2, width = 14, height = 6, units = "in")
-ggsave(filename = paste0(plot_dir, "cf_gcf_topology_bar_group2.png"), plot = gcf_topology_bars2, width = 14, height = 6, units = "in")
-
-# Combined panel
+## PLOT gCF 1: gCF values as bars for each dataset
+# Create plot panels
 gcf_topology_bars_panel1 <- ggplot(data = gcf_df[which(gcf_df$dataset_id %in% dataset_group_1), ], 
-                             aes(x = tree_topology_short, y = KEY_gCF, fill = tree_topology_short)) +
+                                   aes(x = tree_topology_short, y = KEY_gCF, fill = tree_topology_short)) +
   geom_bar(stat="identity") +
   facet_grid(model_formatted~dataset_id_formatted) +
   scale_x_discrete(name = "Constrained topology") +
-  scale_y_continuous(name = "gCF value", breaks = seq(0,20,5), labels = seq(0,20,5), minor_breaks = seq(0,20,2.5), limits = c(0,20)) +
+  scale_y_continuous(name = "gCF value", breaks = seq(0,25,5), labels = seq(0,25,5), minor_breaks = seq(0,25,2.5), limits = c(0,25)) +
   scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73")) +
   theme_bw() +
   theme(strip.text = element_text(size = 16),
-        axis.title.x = element_text(size = 18, margin = margin(t=10, r=0, b=0, l=0, unit="pt")),
+        axis.title.x = element_text(size = 18, margin = margin(t=10, r=0, b=20, l=0, unit="pt")),
         axis.text.x = element_text(size = 14, angle = 45, vjust = 1, hjust = 1),
         axis.title.y = element_text(size = 18, margin = margin(t=0, r=10, b=0, l=0, unit="pt")),
         axis.text.y = element_text(size = 14),
         legend.title = element_text(size = 18, margin = margin(t=0, r=0, b=5, l=0, unit="pt")),
         legend.text = element_text(size = 14))
 gcf_topology_bars_panel2 <- ggplot(data = gcf_df[which(gcf_df$dataset_id %in% dataset_group_2), ], 
-                             aes(x = tree_topology_short, y = KEY_gCF, fill = tree_topology_short)) +
+                                   aes(x = tree_topology_short, y = KEY_gCF, fill = tree_topology_short)) +
   geom_bar(stat="identity") +
-  facet_grid(model_formatted~dataset_id_formatted) +
+  facet_grid(model_formatted~dataset_id_formatted) + 
   scale_x_discrete(name = "Constrained topology") +
-  scale_y_continuous(name = "gCF value", breaks = seq(0,20,5), labels = seq(0,20,5), minor_breaks = seq(0,20,2.5), limits = c(0,20)) +
+  scale_y_continuous(name = "gCF value", breaks = seq(0,25,5), labels = seq(0,25,5), minor_breaks = seq(0,25,2.5), limits = c(0,25)) +
   scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73")) +
   theme_bw() +
   theme(strip.text = element_text(size = 16),
@@ -189,16 +154,96 @@ gcf_topology_bars_panel2 <- ggplot(data = gcf_df[which(gcf_df$dataset_id %in% da
         axis.text.y = element_text(size = 14),
         legend.title = element_text(size = 18, margin = margin(t=0, r=0, b=5, l=0, unit="pt")),
         legend.text = element_text(size = 14))
+# Assemble patchwork and save plot
 gcf_topology_bars_quilt <- gcf_topology_bars_panel1 / gcf_topology_bars_panel2 + 
-  plot_annotation(title = "Gene Concordance Values (gCF)", tag_levels = 'a', tag_suffix = ".", theme = theme(plot.title = element_text(size = 25, vjust = 0.5, hjust = 0.5))) &
-  theme(plot.tag = element_text(size = 30))
-ggsave(filename = paste0(plot_dir, "cf_gcf_topology_bar_combined.pdf"), plot = gcf_topology_bars_quilt, width = 13, height = 12, units = "in")
-ggsave(filename = paste0(plot_dir, "cf_gcf_topology_bar_combined.png"), plot = gcf_topology_bars_quilt, width = 13, height = 12, units = "in")
+  plot_annotation(title = "Gene Concordance Values (gCF)", 
+                  theme = theme(plot.title = element_text(size = 25, vjust = 0.5, hjust = 0.5, margin = margin(t=0, r=0, b=10, l=0, unit = "pt"))))
+ggsave(filename = paste0(plot_dir, "cf_gcf_topology_bar.pdf"), plot = gcf_topology_bars_quilt, width = 13, height = 12, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_gcf_topology_bar.png"), plot = gcf_topology_bars_quilt, width = 13, height = 12, units = "in")
+
+## PLOT gCF 2: gCF/gDFP values as bars for each dataset
+# Create new dataframe with gDFP values included
+gcf_trimmed_df <- gcf_df[ , c("analysis", "id", "dataset", "matrix_name", "dataset_id", "dataset_id_formatted", "model", "model_formatted",
+                              "tree_topology", "tree_topology_formatted", "tree_topology_short", "Plac_present", "Plac_present_formatted",
+                              "KEY_gCF", "KEY_gCF_N", "KEY_gN", "KEY_Length")]
+gdfp_df <- gcf_df[which(gcf_df$tree_topology == "CTEN"), 
+                  c("analysis", "id", "dataset", "matrix_name", "dataset_id", "dataset_id_formatted", "model", "model_formatted",
+                    "tree_topology", "tree_topology_formatted", "tree_topology_short", "Plac_present", "Plac_present_formatted",
+                    "KEY_gDFP", "KEY_gDFP_N", "KEY_gN", "KEY_Length")]
+gdfp_df$tree_topology <- "Paraphyly"
+gdfp_df$tree_topology <- "Paraphyly"
+names(gdfp_df) <- c("analysis", "id", "dataset", "matrix_name", "dataset_id", "dataset_id_formatted", "model", "model_formatted",
+                    "tree_topology", "tree_topology_formatted", "tree_topology_short", "Plac_present", "Plac_present_formatted",
+                    "KEY_gCF", "KEY_gCF_N", "KEY_gN", "KEY_Length")
+gdfp_df <- rbind(gcf_trimmed_df, gdfp_df)
+# Reformat topology labels
+topology_labels_gdfp                <- c("CTEN", "PORI", "CTEN_PORI", "Paraphyly")
+topology_labels_formatted_gdfp      <- c("Ctenophora", "Porifera", "Ctenophora+Porifera", "Paraphyly")
+topology_labels_short_gdfp          <- c("CTEN", "PORI", "CTEN+PORI", "PARAPHYLY")
+gdfp_df$tree_topology_formatted     <- factor(gdfp_df$tree_topology, levels =  topology_labels_gdfp, labels = topology_labels_formatted_gdfp, ordered = TRUE)
+gdfp_df$tree_topology_short         <- factor(gdfp_df$tree_topology, levels =  topology_labels_gdfp, labels = topology_labels_short_gdfp, ordered = TRUE)
+# Create plot panels
+gdfp_topology_bars_panel1 <- ggplot(data = gdfp_df[which(gdfp_df$dataset_id %in% dataset_group_1), ], 
+                                    aes(x = tree_topology_short, y = KEY_gCF, fill = tree_topology_short)) +
+  geom_bar(stat="identity") +
+  facet_grid(model_formatted~dataset_id_formatted) +
+  scale_x_discrete(name = "Constrained topology") +
+  scale_y_continuous(name = "Value", breaks = seq(0,100,20), labels = seq(0,100,20), minor_breaks = seq(0,100,10), limits = c(0,100)) +
+  scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73", "PARAPHYLY" = "darkgrey")) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 16),
+        axis.title.x = element_text(size = 18, margin = margin(t=10, r=0, b=20, l=0, unit="pt")),
+        axis.text.x = element_text(size = 14, angle = 45, vjust = 1, hjust = 1),
+        axis.title.y = element_text(size = 18, margin = margin(t=0, r=10, b=0, l=0, unit="pt")),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_text(size = 18, margin = margin(t=0, r=0, b=10, l=0, unit="pt")),
+        legend.text = element_text(size = 14))
+gdfp_topology_bars_panel2 <- ggplot(data = gdfp_df[which(gdfp_df$dataset_id %in% dataset_group_2), ], 
+                                    aes(x = tree_topology_short, y = KEY_gCF, fill = tree_topology_short)) +
+  geom_bar(stat="identity") +
+  facet_grid(model_formatted~dataset_id_formatted) + 
+  scale_x_discrete(name = "Constrained topology") +
+  scale_y_continuous(name = "Value", breaks = seq(0,100,20), labels = seq(0,100,20), minor_breaks = seq(0,100,10), limits = c(0,100)) +
+  scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73", "PARAPHYLY" = "darkgrey")) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 16),
+        axis.title.x = element_text(size = 18, margin = margin(t=10, r=0, b=0, l=0, unit="pt")),
+        axis.text.x = element_text(size = 14, angle = 45, vjust = 1, hjust = 1),
+        axis.title.y = element_text(size = 18, margin = margin(t=0, r=10, b=0, l=0, unit="pt")),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_text(size = 18, margin = margin(t=0, r=0, b=10, l=0, unit="pt")),
+        legend.text = element_text(size = 14))
+# Assemble patchwork and save plot
+gdfp_topology_bars_quilt <- gdfp_topology_bars_panel1 / gdfp_topology_bars_panel2 + 
+  plot_annotation(title = "Gene Concordance Factors",
+                  theme = theme(plot.title = element_text(size = 25, vjust = 0.5, hjust = 0.5, margin = margin(t=0, r=0, b=10, l=0, unit = "pt"))))
+ggsave(filename = paste0(plot_dir, "cf_gdfp_topology_bar.pdf"), plot = gdfp_topology_bars_quilt, width = 13, height = 12, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_gdfp_topology_bar.png"), plot = gdfp_topology_bars_quilt, width = 13, height = 12, units = "in")
+
+
+## PLOT gCF 3: gCF/gDFP boxplots across datasets
+# Create plot panels
+gcf_boxplot <- ggplot(data = gdfp_df, 
+                      aes(x = tree_topology_short, y = KEY_gCF, fill = tree_topology_short)) +
+  geom_violin(draw_quantiles = TRUE) + 
+  geom_boxplot(width = 0.07) +
+  scale_x_discrete(name = "Constrained topology") +
+  scale_y_continuous(name = "Value", breaks = seq(0,100,20), labels = seq(0,100,20), minor_breaks = seq(0,100,5), limits = c(0,100)) +
+  scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73", "PARAPHYLY" = "darkgrey"), guide = NULL) +
+  labs(title = "Gene Concordance Factors") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 25, hjust = 0.5),
+        axis.title.x = element_text(size = 20, margin = margin(t=10, r=0, b=0, l=0, unit="pt")),
+        axis.text.x = element_text(size = 16, angle = 45, vjust = 1, hjust = 1),
+        axis.title.y = element_text(size = 20, margin = margin(t=0, r=10, b=0, l=0, unit="pt")),
+        axis.text.y = element_text(size = 16))
+ggsave(filename = paste0(plot_dir, "cf_gdfp_boxplot.pdf"), plot = gcf_boxplot)
+ggsave(filename = paste0(plot_dir, "cf_gdfp_boxplot.png"), plot = gcf_boxplot)
 
 
 
 ##### 6. quartet concordance factors (qCF) ternary plots #####
-## Create a ternary plot of all qCF values (1 point per dataset)
+## PLOT qCF 1: qCF values as ternary plots across dataset
 # aes: x = CTEN, y = PORI, z = CTENPORI
 # labs: L = CTEN, T = PORI, R = CTENPORI
 qcf_tern <- ggtern(qcf_long, mapping = aes(x = CTEN.KEY_q1, y = PORI.KEY_q1, z = CTENPORI.KEY_q1)) +
@@ -221,7 +266,7 @@ qcf_tern <- ggtern(qcf_long, mapping = aes(x = CTEN.KEY_q1, y = PORI.KEY_q1, z =
 ggsave(filename = paste0(plot_dir, "cf_qcf_ternary.pdf"), plot = qcf_tern, width = 10, height = 10, units = "in")
 ggsave(filename = paste0(plot_dir, "cf_qcf_ternary.png"), plot = qcf_tern, width = 10, height = 10, units = "in")
 
-## qCF values for each constrained tree topology (3 points per dataset)
+## PLOT qCF 2: qCF values as ternary plots for the three constrained tree topologies
 qcf_topology_tern <- ggtern(qcf_df, mapping = aes(x = KEY_q2, y = KEY_q1, z = KEY_q3, color = tree_topology_short)) +
   geom_Lline(Lintercept = 0.33, color = "black", linetype = "dashed") +
   geom_Tline(Tintercept = 0.33, color = "black", linetype = "dashed") +
@@ -242,6 +287,65 @@ qcf_topology_tern <- ggtern(qcf_df, mapping = aes(x = KEY_q2, y = KEY_q1, z = KE
         legend.text = element_text(size = 18))
 ggsave(filename = paste0(plot_dir, "cf_qcf_topology_ternary.pdf"), plot = qcf_topology_tern, width = 10, height = 10, units = "in")
 ggsave(filename = paste0(plot_dir, "cf_qcf_topology_ternary.png"), plot = qcf_topology_tern, width = 10, height = 10, units = "in")
+
+## PLOT qCF 3: qCF values as bars for each dataset
+# Create new dataframe with gDFP values included
+gcf_trimmed_df <- gcf_df[ , c("analysis", "id", "dataset", "matrix_name", "dataset_id", "dataset_id_formatted", "model", "model_formatted",
+                              "tree_topology", "tree_topology_formatted", "tree_topology_short", "Plac_present", "Plac_present_formatted",
+                              "KEY_gCF", "KEY_gCF_N", "KEY_gN", "KEY_Length")]
+gdfp_df <- gcf_df[which(gcf_df$tree_topology == "CTEN"), 
+                  c("analysis", "id", "dataset", "matrix_name", "dataset_id", "dataset_id_formatted", "model", "model_formatted",
+                    "tree_topology", "tree_topology_formatted", "tree_topology_short", "Plac_present", "Plac_present_formatted",
+                    "KEY_gDFP", "KEY_gDFP_N", "KEY_gN", "KEY_Length")]
+gdfp_df$tree_topology <- "Paraphyly"
+gdfp_df$tree_topology <- "Paraphyly"
+names(gdfp_df) <- c("analysis", "id", "dataset", "matrix_name", "dataset_id", "dataset_id_formatted", "model", "model_formatted",
+                    "tree_topology", "tree_topology_formatted", "tree_topology_short", "Plac_present", "Plac_present_formatted",
+                    "KEY_gCF", "KEY_gCF_N", "KEY_gN", "KEY_Length")
+gdfp_df <- rbind(gcf_trimmed_df, gdfp_df)
+# Reformat topology labels
+topology_labels_gdfp                <- c("CTEN", "PORI", "CTEN_PORI", "Paraphyly")
+topology_labels_formatted_gdfp      <- c("Ctenophora", "Porifera", "Ctenophora+Porifera", "Paraphyly")
+topology_labels_short_gdfp          <- c("CTEN", "PORI", "CTEN+PORI", "PARAPHYLY")
+gdfp_df$tree_topology_formatted     <- factor(gdfp_df$tree_topology, levels =  topology_labels_gdfp, labels = topology_labels_formatted_gdfp, ordered = TRUE)
+gdfp_df$tree_topology_short         <- factor(gdfp_df$tree_topology, levels =  topology_labels_gdfp, labels = topology_labels_short_gdfp, ordered = TRUE)
+# Create plot panels
+gdfp_topology_bars_panel1 <- ggplot(data = gdfp_df[which(gdfp_df$dataset_id %in% dataset_group_1), ], 
+                                    aes(x = tree_topology_short, y = KEY_gCF, fill = tree_topology_short)) +
+  geom_bar(stat="identity") +
+  facet_grid(model_formatted~dataset_id_formatted) +
+  scale_x_discrete(name = "Constrained topology") +
+  scale_y_continuous(name = "Value", breaks = seq(0,100,20), labels = seq(0,100,20), minor_breaks = seq(0,100,10), limits = c(0,100)) +
+  scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73", "PARAPHYLY" = "darkgrey")) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 16),
+        axis.title.x = element_text(size = 18, margin = margin(t=10, r=0, b=20, l=0, unit="pt")),
+        axis.text.x = element_text(size = 14, angle = 45, vjust = 1, hjust = 1),
+        axis.title.y = element_text(size = 18, margin = margin(t=0, r=10, b=0, l=0, unit="pt")),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_text(size = 18, margin = margin(t=0, r=0, b=10, l=0, unit="pt")),
+        legend.text = element_text(size = 14))
+gdfp_topology_bars_panel2 <- ggplot(data = gdfp_df[which(gdfp_df$dataset_id %in% dataset_group_2), ], 
+                                    aes(x = tree_topology_short, y = KEY_gCF, fill = tree_topology_short)) +
+  geom_bar(stat="identity") +
+  facet_grid(model_formatted~dataset_id_formatted) + 
+  scale_x_discrete(name = "Constrained topology") +
+  scale_y_continuous(name = "Value", breaks = seq(0,100,20), labels = seq(0,100,20), minor_breaks = seq(0,100,10), limits = c(0,100)) +
+  scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73", "PARAPHYLY" = "darkgrey")) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 16),
+        axis.title.x = element_text(size = 18, margin = margin(t=10, r=0, b=0, l=0, unit="pt")),
+        axis.text.x = element_text(size = 14, angle = 45, vjust = 1, hjust = 1),
+        axis.title.y = element_text(size = 18, margin = margin(t=0, r=10, b=0, l=0, unit="pt")),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_text(size = 18, margin = margin(t=0, r=0, b=10, l=0, unit="pt")),
+        legend.text = element_text(size = 14))
+# Assemble patchwork and save plot
+gdfp_topology_bars_quilt <- gdfp_topology_bars_panel1 / gdfp_topology_bars_panel2 + 
+  plot_annotation(title = "Gene Concordance Factors",
+                  theme = theme(plot.title = element_text(size = 25, vjust = 0.5, hjust = 0.5, margin = margin(t=0, r=0, b=10, l=0, unit = "pt"))))
+ggsave(filename = paste0(plot_dir, "cf_gdfp_topology_bar.pdf"), plot = gdfp_topology_bars_quilt, width = 13, height = 12, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_gdfp_topology_bar.png"), plot = gdfp_topology_bars_quilt, width = 13, height = 12, units = "in")
 
 
 
