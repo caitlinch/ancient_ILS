@@ -51,7 +51,7 @@ mako_palette            <- hcl.colors(n = 5, palette = "Mako")
 metazoan_clade_palette  <- c("Bilateria" = "#CC79A7", "Cnidaria" = "#009E73", "Ctenophora" = "#56B4E9",
                              "Porifera" = "#E69F00", "Outgroup" = "#999999", "Placozoa" = "#000000")
 topology_colours        <- c("Ctenophora" = viridis_palette[1], "Porifera" =  viridis_palette[4], 
-                             "Ctenophora+Porifera" = viridis_palette[8], "Paraphyly" = "#999999")
+                             "Ctenophora+Porifera" = viridis_palette[7], "Paraphyly" = "#999999")
 
 ##### 3. Open and prepare csvs for plotting  #####
 ## List all output files
@@ -367,8 +367,10 @@ branch_length_theming <- theme_bw() +
 ## PLOT 1: CTEN branch lengths against CF value
 # Create gcf panel
 gcf_cten_panel <- ggplot(gcf_bl_df, aes(x = CTEN_Length, y = KEY_CF, color = tree_topology_short)) +
-  geom_point(size = 2, alpha = 0.7) +
-  geom_smooth(method = "lm", formula = y~x) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.25, linewidth = 0,
+              aes(ymin = ifelse(after_stat(ymin) < 0, 0, after_stat(ymin)), ymax = ifelse(after_stat(ymax) > 25, 25, after_stat(ymax)))) +
+    stat_smooth(method = "lm" , formula = y~x, geom = "line", linewidth = 1, alpha = 0.7) +
+    geom_point(size = 2, alpha = 0.7) +
   facet_grid(model_formatted~tree_topology_short) +
   scale_x_continuous(name = "Ctenophora branch length", breaks = seq(0, 1, 0.25), labels = seq(0, 1, 0.25), minor_breaks =  seq(0, 1, 0.125), limits = c(0, 1)) +
   scale_y_continuous(name = "gCF value", breaks = seq(0, 25, 5), labels = seq(0, 25, 5), minor_breaks =  seq(0, 25, 2.5), limits = c(0, 25)) +
@@ -378,7 +380,9 @@ gcf_cten_panel <- ggplot(gcf_bl_df, aes(x = CTEN_Length, y = KEY_CF, color = tre
 gcf_cten_stats <- gcf_cten_panel + stat_cor(label.y = 24, color = "black")
 # Create qcf panel
 qcf_cten_panel <- ggplot(qcf_bl_df, aes(x = CTEN_Length, y = KEY_CF, color = tree_topology_short)) +
-  geom_smooth(method = "lm", formula = y~x) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.25, linewidth = 0,
+              aes(ymin = ifelse(after_stat(ymin) < 0, 0, after_stat(ymin)), ymax = ifelse(after_stat(ymax) > 0.6, 0.6, after_stat(ymax)))) +
+  stat_smooth(method = "lm" , formula = y~x, geom = "line", linewidth = 1, alpha = 0.7) +
   geom_point(size = 2, alpha = 0.7) +
   facet_grid(model_formatted~tree_topology_short) +
   scale_x_continuous(name = "Ctenophora branch length", breaks = seq(0, 4.5, 1), labels = seq(0, 4.5, 1), minor_breaks =  seq(0, 4.5, 0.5), limits = c(0, 4.5)) +
@@ -401,7 +405,9 @@ ggsave(filename = paste0(plot_dir, "cf_bl_cten_stats.png"), plot = bl_cten_stat,
 ## PLOT 2: KEY branch lengths against CF value
 # Create gcf panel
 gcf_key_panel <- ggplot(gcf_bl_df, aes(x = KEY_Length, y = KEY_CF, color = tree_topology_short)) +
-  geom_smooth(method = "lm", formula = y~x) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.25, linewidth = 0,
+              aes(ymin = ifelse(after_stat(ymin) < 0, 0, after_stat(ymin)), ymax = ifelse(after_stat(ymax) > 25, 25, after_stat(ymax)))) +
+  stat_smooth(method = "lm" , formula = y~x, geom = "line", linewidth = 1, alpha = 0.7) +
   geom_point(size = 2, alpha = 0.7) +
   facet_grid(model_formatted~tree_topology_short) +
   scale_x_continuous(name = "Key branch length", seq(0, 0.08, 0.02), labels = seq(0, 0.08, 0.02), minor_breaks =  seq(0, 0.08, 0.01), limits = c(0, 0.08, 0.01)) +
@@ -412,7 +418,9 @@ gcf_key_panel <- ggplot(gcf_bl_df, aes(x = KEY_Length, y = KEY_CF, color = tree_
 gcf_key_stats <- gcf_key_panel + stat_cor(label.y = 24, color = "black")
 # Create qcf panel
 qcf_key_panel <- ggplot(qcf_bl_df, aes(x = KEY_Length, y = KEY_CF, color = tree_topology_short)) +
-  geom_smooth(method = "lm", formula = y~x) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.25, linewidth = 0,
+              aes(ymin = ifelse(after_stat(ymin) < 0, 0, after_stat(ymin)), ymax = ifelse(after_stat(ymax) > 0.6, 0.6, after_stat(ymax)))) +
+  stat_smooth(method = "lm" , formula = y~x, geom = "line", linewidth = 1, alpha = 0.7) +
   geom_point(size = 2, alpha = 0.7) +
   facet_grid(model_formatted~tree_topology_short) +
   scale_x_continuous(name = "Key branch length", breaks = seq(0, 0.25, 0.1), labels = seq(0, 0.25, 0.1), minor_breaks =  seq(0, 0.25, 0.025), limits = c(0, 0.25)) +
@@ -435,7 +443,9 @@ ggsave(filename = paste0(plot_dir, "cf_bl_key_stats.png"), plot = bl_key_stat, w
 ## PLOT 3: PORI branch lengths against CF value
 # Create gcf panel
 gcf_pori_panel <- ggplot(gcf_bl_df, aes(x = PORI_Length, y = KEY_CF, color = tree_topology_short)) +
-  geom_smooth(method = "lm", formula = y~x) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.25, linewidth = 0,
+              aes(ymin = ifelse(after_stat(ymin) < 0, 0, after_stat(ymin)), ymax = ifelse(after_stat(ymax) > 25, 25, after_stat(ymax)))) +
+  stat_smooth(method = "lm" , formula = y~x, geom = "line", linewidth = 1, alpha = 0.7) +
   geom_point(size = 2, alpha = 0.7) +
   facet_grid(model_formatted~tree_topology_short) +
   scale_x_continuous(name = "Porifera branch length", seq(0, 0.08, 0.04), labels = seq(0, 0.08, 0.04), minor_breaks =  seq(0, 0.08, 0.01), limits = c(0, 0.08)) +
@@ -446,10 +456,12 @@ gcf_pori_panel <- ggplot(gcf_bl_df, aes(x = PORI_Length, y = KEY_CF, color = tre
 gcf_pori_stats <- gcf_pori_panel + stat_cor(label.y = 24, color = "black")
 # Create qcf panel
 qcf_pori_panel <- ggplot(qcf_bl_df, aes(x = PORI_Length, y = KEY_CF, color = tree_topology_short)) +
-  geom_smooth(method = "lm", formula = y~x) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.25, linewidth = 0,
+              aes(ymin = ifelse(after_stat(ymin) < 0, 0, after_stat(ymin)), ymax = ifelse(after_stat(ymax) > 0.6, 0.6, after_stat(ymax)))) +
+  stat_smooth(method = "lm" , formula = y~x, geom = "line", linewidth = 1, alpha = 0.7) +
   geom_point(size = 2, alpha = 0.7) +
   facet_grid(model_formatted~tree_topology_short) +
-  scale_x_continuous(name = "Porifera branch length", breaks = seq(0, 0.25, 0.1), labels = seq(0, 0.25, 0.1), minor_breaks =  seq(0, 0.25, 0.025), limits = c(0, 0.25)) +
+  scale_x_continuous(name = "Porifera branch length", breaks = seq(0, 0.35, 0.1), labels = seq(0, 0.35, 0.1), minor_breaks =  seq(0, 0.35, 0.025), limits = c(0, 0.35)) +
   scale_y_continuous(name = "qCF value", breaks = seq(0, 0.6, 0.1), labels = seq(0, 0.6, 0.1), minor_breaks =  seq(0, 0.6, 0.1), limits = c(0, 0.6)) +
   scale_color_manual(name = "Topology", values = c("CTEN" =  topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
                                                    "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]])) +
