@@ -35,6 +35,7 @@ plot_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/08_figures/
 library(reshape2)
 library(ggplot2)
 library(ggtern) # for ternary plots of sCF
+library(ggpubr) # for adding statistics and regression lines: stat_regline_equation()
 library(patchwork) # for assembling ternary plots of emperical gCF, sCF and quartet scores
 library(grDevices) # for hcl.colors(), palette.colors()
 
@@ -165,16 +166,16 @@ ggsave(filename = paste0(plot_dir, "cf_gcf_topology_bar.png"), plot = gcf_topolo
 # Create new dataframe with gDFP values included
 gcf_trimmed_df <- gcf_df[ , c("analysis", "id", "dataset", "matrix_name", "dataset_id", "dataset_id_formatted", "model", "model_formatted",
                               "tree_topology", "tree_topology_formatted", "tree_topology_short", "Plac_present", "Plac_present_formatted",
-                              "KEY_gCF", "KEY_gCF_N", "KEY_gN", "KEY_Length")]
+                              "KEY_gCF", "KEY_Length", "CTEN_Length", "CTEN_monophyly", "PORI_Length", "PORI_monophyly")]
 gdfp_df <- gcf_df[which(gcf_df$tree_topology == "CTEN"), 
                   c("analysis", "id", "dataset", "matrix_name", "dataset_id", "dataset_id_formatted", "model", "model_formatted",
                     "tree_topology", "tree_topology_formatted", "tree_topology_short", "Plac_present", "Plac_present_formatted",
-                    "KEY_gDFP", "KEY_gDFP_N", "KEY_gN", "KEY_Length")]
+                    "KEY_gDFP", "KEY_Length", "CTEN_Length", "CTEN_monophyly", "PORI_Length", "PORI_monophyly")]
 gdfp_df$tree_topology <- "Paraphyly"
 gdfp_df$tree_topology <- "Paraphyly"
 names(gdfp_df) <- c("analysis", "id", "dataset", "matrix_name", "dataset_id", "dataset_id_formatted", "model", "model_formatted",
                     "tree_topology", "tree_topology_formatted", "tree_topology_short", "Plac_present", "Plac_present_formatted",
-                    "KEY_gCF", "KEY_gCF_N", "KEY_gN", "KEY_Length")
+                    "KEY_gCF", "KEY_Length", "CTEN_Length", "CTEN_monophyly", "PORI_Length", "PORI_monophyly")
 gdfp_df <- rbind(gcf_trimmed_df, gdfp_df)
 # Reformat topology labels
 topology_labels_gdfp                <- c("CTEN", "PORI", "CTEN_PORI", "Paraphyly")
@@ -300,7 +301,7 @@ qcf_topology_bars_panel1 <- ggplot(data = qcf_df[which(qcf_df$dataset_id %in% da
   scale_x_discrete(name = "Constrained topology") +
   scale_y_continuous(name = "Value", breaks = seq(0,0.6,0.1), labels = seq(0,0.6,0.1), minor_breaks = seq(0,0.6,0.05), limits = c(0,0.5)) +
   scale_fill_manual(name = "Topology", values = c("CTEN" = topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
-                                                           "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]])) +
+                                                  "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]])) +
   theme_bw() +
   theme(strip.text = element_text(size = 15),
         axis.title.x = element_text(size = 16, margin = margin(t=10, r=0, b=20, l=0, unit="pt")),
@@ -331,6 +332,140 @@ qcf_topology_bars_quilt <- qcf_topology_bars_panel1 / qcf_topology_bars_panel2 +
                   theme = theme(plot.title = element_text(size = 25, vjust = 0.5, hjust = 0.5, margin = margin(t=0, r=0, b=10, l=0, unit = "pt"))))
 ggsave(filename = paste0(plot_dir, "cf_qcf_topology_bar.pdf"), plot = qcf_topology_bars_quilt, width = 12, height = 10, units = "in")
 ggsave(filename = paste0(plot_dir, "cf_qcf_topology_bar.png"), plot = qcf_topology_bars_quilt, width = 12, height = 10, units = "in")
+
+
+
+##### 7. Concordance factors and branch lengths #####
+## Construct data frame of qCF/gCF and branch lengths
+gcfdfp_bl_df          <- gdfp_df[, c("analysis", "id", "dataset", "matrix_name", "dataset_id", "dataset_id_formatted", "model", "model_formatted",
+                                     "tree_topology", "tree_topology_formatted", "tree_topology_short", "Plac_present", "Plac_present_formatted",
+                                     "KEY_gCF","KEY_Length", "CTEN_Length", "CTEN_monophyly", "PORI_Length", "PORI_monophyly")]
+names(gcfdfp_bl_df)   <- c("analysis", "id", "dataset", "matrix_name", "dataset_id", "dataset_id_formatted", "model", "model_formatted",
+                           "tree_topology", "tree_topology_formatted", "tree_topology_short", "Plac_present", "Plac_present_formatted",
+                           "KEY_CF","KEY_Length", "CTEN_Length", "CTEN_monophyly", "PORI_Length", "PORI_monophyly")
+gcf_bl_df <- gcfdfp_bl_df[which(gcfdfp_bl_df$tree_topology != "Paraphyly"), ]
+qcf_bl_df             <- qcf_df[ , c("analysis", "id", "dataset", "matrix_name", "dataset_id", "dataset_id_formatted", "model", "model_formatted",
+                                     "topology", "tree_topology_formatted", "tree_topology_short", "Plac_present", "Plac_present_formatted",
+                                     "KEY_q1", "KEY_branch_length", "CTEN_branch_length", "CTEN_monophyly", "PORI_branch_length", "PORI_monophyly")]
+names(qcf_bl_df)      <- c("analysis", "id", "dataset", "matrix_name", "dataset_id", "dataset_id_formatted", "model", "model_formatted",
+                           "tree_topology", "tree_topology_formatted", "tree_topology_short", "Plac_present", "Plac_present_formatted",
+                           "KEY_CF","KEY_Length", "CTEN_Length", "CTEN_monophyly", "PORI_Length", "PORI_monophyly")
+bl_df                 <- rbind(gcf_bl_df, qcf_bl_df)
+
+# Set theming
+branch_length_theming <- theme_bw() +
+  theme(strip.text = element_text(size = 16),
+        axis.title.x = element_text(size = 16, margin = margin(t=10, r=0, b=0, l=0, unit="pt")),
+        axis.text.x = element_text(size = 13),
+        axis.title.y = element_text(size = 16, margin = margin(t=0, r=10, b=0, l=0, unit="pt")),
+        axis.text.y = element_text(size = 13),
+        legend.title = element_text(size = 16, margin = margin(t=0, r=0, b=10, l=0, unit="pt")),
+        legend.text = element_text(size = 13),
+        legend.position = "none",
+        panel.spacing = unit(8, "pt") )
+
+## PLOT 1: CTEN branch lengths against CF value
+# Create gcf panel
+gcf_cten_panel <- ggplot(gcf_bl_df, aes(x = CTEN_Length, y = KEY_CF, color = tree_topology_short)) +
+  geom_point(size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", formula = y~x) +
+  facet_grid(model_formatted~tree_topology_short) +
+  scale_x_continuous(name = "Ctenophora branch length", breaks = seq(0, 1, 0.25), labels = seq(0, 1, 0.25), minor_breaks =  seq(0, 1, 0.125), limits = c(0, 1)) +
+  scale_y_continuous(name = "gCF value", breaks = seq(0, 25, 5), labels = seq(0, 25, 5), minor_breaks =  seq(0, 25, 2.5), limits = c(0, 25)) +
+  scale_color_manual(name = "Topology", values = c("CTEN" =  topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
+                                                   "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]])) +
+  branch_length_theming
+gcf_cten_stats <- gcf_cten_panel + stat_cor(label.y = 24, color = "black")
+# Create qcf panel
+qcf_cten_panel <- ggplot(qcf_bl_df, aes(x = CTEN_Length, y = KEY_CF, color = tree_topology_short)) +
+  geom_smooth(method = "lm", formula = y~x) +
+  geom_point(size = 2, alpha = 0.7) +
+  facet_grid(model_formatted~tree_topology_short) +
+  scale_x_continuous(name = "Ctenophora branch length", breaks = seq(0, 4.5, 1), labels = seq(0, 4.5, 1), minor_breaks =  seq(0, 4.5, 0.5), limits = c(0, 4.5)) +
+  scale_y_continuous(name = "qCF value", breaks = seq(0, 0.6, 0.1), labels = seq(0, 0.6, 0.1), minor_breaks =  seq(0, 0.6, 0.1), limits = c(0, 0.6)) +
+  scale_color_manual(name = "Topology", values = c("CTEN" =  topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
+                                                   "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]])) +
+  branch_length_theming
+qcf_cten_stats <- qcf_cten_panel + stat_cor(label.y = 0.57, color = "black")
+# Assemble plots patchwork and save plot
+bl_cten_quilt <- gcf_cten_panel / qcf_cten_panel + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+ggsave(filename = paste0(plot_dir, "cf_bl_cten.pdf"), plot = bl_cten_quilt, width = 10, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_bl_cten.png"), plot = bl_cten_quilt, width = 10, units = "in")
+# Assemble stats patchwork and save plot
+bl_cten_stat <- gcf_cten_stats / qcf_cten_stats + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+ggsave(filename = paste0(plot_dir, "cf_bl_cten_stats.pdf"), plot = bl_cten_stat, width = 10, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_bl_cten_stats.png"), plot = bl_cten_stat, width = 10, units = "in")
+
+## PLOT 2: KEY branch lengths against CF value
+# Create gcf panel
+gcf_key_panel <- ggplot(gcf_bl_df, aes(x = KEY_Length, y = KEY_CF, color = tree_topology_short)) +
+  geom_smooth(method = "lm", formula = y~x) +
+  geom_point(size = 2, alpha = 0.7) +
+  facet_grid(model_formatted~tree_topology_short) +
+  scale_x_continuous(name = "Key branch length", seq(0, 0.08, 0.02), labels = seq(0, 0.08, 0.02), minor_breaks =  seq(0, 0.08, 0.01), limits = c(0, 0.08, 0.01)) +
+  scale_y_continuous(name = "gCF value", breaks = seq(0, 25, 5), labels = seq(0, 25, 5), minor_breaks =  seq(0, 25, 2.5), limits = c(0, 25)) +
+  scale_color_manual(name = "Topology", values = c("CTEN" =  topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
+                                                   "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]])) +
+  branch_length_theming
+gcf_key_stats <- gcf_key_panel + stat_cor(label.y = 24, color = "black")
+# Create qcf panel
+qcf_key_panel <- ggplot(qcf_bl_df, aes(x = KEY_Length, y = KEY_CF, color = tree_topology_short)) +
+  geom_smooth(method = "lm", formula = y~x) +
+  geom_point(size = 2, alpha = 0.7) +
+  facet_grid(model_formatted~tree_topology_short) +
+  scale_x_continuous(name = "Key branch length", breaks = seq(0, 0.25, 0.1), labels = seq(0, 0.25, 0.1), minor_breaks =  seq(0, 0.25, 0.025), limits = c(0, 0.25)) +
+  scale_y_continuous(name = "qCF value", breaks = seq(0, 0.6, 0.1), labels = seq(0, 0.6, 0.1), minor_breaks =  seq(0, 0.6, 0.1), limits = c(0, 0.6)) +
+  scale_color_manual(name = "Topology", values = c("CTEN" =  topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
+                                                   "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]])) +
+  branch_length_theming
+qcf_key_stats <- qcf_key_panel + stat_cor(label.y = 0.57, color = "black")
+# Assemble patchwork and save plot
+bl_key_quilt <- gcf_key_panel / qcf_key_panel + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+ggsave(filename = paste0(plot_dir, "cf_bl_key.pdf"), plot = bl_key_quilt, width = 10, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_bl_key.png"), plot = bl_key_quilt, width = 10, units = "in")
+# Assemble stats patchwork and save plot
+bl_key_stat <- gcf_key_stats / qcf_key_stats + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+ggsave(filename = paste0(plot_dir, "cf_bl_key_stats.pdf"), plot = bl_key_stat, width = 10, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_bl_key_stats.png"), plot = bl_key_stat, width = 10, units = "in")
+
+## PLOT 3: PORI branch lengths against CF value
+# Create gcf panel
+gcf_pori_panel <- ggplot(gcf_bl_df, aes(x = PORI_Length, y = KEY_CF, color = tree_topology_short)) +
+  geom_smooth(method = "lm", formula = y~x) +
+  geom_point(size = 2, alpha = 0.7) +
+  facet_grid(model_formatted~tree_topology_short) +
+  scale_x_continuous(name = "Porifera branch length", seq(0, 0.08, 0.04), labels = seq(0, 0.08, 0.04), minor_breaks =  seq(0, 0.08, 0.01), limits = c(0, 0.08)) +
+  scale_y_continuous(name = "gCF value", breaks = seq(0, 25, 5), labels = seq(0, 25, 5), minor_breaks =  seq(0, 25, 2.5), limits = c(0, 25)) +
+  scale_color_manual(name = "Topology", values = c("CTEN" =  topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
+                                                   "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]])) +
+  branch_length_theming
+gcf_pori_stats <- gcf_pori_panel + stat_cor(label.y = 24, color = "black")
+# Create qcf panel
+qcf_pori_panel <- ggplot(qcf_bl_df, aes(x = PORI_Length, y = KEY_CF, color = tree_topology_short)) +
+  geom_smooth(method = "lm", formula = y~x) +
+  geom_point(size = 2, alpha = 0.7) +
+  facet_grid(model_formatted~tree_topology_short) +
+  scale_x_continuous(name = "Porifera branch length", breaks = seq(0, 0.25, 0.1), labels = seq(0, 0.25, 0.1), minor_breaks =  seq(0, 0.25, 0.025), limits = c(0, 0.25)) +
+  scale_y_continuous(name = "qCF value", breaks = seq(0, 0.6, 0.1), labels = seq(0, 0.6, 0.1), minor_breaks =  seq(0, 0.6, 0.1), limits = c(0, 0.6)) +
+  scale_color_manual(name = "Topology", values = c("CTEN" =  topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
+                                                   "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]])) +
+  branch_length_theming
+qcf_pori_stats <- qcf_pori_panel + stat_cor(label.y = 0.57, color = "black")
+# Assemble patchwork and save plot
+bl_pori_quilt <- gcf_pori_panel / qcf_pori_panel + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+ggsave(filename = paste0(plot_dir, "cf_bl_pori.pdf"), plot = bl_pori_quilt, width = 10, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_bl_pori.png"), plot = bl_pori_quilt, width = 10, units = "in")
+# Assemble stats patchwork and save plot
+bl_pori_stat <- gcf_pori_stats / qcf_pori_stats + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".") & theme(plot.tag = element_text(size = 30))
+ggsave(filename = paste0(plot_dir, "cf_bl_pori_stats.pdf"), plot = bl_pori_stat, width = 10, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_bl_pori_stats.png"), plot = bl_pori_stat, width = 10, units = "in")
+
 
 
 
