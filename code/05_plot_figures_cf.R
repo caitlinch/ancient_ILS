@@ -35,9 +35,10 @@ plot_dir          <- "/Users/caitlincherryh/Documents/C4_Ancient_ILS/08_figures/
 library(reshape2)
 library(ggplot2)
 library(ggtern) # for ternary plots of sCF
-library(ggpubr) # for adding statistics and regression lines: stat_regline_equation()
+library(ggpubr) # for adding statistics and regression lines: stat_regline_equation(), stat_cor()
 library(patchwork) # for assembling ternary plots of emperical gCF, sCF and quartet scores
-library(grDevices) # for hcl.colors(), palette.colors()
+library(grDevices) # for: hcl.colors(), palette.colors()
+library(stringr) # for: str_extract_all()
 
 ## Source functions
 source(paste0(repo_dir, "code/func_plotting.R"))
@@ -480,166 +481,32 @@ ggsave(filename = paste0(plot_dir, "cf_bl_pori_stats.png"), plot = bl_pori_stat,
 
 
 
+##### 8. Creating a nice output table #####
+## Reformat the gCF results for a nice table in the manuscript
+pretty_gcf <- gcf_long[ c("dataset", "matrix_name", "model",
+                          "CTEN.KEY_gCF", "PORI.KEY_gCF", "CTENPORI.KEY_gCF", "CTEN.KEY_gDFP",
+                          "CTEN.CTEN_gCF", "PORI.CTEN_gCF", "CTENPORI.CTEN_gCF", 
+                          "CTEN.PORI_gCF", "PORI.PORI_gCF", "CTENPORI.PORI_gCF",
+                          "Plac_present", "analysis")]
+pretty_gcf$year <- as.numeric(unlist(stringr::str_extract_all(pretty_gcf$dataset, "\\d{4}")))
+pretty_gcf <- pretty_gcf[order(pretty_gcf$year, pretty_gcf$dataset, pretty_gcf$matrix_name, decreasing = F), ]
+pretty_gcf_file <- paste0(output_csv_dir, "ms_formatted_gCF_table.csv")
+write.csv(pretty_gcf, file = pretty_gcf_file, row.names = FALSE)
 
-
-#################### OLD CODE
-##### 4. CF df: Empirical gCF, sCF and quartet values, Key branch, 3 Topologies #####
-# Extract variables of interest
-emp3_df <- cf_df
-# Remove any rows that are NOT leading to the "key branch"
-emp3_df <- emp3_df[which(emp3_df$hypothesis_tree == "CTEN" & emp3_df$branch_to_clade == "ALL_ANIMALS" |
-                           emp3_df$hypothesis_tree == "PORI" & emp3_df$branch_to_clade == "ALL_ANIMALS" |
-                           emp3_df$hypothesis_tree == "CTEN_PORI" & emp3_df$branch_to_clade == "CTEN_PORI"), ]
-# Plot gCF
-emp3_gcf <- ggtern(emp3_df, aes(x = gDF1, y = gCF, z = gDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
-  geom_mask() +  
-  geom_point(size = 3, alpha = 0.6) +
-  facet_wrap(gene_type_formatted ~., nrow = 1) +
-  labs(title = "a.") +
-  scale_color_manual(values = clades_colours, name = "Constrained\ntree topology") +
-  scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17, "Ctenophora+Porifera" = 15), name = "Constrained\ntree topology") +
-  theme_bw() +
-  theme_showgrid() +
-  theme(plot.title = element_text(size = 30),
-        plot.subtitle = element_text(size = 16),
-        strip.text = element_text(size = 16),
-        legend.title = element_text(size = 14),
-        legend.text = element_text(size = 14),
-        legend.key.size = unit(1.5, "lines"),
-        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 12),
-        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 12),
-        legend.position = "none",
-        panel.spacing = unit(1, "lines"),
-        plot.margin = margin(-5, -5, -5, -5)) 
-# Plot sCF
-emp3_unconstrained_df <- emp3_df[which(emp3_df$gene_type == "Unconstrained"), ]
-emp3_scf <- ggtern(emp3_unconstrained_df, aes(x = sDF1, y = sCF, z = sDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
-  geom_mask() +  
-  geom_point(size = 3, alpha = 0.6) +
-  facet_wrap(gene_type_formatted ~., nrow = 1) +
-  labs(title = "b.") +
-  scale_color_manual(values = clades_colours, name = "Constrained\ntree topology") +
-  scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17, "Ctenophora+Porifera" = 15), name = "Constrained\ntree topology") +
-  theme_bw() +
-  theme_showgrid() +
-  theme(plot.title = element_text(size = 30),
-        plot.subtitle = element_text(size = 16),
-        strip.text = element_text(size = 16),
-        legend.title = element_text(size = 18),
-        legend.text = element_text(size = 16),
-        legend.key.size = unit(1.5, "lines"),
-        legend.margin = margin(l = 85, unit = "pt"),
-        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 12),
-        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 12),
-        panel.spacing = unit(1, "lines"),
-        plot.margin = margin(-5, -5, -5, -5)) +
-  guides( color = guide_legend(override.aes = list(size = 5)) )  
-# Plot quartet scores
-emp3_qs <- ggtern(emp3_df, aes(x = q2, y = q1, z = q3, color = tree_topology_formatted, shape = tree_topology_formatted)) +
-  geom_mask() +  
-  geom_point(size = 3, alpha = 0.6) +
-  facet_wrap(gene_type_formatted ~., nrow = 1) +
-  labs(title = "c.") +
-  scale_color_manual(values = clades_colours, name = "Constrained\ntree topology") +
-  scale_shape_manual(values = c("Ctenophora" = 16, "Porifera" = 17, "Ctenophora+Porifera" = 15), name = "Constrained\ntree topology") +
-  theme_bw() +
-  theme_showgrid() +
-  theme(plot.title = element_text(size = 30),
-        plot.subtitle = element_text(size = 16),
-        strip.text = element_text(size = 16),
-        legend.title = element_text(size = 14),
-        legend.text = element_text(size = 14),
-        legend.key.size = unit(1.5, "lines"),
-        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 12),
-        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 12),
-        legend.position = "none",
-        panel.spacing = unit(1, "lines"),
-        plot.margin = margin(-5, -5, -5, -5)) +
-  Tlab("qCF") +
-  Llab("qDF1") +
-  Rlab("qDF2")
-
-# Assemble the three ternary plots using ggtern::grid.arrange 
-#     (as ternary plots have three axes, patchwork and ggplot::grid.arrange don't work cleanly here)
-quilt3 <- ggtern::grid.arrange(emp3_gcf, emp3_scf, emp3_qs, nrow = 3, ncol = 1)
-# Save the quilt
-emp3_tern_file <- paste0(repo_dir, "figures/", "cf_constrained_unconstrained_ternary_coloured.pdf")
-ggsave(filename = emp3_tern_file, plot = quilt3, width = 10, height = 12, units = "in")
-emp3_tern_file_png <- paste0(repo_dir, "figures/", "cf_constrained_unconstrained_ternary_coloured.png")
-ggsave(filename = emp3_tern_file_png, plot = quilt3, width = 10, height = 12, units = "in")
-
-
-
-##### 5. CF + Key branch + 3 topologies + unconstrained gene trees #####
-# Key branch to extract:
-#   CF = CTEN-Tree, "All other animals"
-#   DF1 = PORI-Tree, "All other animals"
-#   DF2 = CTEN-PORI-Tree, "CTEN+PORI"
-
-## Prepare unconstrained gene df
-# Extract unconstrained gene tree rows with the right branch for each tree topology
-filtered_uncon_df <- cf_df[c(which(cf_df$hypothesis_tree == "CTEN" & cf_df$branch_description == "All_other_animals" & cf_df$gene_type == "Unconstrained"),
-                             which(cf_df$hypothesis_tree == "PORI" & cf_df$branch_description == "All_other_animals" & cf_df$gene_type == "Unconstrained"),
-                             which(cf_df$hypothesis_tree == "CTEN_PORI" & cf_df$branch_description == "CTEN_PORI" & cf_df$gene_type == "Unconstrained")) , 
-                           c(1:6, 41:48, 7:9, 16:18, 19:21, 26:28,29, 32, 35, 38:39)]
-row.names(filtered_uncon_df) <- 1:nrow(filtered_uncon_df)
-# Reformat the dataframe to have the separate CF for each topology around the branch of interest
-uncon_df <- extract.correct.CF.values(df = filtered_uncon_df)
-uncon_df <- convert.to.long.format(df = uncon_df)
-
-## Prepare constrained gene df
-# Extract constrained gene tree rows with the right branch for each tree topology
-filtered_con_df <- cf_df[c(which(cf_df$hypothesis_tree == "CTEN" & cf_df$branch_description == "All_other_animals" & cf_df$gene_type == "Constrained"),
-                           which(cf_df$hypothesis_tree == "PORI" & cf_df$branch_description == "All_other_animals" & cf_df$gene_type == "Constrained"),
-                           which(cf_df$hypothesis_tree == "CTEN_PORI" & cf_df$branch_description == "CTEN_PORI" & cf_df$gene_type == "Constrained")) , 
-                         c(1:6, 41:48, 7:9, 16:18, 19:21, 26:28,29, 32, 35, 38:39)]
-row.names(filtered_con_df) <- 1:nrow(filtered_con_df)
-# Reformat the dataframe to have the separate CF for each topology around the branch of interest
-con_df <- extract.correct.CF.values(df = filtered_con_df)
-con_df <- convert.to.long.format(df = con_df)
-
-## Assemble the dataframes
-plot_df <- rbind(uncon_df, con_df)
-
-## Create the plot
-# Plot CFs
-cf_tern <- ggtern(plot_df, aes(x = cf_val, y = df1_val, z = df2_val)) +
-  geom_mask() +  
-  geom_point(size = 5, alpha = 0.6) +
-  facet_grid(cf_type ~ gene_type_formatted) +
-  theme_bw() +
-  theme(strip.clip = "off",
-        strip.text = element_text(size = 30),
-        axis.title = element_text(size = 16),
-        axis.text = element_text(size = 14),
-        tern.panel.grid.major = element_line(colour = "grey80", linewidth = 12),
-        tern.panel.grid.minor = element_line(colour = "grey80", linewidth = 12),
-        panel.spacing = unit(1.5, "lines")) +
-  Tlab("CTEN") +
-  Llab("PORI") +
-  Rlab("CTEN \u002B\nPORI")
-# Save the plot
-emp_tern_file <- paste0(repo_dir, "figures/", "cf_constrained_unconstrained_keyBranch_ternary.pdf")
-ggsave(filename = emp_tern_file, plot = cf_tern, width = 16, height = 16, units = "in")
-emp_tern_file_png <- paste0(repo_dir, "figures/", "cf_constrained_unconstrained_keyBranch_ternary.png")
-ggsave(filename = emp_tern_file_png, plot = cf_tern, width = 16, height = 16, units = "in")
-
-## Reformat the csv as a nice table in the manuscript
-# Remove unneeded columns
-op_plot_df <- rbind(extract.correct.CF.values(df = filtered_uncon_df), extract.correct.CF.values(df = filtered_con_df))
-output_df_raw_file <- paste0(output_dir, "constrained_unconstrained_cf_KeyBranch_raw.csv")
-write.csv(op_plot_df, file = output_df_raw_file, row.names = FALSE)
-# Reorder columns and rows
-op_plot_df <- op_plot_df[ , c(3, 8, 10:30, 31, 34)]
-op_plot_df$gene_type <- factor(op_plot_df$gene_type, levels = c("Unconstrained", "Constrained"), ordered = T)
-op_plot_df <- op_plot_df[order(op_plot_df$dataset, op_plot_df$gene_type), ]
-# Rename columns
-names(op_plot_df) <- c("Dataset", "Gene tree type", 
-                       "gCF", "gCF_N", "gDF1", "gDF1_N", "gDF2", "gDF2_N",
-                       "sCF", "sCF_N", "sDF1", "sDF1_N", "sDF2", "sDF2_N",
-                       "qCF", "qDF1", "qDF2", "qCF_f", "qDF1_f", "qDF2_f", "qCF_pp", "qDF1_pp", "qDF2_pp", "QC", "EN")
-# Save the csv as output
-output_df_file <- paste0(output_dir, "constrained_unconstrained_cf_KeyBranch.csv")
-write.csv(op_plot_df, file = output_df_file, row.names = FALSE)
+## Reformat the qCF results for a nice table in the manuscript
+pretty_qcf <- qcf_long[ c("dataset", "matrix_name", "model",
+                          "CTEN.KEY_q1", "PORI.KEY_q1", "CTENPORI.KEY_q1",
+                          "CTEN.CTEN_q1", "PORI.CTEN_q1", "CTENPORI.CTEN_q1", 
+                          "CTEN.PORI_q1", "PORI.PORI_q1", "CTENPORI.PORI_q1",
+                          "Plac_present", "analysis")]
+names(pretty_qcf) <- c("dataset", "matrix_name", "model",
+                       "CTEN.KEY_qCF", "PORI.KEY_qCF", "CTENPORI.KEY_qCF",
+                       "CTEN.CTEN_qCF", "PORI.CTEN_qCF", "CTENPORI.CTEN_qCF", 
+                       "CTEN.PORI_qCF", "PORI.PORI_qCF", "CTENPORI.PORI_qCF",
+                       "Plac_present", "analysis")
+pretty_qcf$year <- as.numeric(unlist(stringr::str_extract_all(pretty_qcf$dataset, "\\d{4}")))
+pretty_qcf <- pretty_qcf[order(pretty_qcf$year, pretty_qcf$dataset, pretty_qcf$matrix_name, decreasing = F), ]
+pretty_qcf_file <- paste0(output_csv_dir, "ms_formatted_qCF_table.csv")
+write.csv(pretty_qcf, file = pretty_qcf_file, row.names = FALSE)
 
 
