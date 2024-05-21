@@ -367,8 +367,8 @@ branch_length_theming <- theme_bw() +
 gcf_cten_panel <- ggplot(gcf_bl_df, aes(x = CTEN_Length, y = KEY_CF, color = tree_topology_short)) +
   geom_smooth(method = "lm", formula = y~x, alpha = 0.25, linewidth = 0,
               aes(ymin = ifelse(after_stat(ymin) < 0, 0, after_stat(ymin)), ymax = ifelse(after_stat(ymax) > 25, 25, after_stat(ymax)))) +
-    stat_smooth(method = "lm" , formula = y~x, geom = "line", linewidth = 1, alpha = 0.7) +
-    geom_point(size = 2, alpha = 0.7) +
+  stat_smooth(method = "lm" , formula = y~x, geom = "line", linewidth = 1, alpha = 0.7) +
+  geom_point(size = 2, alpha = 0.7) +
   facet_grid(model_formatted~tree_topology_short) +
   scale_x_continuous(name = "Ctenophora branch length", breaks = seq(0, 1, 0.25), labels = seq(0, 1, 0.25), minor_breaks =  seq(0, 1, 0.125), limits = c(0, 1)) +
   scale_y_continuous(name = "gCF value", breaks = seq(0, 25, 5), labels = seq(0, 25, 5), minor_breaks =  seq(0, 25, 2.5), limits = c(0, 25)) +
@@ -481,28 +481,53 @@ ggsave(filename = paste0(plot_dir, "cf_bl_pori_stats.png"), plot = bl_pori_stat,
 ##### 8. Creating a nice output table #####
 ## Reformat the gCF results for a nice table in the manuscript
 pretty_gcf <- gcf_long[ c("dataset", "matrix_name", "model",
-                          "CTEN.KEY_gCF", "PORI.KEY_gCF", "CTENPORI.KEY_gCF", "CTEN.KEY_gDFP",
+                          "CTEN.KEY_gCF",  "PORI.KEY_gCF", "CTENPORI.KEY_gCF", "CTEN.KEY_gDFP", 
+                          "CTEN.KEY_gCF_N",  "PORI.KEY_gCF_N", "CTENPORI.KEY_gCF_N", "CTEN.KEY_gDFP_N",
                           "CTEN.CTEN_gCF", "PORI.CTEN_gCF", "CTENPORI.CTEN_gCF", 
+                          "CTEN.CTEN_gCF_N", "PORI.CTEN_gCF_N", "CTENPORI.CTEN_gCF_N",
                           "CTEN.PORI_gCF", "PORI.PORI_gCF", "CTENPORI.PORI_gCF",
+                          "CTEN.PORI_gCF_N", "PORI.PORI_gCF_N", "CTENPORI.PORI_gCF_N",
                           "Plac_present", "analysis")]
+names(pretty_gcf) <- c("dataset", "matrix_name", "model",
+                       "KEY_gCF_CTEN", "KEY_gCF_PORI", "KEY_gCF_CTENPORI", "KEY_gDFP",
+                       "KEY_gCF_N_CTEN", "KEY_gCF_N_PORI", "KEY_gCF_N_CTENPORI", "KEY_gDFP_N",
+                       "CTEN_gCF_CTEN", "CTEN_gCF_PORI", "CTEN_gCF_CTENPORI",
+                       "CTEN_gCF_N_CTEN", "CTEN_gCF_N_PORI", "CTEN_gCF_N_CTENPORI",
+                       "PORI_gCF_CTEN", "PORI_gCF_PORI", "PORI_gCF_CTENPORI",
+                       "PORI_gCF_N_CTEN", "PORI_gCF_N_PORI",  "PORI_gCF_N_CTENPORI",
+                       "Plac_present", "analysis")
 pretty_gcf$year <- as.numeric(unlist(stringr::str_extract_all(pretty_gcf$dataset, "\\d{4}")))
-pretty_gcf <- pretty_gcf[order(pretty_gcf$year, pretty_gcf$dataset, pretty_gcf$matrix_name, decreasing = F), ]
+pretty_gcf$model_code <- factor(pretty_gcf$model, levels = c("Partition", "C60"), labels = c(1,2), ordered = T)
+pretty_gcf <- pretty_gcf[order(pretty_gcf$year, pretty_gcf$dataset, pretty_gcf$matrix_name, pretty_gcf$model_code, decreasing = F), ]
 pretty_gcf_file <- paste0(output_csv_dir, "ms_formatted_gCF_table.csv")
 write.csv(pretty_gcf, file = pretty_gcf_file, row.names = FALSE)
 
 ## Reformat the qCF results for a nice table in the manuscript
 pretty_qcf <- qcf_long[ c("dataset", "matrix_name", "model",
                           "CTEN.KEY_q1", "PORI.KEY_q1", "CTENPORI.KEY_q1",
+                          "CTEN.KEY_QC", "PORI.KEY_QC", "CTENPORI.KEY_QC",
+                          "CTEN.KEY_EN", "PORI.KEY_EN", "CTENPORI.KEY_EN",
                           "CTEN.CTEN_q1", "PORI.CTEN_q1", "CTENPORI.CTEN_q1", 
+                          "CTEN.CTEN_QC", "PORI.CTEN_QC", "CTENPORI.CTEN_QC", 
+                          "CTEN.CTEN_EN", "PORI.CTEN_EN", "CTENPORI.CTEN_EN", 
                           "CTEN.PORI_q1", "PORI.PORI_q1", "CTENPORI.PORI_q1",
+                          "CTEN.PORI_QC", "PORI.PORI_QC", "CTENPORI.PORI_QC",
+                          "CTEN.PORI_EN", "PORI.PORI_EN", "CTENPORI.PORI_EN",
                           "Plac_present", "analysis")]
 names(pretty_qcf) <- c("dataset", "matrix_name", "model",
-                       "CTEN.KEY_qCF", "PORI.KEY_qCF", "CTENPORI.KEY_qCF",
-                       "CTEN.CTEN_qCF", "PORI.CTEN_qCF", "CTENPORI.CTEN_qCF", 
-                       "CTEN.PORI_qCF", "PORI.PORI_qCF", "CTENPORI.PORI_qCF",
+                       "KEY_qCF_CTEN", "KEY_qCF_PORI", "KEY_qCF_CTENPORI",
+                       "KEY_nQuartets_CTEN", "KEY_nQuartets_PORI", "KEY_nQuartets_CTENPORI",
+                       "KEY_enGenes_CTEN", "KEY_enGenes_PORI", "KEY_enGenes_CTENPORI",
+                       "CTEN_qCF_CTEN", "CTEN_qCF_PORI", "CTEN_qCF_CTENPORI", 
+                       "CTEN_nQuartets_CTEN", "CTEN_nQuartets_PORI", "CTEN_nQuartets_CTENPORI",
+                       "CTEN_enGenes_CTEN", "CTEN_enGenes_PORI", "CTEN_enGenes_CTENPORI",
+                       "PORI_qCF_CTEN", "PORI_qCF_PORI", "PORI_qCF_CTENPORI",
+                       "PORI_nQuartets_CTEN", "PORI_nQuartets_PORI", "PORI_nQuartets_CTENPORI",
+                       "PORI_enGenes_CTEN", "PORI_enGenes_PORI", "PORI_enGenes_CTENPORI",
                        "Plac_present", "analysis")
 pretty_qcf$year <- as.numeric(unlist(stringr::str_extract_all(pretty_qcf$dataset, "\\d{4}")))
-pretty_qcf <- pretty_qcf[order(pretty_qcf$year, pretty_qcf$dataset, pretty_qcf$matrix_name, decreasing = F), ]
+pretty_qcf$model_code <- factor(pretty_qcf$model, levels = c("Partition", "C60"), labels = c(1,2), ordered = T)
+pretty_qcf <- pretty_qcf[order(pretty_qcf$year, pretty_qcf$dataset, pretty_qcf$matrix_name, pretty_qcf$model_code, decreasing = F), ]
 pretty_qcf_file <- paste0(output_csv_dir, "ms_formatted_qCF_table.csv")
 write.csv(pretty_qcf, file = pretty_qcf_file, row.names = FALSE)
 
