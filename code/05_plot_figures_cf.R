@@ -42,17 +42,15 @@ library(grDevices) # for hcl.colors(), palette.colors()
 source(paste0(repo_dir, "code/func_plotting.R"))
 
 ## Specify colour palettes used within these plots
-# Color palettes for variables
-metazoan_clade_palette  <- c(Bilateria = "#CC79A7", Cnidaria = "#009E73", Ctenophora = "#56B4E9", Porifera = "#E69F00", Outgroup = "#999999")
-clades_colours          <- c("Ctenophora" = "#2171b5", "Porifera" =  "#E69F00", "Ctenophora+Porifera" = "#009E73")
-clades_black            <- c("Ctenophora" = "black", "Porifera" =  "black", "Ctenophora+Porifera" = "black")
-passfail_palette        <- c("Pass (p > 0.05)" = "#addd8e", "Fail (p \u2264 0.05)" = "#005a32")
-# Inbuilt color palettes
-R4_palette              <- palette.colors(n = 8, palette = "R4")
-plasma_palette          <- hcl.colors(n = 5, palette = "Plasma")
+# Inbuilt colour palettes
+okito_palette           <- palette.colors(palette = "Okabe-Ito")
+viridis_palette         <- hcl.colors(n = 8, palette = "Viridis")
 mako_palette            <- hcl.colors(n = 5, palette = "Mako")
-
-
+# Colour palettes for variables
+metazoan_clade_palette  <- c("Bilateria" = "#CC79A7", "Cnidaria" = "#009E73", "Ctenophora" = "#56B4E9",
+                             "Porifera" = "#E69F00", "Outgroup" = "#999999", "Placozoa" = "#000000")
+topology_colours        <- c("Ctenophora" = viridis_palette[1], "Porifera" =  viridis_palette[4], 
+                             "Ctenophora+Porifera" = viridis_palette[8], "Paraphyly" = "#999999")
 
 ##### 3. Open and prepare csvs for plotting  #####
 ## List all output files
@@ -130,7 +128,8 @@ gcf_topology_bars_panel1 <- ggplot(data = gcf_df[which(gcf_df$dataset_id %in% da
   facet_grid(model_formatted~dataset_id_formatted) +
   scale_x_discrete(name = "Constrained topology") +
   scale_y_continuous(name = "Value", breaks = seq(0,25,5), labels = seq(0,25,5), minor_breaks = seq(0,25,2.5), limits = c(0,25)) +
-  scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73")) +
+  scale_fill_manual(name = "Topology", values = c("CTEN" = topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
+                                                  "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]])) +
   theme_bw() +
   theme(strip.text = element_text(size = 15),
         axis.title.x = element_text(size = 16, margin = margin(t=10, r=0, b=20, l=0, unit="pt")),
@@ -145,7 +144,8 @@ gcf_topology_bars_panel2 <- ggplot(data = gcf_df[which(gcf_df$dataset_id %in% da
   facet_grid(model_formatted~dataset_id_formatted) + 
   scale_x_discrete(name = "Constrained topology") +
   scale_y_continuous(name = "Value", breaks = seq(0,25,5), labels = seq(0,25,5), minor_breaks = seq(0,25,2.5), limits = c(0,25)) +
-  scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73")) +
+  scale_fill_manual(name = "Topology", values = c("CTEN" = topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
+                                                  "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]])) +
   theme_bw() +
   theme(strip.text = element_text(size = 15),
         axis.title.x = element_text(size = 16, margin = margin(t=10, r=0, b=0, l=0, unit="pt")),
@@ -189,7 +189,8 @@ gdfp_topology_bars_panel1 <- ggplot(data = gdfp_df[which(gdfp_df$dataset_id %in%
   facet_grid(model_formatted~dataset_id_formatted) +
   scale_x_discrete(name = "Constrained topology") +
   scale_y_continuous(name = "Value", breaks = seq(0,100,20), labels = seq(0,100,20), minor_breaks = seq(0,100,10), limits = c(0,100)) +
-  scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73", "PARAPHYLY" = "darkgrey")) +
+  scale_fill_manual(name = "Topology", values = c("CTEN" = topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
+                                                  "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]], "PARAPHYLY" = topology_colours[["Paraphyly"]])) +
   theme_bw() +
   theme(strip.text = element_text(size = 15),
         axis.title.x = element_text(size = 16, margin = margin(t=10, r=0, b=20, l=0, unit="pt")),
@@ -204,7 +205,8 @@ gdfp_topology_bars_panel2 <- ggplot(data = gdfp_df[which(gdfp_df$dataset_id %in%
   facet_grid(model_formatted~dataset_id_formatted) + 
   scale_x_discrete(name = "Constrained topology") +
   scale_y_continuous(name = "Value", breaks = seq(0,100,20), labels = seq(0,100,20), minor_breaks = seq(0,100,10), limits = c(0,100)) +
-  scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73", "PARAPHYLY" = "darkgrey")) +
+  scale_fill_manual(name = "Topology", values = c("CTEN" = topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
+                                                  "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]], "PARAPHYLY" = topology_colours[["Paraphyly"]])) +
   theme_bw() +
   theme(strip.text = element_text(size = 15),
         axis.title.x = element_text(size = 16, margin = margin(t=10, r=0, b=0, l=0, unit="pt")),
@@ -228,7 +230,8 @@ gcf_boxplot <- ggplot(data = gdfp_df,
   geom_boxplot(width = 0.07) +
   scale_x_discrete(name = "Constrained topology") +
   scale_y_continuous(name = "Value", breaks = seq(0,100,20), labels = seq(0,100,20), minor_breaks = seq(0,100,5), limits = c(0,100)) +
-  scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73", "PARAPHYLY" = "darkgrey"), guide = NULL) +
+  scale_fill_manual(name = "Topology", values = c("CTEN" = topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
+                                                  "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]], "PARAPHYLY" = topology_colours[["Paraphyly"]]), guide = NULL) +
   labs(title = "Gene Concordance Factors") +
   theme_bw() +
   theme(plot.title = element_text(size = 25, hjust = 0.5),
@@ -274,7 +277,8 @@ qcf_topology_tern <- ggtern(qcf_df, mapping = aes(x = KEY_q2, y = KEY_q1, z = KE
   scale_L_continuous(name = "qDF1", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
   scale_T_continuous(name = "qCF", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
   scale_R_continuous(name = "qDF2", breaks = seq(0, 1, 0.2), labels = seq(0, 1, 0.2), limits = c(0,1)) +
-  scale_color_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73")) +
+  scale_color_manual(name = "Topology", values = c("CTEN" = topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
+                                                   "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]])) +
   theme_bw() +
   theme(tern.panel.grid.major = element_line(colour = "darkgrey", linewidth = 0.6),
         tern.panel.grid.minor = element_line(colour = "darkgrey", linewidth = 0.3),
@@ -290,12 +294,13 @@ ggsave(filename = paste0(plot_dir, "cf_qcf_topology_ternary.png"), plot = qcf_to
 ## PLOT qCF 3: qCF values as bars for each dataset
 # Create plot panels
 qcf_topology_bars_panel1 <- ggplot(data = qcf_df[which(qcf_df$dataset_id %in% dataset_group_1), ], 
-                                    aes(x = tree_topology_short, y = KEY_q1, fill = tree_topology_short)) +
+                                   aes(x = tree_topology_short, y = KEY_q1, fill = tree_topology_short)) +
   geom_bar(stat="identity") +
   facet_grid(model_formatted~dataset_id_formatted) +
   scale_x_discrete(name = "Constrained topology") +
   scale_y_continuous(name = "Value", breaks = seq(0,0.6,0.1), labels = seq(0,0.6,0.1), minor_breaks = seq(0,0.6,0.05), limits = c(0,0.5)) +
-  scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73")) +
+  scale_fill_manual(name = "Topology", values = c("CTEN" = topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
+                                                           "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]])) +
   theme_bw() +
   theme(strip.text = element_text(size = 15),
         axis.title.x = element_text(size = 16, margin = margin(t=10, r=0, b=20, l=0, unit="pt")),
@@ -305,12 +310,13 @@ qcf_topology_bars_panel1 <- ggplot(data = qcf_df[which(qcf_df$dataset_id %in% da
         legend.title = element_text(size = 16, margin = margin(t=0, r=0, b=10, l=0, unit="pt")),
         legend.text = element_text(size = 13))
 qcf_topology_bars_panel2 <- ggplot(data = qcf_df[which(qcf_df$dataset_id %in% dataset_group_2), ], 
-                                    aes(x = tree_topology_short, y = KEY_q1, fill = tree_topology_short)) +
+                                   aes(x = tree_topology_short, y = KEY_q1, fill = tree_topology_short)) +
   geom_bar(stat="identity") +
   facet_grid(model_formatted~dataset_id_formatted) + 
   scale_x_discrete(name = "Constrained topology") +
   scale_y_continuous(name = "Value", breaks = seq(0,0.6,0.1), labels = seq(0,0.6,0.1), minor_breaks = seq(0,0.6,0.05), limits = c(0,0.5)) +
-  scale_fill_manual(name = "Topology", values = c("CTEN" = "#2171b5", "PORI" =  "#E69F00", "CTEN+PORI" = "#009E73")) +
+  scale_fill_manual(name = "Topology", values = c("CTEN" =  topology_colours[["Ctenophora"]], "PORI" =  topology_colours[["Porifera"]], 
+                                                  "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]])) +
   theme_bw() +
   theme(strip.text = element_text(size = 15),
         axis.title.x = element_text(size = 16, margin = margin(t=10, r=0, b=0, l=0, unit="pt")),
