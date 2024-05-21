@@ -40,9 +40,6 @@ library(patchwork) # for assembling ternary plots of emperical gCF, sCF and quar
 library(grDevices) # for: hcl.colors(), palette.colors()
 library(stringr) # for: str_extract_all()
 
-## Source functions
-source(paste0(repo_dir, "code/func_plotting.R"))
-
 ## Specify colour palettes used within these plots
 # Inbuilt colour palettes
 okito_palette           <- palette.colors(palette = "Okabe-Ito")
