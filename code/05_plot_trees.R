@@ -16,11 +16,18 @@ library(phytools)
 library(ggtree)
 library(ggplot2)
 library(patchwork)
+library(grDevices) # for: hcl.colors(), palette.colors()
 
-# Create output directory for plots
-plot_dir <- paste0(repo_dir, "figures/")
-
-# Assemble color palette
+## Specify colour palettes used within these plots
+# Inbuilt colour palettes
+okito_palette           <- palette.colors(palette = "Okabe-Ito")
+viridis_palette         <- hcl.colors(n = 8, palette = "Viridis")
+mako_palette            <- hcl.colors(n = 5, palette = "Mako")
+# Colour palettes for variables
+metazoan_clade_palette  <- c("Bilateria" = "#CC79A7", "Cnidaria" = "#009E73", "Ctenophora" = "#56B4E9",
+                             "Porifera" = "#E69F00", "Outgroup" = "#999999", "Placozoa" = "#000000")
+topology_colours        <- c("Ctenophora" = viridis_palette[1], "Porifera" =  viridis_palette[4], 
+                             "Ctenophora+Porifera" = viridis_palette[7], "Paraphyly" = "#999999")
 cols <- c("clade_labels" = "black", "clade_bars" = "white", "ctenophora_color" = "#E69F00", "porifera_color" = "#56B4E9",
           "branch_labels" = "#009E73", "branch_lengths" = "grey50", "arrows" = "grey70", "empirical_clade_labels" = "grey70")
 
@@ -28,7 +35,7 @@ cols <- c("clade_labels" = "black", "clade_bars" = "white", "ctenophora_color" =
 
 #### 3. Plot phylogenetic hypotheses ####
 # Open the possible phylogenetic topologies
-hyp_trees <- read.tree(file = paste0(repo_dir, "hypothesis_trees/alternative_phylogenetic_hypotheses.nex"))
+hyp_trees <- read.tree(file = paste0(repo_dir, "constraint_trees/alternative_phylogenetic_hypotheses.nex"))
 c_tree <- hyp_trees[[1]]
 p_tree <- hyp_trees[[2]]
 cp_tree <- hyp_trees[[3]]
