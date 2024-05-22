@@ -59,7 +59,9 @@ all_output_files <- paste0(repo_dir, "output/", list.files(output_csv_dir))
 gcf_df    <- read.csv(grep("gCF_values.csv", all_output_files, value = TRUE))
 gcf_long  <- read.csv(grep("gCF_values_formatted.csv", all_output_files, value = TRUE))
 qcf_df    <- read.csv(grep("qCF_values.csv", all_output_files, value = TRUE))
-qcf_long  <- read.csv(grep("qCF_values_formatted.csv", all_output_files, value = TRUE))        
+qcf_long  <- read.csv(grep("qCF_values_formatted.csv", all_output_files, value = TRUE))
+scf_df    <- read.csv(grep("gene_scf.csv", all_output_files, value = TRUE))
+scf_df    <- scf_df[which(scf_df$dataset != "Hejnol2009"), ]
 
 
 
@@ -77,6 +79,7 @@ gcf_df$dataset_id_formatted   <- factor(gcf_df$dataset_id, levels =  dataset_lab
 gcf_long$dataset_id_formatted <- factor(gcf_long$dataset_id, levels =  dataset_labels, labels = dataset_labels_formatted, ordered = TRUE)
 qcf_df$dataset_id_formatted   <- factor(qcf_df$dataset_id, levels =  dataset_labels, labels = dataset_labels_formatted, ordered = TRUE)
 qcf_long$dataset_id_formatted <- factor(qcf_long$dataset_id, levels =  dataset_labels, labels = dataset_labels_formatted, ordered = TRUE)
+scf_df$dataset_id_formatted   <- factor(scf_df$dataset_id, levels =  dataset_labels, labels = dataset_labels_formatted, ordered = TRUE)
 
 ## Add nicely formatted topology labels to the data frames
 topology_labels                   <- c("CTEN", "PORI", "CTEN_PORI")
@@ -84,8 +87,10 @@ topology_labels_formatted         <- c("Ctenophora", "Porifera", "Ctenophora+Por
 topology_labels_short             <- c("CTEN", "PORI", "CTEN+PORI")
 gcf_df$tree_topology_formatted    <- factor(gcf_df$tree_topology, levels =  topology_labels, labels = topology_labels_formatted, ordered = TRUE)
 qcf_df$tree_topology_formatted    <- factor(qcf_df$topology, levels =  topology_labels, labels = topology_labels_formatted, ordered = TRUE)
+scf_df$tree_topology_formatted    <- factor(scf_df$tree_topology, levels =  topology_labels, labels = topology_labels_formatted, ordered = TRUE)
 gcf_df$tree_topology_short        <- factor(gcf_df$tree_topology, levels =  topology_labels, labels = topology_labels_short, ordered = TRUE)
 qcf_df$tree_topology_short        <- factor(qcf_df$topology, levels =  topology_labels, labels = topology_labels_short, ordered = TRUE)
+scf_df$tree_topology_short        <- factor(scf_df$tree_topology, levels =  topology_labels, labels = topology_labels_short, ordered = TRUE)
 
 ## Add nicely formatted model labels to the data frames
 models                    <- c("Partition", "C60")
@@ -108,6 +113,7 @@ gcf_df$analysis   <- "gCF"
 gcf_long$analysis <- "gCF"
 qcf_df$analysis   <- "qCF"
 qcf_long$analysis <- "qCF"
+scf_df$analysis   <- "sCF"
 
 ## Create 2 sets of datasets for plotting into nice grids
 # column name: dataset_id
@@ -530,5 +536,69 @@ pretty_qcf$model_code <- factor(pretty_qcf$model, levels = c("Partition", "C60")
 pretty_qcf <- pretty_qcf[order(pretty_qcf$year, pretty_qcf$dataset, pretty_qcf$matrix_name, pretty_qcf$model_code, decreasing = F), ]
 pretty_qcf_file <- paste0(output_csv_dir, "ms_formatted_qCF_table.csv")
 write.csv(pretty_qcf, file = pretty_qcf_file, row.names = FALSE)
+
+
+
+###### 9. Plot gene sCF  ######
+# Extract gCF scores into long dataframe
+key_scf       <- scf_df[which(scf_df$branch_to_clade == "ALL_OTHER_ANIMALS"), ]
+key_scf       <- key_scf[which(key_scf$tree_topology != "CTEN_PORI"), ]
+# Plot sCF ternary plots
+scf_tern_1 <- ggtern(key_scf[which(key_scf$dataset_id %in% unique(key_scf$dataset_id)[1:4]), ], 
+                     aes(x = sDF1, y = sCF, z = sDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
+  geom_point(size = 4, alpha = 0.6) +
+  facet_grid(tree_topology_formatted~dataset_id_formatted) +
+  scale_color_manual(name = "Constrained\ntree topology", values = c("Ctenophora" = topology_colours[["Ctenophora"]], "Porifera" = topology_colours[["Porifera"]])) +
+  scale_shape_manual(name = "Constrained\ntree topology", values = c("Ctenophora" = 16, "Porifera" = 17)) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 12),
+        tern.panel.grid.major = element_line(colour = "darkgrey", linewidth = 0.4),
+        tern.axis.title.L = element_text(size = 8),
+        tern.axis.title.T = element_text(size = 8),
+        tern.axis.title.R = element_text(size = 8),
+        tern.axis.text = element_text(size = 8)) +
+  guides(color = "none", shape = "none") +
+  Tlab("CF") +
+  Llab("DF1") +
+  Rlab("DF2")
+scf_tern_2 <- ggtern(key_scf[which(key_scf$dataset_id %in% unique(key_scf$dataset_id)[5:8]), ], 
+                     aes(x = sDF1, y = sCF, z = sDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
+  geom_point(size = 4, alpha = 0.6) +
+  facet_grid(tree_topology_formatted~dataset_id_formatted) +
+  scale_color_manual(name = "Constrained\ntree topology", values = c("Ctenophora" = topology_colours[["Ctenophora"]], "Porifera" = topology_colours[["Porifera"]])) +
+  scale_shape_manual(name = "Constrained\ntree topology", values = c("Ctenophora" = 16, "Porifera" = 17)) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 12),
+        tern.panel.grid.major = element_line(colour = "darkgrey", linewidth = 0.4),
+        tern.axis.title.L = element_text(size = 8),
+        tern.axis.title.T = element_text(size = 8),
+        tern.axis.title.R = element_text(size = 8),
+        tern.axis.text = element_text(size = 8)) +
+  guides(color = "none", shape = "none") +
+  Tlab("CF") +
+  Llab("DF1") +
+  Rlab("DF2")
+scf_tern_3 <- ggtern(key_scf[which(key_scf$dataset_id %in% unique(key_scf$dataset_id)[9:12]), ], 
+                     aes(x = sDF1, y = sCF, z = sDF2, color = tree_topology_formatted, shape = tree_topology_formatted)) +
+  geom_point(size = 4, alpha = 0.6) +
+  facet_grid(tree_topology_formatted~dataset_id_formatted) +
+  scale_color_manual(name = "Constrained\ntree topology", values = c("Ctenophora" = topology_colours[["Ctenophora"]], "Porifera" = topology_colours[["Porifera"]])) +
+  scale_shape_manual(name = "Constrained\ntree topology", values = c("Ctenophora" = 16, "Porifera" = 17)) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 12),
+        tern.panel.grid.major = element_line(colour = "darkgrey", linewidth = 0.4),
+        tern.axis.title.L = element_text(size = 8),
+        tern.axis.title.T = element_text(size = 8),
+        tern.axis.title.R = element_text(size = 8),
+        tern.axis.text = element_text(size = 8)) +
+  guides(color = "none", shape = "none") +
+  Tlab("CF") +
+  Llab("DF1") +
+  Rlab("DF2")
+# Assemble the three ternary plots using ggtern::grid.arrange 
+#     (as ternary plots have three axes, patchwork and ggplot::grid.arrange don't work cleanly here)
+scf_quilt <- ggtern::grid.arrange(scf_tern_1, scf_tern_2, scf_tern_3, nrow = 3, ncol = 1)
+ggsave(filename = paste0(plot_dir, "cf_gene_scf.pdf"), plot = scf_quilt, width = 10, height = 12, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_gene_scf.png"), plot = scf_quilt, width = 10, height = 12, units = "in")
 
 
