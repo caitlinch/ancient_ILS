@@ -62,6 +62,9 @@ qcf_df    <- read.csv(grep("qCF_values.csv", all_output_files, value = TRUE))
 qcf_long  <- read.csv(grep("qCF_values_formatted.csv", all_output_files, value = TRUE))
 scf_df    <- read.csv(grep("gene_scf.csv", all_output_files, value = TRUE))
 scf_df    <- scf_df[which(scf_df$dataset != "Hejnol2009"), ]
+logl_df   <- read.csv(grep("gene_tree_likelihood.csv", all_output_files, value = TRUE))
+logl_df   <- logl_df[which(logl_df$dataset_id != "Hejnol2009.Hejnol_etal_2009_FixedNames" & 
+                             logl_df$dataset_id != "Simion2017.supermatrix_97sp_401632pos_1719genes"), ]
 
 
 
@@ -75,11 +78,16 @@ dataset_labels_formatted      <- c("Dunn 2008",  "Philippe 2009", "Philippe 2011
                                    "Nosenko 2013\nnonribosomal", "Nosenko 2013\nribosomal", "Ryan 2013", 
                                    "Moroz 2014", "Borowiec 2015", "Chang 2015", 
                                    "Whelan 2015", "Whelan 2017",  "Laumer 2018")
+dataset_labels_oneline        <- c("Dunn 2008",  "Philippe 2009", "Philippe 2011", 
+                                   "Nosenko 2013 nonribo.", "Nosenko 2013 ribo.", "Ryan 2013", 
+                                   "Moroz 2014", "Borowiec 2015", "Chang 2015", 
+                                   "Whelan 2015", "Whelan 2017",  "Laumer 2018")
 gcf_df$dataset_id_formatted   <- factor(gcf_df$dataset_id, levels =  dataset_labels, labels = dataset_labels_formatted, ordered = TRUE)
 gcf_long$dataset_id_formatted <- factor(gcf_long$dataset_id, levels =  dataset_labels, labels = dataset_labels_formatted, ordered = TRUE)
 qcf_df$dataset_id_formatted   <- factor(qcf_df$dataset_id, levels =  dataset_labels, labels = dataset_labels_formatted, ordered = TRUE)
 qcf_long$dataset_id_formatted <- factor(qcf_long$dataset_id, levels =  dataset_labels, labels = dataset_labels_formatted, ordered = TRUE)
 scf_df$dataset_id_formatted   <- factor(scf_df$dataset_id, levels =  dataset_labels, labels = dataset_labels_formatted, ordered = TRUE)
+logl_df$dataset_id_formatted  <- factor(logl_df$dataset_id, levels =  dataset_labels, labels = dataset_labels_oneline, ordered = TRUE)
 
 ## Add nicely formatted topology labels to the data frames
 topology_labels                   <- c("CTEN", "PORI", "CTEN_PORI")
@@ -116,7 +124,7 @@ qcf_long$analysis <- "qCF"
 scf_df$analysis   <- "sCF"
 
 ## Create 2 sets of datasets for plotting into nice grids
-# column name: dataset_id
+# Column: dataset_id
 dataset_group_1 <- c("Dunn2008.Dunn2008_FixedNames", "Philippe2009.Philippe_etal_superalignment_FixedNames", "Philippe2011.UPDUNN_MB_FixedNames", 
                      "Nosenko2013.nonribosomal_9187_smatrix", "Nosenko2013.ribosomal_14615_smatrix", "Ryan2013.REA_EST_includingXenoturbella")
 dataset_group_2 <- c("Moroz2014.ED3d", "Borowiec2015.Best108", "Chang2015.Chang_AA", 
@@ -600,5 +608,91 @@ scf_tern_3 <- ggtern(key_scf[which(key_scf$dataset_id %in% unique(key_scf$datase
 scf_quilt <- ggtern::grid.arrange(scf_tern_1, scf_tern_2, scf_tern_3, nrow = 3, ncol = 1)
 ggsave(filename = paste0(plot_dir, "cf_gene_scf.pdf"), plot = scf_quilt, width = 10, height = 12, units = "in")
 ggsave(filename = paste0(plot_dir, "cf_gene_scf.png"), plot = scf_quilt, width = 10, height = 12, units = "in")
+
+
+
+###### 9. Plot gene log-likelihood  ######
+# Extract the best logl for each row
+extract.best.BIC.topology <- function(i, logl_df){
+  i_row <- logl_df[i, ]
+  if (is.na(i_row$CTEN_BIC) & is.na(i_row$PORI_BIC) & is.na(i_row$CTEN_PORI_BIC)){
+    # Missing all BIC
+    new_i_row <- c(as.character(i_row[1:14]), as.character(i_row$dataset_id_formatted), "NONE",
+                   NA, NA, NA, NA, NA, NA)
+  } else if ((i_row$CTEN_BIC < i_row$PORI_BIC) & (i_row$CTEN_BIC < i_row$CTEN_PORI_BIC)){
+    # CTEN = best (lowest) BIC
+    new_i_row <- as.character(c(i_row[1:14], as.character(i_row$dataset_id_formatted), "PORI",
+                                i_row$CTEN_LogL, i_row$CTEN_Unconstrained_LogL, i_row$CTEN_NumFreeParams,
+                                i_row$CTEN_BIC, i_row$CTEN_TreeLength, i_row$CTEN_SumInternalBL))
+  } else if ((i_row$PORI_BIC < i_row$CTEN_BIC) & (i_row$PORI_BIC < i_row$CTEN_PORI_BIC)){
+    # PORI = best (lowest) BIC
+    new_i_row <- as.character(c(i_row[1:14], as.character(i_row$dataset_id_formatted), "PORI",
+                                i_row$PORI_LogL, i_row$PORI_Unconstrained_LogL, i_row$PORI_NumFreeParams,
+                                i_row$PORI_BIC, i_row$PORI_TreeLength, i_row$PORI_SumInternalBL))
+  } else if ((i_row$CTEN_PORI_BIC < i_row$PORI_BIC) & (i_row$CTEN_PORI_BIC < i_row$CTEN_BIC)){
+    # CTEN_PORI = best (lowest) BIC
+    new_i_row <- as.character(c(i_row[1:14], as.character(i_row$dataset_id_formatted), "PORI",
+                                i_row$CTEN_PORI_LogL, i_row$CTEN_PORI_Unconstrained_LogL, i_row$CTEN_PORI_NumFreeParams,
+                                i_row$CTEN_PORI_BIC, i_row$CTEN_PORI_TreeLength, i_row$CTEN_PORI_SumInternalBL))
+    
+  } else if ((i_row$CTEN_BIC == i_row$PORI_BIC) & (i_row$CTEN_BIC < i_row$CTEN_PORI_BIC)){
+    # Tie: CTEN and PORI
+    new_i_row <- as.character(c(i_row[1:14], as.character(i_row$dataset_id_formatted), "CTEN_and_PORI",
+                                i_row$CTEN_PORI_LogL, i_row$CTEN_PORI_Unconstrained_LogL, i_row$CTEN_PORI_NumFreeParams,
+                                i_row$CTEN_PORI_BIC, i_row$CTEN_PORI_TreeLength, i_row$CTEN_PORI_SumInternalBL))
+  } else if ((i_row$CTEN_BIC == i_row$CTEN_PORI_BIC) & (i_row$CTEN_BIC < i_row$PORI_BIC)){
+    # Tie: CTEN and CTEN_PORI
+    new_i_row <- as.character(c(i_row[1:14], as.character(i_row$dataset_id_formatted), "CTEN_and_CTENPORI",
+                                i_row$CTEN_PORI_LogL, i_row$CTEN_PORI_Unconstrained_LogL, i_row$CTEN_PORI_NumFreeParams,
+                                i_row$CTEN_PORI_BIC, i_row$CTEN_PORI_TreeLength, i_row$CTEN_PORI_SumInternalBL))
+  } else if ((i_row$PORI_BIC == i_row$CTEN_PORI_BIC) & (i_row$PORI_BIC < i_row$CTEN_BIC)) {
+    # Tie: PORI and CTEN_PORI
+    new_i_row <- as.character(c(i_row[1:14], as.character(i_row$dataset_id_formatted), "PORI_and_CTENPORI",
+                                i_row$CTEN_PORI_LogL, i_row$CTEN_PORI_Unconstrained_LogL, i_row$CTEN_PORI_NumFreeParams,
+                                i_row$CTEN_PORI_BIC, i_row$CTEN_PORI_TreeLength, i_row$CTEN_PORI_SumInternalBL))
+  } else if ((i_row$CTEN_BIC == i_row$PORI_BIC) & (i_row$CTEN_BIC == i_row$CTEN_PORI_BIC) & (i_row$PORI_BIC == i_row$CTEN_PORI_BIC)) {
+    # Tie: CTEN and PORI and CTEN_PORI
+    new_i_row <- as.character(c(i_row[1:14], as.character(i_row$dataset_id_formatted), "CTEN_and_PORI_and_CTENPORI",
+                                i_row$CTEN_PORI_LogL, i_row$CTEN_PORI_Unconstrained_LogL, i_row$CTEN_PORI_NumFreeParams,
+                                i_row$CTEN_PORI_BIC, i_row$CTEN_PORI_TreeLength, i_row$CTEN_PORI_SumInternalBL))
+  } else {
+    # No single best BIC
+    new_i_row <- c(as.character(i_row[1:14]), as.character(i_row$dataset_id_formatted), "TIE",
+                   NA, NA, NA, NA, NA, NA)
+  }
+  names(new_i_row) <- c(names(i_row[1:14]), "dataset_id_formatted", "best_topology", 
+                        "BEST_LogL", "BEST_Unconstrained_LogL", "BEST_NumFreeParams", 
+                        "BEST_BIC", "BEST_TreeLength", "BEST_SumInternalBL")
+  return(new_i_row)
+}
+# Call function
+best_list <- lapply(1:nrow(logl_df), extract.best.BIC.topology, logl_df = logl_df)
+best_df <- as.data.frame(do.call(rbind, best_list))
+# Format best_df
+best_df$best_topology_formatted <- factor(best_df$best_topology,
+                                          levels = c("PORI", "CTEN_and_PORI", "CTEN_and_CTENPORI", "PORI_and_CTENPORI", "CTEN_and_PORI_and_CTENPORI", "NONE"),
+                                          label = c("PORI", "CTEN & PORI", "CTEN & CTEN+PORI", "PORI & CTEN+PORI", "All equal", "None"),
+                                          ordered = TRUE)
+best_df$BEST_BIC    <- as.numeric(best_df$BEST_BIC)
+best_df$BEST_LogL   <- as.numeric(best_df$BEST_LogL)
+best_df$ML_logl     <- as.numeric(best_df$ML_logl)
+best_df$LogL_diff   <- best_df$ML_logl - best_df$BEST_LogL
+# Remove "None" rows
+best_df <- best_df[which(best_df$best_topology != "NONE"), ]
+# Plot best_df as bar charts
+best_topology_plot <- ggplot(data = best_df, aes(x = dataset_id_formatted, fill = best_topology_formatted)) +
+  geom_bar(position = "fill") + 
+  scale_x_discrete(name = NULL) +
+  scale_y_continuous(name = "Percent of genes (%)", breaks = seq(0,1,0.2), labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1)) +
+  scale_fill_viridis_d(name = "Best topology\n(by BIC)", option = "H") +
+  theme_bw() +
+  theme(axis.title.y = element_text(size = 16, margin = margin(r = 10)),
+        axis.text.x = element_text(size = 14, angle = 90, vjust = 0.5, hjust = 1.0, margin = margin(b = 5)),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_text(size = 16, hjust = 0.5),
+        legend.text = element_text(size = 12) )
+ggsave(filename = paste0(plot_dir, "cf_gene_BIC_topology.pdf"), plot = best_topology_plot)
+ggsave(filename = paste0(plot_dir, "cf_gene_BIC_topology.png"), plot = best_topology_plot)
+
 
 
