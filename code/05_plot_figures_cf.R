@@ -694,5 +694,32 @@ best_topology_plot <- ggplot(data = best_df, aes(x = dataset_id_formatted, fill 
 ggsave(filename = paste0(plot_dir, "cf_gene_BIC_topology.pdf"), plot = best_topology_plot)
 ggsave(filename = paste0(plot_dir, "cf_gene_BIC_topology.png"), plot = best_topology_plot)
 
+# Plot difference in BIC
+bic_long <- melt(logl_df, 
+                 id.vars = names(logl_df)[1:14],
+                 measure.vars = c("CTEN_BIC", "PORI_BIC", "CTEN_PORI_BIC") )
+bic_long$topology <- factor(bic_long$variable,
+                            levels = c("CTEN_BIC", "PORI_BIC", "CTEN_PORI_BIC"),
+                            labels = c("CTEN", "PORI", "CTEN+PORI"),
+                            ordered = T)
+# Plot histogram of BIC values
+bic_histogram <- ggplot(data = bic_long, aes(x = value, fill = topology)) +
+  geom_histogram(bins = 50) +
+  facet_grid(topology~.) +
+  scale_x_continuous(name = "BIC value", breaks = c(0, 50000, 100000, 150000), labels = c("0", "50K", "100K", "150K"), limits = c(0,150000)) +
+  scale_y_continuous(name = "Count") +
+  scale_fill_manual(name = "Constrained\ngene topology", values = c("CTEN" = topology_colours[["Ctenophora"]], 
+                                                                    "PORI" = topology_colours[["Porifera"]], 
+                                                                    "CTEN+PORI"= topology_colours[["Ctenophora+Porifera"]]) ) +
+  theme_bw() +
+  theme(axis.title.x = element_text(size = 14, margin = margin(t=10)),
+        axis.title.y = element_text(size = 14, margin = margin(r=10)),
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        legend.title = element_text(size = 14, hjust = 0.5, margin = margin(b=10)),
+        legend.text = element_text(size = 12) )
+ggsave(filename = paste0(plot_dir, "cf_gene_BIC_histogram.pdf"), plot = bic_histogram)
+ggsave(filename = paste0(plot_dir, "cf_gene_BIC_histogram.png"), plot = bic_histogram)
+
 
 
