@@ -17,6 +17,7 @@ library(ggtree)
 library(ggplot2)
 library(patchwork)
 library(grDevices) # for: hcl.colors(), palette.colors()
+library(tidyverse)
 
 ## Specify colour palettes used within these plots
 # Inbuilt colour palettes
