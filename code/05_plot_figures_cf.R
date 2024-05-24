@@ -617,52 +617,63 @@ extract.best.BIC.topology <- function(i, logl_df){
   i_row <- logl_df[i, ]
   if (is.na(i_row$CTEN_BIC) & is.na(i_row$PORI_BIC) & is.na(i_row$CTEN_PORI_BIC)){
     # Missing all BIC
-    new_i_row <- c(as.character(i_row[1:14]), as.character(i_row$dataset_id_formatted), "NONE",
-                   NA, NA, NA, NA, NA, NA)
+    new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
+                   i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
+                   i_row$dataset_id_formatted, "NONE",
+                   NA, NA)
   } else if ((i_row$CTEN_BIC < i_row$PORI_BIC) & (i_row$CTEN_BIC < i_row$CTEN_PORI_BIC)){
     # CTEN = best (lowest) BIC
-    new_i_row <- as.character(c(i_row[1:14], as.character(i_row$dataset_id_formatted), "PORI",
-                                i_row$CTEN_LogL, i_row$CTEN_Unconstrained_LogL, i_row$CTEN_NumFreeParams,
-                                i_row$CTEN_BIC, i_row$CTEN_TreeLength, i_row$CTEN_SumInternalBL))
+    new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
+                   i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
+                   i_row$dataset_id_formatted, "CTEN",
+                   i_row$CTEN_LogL, i_row$CTEN_BIC)
   } else if ((i_row$PORI_BIC < i_row$CTEN_BIC) & (i_row$PORI_BIC < i_row$CTEN_PORI_BIC)){
     # PORI = best (lowest) BIC
-    new_i_row <- as.character(c(i_row[1:14], as.character(i_row$dataset_id_formatted), "PORI",
-                                i_row$PORI_LogL, i_row$PORI_Unconstrained_LogL, i_row$PORI_NumFreeParams,
-                                i_row$PORI_BIC, i_row$PORI_TreeLength, i_row$PORI_SumInternalBL))
+    new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
+                   i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
+                   i_row$dataset_id_formatted, "PORI",
+                   i_row$PORI_LogL, i_row$PORI_BIC)
   } else if ((i_row$CTEN_PORI_BIC < i_row$PORI_BIC) & (i_row$CTEN_PORI_BIC < i_row$CTEN_BIC)){
     # CTEN_PORI = best (lowest) BIC
-    new_i_row <- as.character(c(i_row[1:14], as.character(i_row$dataset_id_formatted), "PORI",
-                                i_row$CTEN_PORI_LogL, i_row$CTEN_PORI_Unconstrained_LogL, i_row$CTEN_PORI_NumFreeParams,
-                                i_row$CTEN_PORI_BIC, i_row$CTEN_PORI_TreeLength, i_row$CTEN_PORI_SumInternalBL))
-    
+    new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
+                   i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
+                   i_row$dataset_id_formatted, "CTEN_PORI",
+                   i_row$CTEN_PORI_LogL, i_row$CTEN_PORI_BIC)
   } else if ((i_row$CTEN_BIC == i_row$PORI_BIC) & (i_row$CTEN_BIC < i_row$CTEN_PORI_BIC)){
     # Tie: CTEN and PORI
-    new_i_row <- as.character(c(i_row[1:14], as.character(i_row$dataset_id_formatted), "CTEN_and_PORI",
-                                i_row$CTEN_PORI_LogL, i_row$CTEN_PORI_Unconstrained_LogL, i_row$CTEN_PORI_NumFreeParams,
-                                i_row$CTEN_PORI_BIC, i_row$CTEN_PORI_TreeLength, i_row$CTEN_PORI_SumInternalBL))
+    new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
+                   i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
+                   i_row$dataset_id_formatted, "CTEN_and_PORI",
+                   NA, NA)
   } else if ((i_row$CTEN_BIC == i_row$CTEN_PORI_BIC) & (i_row$CTEN_BIC < i_row$PORI_BIC)){
     # Tie: CTEN and CTEN_PORI
-    new_i_row <- as.character(c(i_row[1:14], as.character(i_row$dataset_id_formatted), "CTEN_and_CTENPORI",
-                                i_row$CTEN_PORI_LogL, i_row$CTEN_PORI_Unconstrained_LogL, i_row$CTEN_PORI_NumFreeParams,
-                                i_row$CTEN_PORI_BIC, i_row$CTEN_PORI_TreeLength, i_row$CTEN_PORI_SumInternalBL))
+    new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
+                   i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
+                   i_row$dataset_id_formatted, "CTEN_and_CTENPORI",
+                   NA, NA)
   } else if ((i_row$PORI_BIC == i_row$CTEN_PORI_BIC) & (i_row$PORI_BIC < i_row$CTEN_BIC)) {
     # Tie: PORI and CTEN_PORI
-    new_i_row <- as.character(c(i_row[1:14], as.character(i_row$dataset_id_formatted), "PORI_and_CTENPORI",
-                                i_row$CTEN_PORI_LogL, i_row$CTEN_PORI_Unconstrained_LogL, i_row$CTEN_PORI_NumFreeParams,
-                                i_row$CTEN_PORI_BIC, i_row$CTEN_PORI_TreeLength, i_row$CTEN_PORI_SumInternalBL))
+    new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
+                   i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
+                   i_row$dataset_id_formatted, "PORI_and_CTENPORI",
+                   NA, NA)
   } else if ((i_row$CTEN_BIC == i_row$PORI_BIC) & (i_row$CTEN_BIC == i_row$CTEN_PORI_BIC) & (i_row$PORI_BIC == i_row$CTEN_PORI_BIC)) {
     # Tie: CTEN and PORI and CTEN_PORI
-    new_i_row <- as.character(c(i_row[1:14], as.character(i_row$dataset_id_formatted), "CTEN_and_PORI_and_CTENPORI",
-                                i_row$CTEN_PORI_LogL, i_row$CTEN_PORI_Unconstrained_LogL, i_row$CTEN_PORI_NumFreeParams,
-                                i_row$CTEN_PORI_BIC, i_row$CTEN_PORI_TreeLength, i_row$CTEN_PORI_SumInternalBL))
+    new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
+                   i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
+                   i_row$dataset_id_formatted, "CTEN_and_PORI_and_CTENPORI",
+                   NA, NA)
   } else {
     # No single best BIC
-    new_i_row <- c(as.character(i_row[1:14]), as.character(i_row$dataset_id_formatted), "TIE",
-                   NA, NA, NA, NA, NA, NA)
+    new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
+                   i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
+                   i_row$dataset_id_formatted, "NONE",
+                   NA, NA)
   }
-  names(new_i_row) <- c(names(i_row[1:14]), "dataset_id_formatted", "best_topology", 
-                        "BEST_LogL", "BEST_Unconstrained_LogL", "BEST_NumFreeParams", 
-                        "BEST_BIC", "BEST_TreeLength", "BEST_SumInternalBL")
+  names(new_i_row) <- c("dataset", "matrix_name", "dataset_id", 
+                        "gene_name", "gene_id", "ML_logl", "ML_BIC",
+                        "dataset_id_formatted", "best_topology", 
+                        "BEST_LogL", "BEST_BIC")
   return(new_i_row)
 }
 # Call function
@@ -670,15 +681,22 @@ best_list <- lapply(1:nrow(logl_df), extract.best.BIC.topology, logl_df = logl_d
 best_df <- as.data.frame(do.call(rbind, best_list))
 # Format best_df
 best_df$best_topology_formatted <- factor(best_df$best_topology,
-                                          levels = c("PORI", "CTEN_and_PORI", "CTEN_and_CTENPORI", "PORI_and_CTENPORI", "CTEN_and_PORI_and_CTENPORI", "NONE"),
-                                          label = c("PORI", "CTEN & PORI", "CTEN & CTEN+PORI", "PORI & CTEN+PORI", "All equal", "None"),
+                                          levels = c("CTEN", "PORI", "CTEN_PORI", "CTEN_and_PORI", "CTEN_and_CTENPORI", "PORI_and_CTENPORI", "CTEN_and_PORI_and_CTENPORI", "NONE"),
+                                          label = c("CTEN", "PORI", "CTEN+PORI", "CTEN & PORI", "CTEN & CTEN+PORI", "PORI & CTEN+PORI", "All equal", "None"),
                                           ordered = TRUE)
 best_df$BEST_BIC    <- as.numeric(best_df$BEST_BIC)
 best_df$BEST_LogL   <- as.numeric(best_df$BEST_LogL)
 best_df$ML_logl     <- as.numeric(best_df$ML_logl)
 best_df$LogL_diff   <- best_df$ML_logl - best_df$BEST_LogL
+# Add year column
+best_df$year <- as.numeric(str_extract(best_df$dataset, "\\d{4}"))
 # Remove "None" rows
 best_df <- best_df[which(best_df$best_topology != "NONE"), ]
+# Format dataset id
+best_df$dataset_id_formatted  <- factor(best_df$dataset_id, 
+                                        levels =  dataset_labels, 
+                                        labels = dataset_labels_oneline, 
+                                        ordered = TRUE)
 # Plot best_df as bar charts
 best_topology_plot <- ggplot(data = best_df, aes(x = dataset_id_formatted, fill = best_topology_formatted)) +
   geom_bar(position = "fill") + 
@@ -691,8 +709,8 @@ best_topology_plot <- ggplot(data = best_df, aes(x = dataset_id_formatted, fill 
         axis.text.y = element_text(size = 14),
         legend.title = element_text(size = 16, hjust = 0.5),
         legend.text = element_text(size = 12) )
-ggsave(filename = paste0(plot_dir, "cf_gene_BIC_topology.pdf"), plot = best_topology_plot)
-ggsave(filename = paste0(plot_dir, "cf_gene_BIC_topology.png"), plot = best_topology_plot)
+ggsave(filename = paste0(plot_dir, "cf_gene_BIC_topology.pdf"), plot = best_topology_plot, height = 8, width = 6, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_gene_BIC_topology.png"), plot = best_topology_plot, height = 7, width = 6, units = "in")
 
 # Plot difference in BIC
 bic_long <- melt(logl_df, 
