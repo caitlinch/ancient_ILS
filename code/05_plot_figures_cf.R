@@ -701,7 +701,7 @@ best_df$dataset_id_formatted  <- factor(best_df$dataset_id,
 best_topology_plot <- ggplot(data = best_df, aes(x = dataset_id_formatted, fill = best_topology_formatted)) +
   geom_bar(position = "fill") + 
   scale_x_discrete(name = NULL) +
-  scale_y_continuous(name = "Percent of genes (%)", breaks = seq(0,1,0.2), labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1)) +
+  scale_y_continuous(name = "Proportion of genes (%)", breaks = seq(0,1,0.2), labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1)) +
   scale_fill_viridis_d(name = "Best topology\n(by BIC)", option = "H") +
   theme_bw() +
   theme(axis.title.y = element_text(size = 16, margin = margin(r = 10)),
