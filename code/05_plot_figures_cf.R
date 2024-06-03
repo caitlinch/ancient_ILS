@@ -45,6 +45,7 @@ library(stringr) # for: str_extract_all()
 okito_palette           <- palette.colors(palette = "Okabe-Ito")
 viridis_palette         <- hcl.colors(n = 8, palette = "Viridis")
 mako_palette            <- hcl.colors(n = 5, palette = "Mako")
+rocket_palette          <- hcl.colors(n = 8, palette = "Rocket")
 # Colour palettes for variables
 metazoan_clade_palette  <- c("Bilateria" = "#CC79A7", "Cnidaria" = "#009E73", "Ctenophora" = "#56B4E9",
                              "Porifera" = "#E69F00", "Outgroup" = "#999999", "Placozoa" = "#000000")
@@ -627,12 +628,18 @@ best_df$dataset_id_formatted  <- factor(best_df$dataset_id,
                                         levels =  dataset_labels, 
                                         labels = dataset_labels_oneline, 
                                         ordered = TRUE)
+# Set colours for plot ("#4B0055", "#008A98", "#A6DA42", "#FDF5EB", "#EB744C", "#AA0065", "#070707", "#999999")
+bic_colours <- c("CTEN" = topology_colours[["Ctenophora"]], "PORI" = topology_colours[["Porifera"]],
+                 "CTEN+PORI" = topology_colours[["Ctenophora+Porifera"]], 
+                 "CTEN & PORI" = rocket_palette[[8]], "CTEN & CTEN+PORI" = rocket_palette[[6]], 
+                 "PORI & CTEN+PORI" = rocket_palette[[4]], "All equal" = rocket_palette[[1]], 
+                 "None" = topology_colours[["Paraphyly"]])
 # Plot best_df as bar charts
 best_topology_plot <- ggplot(data = best_df, aes(x = dataset_id_formatted, fill = best_topology_formatted)) +
   geom_bar(position = "fill") + 
   scale_x_discrete(name = NULL) +
   scale_y_continuous(name = "Proportion of genes (%)", breaks = seq(0,1,0.2), labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1)) +
-  scale_fill_viridis_d(name = "Best topology\n(by BIC)", option = "H") +
+  scale_fill_manual(name = "Best topology\n(by BIC)", values = bic_colours) +
   theme_bw() +
   theme(axis.title.y = element_text(size = 16, margin = margin(r = 10)),
         axis.text.x = element_text(size = 14, angle = 90, vjust = 0.5, hjust = 1.0, margin = margin(b = 5)),
