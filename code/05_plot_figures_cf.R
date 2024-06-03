@@ -676,4 +676,9 @@ bic_histogram <- ggplot(data = bic_long, aes(x = value, fill = topology)) +
 ggsave(filename = paste0(plot_dir, "cf_gene_BIC_histogram.pdf"), plot = bic_histogram)
 ggsave(filename = paste0(plot_dir, "cf_gene_BIC_histogram.png"), plot = bic_histogram)
 
+## Print out a table of how many genes support each hypothesis
+count_df <- table(best_df$dataset_id, best_df$best_topology)
+percent_df <- round(count_df/rowSums(count_df)*100, digits = 2)
+
+
 
