@@ -575,25 +575,26 @@ extract.best.BIC.topology <- function(i, logl_df){
     new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
                    i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
                    i_row$dataset_id_formatted, "CTEN_and_PORI",
-                   NA, NA)
+                   i_row$CTEN_LogL, i_row$CTEN_BIC)
   } else if ((i_row$CTEN_BIC == i_row$CTEN_PORI_BIC) & (i_row$CTEN_BIC < i_row$PORI_BIC)){
     # Tie: CTEN and CTEN_PORI
     new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
                    i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
                    i_row$dataset_id_formatted, "CTEN_and_CTENPORI",
-                   NA, NA)
+                   i_row$CTEN_LogL, i_row$CTEN_BIC)
   } else if ((i_row$PORI_BIC == i_row$CTEN_PORI_BIC) & (i_row$PORI_BIC < i_row$CTEN_BIC)) {
     # Tie: PORI and CTEN_PORI
     new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
                    i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
                    i_row$dataset_id_formatted, "PORI_and_CTENPORI",
-                   NA, NA)
-  } else if ((i_row$CTEN_BIC == i_row$PORI_BIC) & (i_row$CTEN_BIC == i_row$CTEN_PORI_BIC) & (i_row$PORI_BIC == i_row$CTEN_PORI_BIC)) {
+                   i_row$CTEN_PORI_LogL, i_row$CTEN_PORI_BIC)
+  } else if (((i_row$CTEN_BIC == i_row$PORI_BIC) & (i_row$CTEN_BIC == i_row$CTEN_PORI_BIC) & (i_row$PORI_BIC == i_row$CTEN_PORI_BIC)) &
+             (is.na(i_row$CTEN_BIC) == FALSE | is.na(i_row$PORI_BIC) == FALSE | is.na(i_row$CTEN_PORI_BIC) == FALSE)) {
     # Tie: CTEN and PORI and CTEN_PORI
     new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
                    i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
                    i_row$dataset_id_formatted, "CTEN_and_PORI_and_CTENPORI",
-                   NA, NA)
+                   i_row$CTEN_LogL, i_row$CTEN_BIC)
   } else {
     # No single best BIC
     new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
@@ -679,6 +680,40 @@ ggsave(filename = paste0(plot_dir, "cf_gene_BIC_histogram.png"), plot = bic_hist
 ## Print out a table of how many genes support each hypothesis
 count_df <- table(best_df$dataset_id, best_df$best_topology)
 percent_df <- round(count_df/rowSums(count_df)*100, digits = 2)
+write.csv(percent_df, file = paste0(plot_dir, "gene_percent_df.csv"), row.names = F)
 
+## Plot whether ML or constrained tree has best loglikelihood
+# Create column for plotting
+best_df$compare_BIC <- ""
+best_df$compare_BIC[which(best_df$BEST_BIC < best_df$ML_BIC)]   <- "Constrained"
+best_df$compare_BIC[which(best_df$ML_BIC == best_df$BEST_BIC)]  <- "Tie"
+best_df$compare_BIC[which(best_df$ML_BIC < best_df$BEST_BIC)]   <- "Unconstrained"
+best_df$compare_BIC_label <- factor(best_df$compare_BIC,
+                                    levels = c("Constrained", "Unconstrained", "Tie"),
+                                    labels = c("Constrained", "Unconstrained", "Tie"),
+                                    ordered = T)
+# Create labels
+constrain_labs <- c("Unconstrained" = "#56B4E9", "Constrained" = "#D55E00")
+# Create stacked bar plot
+constrain_plot <- ggplot(data = best_df, aes(x = dataset_id_formatted, fill = compare_BIC_label)) +
+  geom_bar(position = "fill") + 
+  scale_x_discrete(name = NULL) +
+  scale_y_continuous(name = "Proportion of genes (%)", breaks = seq(0,1,0.2), labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1)) +
+  scale_fill_manual(name = "Gene tree with\nlowest BIC", values = constrain_labs) +
+  theme_bw() +
+  theme(axis.title.y = element_text(size = 16, margin = margin(r = 10)),
+        axis.text.x = element_text(size = 14, angle = 90, vjust = 0.5, hjust = 1.0, margin = margin(b = 5)),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_text(size = 14, hjust = 0.5),
+        legend.text = element_text(size = 12) )
+ggsave(filename = paste0(plot_dir, "cf_gene_compare_constrained_unconstrained.pdf"), 
+       plot = constrain_plot, height = 8, width = 6, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_gene_compare_constrained_unconstrained.png"), 
+       plot = constrain_plot, height = 7, width = 6, units = "in")
+
+## Print out a table of how many genes support each hypothesis
+count2_df <- table(best_df$dataset_id, best_df$compare_BIC)
+percent2_df <- round(count2_df/rowSums(count2_df)*100, digits = 2)
+write.csv(percent2_df, file = paste0(plot_dir, "constrain_percent_df.csv"), row.names = F)
 
 
