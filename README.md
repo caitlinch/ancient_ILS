@@ -59,3 +59,7 @@ To fully replicate the analyses, follow these steps:
 + Run the script `5_plot_trees.R`
 
 ***
+### Citation information
+If you replicate any part of these analyses or use functions from these scripts, please cite this repository. Thank you! 
+
+Caitlin Cherryh, 2024. "Evaluating the impact of conflicting phylogenetic signal on hypotheses of early animal evolution", GitHub repository. https://github.com/caitlinch/ancient_ILS (Accessed 4/6/2024)
