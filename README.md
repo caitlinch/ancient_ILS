@@ -14,8 +14,8 @@ The evolutionary relationships between the Metazoa have been particularly diffic
     + All scripts necessary to completely replicate this analysis are included in the `code/` folder
     + Each script includes an overview, a list of necessary parameters or file paths,  and a list of software necessary to run that script
 + Output
-    + All `.csv` files containing output from each stage of the analysis can be found in the `output/` folder
-    + 'dataset_included_taxa.tsv`: Table with one column per empirical dataset. Column names are dataset names, and all taxon names within that dataset are listed one per row
+    + **All files containing output from each stage of the analysis can be found in the `output/` folder**
+    + `dataset_included_taxa.tsv`: Table with one column per empirical dataset. Column names are dataset names, and all taxon names within that dataset are listed one per row
     + `empirical_alignment_files`: Table listing dataset name, dataset ID, alignment file and partition file for each empirical dataset
     + `input_partition_gene_tree_estimation.csv`: Input file for estimating gene trees
     + `input_c60_gene_tree_estimation.csv`: Input file for estimating gene trees
@@ -34,21 +34,28 @@ The evolutionary relationships between the Metazoa have been particularly diffic
 ### Instructions to reproduce the analyses:
 To fully replicate the analyses, follow these steps:
 
-1. Download and install the software programs and R packages required to run each of the treelikeness metrics
-    + IQ-Tree2
-    + SplitsTree4 (v4.17.1 or higher)
-    + Phylogemetric
-    + fast_TIGER
-2. Create the conda environment `gene_filtering` using the `environment.yaml` file
-3. Prepare simulated alignments
-    + The script `code/01_simulations.R` will generate both sets of simulated alignments (random tree simulations and introgression simulations)
-    + The random tree simulations mimic decreased treelikeness by increasing the number of evolutionary histories present within an alignment
-    + The introgression simulations mimic decreased treelikeness by increasing the proportion of sites within the alignment impacted by a single introgression event
-4. Apply treelikeness metrics
-    + The script `code/02_apply_treelikeness_metrics.R` will fully replicate our analysis by applying each treelikeness metric to each simulated alignment
-    + To apply specific treelikeness metrics to a single alignment, use the functions in the script `code/func_metrics.R`
-    + To apply the tree proportion test to a single alignment, use the functions in the script `code/func_tree_proportion.R`
-5. Process and analyse results
-    + The script `code/03_data_analysis.R` will plot results from the treelikeness metrics for both sets of simulations
+#### To perform the concordance factors analysis
+1. Download and install the following software programs:
+    + [IQ-Tree2](http://www.iqtree.org/)
+    + [ASTRAL](https://github.com/smirarab/ASTRAL)
+2. Download alignments
+    + Download the figshare repository for this project
+3. Estimate phylogenetic trees from each empirical dataset with Partition and C60 substitution models
+    + Run the script `01_empirical_tree_estimation.R`
+4. Estimate gene trees from each empirical dataset
+    + To estimate gene trees with the models from the best partitioning scheme, run the script `02_gene_tree_estimation.R`. This file contains code to estimate unconstrained gene trees and constrained gene trees. Constrained gene trees are not needed for the concordance analysis and are only used in the constrained tree analysis
+    + To estimate gene trees with a C60 model, run the script `02_C60_gene_tree_estimation.R`
+5. Calculate concordance factors
+    + Run the script `03_empirical_concordance_factors.R`
+6. Plot results
+    + Run the script `05_plot_figures_cf.R`
+
+#### To perform constrained tree analysis using gene trees
++ Generate gene trees as above
++ Run the script `04_single_gene_processing.R`
++ Plot results using script `05_plot_figures_cf.R`
+
+#### To plot the hypotheses of metazoan evolution
++ Run the script `5_plot_trees.R`
 
 ***
