@@ -51,7 +51,7 @@ To fully replicate the analyses, follow these steps:
     + Run the script `05_plot_figures_cf.R`
 
 #### To perform constrained tree analysis using gene trees
-+ Generate gene trees as above
++ Generate gene trees and constrained gene trees using the script `02_gene_tree_estimation.R`
 + Run the script `04_single_gene_processing.R`
 + Plot results using script `05_plot_figures_cf.R`
 
