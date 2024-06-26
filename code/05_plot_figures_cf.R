@@ -544,53 +544,53 @@ write.csv(pretty_qcf, file = pretty_qcf_file, row.names = FALSE)
 
 ###### 9. Plot gene log-likelihood  ######
 # Extract the best logl for each row
-extract.best.BIC.topology <- function(i, logl_df){
+extract.best.LogL.topology <- function(i, logl_df){
   i_row <- logl_df[i, ]
-  if (is.na(i_row$CTEN_BIC) & is.na(i_row$PORI_BIC) & is.na(i_row$CTEN_PORI_BIC)){
+  if (is.na(i_row$CTEN_LogL) & is.na(i_row$PORI_LogL) & is.na(i_row$CTEN_PORI_LogL)){
     # Missing all BIC
     new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
                    i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
                    i_row$dataset_id_formatted, "NONE",
                    NA, NA)
-  } else if ((i_row$CTEN_BIC < i_row$PORI_BIC) & (i_row$CTEN_BIC < i_row$CTEN_PORI_BIC)){
-    # CTEN = best (lowest) BIC
+  } else if ((i_row$CTEN_LogL > i_row$PORI_LogL) & (i_row$CTEN_LogL > i_row$CTEN_PORI_LogL)){
+    # CTEN = best (highest) LogL
     new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
                    i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
                    i_row$dataset_id_formatted, "CTEN",
                    i_row$CTEN_LogL, i_row$CTEN_BIC)
-  } else if ((i_row$PORI_BIC < i_row$CTEN_BIC) & (i_row$PORI_BIC < i_row$CTEN_PORI_BIC)){
-    # PORI = best (lowest) BIC
+  } else if ((i_row$PORI_LogL > i_row$CTEN_LogL) & (i_row$PORI_LogL > i_row$CTEN_PORI_LogL)){
+    # PORI = best (highest) LogL
     new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
                    i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
                    i_row$dataset_id_formatted, "PORI",
                    i_row$PORI_LogL, i_row$PORI_BIC)
-  } else if ((i_row$CTEN_PORI_BIC < i_row$PORI_BIC) & (i_row$CTEN_PORI_BIC < i_row$CTEN_BIC)){
-    # CTEN_PORI = best (lowest) BIC
+  } else if ((i_row$CTEN_PORI_LogL > i_row$PORI_LogL) & (i_row$CTEN_PORI_LogL > i_row$CTEN_LogL)){
+    # CTEN_PORI = best (highest) LogL
     new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
                    i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
                    i_row$dataset_id_formatted, "CTEN_PORI",
                    i_row$CTEN_PORI_LogL, i_row$CTEN_PORI_BIC)
-  } else if ((i_row$CTEN_BIC == i_row$PORI_BIC) & (i_row$CTEN_BIC < i_row$CTEN_PORI_BIC)){
-    # Tie: CTEN and PORI
+  } else if ((i_row$CTEN_LogL == i_row$PORI_LogL) & (i_row$CTEN_LogL > i_row$CTEN_PORI_LogL)){
+    # Tie: CTEN and PORI =  best (highest) LogL
     new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
                    i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
                    i_row$dataset_id_formatted, "CTEN_and_PORI",
                    i_row$CTEN_LogL, i_row$CTEN_BIC)
-  } else if ((i_row$CTEN_BIC == i_row$CTEN_PORI_BIC) & (i_row$CTEN_BIC < i_row$PORI_BIC)){
-    # Tie: CTEN and CTEN_PORI
+  } else if ((i_row$CTEN_LogL == i_row$CTEN_PORI_LogL) & (i_row$CTEN_LogL > i_row$PORI_LogL)){
+    # Tie: CTEN and CTEN_PORI = best (highest) LogL
     new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
                    i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
                    i_row$dataset_id_formatted, "CTEN_and_CTENPORI",
                    i_row$CTEN_LogL, i_row$CTEN_BIC)
-  } else if ((i_row$PORI_BIC == i_row$CTEN_PORI_BIC) & (i_row$PORI_BIC < i_row$CTEN_BIC)) {
-    # Tie: PORI and CTEN_PORI
+  } else if ((i_row$PORI_LogL == i_row$CTEN_PORI_LogL) & (i_row$PORI_LogL > i_row$CTEN_LogL)) {
+    # Tie: PORI and CTEN_PORI = best (highest) LogL
     new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
                    i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
                    i_row$dataset_id_formatted, "PORI_and_CTENPORI",
                    i_row$CTEN_PORI_LogL, i_row$CTEN_PORI_BIC)
-  } else if (((i_row$CTEN_BIC == i_row$PORI_BIC) & (i_row$CTEN_BIC == i_row$CTEN_PORI_BIC) & (i_row$PORI_BIC == i_row$CTEN_PORI_BIC)) &
-             (is.na(i_row$CTEN_BIC) == FALSE | is.na(i_row$PORI_BIC) == FALSE | is.na(i_row$CTEN_PORI_BIC) == FALSE)) {
-    # Tie: CTEN and PORI and CTEN_PORI
+  } else if (((i_row$CTEN_LogL == i_row$PORI_LogL) & (i_row$CTEN_LogL == i_row$CTEN_PORI_LogL) & (i_row$PORI_LogL == i_row$CTEN_PORI_LogL)) &
+             (is.na(i_row$CTEN_LogL) == FALSE | is.na(i_row$PORI_LogL) == FALSE | is.na(i_row$CTEN_PORI_LogL) == FALSE)) {
+    # Tie: CTEN and PORI and CTEN_PORI = best (highest) LogL
     new_i_row <- c(i_row$dataset, i_row$matrix_name, i_row$dataset_id, 
                    i_row$gene_name, i_row$gene_id, i_row$ML_logl, i_row$ML_BIC,
                    i_row$dataset_id_formatted, "CTEN_and_PORI_and_CTENPORI",
@@ -609,7 +609,7 @@ extract.best.BIC.topology <- function(i, logl_df){
   return(new_i_row)
 }
 # Call function
-best_list <- lapply(1:nrow(logl_df), extract.best.BIC.topology, logl_df = logl_df)
+best_list <- lapply(1:nrow(logl_df), extract.best.LogL.topology, logl_df = logl_df)
 best_df <- as.data.frame(do.call(rbind, best_list))
 # Format best_df
 best_df$best_topology_formatted <- factor(best_df$best_topology,
@@ -640,29 +640,29 @@ best_topology_plot <- ggplot(data = best_df, aes(x = dataset_id_formatted, fill 
   geom_bar(position = "fill") + 
   scale_x_discrete(name = NULL) +
   scale_y_continuous(name = "Proportion of genes (%)", breaks = seq(0,1,0.2), labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1)) +
-  scale_fill_manual(name = "Best topology\n(by BIC)", values = bic_colours) +
+  scale_fill_manual(name = "Best topology\n(by LogL)", values = bic_colours) +
   theme_bw() +
   theme(axis.title.y = element_text(size = 16, margin = margin(r = 10)),
         axis.text.x = element_text(size = 14, angle = 90, vjust = 0.5, hjust = 1.0, margin = margin(b = 5)),
         axis.text.y = element_text(size = 14),
         legend.title = element_text(size = 16, hjust = 0.5),
         legend.text = element_text(size = 12) )
-ggsave(filename = paste0(plot_dir, "cf_gene_BIC_topology.pdf"), plot = best_topology_plot, height = 8, width = 6, units = "in")
-ggsave(filename = paste0(plot_dir, "cf_gene_BIC_topology.png"), plot = best_topology_plot, height = 7, width = 6, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_gene_LogL_topology.pdf"), plot = best_topology_plot, height = 8, width = 6, units = "in")
+ggsave(filename = paste0(plot_dir, "cf_gene_LogL_topology.png"), plot = best_topology_plot, height = 7, width = 6, units = "in")
 
 # Plot difference in BIC
-bic_long <- melt(logl_df, 
+gene_long <- melt(logl_df, 
                  id.vars = names(logl_df)[1:14],
-                 measure.vars = c("CTEN_BIC", "PORI_BIC", "CTEN_PORI_BIC") )
-bic_long$topology <- factor(bic_long$variable,
-                            levels = c("CTEN_BIC", "PORI_BIC", "CTEN_PORI_BIC"),
+                 measure.vars = c("CTEN_LogL", "PORI_LogL", "CTEN_PORI_LogL") )
+gene_long$topology <- factor(gene_long$variable,
+                            levels = c("CTEN_LogL", "PORI_LogL", "CTEN_PORI_LogL"),
                             labels = c("CTEN", "PORI", "CTEN+PORI"),
                             ordered = T)
 # Plot histogram of BIC values
-bic_histogram <- ggplot(data = bic_long, aes(x = value, fill = topology)) +
+histogram <- ggplot(data = gene_long, aes(x = value, fill = topology)) +
   geom_histogram(bins = 50) +
   facet_grid(topology~.) +
-  scale_x_continuous(name = "BIC value", breaks = c(0, 50000, 100000, 150000), labels = c("0", "50K", "100K", "150K"), limits = c(0,150000)) +
+  scale_x_continuous(name = "Log likelihood value", breaks = c(-65000, -52000, -39000, -26000, -13000, 0), labels = c("-65K", "-52K", "-39K", "-26K", "-13K", "0"), limits = c(-65000,0)) +
   scale_y_continuous(name = "Count") +
   scale_fill_manual(name = "Constrained\ngene topology", values = c("CTEN" = topology_colours[["Ctenophora"]], 
                                                                     "PORI" = topology_colours[["Porifera"]], 
@@ -674,46 +674,46 @@ bic_histogram <- ggplot(data = bic_long, aes(x = value, fill = topology)) +
         axis.text.y = element_text(size = 12),
         legend.title = element_text(size = 14, hjust = 0.5, margin = margin(b=10)),
         legend.text = element_text(size = 12) )
-ggsave(filename = paste0(plot_dir, "cf_gene_BIC_histogram.pdf"), plot = bic_histogram)
-ggsave(filename = paste0(plot_dir, "cf_gene_BIC_histogram.png"), plot = bic_histogram)
+ggsave(filename = paste0(plot_dir, "cf_gene_LogL_histogram.pdf"), plot = histogram)
+ggsave(filename = paste0(plot_dir, "cf_gene_LogL_histogram.png"), plot = histogram)
 
 ## Print out a table of how many genes support each hypothesis
 count_df <- table(best_df$dataset_id, best_df$best_topology)
 percent_df <- round(count_df/rowSums(count_df)*100, digits = 2)
-write.csv(percent_df, file = paste0(plot_dir, "gene_percent_df.csv"), row.names = F)
+write.csv(percent_df, file = paste0(plot_dir, "gene_LogL_percent_df.csv"), row.names = F)
 
 ## Plot whether ML or constrained tree has best loglikelihood
 # Create column for plotting
-best_df$compare_BIC <- ""
-best_df$compare_BIC[which(best_df$BEST_BIC < best_df$ML_BIC)]   <- "Constrained"
-best_df$compare_BIC[which(best_df$ML_BIC == best_df$BEST_BIC)]  <- "Tie"
-best_df$compare_BIC[which(best_df$ML_BIC < best_df$BEST_BIC)]   <- "Unconstrained"
-best_df$compare_BIC_label <- factor(best_df$compare_BIC,
+best_df$compare_LogL <- ""
+best_df$compare_LogL[which(best_df$BEST_LogL > best_df$ML_logl)]   <- "Constrained"
+best_df$compare_LogL[which(best_df$ML_logl == best_df$BEST_LogL)]  <- "Tie"
+best_df$compare_LogL[which(best_df$ML_logl > best_df$BEST_LogL)]   <- "Unconstrained"
+best_df$compare_LogL_label <- factor(best_df$compare_LogL,
                                     levels = c("Constrained", "Unconstrained", "Tie"),
                                     labels = c("Constrained", "Unconstrained", "Tie"),
                                     ordered = T)
 # Create labels
-constrain_labs <- c("Unconstrained" = "#56B4E9", "Constrained" = "#D55E00")
+constrain_labs <- c("Unconstrained" = "#56B4E9", "Constrained" = "#D55E00", "Tie" = rocket_palette[[1]])
 # Create stacked bar plot
-constrain_plot <- ggplot(data = best_df, aes(x = dataset_id_formatted, fill = compare_BIC_label)) +
+constrain_plot <- ggplot(data = best_df, aes(x = dataset_id_formatted, fill = compare_LogL_label)) +
   geom_bar(position = "fill") + 
   scale_x_discrete(name = NULL) +
   scale_y_continuous(name = "Proportion of genes (%)", breaks = seq(0,1,0.2), labels = seq(0,1,0.2), minor_breaks = seq(0,1,0.1)) +
-  scale_fill_manual(name = "Gene tree with\nlowest BIC", values = constrain_labs) +
+  scale_fill_manual(name = "Gene tree with\nbest LogL", values = constrain_labs) +
   theme_bw() +
   theme(axis.title.y = element_text(size = 16, margin = margin(r = 10)),
         axis.text.x = element_text(size = 14, angle = 90, vjust = 0.5, hjust = 1.0, margin = margin(b = 5)),
         axis.text.y = element_text(size = 14),
         legend.title = element_text(size = 14, hjust = 0.5),
         legend.text = element_text(size = 12) )
-ggsave(filename = paste0(plot_dir, "cf_gene_compare_constrained_unconstrained.pdf"), 
+ggsave(filename = paste0(plot_dir, "cf_gene_compare_LogL_constrained_unconstrained.pdf"), 
        plot = constrain_plot, height = 8, width = 6, units = "in")
-ggsave(filename = paste0(plot_dir, "cf_gene_compare_constrained_unconstrained.png"), 
+ggsave(filename = paste0(plot_dir, "cf_gene_compare_LogL_constrained_unconstrained.png"), 
        plot = constrain_plot, height = 7, width = 6, units = "in")
 
 ## Print out a table of how many genes support each hypothesis
 count2_df <- table(best_df$dataset_id, best_df$compare_BIC)
 percent2_df <- round(count2_df/rowSums(count2_df)*100, digits = 2)
-write.csv(percent2_df, file = paste0(plot_dir, "constrain_percent_df.csv"), row.names = F)
+write.csv(percent2_df, file = paste0(plot_dir, "constrain_LogL_percent_df.csv"), row.names = F)
 
 
