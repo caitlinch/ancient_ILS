@@ -689,11 +689,11 @@ best_df$compare_LogL[which(best_df$BEST_LogL > best_df$ML_logl)]   <- "Constrain
 best_df$compare_LogL[which(best_df$ML_logl == best_df$BEST_LogL)]  <- "Tie"
 best_df$compare_LogL[which(best_df$ML_logl > best_df$BEST_LogL)]   <- "Unconstrained"
 best_df$compare_LogL_label <- factor(best_df$compare_LogL,
-                                    levels = c("Constrained", "Unconstrained", "Tie"),
-                                    labels = c("Constrained", "Unconstrained", "Tie"),
+                                    levels = c("Tie", "Constrained", "Unconstrained"),
+                                    labels = c("Identical LogL", "Constrained", "Unconstrained"),
                                     ordered = T)
 # Create labels
-constrain_labs <- c("Unconstrained" = "#56B4E9", "Constrained" = "#D55E00", "Tie" = rocket_palette[[1]])
+constrain_labs <- c("Unconstrained" = "#56B4E9", "Constrained" = "#D55E00", "Identical LogL" = rocket_palette[[1]])
 # Create stacked bar plot
 constrain_plot <- ggplot(data = best_df, aes(x = dataset_id_formatted, fill = compare_LogL_label)) +
   geom_bar(position = "fill") + 
